@@ -91,6 +91,7 @@ public sealed class DeviceService : IDeviceService, IDisposable
             {
                 Connection = ConnectionState.Active,
                 ControlTransport = cable.Transport,
+                DeviceName = string.IsNullOrWhiteSpace(cable.ProductName) ? null : cable.ProductName,
                 DonglePresent = donglePresent,
                 UpdatedAt = DateTimeOffset.Now,
             });

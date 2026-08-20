@@ -1,0 +1,195 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Maxwell.App.ViewModels"
+        x:Class="Maxwell.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Maxwell.App"
+        Width="1040" Height="720"
+        MinWidth="880" MinHeight="560"
+        Background="{DynamicResource LayerBackgroundBrush}"
+        FontFamily="Segoe UI Variable Text, Segoe UI, sans-serif"
+        FontSize="{DynamicResource FontSizeBody}"
+        Foreground="{DynamicResource TextPrimaryBrush}"
+        WindowDecorations="BorderOnly">
+
+  <Window.Styles>
+
+    <!-- Window chrome buttons: flat, 46px wide, close turns red like the mock-up. -->
+    <Style Selector="Button.chrome">
+      <Setter Property="Width" Value="46" />
+      <Setter Property="Height" Value="48" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.chrome:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}" />
+    </Style>
+    <Style Selector="Button.chrome.close:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+      <Setter Property="TextElement.Foreground" Value="White" />
+    </Style>
+
+    <Style Selector="TextBlock.groupHeader">
+      <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}" />
+      <Setter Property="Margin" Value="12,10,12,4" />
+    </Style>
+
+    <Style Selector="TextBlock.secondary">
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+      <Setter Property="FontSize" Value="{DynamicResource FontSizeSecondary}" />
+    </Style>
+
+    <!-- Navigation entries: 40px rows with an accent rail on the selected one. -->
+    <Style Selector="ListBox.nav">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem">
+      <Setter Property="Height" Value="40" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Margin" Value="4,1" />
+      <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
+    </Style>
+
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource LayerCardBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource StrokeDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="{DynamicResource RadiusCard}" />
+      <Setter Property="Padding" Value="20" />
+    </Style>
+
+  </Window.Styles>
+
+  <Grid RowDefinitions="48,*">
+
+    <!-- Title bar -->
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto"
+          Background="Transparent"
+          PointerPressed="OnTitleBarPressed">
+
+      <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12"
+                  Margin="16,0,0,0" VerticalAlignment="Center">
+        <Border Width="18" Height="18" CornerRadius="{DynamicResource RadiusSmall}"
+                Background="{DynamicResource AccentPrimaryBrush}">
+          <TextBlock Text="M" FontSize="11" FontWeight="Bold" Foreground="White"
+                     HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border>
+        <TextBlock Text="Maxwell.App" FontSize="{DynamicResource FontSizeSmall}"
+                   VerticalAlignment="Center" />
+      </StackPanel>
+
+      <StackPanel Grid.Column="2" Orientation="Horizontal">
+        <Button Classes="chrome" Content="&#x2500;" Click="OnMinimise" />
+        <Button Classes="chrome" Content="&#x25A1;" Click="OnMaximise" />
+        <Button Classes="chrome close" Content="&#x2715;" Click="OnHide" />
+      </StackPanel>
+    </Grid>
+
+    <!-- Body -->
+    <Grid Grid.Row="1" ColumnDefinitions="260,*">
+
+      <!-- Navigation -->
+      <ScrollViewer Grid.Column="0" Padding="8,0,8,12">
+        <StackPanel Spacing="2">
+
+          <Border Height="32" Margin="4,0,4,8"
+                  CornerRadius="{DynamicResource RadiusSmall}"
+                  Background="{DynamicResource LayerCardBrush}"
+                  BorderBrush="{DynamicResource StrokeSubtleBrush}"
+                  BorderThickness="1">
+            <TextBlock Text="Поиск" Margin="10,0" VerticalAlignment="Center"
+                       FontSize="{DynamicResource FontSizeSecondary}"
+                       Foreground="{DynamicResource TextTertiaryBrush}" />
+          </Border>
+
+          <TextBlock Classes="groupHeader" Text="{Binding DeviceTitle}" />
+
+          <ListBox Classes="nav"
+                   ItemsSource="{Binding DeviceSections}"
+                   SelectedItem="{Binding Selected}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:NavSection">
+                <TextBlock Text="{Binding Title}" Margin="12,0"
+                           VerticalAlignment="Center" />
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+          <TextBlock Classes="groupHeader" Text="ПРИЛОЖЕНИЕ" />
+
+          <ListBox Classes="nav"
+                   ItemsSource="{Binding AppSections}"
+                   SelectedItem="{Binding Selected}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:NavSection">
+                <TextBlock Text="{Binding Title}" Margin="12,0"
+                           VerticalAlignment="Center" />
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- Content -->
+      <ScrollViewer Grid.Column="1" Padding="12,0,24,24">
+        <StackPanel Spacing="16">
+
+          <TextBlock Text="{Binding Selected.Title}"
+                     FontSize="{DynamicResource FontSizeSubtitle}"
+                     FontWeight="SemiBold"
+                     Margin="0,4,0,0" />
+
+          <!-- Nothing connected -->
+          <Border Classes="card" IsVisible="{Binding ShowNotFound}">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Наушники не найдены" FontWeight="SemiBold" />
+              <TextBlock Classes="secondary" TextWrapping="Wrap"
+                         Text="Включите Maxwell и подключите кабель USB-C или беспроводной адаптер. Приложение подхватит устройство само." />
+            </StackPanel>
+          </Border>
+
+          <!-- Dongle only: monitoring works, configuration does not -->
+          <Border Classes="card" IsVisible="{Binding ShowMonitorOnly}">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Подключён только донгл — доступен мониторинг" FontWeight="SemiBold" />
+              <TextBlock Classes="secondary" TextWrapping="Wrap"
+                         Text="Донгл передаёт звук, но не отвечает на команды настройки. Подключите кабель USB-C, чтобы менять параметры." />
+            </StackPanel>
+          </Border>
+
+          <!-- Device summary -->
+          <Border Classes="card" IsVisible="{Binding CanControl}">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Grid.Column="0" Spacing="4">
+                <TextBlock Text="{Binding DeviceTitle}" FontWeight="SemiBold"
+                           FontSize="{DynamicResource FontSizeSubtitle}" />
+                <TextBlock Classes="secondary" Text="{Binding DeviceSubtitle}" />
+                <TextBlock Classes="secondary" Text="{Binding ConnectionText}" />
+              </StackPanel>
+
+              <TextBlock Grid.Column="1"
+                         Text="{Binding BatteryText}"
+                         FontSize="{DynamicResource FontSizeTitle}"
+                         FontWeight="SemiBold"
+                         VerticalAlignment="Center"
+                         Foreground="{DynamicResource AccentPrimaryBrush}" />
+            </Grid>
+          </Border>
+
+        </StackPanel>
+      </ScrollViewer>
+
+    </Grid>
+  </Grid>
+
+</Window>

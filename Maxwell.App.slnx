@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Maxwell.App/Maxwell.App.csproj" />
     <Project Path="src/Maxwell.Cli/Maxwell.Cli.csproj" />
     <Project Path="src/Maxwell.Core/Maxwell.Core.csproj" />
     <Project Path="src/Maxwell.Race/Maxwell.Race.csproj" />

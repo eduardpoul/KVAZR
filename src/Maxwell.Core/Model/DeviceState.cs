@@ -46,6 +46,9 @@ public sealed record DeviceState
     /// <summary>True when a dongle is present, whether or not a cable also is.</summary>
     public bool DonglePresent { get; init; }
 
+    /// <summary>Product string reported by the HID descriptor, when one is connected.</summary>
+    public string? DeviceName { get; init; }
+
     public int BatteryPercent { get; init; } = Unknown;
 
     /// <summary>Inferred from the battery trend; the device exposes no charging flag we have identified.</summary>

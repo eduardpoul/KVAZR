@@ -1,0 +1,113 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Design tokens for Maxwell.App.
+
+    The Light values are lifted verbatim from the Claude Design canvas
+    (Design/audeze-maxwell/project/Maxwell Hub.dc.html) — they are not approximations.
+
+    The Dark values are DERIVED. The canvas only ever produced a dark variant for the
+    intermediate dashboard, never for the final screens, so this palette follows Fluent
+    conventions rather than a mock-up. It needs a look before it spreads across every
+    screen; see docs/PLAN.md risk 1.
+  -->
+
+  <ResourceDictionary.ThemeDictionaries>
+
+    <ResourceDictionary x:Key="Light">
+      <Color x:Key="AccentPrimaryColor">#0F6CBD</Color>
+      <Color x:Key="AccentHoverColor">#0C5AA6</Color>
+      <Color x:Key="AccentSubtleColor">#1A0F6CBD</Color>
+      <Color x:Key="AccentBorderColor">#590F6CBD</Color>
+
+      <Color x:Key="TextPrimaryColor">#1B1B1B</Color>
+      <Color x:Key="TextSecondaryColor">#616161</Color>
+      <Color x:Key="TextTertiaryColor">#8A8A8A</Color>
+      <Color x:Key="TextOnAccentColor">#FFFFFF</Color>
+
+      <Color x:Key="LayerBackgroundColor">#F3F3F3</Color>
+      <Color x:Key="LayerCardColor">#FFFFFF</Color>
+      <Color x:Key="LayerSubtleColor">#F9F9F9</Color>
+      <Color x:Key="LayerAltColor">#F5F5F5</Color>
+      <Color x:Key="LayerSelectedColor">#EBEBEB</Color>
+      <Color x:Key="LayerHoverColor">#0A000000</Color>
+
+      <Color x:Key="StrokeDefaultColor">#1A000000</Color>
+      <Color x:Key="StrokeSubtleColor">#0F000000</Color>
+      <Color x:Key="StrokeStrongColor">#73000000</Color>
+
+      <Color x:Key="DangerColor">#C42B1C</Color>
+      <Color x:Key="WarningColor">#986F0B</Color>
+      <Color x:Key="SuccessColor">#0F7B0F</Color>
+    </ResourceDictionary>
+
+    <ResourceDictionary x:Key="Dark">
+      <Color x:Key="AccentPrimaryColor">#479EF5</Color>
+      <Color x:Key="AccentHoverColor">#62ABF5</Color>
+      <Color x:Key="AccentSubtleColor">#26479EF5</Color>
+      <Color x:Key="AccentBorderColor">#59479EF5</Color>
+
+      <Color x:Key="TextPrimaryColor">#FFFFFF</Color>
+      <Color x:Key="TextSecondaryColor">#C7C7C7</Color>
+      <Color x:Key="TextTertiaryColor">#8A8A8A</Color>
+      <Color x:Key="TextOnAccentColor">#000000</Color>
+
+      <Color x:Key="LayerBackgroundColor">#202020</Color>
+      <Color x:Key="LayerCardColor">#2B2B2B</Color>
+      <Color x:Key="LayerSubtleColor">#272727</Color>
+      <Color x:Key="LayerAltColor">#2F2F2F</Color>
+      <Color x:Key="LayerSelectedColor">#383838</Color>
+      <Color x:Key="LayerHoverColor">#0FFFFFFF</Color>
+
+      <Color x:Key="StrokeDefaultColor">#17FFFFFF</Color>
+      <Color x:Key="StrokeSubtleColor">#0FFFFFFF</Color>
+      <Color x:Key="StrokeStrongColor">#73FFFFFF</Color>
+
+      <Color x:Key="DangerColor">#FF99A4</Color>
+      <Color x:Key="WarningColor">#FCE100</Color>
+      <Color x:Key="SuccessColor">#6CCB5F</Color>
+    </ResourceDictionary>
+
+  </ResourceDictionary.ThemeDictionaries>
+
+  <!-- Brushes resolve against whichever theme dictionary is active. -->
+  <SolidColorBrush x:Key="AccentPrimaryBrush" Color="{DynamicResource AccentPrimaryColor}" />
+  <SolidColorBrush x:Key="AccentHoverBrush" Color="{DynamicResource AccentHoverColor}" />
+  <SolidColorBrush x:Key="AccentSubtleBrush" Color="{DynamicResource AccentSubtleColor}" />
+  <SolidColorBrush x:Key="AccentBorderBrush" Color="{DynamicResource AccentBorderColor}" />
+
+  <SolidColorBrush x:Key="TextPrimaryBrush" Color="{DynamicResource TextPrimaryColor}" />
+  <SolidColorBrush x:Key="TextSecondaryBrush" Color="{DynamicResource TextSecondaryColor}" />
+  <SolidColorBrush x:Key="TextTertiaryBrush" Color="{DynamicResource TextTertiaryColor}" />
+  <SolidColorBrush x:Key="TextOnAccentBrush" Color="{DynamicResource TextOnAccentColor}" />
+
+  <SolidColorBrush x:Key="LayerBackgroundBrush" Color="{DynamicResource LayerBackgroundColor}" />
+  <SolidColorBrush x:Key="LayerCardBrush" Color="{DynamicResource LayerCardColor}" />
+  <SolidColorBrush x:Key="LayerSubtleBrush" Color="{DynamicResource LayerSubtleColor}" />
+  <SolidColorBrush x:Key="LayerAltBrush" Color="{DynamicResource LayerAltColor}" />
+  <SolidColorBrush x:Key="LayerSelectedBrush" Color="{DynamicResource LayerSelectedColor}" />
+  <SolidColorBrush x:Key="LayerHoverBrush" Color="{DynamicResource LayerHoverColor}" />
+
+  <SolidColorBrush x:Key="StrokeDefaultBrush" Color="{DynamicResource StrokeDefaultColor}" />
+  <SolidColorBrush x:Key="StrokeSubtleBrush" Color="{DynamicResource StrokeSubtleColor}" />
+  <SolidColorBrush x:Key="StrokeStrongBrush" Color="{DynamicResource StrokeStrongColor}" />
+
+  <SolidColorBrush x:Key="DangerBrush" Color="{DynamicResource DangerColor}" />
+  <SolidColorBrush x:Key="WarningBrush" Color="{DynamicResource WarningColor}" />
+  <SolidColorBrush x:Key="SuccessBrush" Color="{DynamicResource SuccessColor}" />
+
+  <!-- Geometry and type scale, both taken from the canvas. -->
+  <CornerRadius x:Key="RadiusSmall">4</CornerRadius>
+  <CornerRadius x:Key="RadiusCard">8</CornerRadius>
+  <CornerRadius x:Key="RadiusPill">10</CornerRadius>
+
+  <x:Double x:Key="FontSizeCaption">11</x:Double>
+  <x:Double x:Key="FontSizeSmall">12</x:Double>
+  <x:Double x:Key="FontSizeSecondary">13</x:Double>
+  <x:Double x:Key="FontSizeBody">14</x:Double>
+  <x:Double x:Key="FontSizeSubtitle">20</x:Double>
+  <x:Double x:Key="FontSizeTitle">28</x:Double>
+  <x:Double x:Key="FontSizeDisplay">34</x:Double>
+
+</ResourceDictionary>
