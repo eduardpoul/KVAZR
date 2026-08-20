@@ -1,5 +1,6 @@
 using Avalonia;
 using Maxwell.App.ViewModels;
+using Maxwell.App.ViewModels.Capabilities;
 using Maxwell.App.ViewModels.Pages;
 using Maxwell.App.Views;
 using Maxwell.Core;
@@ -37,6 +38,13 @@ internal static class Program
         // on it; --flyout presents it at startup.
         App.PresentFlyoutOnStart = Array.IndexOf(args, "--flyout") >= 0;
         App.PresentPopupOnStart = Array.IndexOf(args, "--popup") >= 0;
+
+        if (Array.IndexOf(args, "--open") is var open and >= 0
+            && open + 1 < args.Length
+            && int.TryParse(args[open + 1], out int index))
+        {
+            App.OpenDeviceOnStart = index;
+        }
 
         try
         {
@@ -83,6 +91,9 @@ internal static class Program
         // panel's height ceiling is specified at six devices and two will not reach it.
         int mocks = Array.IndexOf(args, "--mock-crowd") >= 0 ? 5 : 2;
         builder.Services.AddDeviceRegistry(includeMockDevices: true, mockDeviceCount: mocks);
+
+        builder.Services.AddSingleton<IConfirmationPrompt>(sp =>
+            new ModalConfirmation(sp.GetRequiredService<MainWindow>));
 
         builder.Services.AddSingleton<CapabilityShowcaseViewModel>();
         builder.Services.AddSingleton<ShellViewModel>();

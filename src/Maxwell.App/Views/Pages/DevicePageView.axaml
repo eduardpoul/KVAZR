@@ -71,9 +71,11 @@
       <ItemsControl.ItemTemplate>
         <DataTemplate x:DataType="devices:CapabilitySectionViewModel">
           <StackPanel Spacing="6" Margin="0,0,0,12">
-            <TextBlock Classes="groupHeader" Text="{Binding Title}" />
+            <TextBlock Classes="groupHeader" Text="{Binding Title}"
+                       IsVisible="{Binding !IsSensitive}" />
 
-            <Border Classes="card">
+            <!-- Ordinary section -->
+            <Border Classes="card" IsVisible="{Binding !IsSensitive}">
               <ItemsControl ItemsSource="{Binding Items}" Margin="20,14">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="cap:CapabilityViewModel">
@@ -82,6 +84,20 @@
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
             </Border>
+
+            <!-- A section holding something irreversible is collapsed: these are meant
+                 to be dug for, not stumbled into while scrolling. -->
+            <Expander IsVisible="{Binding IsSensitive}"
+                      Header="{Binding Title}"
+                      HorizontalAlignment="Stretch">
+              <ItemsControl ItemsSource="{Binding Items}" Margin="4,8">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="cap:CapabilityViewModel">
+                    <controls:CapabilityRow Margin="0,8" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Expander>
           </StackPanel>
         </DataTemplate>
       </ItemsControl.ItemTemplate>

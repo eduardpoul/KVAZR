@@ -164,7 +164,13 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
                     _states[id] = state with
                     {
                         Value = value,
+
+                        // A first reading is not a change. Without this the very first
+                        // poll flags every volatile capability as "moved on the device",
+                        // which is both wrong and the sort of wrong that teaches people
+                        // to ignore the marker.
                         ChangedExternally = moved
+                            && !state.Value.IsAbsent
                             && state.Descriptor.IsVolatile
                             && !_writtenSinceRefresh.Contains(id),
                     };

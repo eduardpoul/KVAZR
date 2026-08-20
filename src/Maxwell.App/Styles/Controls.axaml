@@ -207,4 +207,11 @@
     <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
   </Style>
 
+  <!-- The button that does the irreversible thing. Marked, not hidden: the user chose
+       to open this dialog, and hiding the consequence would be worse than naming it. -->
+  <Style Selector="Button.danger">
+    <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}" />
+  </Style>
+
 </Styles>

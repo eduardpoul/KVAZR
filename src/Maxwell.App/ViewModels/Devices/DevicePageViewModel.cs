@@ -19,16 +19,21 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
 {
     private readonly IDeviceSession _session;
     private readonly IPollingCoordinator? _polling;
+    private readonly IConfirmationPrompt? _confirm;
     private readonly Dictionary<string, CapabilityViewModel> _byId = new(StringComparer.Ordinal);
 
     private bool _disposed;
 
-    public DevicePageViewModel(IDeviceSession session, IPollingCoordinator? polling = null)
+    public DevicePageViewModel(
+        IDeviceSession session,
+        IPollingCoordinator? polling = null,
+        IConfirmationPrompt? confirm = null)
     {
         ArgumentNullException.ThrowIfNull(session);
 
         _session = session;
         _polling = polling;
+        _confirm = confirm;
 
         Snapshot = session.Snapshot;
         Rebuild(session.Snapshot);
@@ -128,7 +133,8 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
 
             foreach (CapabilityState state in snapshot.InDomain(domain))
             {
-                CapabilityViewModel vm = CapabilityViewModelFactory.Create(state, _session);
+                CapabilityViewModel vm = CapabilityViewModelFactory.Create(
+                    state, _session, HintDetail.Normal, _confirm);
                 _byId[state.Id] = vm;
                 items.Add(vm);
             }

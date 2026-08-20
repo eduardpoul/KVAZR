@@ -15,7 +15,8 @@ public static class CapabilityViewModelFactory
     public static CapabilityViewModel Create(
         CapabilityState state,
         IDeviceSession? session,
-        HintDetail detail = HintDetail.Normal)
+        HintDetail detail = HintDetail.Normal,
+        IConfirmationPrompt? confirm = null)
     {
         ArgumentNullException.ThrowIfNull(state);
 
@@ -24,7 +25,8 @@ public static class CapabilityViewModelFactory
             CapabilityPrimitive.Toggle => new ToggleCapabilityViewModel(state, session) { Detail = detail },
             CapabilityPrimitive.Range => new RangeCapabilityViewModel(state, session) { Detail = detail },
             CapabilityPrimitive.Choice => new ChoiceCapabilityViewModel(state, session) { Detail = detail },
-            CapabilityPrimitive.Action => new ActionCapabilityViewModel(state, session) { Detail = detail },
+            CapabilityPrimitive.Action =>
+                new ActionCapabilityViewModel(state, session, confirm) { Detail = detail },
 
             // Readout is also the honest fallback for primitives that have no control
             // yet — KeyMap, ButtonMap, Curve and the rest arrive with the screens that

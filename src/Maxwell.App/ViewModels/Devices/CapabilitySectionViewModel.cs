@@ -33,6 +33,13 @@ public sealed class CapabilitySectionViewModel : IDisposable
     public bool HasItems => Items.Count > 0;
 
     /// <summary>
+    /// True when the section holds something buried on purpose — a factory reset, a
+    /// re-pairing. Such a section is collapsed behind an expander, because the design
+    /// asks for these to be dug for rather than stumbled into.
+    /// </summary>
+    public bool IsSensitive => Items.Any(i => i.Descriptor.Risk == CapabilityRisk.Hidden);
+
+    /// <summary>
     /// The section names the design uses. Kept here rather than on the enum so the core
     /// stays free of interface language and of any one language at all.
     /// </summary>

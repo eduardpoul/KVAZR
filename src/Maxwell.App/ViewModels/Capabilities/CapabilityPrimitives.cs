@@ -171,31 +171,30 @@ public sealed partial class ChoiceCapabilityViewModel : CapabilityViewModel
 /// </summary>
 public sealed partial class ActionCapabilityViewModel : CapabilityViewModel
 {
-    public ActionCapabilityViewModel(CapabilityState state, IDeviceSession? session)
-        : base(state, session)
-    {
-    }
+    private readonly IConfirmationPrompt? _confirm;
 
-    /// <summary>Raised when the action needs a yes before it can run.</summary>
-    public event EventHandler<ActionCapabilityViewModel>? ConfirmationRequested;
+    public ActionCapabilityViewModel(
+        CapabilityState state,
+        IDeviceSession? session,
+        IConfirmationPrompt? confirm = null)
+        : base(state, session) => _confirm = confirm;
 
     /// <summary>The ellipsis is the promise that a question is coming.</summary>
     public string Label => NeedsConfirmation ? "Выполнить…" : "Выполнить";
 
     [RelayCommand]
-    private void Invoke()
+    private async Task InvokeAsync()
     {
         if (!CanEdit) return;
 
         if (NeedsConfirmation)
         {
-            ConfirmationRequested?.Invoke(this, this);
-            return;
+            // No prompt wired means no confirmation is possible, and a dangerous command
+            // that cannot be confirmed must not run at all.
+            if (_confirm is null) return;
+            if (!await _confirm.ConfirmAsync(Descriptor).ConfigureAwait(true)) return;
         }
 
-        Execute();
+        WriteNow(CapabilityValue.Of(true));
     }
-
-    /// <summary>Runs the command. Called by the shell once the user has confirmed.</summary>
-    public void Execute() => WriteNow(CapabilityValue.Of(true));
 }

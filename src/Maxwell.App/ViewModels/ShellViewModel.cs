@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Maxwell.App.ViewModels.Capabilities;
 using Maxwell.App.ViewModels.Devices;
 using Maxwell.App.ViewModels.Pages;
 using Maxwell.Core.Devices;
@@ -43,6 +44,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
 {
     private readonly IDeviceRegistry _registry;
     private readonly IPollingCoordinator _polling;
+    private readonly IConfirmationPrompt _confirm;
     private readonly Dictionary<string, DevicePageViewModel> _pages = new(StringComparer.Ordinal);
 
     private bool _disposed;
@@ -50,14 +52,17 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     public ShellViewModel(
         IDeviceRegistry registry,
         IPollingCoordinator polling,
+        IConfirmationPrompt confirm,
         CapabilityShowcaseViewModel showcase)
     {
         ArgumentNullException.ThrowIfNull(registry);
         ArgumentNullException.ThrowIfNull(polling);
+        ArgumentNullException.ThrowIfNull(confirm);
         ArgumentNullException.ThrowIfNull(showcase);
 
         _registry = registry;
         _polling = polling;
+        _confirm = confirm;
 
         AppSections = [new AppSection(showcase.Title, showcase)];
         Dashboard = new DashboardViewModel(Devices);
@@ -101,6 +106,16 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     };
 
     // ---------- navigation ----------
+
+    /// <summary>
+    /// Opens the device at <paramref name="index"/> in the list. Exists for the same
+    /// reason as the other development flags: driving the shell with synthetic clicks is
+    /// unreliable, and a screenshot of the wrong page proves nothing.
+    /// </summary>
+    public void SelectDeviceAt(int index)
+    {
+        if (index >= 0 && index < Devices.Count) SelectedDevice = Devices[index];
+    }
 
     [RelayCommand]
     private void ShowDashboard()
@@ -160,7 +175,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
 
         if (_registry.Session(deviceKey) is not { } session) return null;
 
-        page = new DevicePageViewModel(session, _polling);
+        page = new DevicePageViewModel(session, _polling, _confirm);
         _pages[deviceKey] = page;
         return page;
     }

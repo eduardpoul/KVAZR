@@ -22,6 +22,9 @@ public partial class App : Application, IDisposable
     /// <summary>Development affordance: show the connect announcement without a connect.</summary>
     internal static bool PresentPopupOnStart { get; set; }
 
+    /// <summary>Development affordance: open a device page without a synthetic click.</summary>
+    internal static int? OpenDeviceOnStart { get; set; }
+
     private readonly IServiceProvider? _services;
 
     private TrayIcon? _tray;
@@ -87,6 +90,12 @@ public partial class App : Application, IDisposable
             // showing the window then would defeat the point of starting with Windows.
             bool startHidden = desktop.Args?.Contains("--minimised", StringComparer.OrdinalIgnoreCase) == true;
             if (!startHidden) _window.Show();
+
+            if (OpenDeviceOnStart is { } index)
+            {
+                ShellViewModel shell = _services.GetRequiredService<ShellViewModel>();
+                Dispatcher.UIThread.Post(() => shell.SelectDeviceAt(index), DispatcherPriority.Background);
+            }
 
             if (PresentFlyoutOnStart)
             {
