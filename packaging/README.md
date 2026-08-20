@@ -3,12 +3,21 @@
 ## Windows
 
 ```
-dotnet publish src/Maxwell.App -c Release -f net10.0-windows10.0.17763.0 -r win-x64 --self-contained
+dotnet publish src/Maxwell.App -c Release -f net10.0-windows10.0.17763.0 -r win-x64 -p:PublishSingleFile=true -o Deploys
 ```
 
-Produces a self-contained folder that runs without a .NET install. Trimming is
-deliberately off: Avalonia resolves controls and styles through reflection, and a
-trimmed build fails at runtime rather than at publish time.
+Produces `Deploys/Maxwell.exe` — one self-contained file, ~55 MB, that runs without a
+.NET install. `PublishSingleFile` also switches on self-extraction of the native Skia
+and HarfBuzz libraries; without that they land beside the exe and the single file is
+not single. The natives unpack once per version into `%TEMP%\.net`, so first start is
+slower than later ones.
+
+Drop `-p:PublishSingleFile=true` for a plain folder publish. Trimming is deliberately
+off in both: Avalonia resolves controls and styles through reflection, and a trimmed
+build fails at runtime rather than at publish time.
+
+Nothing else needs installing, and the app writes only to
+`%APPDATA%\Maxwell.App\settings.json`.
 
 ## Linux
 

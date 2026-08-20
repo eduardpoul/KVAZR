@@ -36,3 +36,6 @@ dis.txt
 ## OS
 [Tt]humbs.db
 .DS_Store
+
+## Published output
+Deploys/
