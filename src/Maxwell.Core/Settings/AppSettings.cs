@@ -54,8 +54,18 @@ public sealed class AppSettings
     /// <summary>Switch profiles automatically when a matching process starts.</summary>
     public bool AutoSwitchProfiles { get; set; }
 
+    /// <summary>
+    /// Capability ids the hardware has accepted a write for, keyed by device. These are
+    /// promotions from "command known, never tested" to verified: once a device has
+    /// taken a value, the amber mark must not come back on the next launch.
+    /// </summary>
+    public Dictionary<string, List<string>> ConfirmedCapabilities { get; set; } =
+        new(StringComparer.Ordinal);
+
     public AppSettings Clone() => new()
     {
+        ConfirmedCapabilities = ConfirmedCapabilities.ToDictionary(
+            p => p.Key, p => new List<string>(p.Value), StringComparer.Ordinal),
         Theme = Theme,
         RunAtLogin = RunAtLogin,
         StartMinimised = StartMinimised,

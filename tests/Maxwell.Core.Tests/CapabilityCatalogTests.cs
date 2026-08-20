@@ -1,5 +1,6 @@
 using Maxwell.Core.Devices;
 using Maxwell.Core.Drivers.Audeze;
+using Maxwell.Core.Drivers.Mock;
 using Xunit;
 
 namespace Maxwell.Core.Tests;
@@ -15,7 +16,12 @@ namespace Maxwell.Core.Tests;
 public sealed class CapabilityCatalogTests
 {
     public static TheoryData<string, IReadOnlyList<Capability>> Catalogs =>
-        new() { { AudezeRaceDriver.Id, MaxwellCapabilities.All } };
+        new()
+        {
+            { AudezeRaceDriver.Id, MaxwellCapabilities.All },
+            { $"{MockDeviceDriver.Id}/mouse", MockCatalogs.Mouse },
+            { $"{MockDeviceDriver.Id}/keyboard", MockCatalogs.Keyboard },
+        };
 
     [Theory]
     [MemberData(nameof(Catalogs))]

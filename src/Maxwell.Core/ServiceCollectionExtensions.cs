@@ -1,5 +1,8 @@
 using System.Runtime.Versioning;
 using Maxwell.Core.Abstractions;
+using Maxwell.Core.Devices;
+using Maxwell.Core.Drivers.Audeze;
+using Maxwell.Core.Drivers.Mock;
 using Maxwell.Core.Services;
 using Maxwell.Race.Abstractions;
 using Maxwell.Race.Windows;
@@ -22,6 +25,32 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IDeviceService, DeviceService>();
         services.AddHostedService<DevicePollingService>();
         services.TryAddNotifier();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the multi-device layer: one registry owning one session per device,
+    /// each session the sole owner of its hardware. Runs alongside the older
+    /// single-headset <see cref="IDeviceService"/> until the shell moves across.
+    /// </summary>
+    /// <param name="includeMockDevices">
+    /// Adds a stand-in mouse and keyboard so the shell can be developed against three
+    /// device classes. Development only — a device list containing hardware the user
+    /// does not own is worse than an empty one.
+    /// </param>
+    public static IServiceCollection AddDeviceRegistry(
+        this IServiceCollection services,
+        bool includeMockDevices = false)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddSingleton<ICapabilityLedger, SettingsCapabilityLedger>();
+        services.AddSingleton<IDeviceDriver, AudezeRaceDriver>();
+
+        if (includeMockDevices) services.AddSingleton<IDeviceDriver, MockDeviceDriver>();
+
+        services.AddSingleton<IDeviceRegistry, DeviceRegistry>();
 
         return services;
     }

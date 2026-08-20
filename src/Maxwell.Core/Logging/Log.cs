@@ -31,8 +31,25 @@ internal static partial class Log
     [LoggerMessage(EventId = 1201, Level = LogLevel.Warning, Message = "Settings could not be written to {Path}")]
     public static partial void SettingsNotSaved(this ILogger logger, Exception exception, string path);
 
+    [LoggerMessage(EventId = 1300, Level = LogLevel.Information,
+        Message = "{DeviceKey} is present but offers no control channel; monitoring only")]
+    public static partial void DeviceHasNoControlChannel(this ILogger logger, Exception exception, string deviceKey);
 
+    [LoggerMessage(EventId = 1301, Level = LogLevel.Warning, Message = "{DeviceKey} read failed; dropping the channel")]
+    public static partial void DeviceReadFailed(this ILogger logger, Exception exception, string deviceKey);
 
+    [LoggerMessage(EventId = 1302, Level = LogLevel.Warning, Message = "{DeviceKey} write to {CapabilityId} failed")]
+    public static partial void DeviceWriteFailed(
+        this ILogger logger, Exception exception, string deviceKey, string capabilityId);
+
+    [LoggerMessage(EventId = 1303, Level = LogLevel.Information, Message = "{DeviceKey} appeared, driver {Driver}")]
+    public static partial void DeviceAppeared(this ILogger logger, string deviceKey, string driver);
+
+    [LoggerMessage(EventId = 1304, Level = LogLevel.Information, Message = "{DeviceKey} disappeared")]
+    public static partial void DeviceDisappeared(this ILogger logger, string deviceKey);
+
+    [LoggerMessage(EventId = 1305, Level = LogLevel.Warning, Message = "Discovery failed for driver {Driver}")]
+    public static partial void DiscoveryFailed(this ILogger logger, Exception exception, string driver);
 
     [LoggerMessage(EventId = 1100, Level = LogLevel.Information, Message = "Device polling started")]
     public static partial void PollingStarted(this ILogger logger);
