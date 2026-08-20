@@ -18,6 +18,17 @@
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
   </ItemGroup>
 
+  <ItemGroup Label="Platform integration">
+    <PackageVersion Include="DesktopNotifications" Version="1.3.1" />
+    <PackageVersion Include="DesktopNotifications.Windows" Version="1.3.1" />
+
+    <!-- DesktopNotifications.Windows still depends on the retired UWP toolkit, which
+         drags in System.Drawing.Common 4.7.0 — a package with a known critical
+         vulnerability (GHSA-rxg9-xrhp-64gj). Transitive pinning forces a patched
+         version instead. Remove this the day that toolkit dependency goes away. -->
+    <PackageVersion Include="System.Drawing.Common" Version="10.0.11" />
+  </ItemGroup>
+
   <ItemGroup Label="Testing">
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
     <PackageVersion Include="xunit.v3" Version="4.0.0" />

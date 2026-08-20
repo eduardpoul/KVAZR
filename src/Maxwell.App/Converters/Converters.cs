@@ -1,6 +1,7 @@
 using System.Globalization;
 using Avalonia.Data.Converters;
 using Maxwell.Core.Model;
+using Maxwell.Core.Settings;
 
 namespace Maxwell.App.Converters;
 
@@ -44,6 +45,24 @@ public sealed class PresetKindConverter : IValueConverter
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         value is true ? "Пользовательский" : "Встроенный";
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>Theme names for the settings picker.</summary>
+public sealed class ThemeLabelConverter : IValueConverter
+{
+    public static readonly ThemeLabelConverter Instance = new();
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value switch
+        {
+            AppTheme.System => "Системная",
+            AppTheme.Light => "Светлая",
+            AppTheme.Dark => "Тёмная",
+            _ => "—",
+        };
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();

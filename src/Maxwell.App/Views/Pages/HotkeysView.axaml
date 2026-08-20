@@ -1,0 +1,55 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:pages="using:Maxwell.App.ViewModels.Pages"
+             x:Class="Maxwell.App.Views.Pages.HotkeysView"
+             x:DataType="pages:HotkeysViewModel">
+
+  <StackPanel Spacing="12">
+
+    <Border Classes="card" IsVisible="{Binding HasRejected}">
+      <StackPanel Spacing="8">
+        <TextBlock Classes="cardTitle" Text="Часть сочетаний занята" />
+        <TextBlock Classes="secondary"
+                   Text="Windows отдаёт глобальное сочетание только одному приложению. Отмеченные ниже перехватить не удалось — назначьте им другие клавиши." />
+      </StackPanel>
+    </Border>
+
+    <Border Classes="card">
+      <StackPanel Spacing="10">
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2">
+            <TextBlock Classes="cardTitle" Text="Глобальные горячие клавиши" />
+            <TextBlock Classes="caption" Text="Работают, когда окно свёрнуто. Нажмите кнопку и введите сочетание." />
+          </StackPanel>
+          <Button Grid.Column="1" Content="Сбросить все" Command="{Binding ResetAllCommand}"
+                  VerticalAlignment="Center" />
+        </Grid>
+
+        <Separator Classes="divider" />
+
+        <ItemsControl ItemsSource="{Binding Rows}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="pages:HotkeyRow">
+              <Grid ColumnDefinitions="*,Auto" MinHeight="52">
+                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Title}" />
+                  <TextBlock Classes="caption" Text="{Binding Description}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                            VerticalAlignment="Center">
+                  <Border Classes="pill" IsVisible="{Binding Rejected}">
+                    <TextBlock Text="занято" Foreground="{DynamicResource DangerBrush}" />
+                  </Border>
+                  <Button Content="{Binding GestureText}" MinWidth="180"
+                          Click="OnCaptureClick" Tag="{Binding}" />
+                </StackPanel>
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+
+  </StackPanel>
+</UserControl>

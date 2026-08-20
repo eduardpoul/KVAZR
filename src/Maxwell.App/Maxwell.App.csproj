@@ -2,7 +2,9 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- The Windows toast implementation ships for windows10.0.17763, so the app
+         targets that floor. Core and Race stay on plain net10.0-windows. -->
+    <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
     <RootNamespace>Maxwell.App</RootNamespace>
     <AssemblyName>Maxwell</AssemblyName>
 
@@ -21,6 +23,8 @@
     <PackageReference Include="FluentAvaloniaUI" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="DesktopNotifications" />
+    <PackageReference Include="DesktopNotifications.Windows" />
   </ItemGroup>
 
   <ItemGroup>

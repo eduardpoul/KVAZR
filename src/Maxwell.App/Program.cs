@@ -3,7 +3,11 @@ using Maxwell.App.ViewModels;
 using Maxwell.App.ViewModels.Pages;
 using Maxwell.App.Views;
 using Maxwell.Core;
+using Maxwell.App.Platform;
+using Maxwell.App.Platform.Windows;
+using Maxwell.Core.Abstractions;
 using Maxwell.Core.Services;
+using Maxwell.Core.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -41,6 +45,15 @@ internal static class Program
             builder.Configuration.GetSection(PollingOptions.SectionName));
 
         builder.Services.AddWindowsHid();
+
+        // Platform services must be registered before the core so its notifier
+        // fallback does not win the registration.
+        builder.Services.AddSingleton<ISettingsStore, JsonSettingsStore>();
+        builder.Services.AddSingleton<IAutostart, WindowsAutostart>();
+        builder.Services.AddSingleton<INotifier, WindowsNotifier>();
+        builder.Services.AddSingleton<IHotkeyService, WindowsHotkeys>();
+        builder.Services.AddSingleton<HotkeyCoordinator>();
+
         builder.Services.AddMaxwellCore();
 
         builder.Services.AddSingleton<OverviewViewModel>();

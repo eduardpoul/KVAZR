@@ -25,6 +25,15 @@ internal static partial class Log
     [LoggerMessage(EventId = 1004, Level = LogLevel.Warning, Message = "Write failed; dropping the session")]
     public static partial void WriteFailed(this ILogger logger, Exception exception);
 
+    [LoggerMessage(EventId = 1200, Level = LogLevel.Warning, Message = "Settings at {Path} could not be read; defaults are in use")]
+    public static partial void SettingsUnreadable(this ILogger logger, Exception exception, string path);
+
+    [LoggerMessage(EventId = 1201, Level = LogLevel.Warning, Message = "Settings could not be written to {Path}")]
+    public static partial void SettingsNotSaved(this ILogger logger, Exception exception, string path);
+
+
+
+
     [LoggerMessage(EventId = 1100, Level = LogLevel.Information, Message = "Device polling started")]
     public static partial void PollingStarted(this ILogger logger);
 

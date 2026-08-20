@@ -44,33 +44,3 @@ public sealed class ProfilesViewModel : PlaceholderViewModel
     {
     }
 }
-
-public sealed class HotkeysViewModel : PlaceholderViewModel
-{
-    public override string Title => "Горячие клавиши";
-
-    public override bool RequiresControl => false;
-
-    public override string Explanation =>
-        "Глобальные сочетания на ChatMix, шумоподавление, сайдтон и смену пресета EQ. " +
-        "Требуют регистрации системных хоткеев — это часть работы по интеграции с ОС.";
-
-    public HotkeysViewModel(IDeviceService device) : base(device)
-    {
-    }
-}
-
-public sealed class SettingsViewModel : PlaceholderViewModel
-{
-    public override string Title => "Параметры";
-
-    public override bool RequiresControl => false;
-
-    public override string Explanation =>
-        "Тема, автозапуск, поведение значка в трее, порог уведомления о заряде и язык. " +
-        "Появятся вместе с хранилищем настроек и интеграцией с автозапуском.";
-
-    public SettingsViewModel(IDeviceService device) : base(device)
-    {
-    }
-}

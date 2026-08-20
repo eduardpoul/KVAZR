@@ -19,6 +19,8 @@
     <DataTemplate DataType="pages:SoundViewModel"><views:SoundView /></DataTemplate>
     <DataTemplate DataType="pages:MicrophoneViewModel"><views:MicrophoneView /></DataTemplate>
     <DataTemplate DataType="pages:SystemViewModel"><views:SystemView /></DataTemplate>
+    <DataTemplate DataType="pages:SettingsViewModel"><views:SettingsView /></DataTemplate>
+    <DataTemplate DataType="pages:HotkeysViewModel"><views:HotkeysView /></DataTemplate>
     <DataTemplate DataType="pages:PlaceholderViewModel"><views:PlaceholderView /></DataTemplate>
   </Window.DataTemplates>
 
