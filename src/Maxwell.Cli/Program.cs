@@ -254,7 +254,7 @@ static async Task<int> SetAsync(RaceSession session, string[] args)
     [
         MaxwellFeatures.EarcupBalance, MaxwellFeatures.AmpGain, MaxwellFeatures.LeftGain,
         MaxwellFeatures.RightGain, MaxwellFeatures.IsNewFilm, MaxwellFeatures.NoiseReduction,
-        MaxwellFeatures.SidetoneLevel, MaxwellFeatures.VpLevel,
+        MaxwellFeatures.SidetoneLevel, MaxwellFeatures.VpLevel, MaxwellFeatures.PeqIndex,
     ];
 
     if (ValueAfter(args, "--set") is not { } subText || ValueAfter(args, "--value") is not { } valueText)
