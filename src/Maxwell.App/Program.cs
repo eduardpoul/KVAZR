@@ -13,6 +13,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Maxwell.App;
 
+
 internal static class Program
 {
     /// <summary>

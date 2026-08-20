@@ -11,6 +11,7 @@ using Maxwell.App.Views;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Settings;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Maxwell.App;
 
@@ -120,25 +121,39 @@ public partial class App : Application, IDisposable
 
     private void BuildTray()
     {
-        var open = new NativeMenuItem("Открыть Maxwell");
-        open.Click += (_, _) => ShowWindow();
-
-        var quit = new NativeMenuItem("Выход");
-        quit.Click += (_, _) => Shutdown();
-
-        _tray = new TrayIcon
+        // A tray icon that fails to appear must not take the application with it: the
+        // device layer keeps working and the window is still reachable.
+        try
         {
-            Icon = TrayIconRenderer.Render(-1, charging: false),
-            ToolTipText = "Поиск устройств…",
-            IsVisible = true,
-            Menu = [open, new NativeMenuItemSeparator(), quit],
-        };
+            var open = new NativeMenuItem("Открыть Maxwell");
+            open.Click += (_, _) => ShowWindow();
 
-        // Clicking the tray opens the panel, not the window. The window is a place you
-        // go to; the panel is a place you glance at.
-        _tray.Clicked += (_, _) => ShowFlyout();
+            var quit = new NativeMenuItem("Выход");
+            quit.Click += (_, _) => Shutdown();
 
-        TrayIcon.SetIcons(this, [_tray]);
+            _tray = new TrayIcon
+            {
+                Icon = TrayIconRenderer.Render(-1, charging: false),
+                ToolTipText = "Поиск устройств…",
+                IsVisible = true,
+                Menu = [open, new NativeMenuItemSeparator(), quit],
+            };
+
+            // Clicking the tray opens the panel, not the window. The window is a place
+            // you go to; the panel is a place you glance at.
+            _tray.Clicked += (_, _) => ShowFlyout();
+
+            TrayIcon.SetIcons(this, [_tray]);
+
+            ILogger? log = _services?.GetService<ILoggerFactory>()?.CreateLogger("Tray");
+            log?.TrayCreated(_tray.IsVisible, _tray.Icon is not null, TrayIcon.GetIcons(this)?.Count ?? -1);
+        }
+#pragma warning disable CA1031 // A missing tray icon must not stop the app from running.
+        catch (Exception ex)
+        {
+            _services?.GetService<ILoggerFactory>()?.CreateLogger("Tray").TrayFailed(ex);
+        }
+#pragma warning restore CA1031
     }
 
     private void OnSettingsChanged(object? sender, AppSettings settings) =>

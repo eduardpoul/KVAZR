@@ -24,4 +24,14 @@ internal static partial class Log
 
     [LoggerMessage(EventId = 2004, Level = LogLevel.Debug, Message = "Hotkey {Gesture} registered as id {Id}")]
     public static partial void HotkeyRegistered(this ILogger logger, string gesture, int id);
+
+    [LoggerMessage(EventId = 2005, Level = LogLevel.Information, Message = "Notification shown: {Title}")]
+    public static partial void NotificationShown(this ILogger logger, string title);
+
+    [LoggerMessage(EventId = 2006, Level = LogLevel.Information,
+        Message = "Tray icon created: visible={Visible}, icon={HasIcon}, registered={Registered}")]
+    public static partial void TrayCreated(this ILogger logger, bool visible, bool hasIcon, int registered);
+
+    [LoggerMessage(EventId = 2007, Level = LogLevel.Error, Message = "Tray icon could not be created")]
+    public static partial void TrayFailed(this ILogger logger, Exception exception);
 }

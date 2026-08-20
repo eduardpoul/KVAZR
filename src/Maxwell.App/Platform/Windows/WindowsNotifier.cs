@@ -53,6 +53,11 @@ public sealed class WindowsNotifier : INotifier, IDisposable
             await Dispatcher.UIThread.InvokeAsync(() => manager.ShowNotification(
                 new Notification { Title = title, Body = message },
                 expirationTime: null)).ConfigureAwait(false);
+
+            // Logged on success too: without this, "it worked" and "it was never
+            // called" look identical in the log, which is how a silent NullNotifier
+            // passed for a working one.
+            _logger.NotificationShown(title);
         }
 #pragma warning disable CA1031 // A failed toast must never take down the polling loop.
         catch (Exception ex)

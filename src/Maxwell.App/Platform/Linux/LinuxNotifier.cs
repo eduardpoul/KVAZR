@@ -1,3 +1,5 @@
+// Non-Windows targets only; on Windows the toast implementation is used instead.
+#if !WINDOWS
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using Maxwell.Core.Abstractions;
@@ -63,3 +65,4 @@ public sealed class LinuxNotifier : INotifier
         }
     }
 }
+#endif
