@@ -14,6 +14,7 @@
 
   <UserControl.Resources>
     <conv:PresenceOpacityConverter x:Key="PresenceOpacity" />
+    <conv:DeviceImageConverter x:Key="DeviceImage" />
   </UserControl.Resources>
 
   <StackPanel Spacing="12">
@@ -34,10 +35,14 @@
           <Border Classes="card" Margin="0,0,0,8" Opacity="{Binding IsPresent, Converter={StaticResource PresenceOpacity}}">
             <Grid ColumnDefinitions="Auto,*,Auto" Margin="20">
 
-              <Border Grid.Column="0" Width="44" Height="44"
+              <Border Grid.Column="0" Width="52" Height="52"
                       Background="{DynamicResource LayerAltBrush}"
                       CornerRadius="{DynamicResource RadiusSmall}"
-                      Margin="0,0,16,0" />
+                      ClipToBounds="True"
+                      Margin="0,0,16,0">
+                <Image Source="{Binding ImageKey, Converter={StaticResource DeviceImage}}"
+                       Stretch="UniformToFill" />
+              </Border>
 
               <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                 <TextBlock Classes="cardTitle" Text="{Binding DisplayName}" />

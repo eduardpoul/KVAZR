@@ -2,6 +2,8 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Maxwell.App.ViewModels.Capabilities;
 using Maxwell.Core.Model;
 using Maxwell.Core.Settings;
@@ -106,6 +108,45 @@ public sealed class PresenceOpacityConverter : IValueConverter
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         value is true ? 1.0 : 0.55;
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>
+/// Resolves a device's image key to a bundled picture.
+///
+/// Returns null when there is no image, and the view falls back to a plain tile rather
+/// than a broken-image glyph — a stand-in device or one nobody has photographed yet is
+/// a normal case, not an error.
+/// </summary>
+public sealed class DeviceImageConverter : IValueConverter
+{
+    private static readonly Dictionary<string, Bitmap?> Cache = new(StringComparer.Ordinal);
+
+    public static readonly DeviceImageConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not string key || string.IsNullOrWhiteSpace(key)) return null;
+
+        if (Cache.TryGetValue(key, out Bitmap? cached)) return cached;
+
+        Bitmap? bitmap = null;
+
+        try
+        {
+            var uri = new Uri($"avares://Maxwell/Assets/{key}.jpg");
+            bitmap = new Bitmap(AssetLoader.Open(uri));
+        }
+        catch (FileNotFoundException)
+        {
+            // No picture for this device. The tile stays blank.
+        }
+
+        Cache[key] = bitmap;
+        return bitmap;
+    }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();

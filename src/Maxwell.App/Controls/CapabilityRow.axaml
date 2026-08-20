@@ -12,7 +12,7 @@
     one program.
   -->
 
-  <Grid ColumnDefinitions="*,Auto" MinHeight="48">
+  <Grid ColumnDefinitions="*,Auto" MinHeight="40">
 
     <StackPanel Grid.Column="0" Spacing="2"
                 VerticalAlignment="Center" Margin="0,0,16,0">

@@ -47,6 +47,8 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
 
     public IReadOnlyList<TransportInfo> Transports => Snapshot.Info.Transports;
 
+    public string? ImageKey => Snapshot.Info.ImageKey;
+
     /// <summary>Battery as text. A dash, never a zero, when nothing has been read.</summary>
     public string Battery => Snapshot.BatteryPercent is { } percent ? $"{percent}%" : "—";
 
@@ -138,6 +140,7 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     private void RaiseHeader()
     {
         OnPropertyChanged(nameof(Title));
+        OnPropertyChanged(nameof(ImageKey));
         OnPropertyChanged(nameof(Battery));
         OnPropertyChanged(nameof(IsCharging));
         OnPropertyChanged(nameof(Transports));

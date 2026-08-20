@@ -12,22 +12,25 @@ namespace Maxwell.App.ViewModels.Capabilities;
 /// </summary>
 public static class CapabilityViewModelFactory
 {
-    public static CapabilityViewModel Create(CapabilityState state, IDeviceSession? session)
+    public static CapabilityViewModel Create(
+        CapabilityState state,
+        IDeviceSession? session,
+        bool verbose = false)
     {
         ArgumentNullException.ThrowIfNull(state);
 
         return state.Descriptor.Primitive switch
         {
-            CapabilityPrimitive.Toggle => new ToggleCapabilityViewModel(state, session),
-            CapabilityPrimitive.Range => new RangeCapabilityViewModel(state, session),
-            CapabilityPrimitive.Choice => new ChoiceCapabilityViewModel(state, session),
-            CapabilityPrimitive.Action => new ActionCapabilityViewModel(state, session),
+            CapabilityPrimitive.Toggle => new ToggleCapabilityViewModel(state, session) { Verbose = verbose },
+            CapabilityPrimitive.Range => new RangeCapabilityViewModel(state, session) { Verbose = verbose },
+            CapabilityPrimitive.Choice => new ChoiceCapabilityViewModel(state, session) { Verbose = verbose },
+            CapabilityPrimitive.Action => new ActionCapabilityViewModel(state, session) { Verbose = verbose },
 
             // Readout is also the honest fallback for primitives that have no control
             // yet — KeyMap, ButtonMap, Curve and the rest arrive with the screens that
             // need them. Showing the value read-only says less than the design intends,
             // but it never lies about what the user can do.
-            _ => new ReadoutCapabilityViewModel(state, session),
+            _ => new ReadoutCapabilityViewModel(state, session) { Verbose = verbose },
         };
     }
 

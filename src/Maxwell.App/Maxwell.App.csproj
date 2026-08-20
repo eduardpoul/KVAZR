@@ -28,6 +28,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Maxwell.Core\Maxwell.Core.csproj" />
   </ItemGroup>
 

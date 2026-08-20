@@ -101,7 +101,7 @@
 
   </UserControl.DataTemplates>
 
-  <StackPanel Spacing="6" HorizontalAlignment="{Binding $parent[UserControl].HorizontalAlignment}">
+  <StackPanel Spacing="3" HorizontalAlignment="{Binding $parent[UserControl].HorizontalAlignment}">
 
     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
 

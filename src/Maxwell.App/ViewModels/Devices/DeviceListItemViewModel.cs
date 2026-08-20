@@ -27,6 +27,8 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
 
     public DeviceClass Class => Snapshot.Info.Class;
 
+    public string? ImageKey => Snapshot.Info.ImageKey;
+
     public bool IsPresent => Snapshot.IsPresent;
 
     public string Battery => Snapshot.BatteryPercent is { } percent ? $"{percent}%" : "—";

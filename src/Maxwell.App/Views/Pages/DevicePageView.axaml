@@ -4,6 +4,7 @@
              xmlns:controls="using:Maxwell.App.Controls"
              xmlns:devices="using:Maxwell.App.ViewModels.Devices"
              xmlns:core="using:Maxwell.Core.Devices"
+             xmlns:conv="using:Maxwell.App.Converters"
              x:Class="Maxwell.App.Views.Pages.DevicePageView"
              x:DataType="devices:DevicePageViewModel">
 
@@ -15,11 +16,23 @@
 
   <StackPanel Spacing="12">
 
-    <!-- Header -->
     <Border Classes="card">
-      <Grid ColumnDefinitions="*,Auto" Margin="20">
+      <Border.Resources>
+        <conv:DeviceImageConverter x:Key="DeviceImage" />
+      </Border.Resources>
+      <Grid ColumnDefinitions="Auto,*,Auto" Margin="20">
 
-        <StackPanel Grid.Column="0" Spacing="6">
+        <Border Grid.Column="0" Width="72" Height="72"
+                Background="{DynamicResource LayerAltBrush}"
+                CornerRadius="{DynamicResource RadiusSmall}"
+                ClipToBounds="True"
+                Margin="0,0,18,0"
+                VerticalAlignment="Center">
+          <Image Source="{Binding ImageKey, Converter={StaticResource DeviceImage}}"
+                 Stretch="UniformToFill" />
+        </Border>
+
+        <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
           <TextBlock Classes="sectionTitle" Text="{Binding Title}" />
 
           <ItemsControl ItemsSource="{Binding Transports}">
@@ -37,7 +50,7 @@
           </ItemsControl>
         </StackPanel>
 
-        <StackPanel Grid.Column="1" Spacing="2" HorizontalAlignment="Right">
+        <StackPanel Grid.Column="2" Spacing="2" HorizontalAlignment="Right" VerticalAlignment="Center">
           <TextBlock FontSize="{DynamicResource FontSizeTitle}"
                      FontWeight="SemiBold"
                      HorizontalAlignment="Right"
@@ -61,10 +74,10 @@
             <TextBlock Classes="groupHeader" Text="{Binding Title}" />
 
             <Border Classes="card">
-              <ItemsControl ItemsSource="{Binding Items}" Margin="20">
+              <ItemsControl ItemsSource="{Binding Items}" Margin="20,14">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="cap:CapabilityViewModel">
-                    <controls:CapabilityRow Margin="0,6" />
+                    <controls:CapabilityRow Margin="0,8" />
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>

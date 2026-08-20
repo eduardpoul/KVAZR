@@ -59,6 +59,14 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
 
     protected IDeviceSession? Session { get; }
 
+    /// <summary>
+    /// Spell out every state in words. The showcase does, because demonstrating them is
+    /// its whole purpose; a device page does not, because most of a Maxwell's
+    /// capabilities are untested and nine identical sentences down one page stop being
+    /// read by the third. There the amber dot and its tooltip carry it.
+    /// </summary>
+    public bool Verbose { get; init; }
+
     [ObservableProperty]
     public partial CapabilityState State { get; private set; }
 
@@ -103,7 +111,7 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
         { IsAvailable: false } => Descriptor.RequirementHint,
         { IsWriting: true } => "Применяется…",
         { Status: CapabilityStatus.Unavailable } => "Функция есть, способа вызвать пока нет",
-        { Status: CapabilityStatus.Untested } => "Ещё не проверено на живом устройстве",
+        { Status: CapabilityStatus.Untested } when Verbose => "Ещё не проверено на живом устройстве",
         { ChangedExternally: true } => "Изменено на устройстве",
         _ when IsIrreversible => Descriptor.Note ?? "Первая запись необратима",
         _ => Descriptor.Note,
