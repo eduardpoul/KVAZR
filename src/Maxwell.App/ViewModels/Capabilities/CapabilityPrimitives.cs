@@ -53,6 +53,9 @@ public sealed partial class RangeCapabilityViewModel : CapabilityViewModel
         HasValue = !state.Value.IsAbsent;
     }
 
+    /// <summary>The last value the device reported, which outranks anything the control coerces.</summary>
+    private int _reading;
+
     [ObservableProperty]
     public partial double Value { get; set; }
 
@@ -72,19 +75,44 @@ public sealed partial class RangeCapabilityViewModel : CapabilityViewModel
 
     public string? Unit => State.Range?.Unit;
 
-    /// <summary>"10 / 20" in the corner of the row, exactly as the design shows it.</summary>
+    /// <summary>
+    /// The number in the corner of the row. A zero-based scale reads as "10 / 20"
+    /// because the ceiling is part of the meaning; an offset one like earcup balance,
+    /// which runs 122 to 134 around a centre of 128, reads as the bare value — "128 / 134"
+    /// would invite the reader to think 134 is somehow the goal.
+    /// </summary>
     public string Display => HasValue
-        ? Unit is { } unit ? $"{Value:0} {unit}" : $"{Value:0} / {Maximum:0}"
+        ? Unit is { } unit ? $"{Value:0} {unit}"
+        : Minimum <= 0 ? $"{Value:0} / {Maximum:0}"
+        : $"{Value:0}"
         : "—";
 
     protected override void OnStateApplied(CapabilityState state)
     {
-        HasValue = !state.Value.IsAbsent;
-        Value = state.Value.AsNumber((int)Minimum);
-
+        // Bounds first, value second, and the order is not cosmetic. A Slider clamps
+        // whatever it is given to the range it currently holds, so pushing 128 while it
+        // still believes the maximum is 100 silently turns it into 100 — and widening
+        // the range afterwards does not give the value back.
         OnPropertyChanged(nameof(Minimum));
         OnPropertyChanged(nameof(Maximum));
         OnPropertyChanged(nameof(Step));
+
+        HasValue = !state.Value.IsAbsent;
+        _reading = state.Value.AsNumber((int)Minimum);
+        Value = _reading;
+
+        OnPropertyChanged(nameof(Display));
+    }
+
+    /// <summary>
+    /// The slider has laid out and may have clamped the value against bounds it had not
+    /// received yet. The reading wins.
+    /// </summary>
+    protected override void OnSettled()
+    {
+        if (Math.Abs(Value - _reading) < 0.5) return;
+
+        Value = _reading;
         OnPropertyChanged(nameof(Display));
     }
 

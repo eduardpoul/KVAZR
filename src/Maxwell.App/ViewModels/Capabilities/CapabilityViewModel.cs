@@ -1,3 +1,4 @@
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Maxwell.App.Infrastructure;
 using Maxwell.Core.Devices;
@@ -31,12 +32,29 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     /// <summary>Suppresses writes while a device reading is being applied.</summary>
     private bool _applying;
 
+    /// <summary>
+    /// Suppresses writes until the control has finished reacting to a new reading.
+    ///
+    /// This is not belt-and-braces. A two-way bound control that is handed new bounds
+    /// coerces its own value to fit and pushes the correction straight back through the
+    /// binding, and that echo is indistinguishable from a person moving the slider. Left
+    /// unguarded it does not merely display the wrong number — it writes it to the
+    /// hardware, which is exactly how a headset's earcup balance got quietly moved off
+    /// centre during development.
+    /// </summary>
+    private bool _settling;
+
     protected CapabilityViewModel(CapabilityState state, IDeviceSession? session)
     {
         ArgumentNullException.ThrowIfNull(state);
 
         State = state;
         Session = session;
+
+        // The first attach is the dangerous one: the control has its defaults, the
+        // binding hands it bounds and a value in whatever order it likes, and anything
+        // it pushes back before it has settled is not a person's decision.
+        Settle();
     }
 
     protected IDeviceSession? Session { get; }
@@ -106,6 +124,8 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
         ArgumentNullException.ThrowIfNull(state);
 
         _applying = true;
+        _settling = true;
+
         try
         {
             State = state;
@@ -116,6 +136,33 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
         {
             _applying = false;
         }
+
+        Settle();
+    }
+
+    /// <summary>
+    /// Holds writes until the control has laid out. Background priority runs after
+    /// layout, by which time any coercion the control wanted to do has happened and
+    /// been pushed back through the binding.
+    /// </summary>
+    private void Settle()
+    {
+        _settling = true;
+
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                OnSettled();
+                _settling = false;
+            },
+            DispatcherPriority.Background);
+    }
+
+    /// <summary>
+    /// The control has finished reacting. Re-assert anything it may have coerced away.
+    /// </summary>
+    protected virtual void OnSettled()
+    {
     }
 
     /// <summary>Pull the primitive's own value out of the reading.</summary>
@@ -141,7 +188,7 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     /// </summary>
     protected void Write(CapabilityValue value)
     {
-        if (_applying || Session is null || !CanEdit) return;
+        if (_applying || _settling || Session is null || !CanEdit) return;
 
         _debouncer.Schedule(ct => Session.WriteAsync(Id, value, ct));
     }
@@ -149,7 +196,7 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     /// <summary>Writes immediately. For discrete choices, where a delay just feels broken.</summary>
     protected void WriteNow(CapabilityValue value)
     {
-        if (_applying || Session is null || !CanEdit) return;
+        if (_applying || _settling || Session is null || !CanEdit) return;
 
         _ = Session.WriteAsync(Id, value, CancellationToken.None);
     }

@@ -40,12 +40,15 @@
         <TextBlock Classes="caption"
                    HorizontalAlignment="Right"
                    Text="{Binding Display}" />
+        <!-- Bounds are declared before the value on purpose: a Slider clamps whatever
+             it is handed to the range it holds at that moment, and widening the range
+             afterwards does not give the value back. Tick snapping is deliberately off
+             — the write rounds to an integer anyway, and snapping adds a second
+             coercion that can move the value again behind the binding's back. -->
         <Slider Minimum="{Binding Minimum}"
                 Maximum="{Binding Maximum}"
-                Value="{Binding Value}"
-                TickFrequency="{Binding Step}"
-                IsSnapToTickEnabled="True"
-                IsEnabled="{Binding CanEdit}" />
+                IsEnabled="{Binding CanEdit}"
+                Value="{Binding Value}" />
       </StackPanel>
     </DataTemplate>
 
@@ -134,7 +137,7 @@
     <!-- One line, and the most urgent thing wins. A stack of badges becomes wallpaper
          the user stops reading. -->
     <TextBlock Classes="caption"
-               MaxWidth="260"
+               MaxWidth="320"
                Text="{Binding Hint}"
                Foreground="{Binding HintTone, Converter={StaticResource HintTone}}"
                IsVisible="{Binding Hint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
