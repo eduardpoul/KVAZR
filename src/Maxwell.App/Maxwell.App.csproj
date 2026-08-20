@@ -37,7 +37,15 @@
     <!-- Skia and HarfBuzz are native libraries. Without self-extract they are written
          beside the exe and the "single file" is three dozen of them. -->
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+
+    <!--
+      Compression is deliberately OFF. It cuts the file from 134 MB to 55 MB, but a
+      compressed assembly cannot be mapped from the bundle, so the runtime decompresses
+      it into private memory instead: measured idle in the tray, 86 MB private working
+      set with compression against 47 MB without, and double the startup CPU. Memory
+      and CPU are the budget that matters here; disk is not.
+    -->
+    <EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
 
     <DebugType>none</DebugType>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
