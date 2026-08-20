@@ -85,6 +85,7 @@ using (session)
     if (verbose) session.ReportReceived += r => Console.WriteLine($"        <- {Convert.ToHexString(r)}");
     Console.WriteLine();
 
+    if (args.Contains("--probe")) return await DongleProbe.RunAsync(session, Console.Out).ConfigureAwait(false);
     if (args.Contains("--features")) return await ShowFeaturesAsync(session).ConfigureAwait(false);
     if (args.Contains("--scan")) return await ScanAsync(session, args).ConfigureAwait(false);
     if (args.Contains("--test")) return await RunTestsAsync(session).ConfigureAwait(false);

@@ -359,6 +359,45 @@ public sealed class RaceSession : IDisposable
 
     // ---------- diagnostics ----------
 
+    /// <summary>
+    /// Send a body under either framing and return only the input buffers that carry
+    /// fresh data. Discovery use: the question being asked is "does anything at all come
+    /// back", and a stale buffer is the device replaying its last answer, which is the
+    /// same as silence.
+    /// </summary>
+    public async Task<IReadOnlyList<byte[]>> ProbeBodyAsync(
+        byte[] body, bool longFraming, int windowMs = 400,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(body);
+
+        byte[] report = longFraming
+            ? RaceCodec.BuildLongReport(body, Descriptor.OutputReportLength)
+            : RaceCodec.BuildShortReport(body, Descriptor.OutputReportLength);
+
+        var fresh = new List<byte[]>();
+
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            DrainCore();
+            _transport.Write(report);
+
+            long deadline = Environment.TickCount64 + windowMs;
+            while (Environment.TickCount64 < deadline)
+            {
+                if (PollOnce() is { } buffer && RaceCodec.IsFresh(buffer)) fresh.Add(buffer);
+                await Task.Delay(PollIntervalMs, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            _gate.Release();
+        }
+
+        return fresh;
+    }
+
     /// <summary>Send a raw body and collect every packet that comes back. Protocol discovery only.</summary>
     public async Task<IReadOnlyList<RacePacket>> ProbeAsync(
         byte[] body, int windowMs = 500, CancellationToken cancellationToken = default)
