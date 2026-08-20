@@ -1,0 +1,110 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:cap="using:Maxwell.App.ViewModels.Capabilities"
+             xmlns:controls="using:Maxwell.App.Controls"
+             xmlns:pages="using:Maxwell.App.ViewModels.Pages"
+             x:Class="Maxwell.App.Views.Pages.CapabilityShowcaseView"
+             x:DataType="pages:CapabilityShowcaseViewModel">
+
+  <!--
+    Artboard 2a, built from the real controls rather than drawn again. Every cell is a
+    live view model going through the same factory and templates the device pages use,
+    so this page cannot quietly drift from the application it documents.
+  -->
+
+  <ScrollViewer HorizontalScrollBarVisibility="Auto">
+    <StackPanel Spacing="16" Margin="0,0,0,24">
+
+      <StackPanel Spacing="4">
+        <TextBlock Classes="sectionTitle" Text="12 примитивов × 8 состояний" />
+        <TextBlock Classes="secondary" MaxWidth="720"
+                   Text="Строка — примитив, столбец — состояние возможности. Недоступность объясняется рядом с контролом, а не баннером. Красный только для настоящей ошибки записи и необратимых действий — не для ограничений транспорта." />
+      </StackPanel>
+
+      <Border Classes="card">
+        <StackPanel Spacing="0" Margin="16">
+
+          <!-- Header -->
+          <Grid ColumnDefinitions="170,1680">
+            <TextBlock Grid.Column="0" Classes="caption" Text="ПРИМИТИВ" VerticalAlignment="Bottom" />
+            <ItemsControl Grid.Column="1" ItemsSource="{x:Static pages:CapabilityShowcaseViewModel.StateNames}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <UniformGrid Columns="8" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                  <TextBlock Classes="caption" Text="{Binding}" Margin="12,0" VerticalAlignment="Bottom" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Grid>
+
+          <Separator Classes="divider" Margin="0,8" />
+
+          <!-- One row per primitive -->
+          <ItemsControl ItemsSource="{Binding Rows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="pages:ShowcaseRow">
+                <StackPanel>
+                  <Grid ColumnDefinitions="170,1680" Margin="0,10">
+
+                    <StackPanel Grid.Column="0" Spacing="3" VerticalAlignment="Center" Margin="0,0,14,0">
+                      <TextBlock Classes="cardTitle" Text="{Binding Title}" />
+                      <TextBlock Classes="caption" Text="{Binding Subtitle}" />
+                    </StackPanel>
+
+                    <ItemsControl Grid.Column="1" ItemsSource="{Binding Cells}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <UniformGrid Columns="8" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="cap:CapabilityViewModel">
+                          <controls:CapabilityControl Margin="12,0" VerticalAlignment="Center" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </Grid>
+
+                  <Separator Classes="divider" Margin="0" />
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+        </StackPanel>
+      </Border>
+
+      <!-- Named, not omitted: the page has to report what the design system is still
+           missing rather than implying it is finished. -->
+      <Border Classes="card">
+        <StackPanel Spacing="6" Margin="16">
+          <TextBlock Classes="cardTitle" Text="Примитивы без контрола" />
+          <TextBlock Classes="secondary"
+                     Text="Появятся вместе с экранами, которым они нужны. Пока такие возможности рисуются индикатором — меньше, чем задумано дизайном, но без обещаний, которых интерфейс не выполнит." />
+          <ItemsControl ItemsSource="{x:Static pages:CapabilityShowcaseViewModel.Pending}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="x:String">
+                <Border Background="{DynamicResource LayerAltBrush}"
+                        CornerRadius="{DynamicResource RadiusSmall}"
+                        Padding="8,3" Margin="0,4,6,0">
+                  <TextBlock Classes="caption" Text="{Binding}" />
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+
+</UserControl>

@@ -1,5 +1,8 @@
 using System.Globalization;
+using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Data.Converters;
+using Maxwell.App.ViewModels.Capabilities;
 using Maxwell.Core.Model;
 using Maxwell.Core.Settings;
 
@@ -63,6 +66,31 @@ public sealed class ThemeLabelConverter : IValueConverter
             AppTheme.Dark => "Тёмная",
             _ => "—",
         };
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>
+/// Colours the hint line under a capability control. An error is the only thing that
+/// goes red — a transport limitation is a fact about the hardware, not a fault, and
+/// painting it red would make an ordinary mode of use look broken.
+/// </summary>
+public sealed class HintToneBrushConverter : IValueConverter
+{
+    public static readonly HintToneBrushConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        string key = value switch
+        {
+            HintKind.Error => "DangerBrush",
+            HintKind.Warning => "StatusIrreversibleBrush",
+            _ => "TextSecondaryBrush",
+        };
+
+        return Application.Current?.TryFindResource(key, out object? brush) == true ? brush : null;
+    }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();

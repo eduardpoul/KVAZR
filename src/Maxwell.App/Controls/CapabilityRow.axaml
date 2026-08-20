@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:cap="using:Maxwell.App.ViewModels.Capabilities"
+             xmlns:controls="using:Maxwell.App.Controls"
+             x:Class="Maxwell.App.Controls.CapabilityRow"
+             x:DataType="cap:CapabilityViewModel">
+
+  <!--
+    One capability as a page row: name and explanation on the left, the control and its
+    state on the right. This is the only row layout in the application — a headset, a
+    mouse and a keyboard all lay out through it, which is what keeps them looking like
+    one program.
+  -->
+
+  <Grid ColumnDefinitions="*,Auto" MinHeight="48">
+
+    <StackPanel Grid.Column="0" Spacing="2"
+                VerticalAlignment="Center" Margin="0,0,16,0">
+      <TextBlock Classes="cardTitle" Text="{Binding Title}" />
+      <TextBlock Classes="caption"
+                 Text="{Binding Subtitle}"
+                 IsVisible="{Binding Subtitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+    </StackPanel>
+
+    <controls:CapabilityControl Grid.Column="1"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center" />
+  </Grid>
+
+</UserControl>

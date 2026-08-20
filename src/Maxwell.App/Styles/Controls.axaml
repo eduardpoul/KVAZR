@@ -154,4 +154,37 @@
     <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
   </Style>
 
+  <!--
+    Capability state decorations, from artboard 2a. They sit on the frame around the
+    control rather than inside each control, so a toggle, a slider and a dropdown all
+    show an unmet precondition the same way.
+  -->
+
+  <Style Selector="Border.capControl">
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
+    <Setter Property="Padding" Value="3" />
+  </Style>
+
+  <!-- Dimmed, not hidden: the device has the feature, the precondition is missing. -->
+  <Style Selector="Border.capControl.blocked">
+    <Setter Property="Opacity" Value="0.55" />
+  </Style>
+
+  <Style Selector="Border.capControl.pending">
+    <Setter Property="Opacity" Value="0.7" />
+  </Style>
+
+  <!-- The one place red is allowed: the device actually refused a write. -->
+  <Style Selector="Border.capControl.error">
+    <Setter Property="BorderBrush" Value="{DynamicResource StatusErrorBorderBrush}" />
+  </Style>
+
+  <!-- The value moved on the device itself. Acknowledged, briefly, rather than
+       silently overwritten. -->
+  <Style Selector="Border.capControl.external">
+    <Setter Property="BoxShadow" Value="0 0 0 3 #380F6CBD" />
+  </Style>
+
 </Styles>

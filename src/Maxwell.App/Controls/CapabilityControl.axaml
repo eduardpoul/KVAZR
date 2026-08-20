@@ -1,0 +1,143 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:cap="using:Maxwell.App.ViewModels.Capabilities"
+             xmlns:conv="using:Maxwell.App.Converters"
+             xmlns:devices="using:Maxwell.Core.Devices"
+             x:Class="Maxwell.App.Controls.CapabilityControl"
+             x:DataType="cap:CapabilityViewModel">
+
+  <!--
+    The control itself plus every one of the eight states: dimmed when a precondition
+    is unmet, an amber dot while untested, a red border when the device refused, a ring
+    when the value moved on the hardware, a triangle before an irreversible write.
+
+    They live on this frame rather than inside each control, because they are the same
+    eight everywhere and a per-control implementation is a per-control chance to get one
+    of them wrong.
+  -->
+
+  <UserControl.Resources>
+    <conv:HintToneBrushConverter x:Key="HintTone" />
+  </UserControl.Resources>
+
+  <!-- One template per primitive, holding nothing but the control itself. Everything
+       about state lives in the frame below, so these stay this short. -->
+  <UserControl.DataTemplates>
+
+    <DataTemplate DataType="cap:ReadoutCapabilityViewModel">
+      <TextBlock Classes="value" Text="{Binding Display}" />
+    </DataTemplate>
+
+    <DataTemplate DataType="cap:ToggleCapabilityViewModel">
+      <ToggleSwitch IsChecked="{Binding IsOn}"
+                    IsEnabled="{Binding CanEdit}"
+                    OnContent="" OffContent=""
+                    VerticalAlignment="Center" />
+    </DataTemplate>
+
+    <DataTemplate DataType="cap:RangeCapabilityViewModel">
+      <StackPanel Width="220" Spacing="2">
+        <TextBlock Classes="caption"
+                   HorizontalAlignment="Right"
+                   Text="{Binding Display}" />
+        <Slider Minimum="{Binding Minimum}"
+                Maximum="{Binding Maximum}"
+                Value="{Binding Value}"
+                TickFrequency="{Binding Step}"
+                IsSnapToTickEnabled="True"
+                IsEnabled="{Binding CanEdit}" />
+      </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate DataType="cap:ChoiceCapabilityViewModel">
+      <Panel>
+        <ListBox Classes="segmented"
+                 IsVisible="{Binding IsSegmented}"
+                 ItemsSource="{Binding Options}"
+                 SelectedItem="{Binding Selected}"
+                 IsEnabled="{Binding CanEdit}"
+                 VerticalAlignment="Center">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="devices:CapabilityChoice">
+              <TextBlock Text="{Binding Label}" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <ComboBox MinWidth="180"
+                  IsVisible="{Binding !IsSegmented}"
+                  ItemsSource="{Binding Options}"
+                  SelectedItem="{Binding Selected}"
+                  IsEnabled="{Binding CanEdit}"
+                  VerticalAlignment="Center">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="devices:CapabilityChoice">
+              <TextBlock Text="{Binding Label}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+      </Panel>
+    </DataTemplate>
+
+    <DataTemplate DataType="cap:ActionCapabilityViewModel">
+      <Button Command="{Binding InvokeCommand}"
+              IsEnabled="{Binding CanEdit}"
+              VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <Path Width="12" Height="12"
+                Stretch="Uniform"
+                Stroke="{DynamicResource DangerBrush}"
+                StrokeThickness="1.5"
+                Data="M8 2.6 14.4 13.4H1.6L8 2.6Z"
+                VerticalAlignment="Center"
+                IsVisible="{Binding NeedsConfirmation}" />
+          <TextBlock Text="{Binding Label}" VerticalAlignment="Center" />
+        </StackPanel>
+      </Button>
+    </DataTemplate>
+
+  </UserControl.DataTemplates>
+
+  <StackPanel Spacing="6" HorizontalAlignment="{Binding $parent[UserControl].HorizontalAlignment}">
+
+    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+
+      <!-- Dimmed rather than hidden: the capability exists, the precondition does not.
+           Hiding it would make the device look like it lacks the feature. -->
+      <Border Classes="capControl"
+              Classes.error="{Binding HasError}"
+              Classes.external="{Binding ChangedExternally}"
+              Classes.pending="{Binding IsWriting}"
+              Classes.blocked="{Binding !IsAvailable}">
+        <ContentControl Content="{Binding}" />
+      </Border>
+
+      <!-- The amber dot: command known, never confirmed on live hardware. It goes for
+           good the first time the device accepts a write. -->
+      <Ellipse Width="7" Height="7"
+               Fill="{DynamicResource StatusUntestedBrush}"
+               VerticalAlignment="Center"
+               IsVisible="{Binding IsUntested}"
+               ToolTip.Tip="Ещё не проверено на живом устройстве" />
+
+      <!-- Warned before the write, never after. -->
+      <Path Width="14" Height="14"
+            Stretch="Uniform"
+            Stroke="{DynamicResource StatusIrreversibleBrush}"
+            StrokeThickness="1.5"
+            Data="M8 2.6 14.4 13.4H1.6L8 2.6Z M8 6.4v3.2 M8 11.4h.01"
+            VerticalAlignment="Center"
+            IsVisible="{Binding IsIrreversible}"
+            ToolTip.Tip="Эту запись нельзя отменить" />
+    </StackPanel>
+
+    <!-- One line, and the most urgent thing wins. A stack of badges becomes wallpaper
+         the user stops reading. -->
+    <TextBlock Classes="caption"
+               MaxWidth="260"
+               Text="{Binding Hint}"
+               Foreground="{Binding HintTone, Converter={StaticResource HintTone}}"
+               IsVisible="{Binding Hint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+  </StackPanel>
+
+</UserControl>

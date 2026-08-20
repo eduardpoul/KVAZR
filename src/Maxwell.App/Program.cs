@@ -65,6 +65,7 @@ internal static class Program
         builder.Services.AddSingleton<ProfilesViewModel>();
         builder.Services.AddSingleton<HotkeysViewModel>();
         builder.Services.AddSingleton<SettingsViewModel>();
+        builder.Services.AddSingleton<CapabilityShowcaseViewModel>();
         builder.Services.AddSingleton<MainWindowViewModel>();
         builder.Services.AddSingleton<MainWindow>();
 

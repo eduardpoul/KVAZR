@@ -7,11 +7,11 @@ using Maxwell.Core.Services;
 
 namespace Maxwell.App.ViewModels;
 
-/// <summary>One entry in the navigation pane, bound directly to the page it shows.</summary>
-public sealed record NavSection(PageViewModel Page)
-{
-    public string Title => Page.Title;
-}
+/// <summary>
+/// One entry in the navigation pane. The page is untyped because not every page is
+/// bound to the headset — the design-system showcase has no device at all.
+/// </summary>
+public sealed record NavSection(string Title, object Page);
 
 public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 {
@@ -28,7 +28,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public partial NavSection? SelectedAppSection { get; set; }
 
     [ObservableProperty]
-    public partial PageViewModel CurrentPage { get; set; }
+    public partial object CurrentPage { get; set; }
 
     /// <summary>Sections belonging to the headset.</summary>
     public ObservableCollection<NavSection> DeviceSections { get; }
@@ -39,6 +39,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public MainWindowViewModel(
         IDeviceService device,
         OverviewViewModel overview,
+        CapabilityShowcaseViewModel showcase,
         SoundViewModel sound,
         MicrophoneViewModel microphone,
         SystemViewModel system,
@@ -54,18 +55,19 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
         DeviceSections =
         [
-            new NavSection(overview),
-            new NavSection(sound),
-            new NavSection(microphone),
-            new NavSection(system),
-            new NavSection(advanced),
+            new NavSection(overview.Title, overview),
+            new NavSection(sound.Title, sound),
+            new NavSection(microphone.Title, microphone),
+            new NavSection(system.Title, system),
+            new NavSection(advanced.Title, advanced),
         ];
 
         AppSections =
         [
-            new NavSection(profiles),
-            new NavSection(hotkeys),
-            new NavSection(settings),
+            new NavSection(profiles.Title, profiles),
+            new NavSection(hotkeys.Title, hotkeys),
+            new NavSection(settings.Title, settings),
+            new NavSection(showcase.Title, showcase),
         ];
 
         CurrentPage = overview;
@@ -85,6 +87,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         if (value is null) return;
         SelectedAppSection = null;
         CurrentPage = value.Page;
+        OnPropertyChanged(nameof(SelectedTitle));
     }
 
     partial void OnSelectedAppSectionChanged(NavSection? value)
@@ -92,6 +95,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         if (value is null) return;
         SelectedDeviceSection = null;
         CurrentPage = value.Page;
+        OnPropertyChanged(nameof(SelectedTitle));
     }
 
     partial void OnStateChanged(DeviceState value)
@@ -99,6 +103,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(DeviceTitle));
         OnPropertyChanged(nameof(TrayStatus));
     }
+
+    /// <summary>Header over the page area, taken from the selected nav entry.</summary>
+    public string SelectedTitle => (SelectedDeviceSection ?? SelectedAppSection)?.Title ?? string.Empty;
 
     public string DeviceTitle => State.DeviceName ?? "Audeze Maxwell";
 
@@ -116,7 +123,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
         _device.StateChanged -= OnStateChanged;
 
-        foreach (NavSection section in DeviceSections) section.Page.Dispose();
-        foreach (NavSection section in AppSections) section.Page.Dispose();
+        foreach (NavSection section in DeviceSections.Concat(AppSections))
+        {
+            if (section.Page is IDisposable disposable) disposable.Dispose();
+        }
     }
 }

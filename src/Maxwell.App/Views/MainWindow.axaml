@@ -129,7 +129,7 @@
       <!-- Content -->
       <ScrollViewer Grid.Column="1" Padding="12,0,24,24">
         <StackPanel Spacing="16">
-          <TextBlock Classes="sectionTitle" Text="{Binding CurrentPage.Title}" Margin="0,4,0,0" />
+          <TextBlock Classes="sectionTitle" Text="{Binding SelectedTitle}" Margin="0,4,0,0" />
           <ContentControl Content="{Binding CurrentPage}" />
         </StackPanel>
       </ScrollViewer>

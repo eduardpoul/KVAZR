@@ -40,6 +40,15 @@
       <Color x:Key="DangerColor">#C42B1C</Color>
       <Color x:Key="WarningColor">#986F0B</Color>
       <Color x:Key="SuccessColor">#0F7B0F</Color>
+
+      <!-- Capability state markers, from artboard 2a. Untested is the amber dot that
+           disappears after the first accepted write; Irreversible is the triangle shown
+           before a write that cannot be undone. -->
+      <Color x:Key="StatusUntestedColor">#EAA300</Color>
+      <Color x:Key="StatusIrreversibleColor">#9D5D00</Color>
+      <Color x:Key="StatusPendingColor">#8C0F6CBD</Color>
+      <Color x:Key="StatusExternalRingColor">#380F6CBD</Color>
+      <Color x:Key="StatusErrorBorderColor">#8CC42B1C</Color>
     </ResourceDictionary>
 
     <ResourceDictionary x:Key="Dark">
@@ -67,6 +76,12 @@
       <Color x:Key="DangerColor">#FF99A4</Color>
       <Color x:Key="WarningColor">#FCE100</Color>
       <Color x:Key="SuccessColor">#6CCB5F</Color>
+
+      <Color x:Key="StatusUntestedColor">#FFCB4D</Color>
+      <Color x:Key="StatusIrreversibleColor">#E9A825</Color>
+      <Color x:Key="StatusPendingColor">#8C479EF5</Color>
+      <Color x:Key="StatusExternalRingColor">#38479EF5</Color>
+      <Color x:Key="StatusErrorBorderColor">#8CFF99A4</Color>
     </ResourceDictionary>
 
   </ResourceDictionary.ThemeDictionaries>
@@ -96,6 +111,12 @@
   <SolidColorBrush x:Key="DangerBrush" Color="{DynamicResource DangerColor}" />
   <SolidColorBrush x:Key="WarningBrush" Color="{DynamicResource WarningColor}" />
   <SolidColorBrush x:Key="SuccessBrush" Color="{DynamicResource SuccessColor}" />
+
+  <SolidColorBrush x:Key="StatusUntestedBrush" Color="{DynamicResource StatusUntestedColor}" />
+  <SolidColorBrush x:Key="StatusIrreversibleBrush" Color="{DynamicResource StatusIrreversibleColor}" />
+  <SolidColorBrush x:Key="StatusPendingBrush" Color="{DynamicResource StatusPendingColor}" />
+  <SolidColorBrush x:Key="StatusExternalRingBrush" Color="{DynamicResource StatusExternalRingColor}" />
+  <SolidColorBrush x:Key="StatusErrorBorderBrush" Color="{DynamicResource StatusErrorBorderColor}" />
 
   <!-- Geometry and type scale, both taken from the canvas. -->
   <CornerRadius x:Key="RadiusSmall">4</CornerRadius>
