@@ -2,19 +2,28 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <!-- The Windows toast implementation ships for windows10.0.17763, so the app
-         targets that floor. Core and Race stay on plain net10.0-windows. -->
-    <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
+
+    <!--
+      Two targets. The Windows one is pinned to windows10.0.17763 because that is the
+      floor of the toast implementation; the plain net10.0 one is what Linux and macOS
+      build against. Keeping both compiling on every build is the point — it is what
+      stops the Windows path quietly growing dependencies the others cannot satisfy.
+    -->
+    <TargetFrameworks>net10.0;net10.0-windows10.0.17763.0</TargetFrameworks>
+
     <RootNamespace>Maxwell.App</RootNamespace>
     <AssemblyName>Maxwell</AssemblyName>
 
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
 
     <!-- CA1822 wants constant view-model properties made static, but XAML bindings
          only resolve instance members, so following it would break the binding. -->
     <NoWarn>$(NoWarn);CA1822</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,6 +32,9 @@
     <PackageReference Include="FluentAvaloniaUI" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
     <PackageReference Include="DesktopNotifications" />
     <PackageReference Include="DesktopNotifications.Windows" />
   </ItemGroup>
@@ -34,5 +46,19 @@
   <ItemGroup>
     <ProjectReference Include="..\Maxwell.Core\Maxwell.Core.csproj" />
   </ItemGroup>
+
+  <!--
+    SkiaSharp and HarfBuzz ship native debug symbols: 105 MB of .pdb that a release
+    build has no use for, and nearly half the published size. Trimming is deliberately
+    NOT used instead — Avalonia resolves controls and styles reflectively, so a trimmed
+    build fails at runtime rather than at publish time.
+  -->
+  <Target Name="DropSymbolsFromRelease"
+          AfterTargets="ComputeResolvedFilesToPublishList"
+          Condition="'$(Configuration)' == 'Release'">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.pdb'" />
+    </ItemGroup>
+  </Target>
 
 </Project>

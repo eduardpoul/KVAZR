@@ -1,3 +1,5 @@
+// Windows-only: the registry only exists on Windows.
+#if WINDOWS
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.Versioning;
@@ -79,3 +81,4 @@ public sealed class WindowsAutostart : IAutostart
     private static string ExecutablePath() =>
         Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? "";
 }
+#endif

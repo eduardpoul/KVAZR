@@ -1,3 +1,5 @@
+// Windows-only: the toast package only ships for the Windows target.
+#if WINDOWS
 using System.Runtime.Versioning;
 using DesktopNotifications;
 using DesktopNotifications.Windows;
@@ -90,3 +92,4 @@ public sealed class WindowsNotifier : INotifier, IDisposable
         _gate.Dispose();
     }
 }
+#endif

@@ -7,18 +7,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Maxwell.App.Platform.Windows;
 
-/// <summary>A global shortcut and what it triggers.</summary>
-public sealed record HotkeyBinding(string ActionId, string Gesture);
-
-/// <summary>Registers system-wide shortcuts that work while the window is hidden.</summary>
-public interface IHotkeyService : IDisposable
-{
-    event EventHandler<string>? Triggered;
-
-    /// <summary>Replaces every registration. Returns the actions that could not be bound.</summary>
-    IReadOnlyList<string> Apply(IReadOnlyList<HotkeyBinding> bindings);
-}
-
 /// <summary>
 /// RegisterHotKey needs a window to deliver WM_HOTKEY to, and Avalonia does not expose
 /// its window procedure. Rather than subclass one, this owns a message-only window on
