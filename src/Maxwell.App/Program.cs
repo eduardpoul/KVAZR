@@ -23,6 +23,13 @@ internal static class Program
     [STAThread]
     public static int Main(string[] args)
     {
+        // A 16-pixel glyph cannot be judged from source, so there is a way to render
+        // every variant and look at it. No host, no device, no window.
+        if (Array.IndexOf(args, "--dump-icons") is var at and >= 0 && at + 1 < args.Length)
+        {
+            return DumpIcons(args[at + 1]);
+        }
+
         IHost host = CreateHost(args);
         host.Start();
 
@@ -35,6 +42,15 @@ internal static class Program
             host.StopAsync(TimeSpan.FromSeconds(5)).GetAwaiter().GetResult();
             host.Dispose();
         }
+    }
+
+    private static int DumpIcons(string path)
+    {
+        AppBuilder.Configure<App>().UsePlatformDetect().SetupWithoutStarting();
+        Tray.TrayIconPreview.Dump(path);
+
+        Console.WriteLine($"wrote {path}");
+        return 0;
     }
 
     private static IHost CreateHost(string[] args)
