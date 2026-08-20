@@ -5,7 +5,12 @@
              RequestedThemeVariant="Default">
 
   <Application.Styles>
-    <sty:FluentAvaloniaTheme PreferSystemTheme="True" />
+    <!-- The design has its own accent, so the Windows personalisation colour is
+         deliberately ignored: otherwise sliders and switches come out in the user's
+         system accent while our own text accent stays blue. -->
+    <sty:FluentAvaloniaTheme PreferSystemTheme="True"
+                             PreferUserAccentColor="False"
+                             CustomAccentColor="#0F6CBD" />
     <StyleInclude Source="avares://Maxwell/Styles/Controls.axaml" />
   </Application.Styles>
 
