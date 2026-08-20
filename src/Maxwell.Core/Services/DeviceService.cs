@@ -247,6 +247,10 @@ public sealed class DeviceService : IDeviceService, IDisposable
         WriteAsync(s => s.WriteValueAsync(MaxwellFeatures.VpLevel, level, cancellationToken),
             state => state with { VoicePromptLevel = level }, cancellationToken);
 
+    public Task<bool> SetMicLevelAsync(byte level, CancellationToken cancellationToken = default) =>
+        WriteAsync(s => s.WriteValueAsync(MaxwellFeatures.MicLevel, level, cancellationToken),
+            state => state with { MicLevel = level }, cancellationToken);
+
     public Task<bool> SetEqPresetAsync(byte index, CancellationToken cancellationToken = default) =>
         WriteAsync(s => s.WriteValueAsync(MaxwellFeatures.PeqIndex, index, cancellationToken),
             state => state with { EqPresetIndex = index }, cancellationToken);

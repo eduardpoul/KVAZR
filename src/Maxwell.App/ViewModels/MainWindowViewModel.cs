@@ -1,13 +1,17 @@
 using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Maxwell.App.ViewModels.Pages;
 using Maxwell.Core.Model;
 using Maxwell.Core.Services;
 
 namespace Maxwell.App.ViewModels;
 
-/// <summary>One entry in the navigation pane.</summary>
-public sealed record NavSection(string Key, string Title, string Glyph, bool RequiresControl);
+/// <summary>One entry in the navigation pane, bound directly to the page it shows.</summary>
+public sealed record NavSection(PageViewModel Page)
+{
+    public string Title => Page.Title;
+}
 
 public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 {
@@ -18,32 +22,54 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public partial DeviceState State { get; set; } = DeviceState.Empty;
 
     [ObservableProperty]
-    public partial NavSection Selected { get; set; }
+    public partial NavSection? SelectedDeviceSection { get; set; }
 
-    /// <summary>Sections belonging to the headset. Disabled when only the dongle is present.</summary>
-    public ObservableCollection<NavSection> DeviceSections { get; } =
-    [
-        new("overview", "Обзор", "", false),
-        new("sound", "Звук", "", true),
-        new("microphone", "Микрофон", "", true),
-        new("system", "Система", "", true),
-        new("advanced", "Дополнительно", "", true),
-    ];
+    [ObservableProperty]
+    public partial NavSection? SelectedAppSection { get; set; }
 
-    /// <summary>Sections belonging to the application itself; always available.</summary>
-    public ObservableCollection<NavSection> AppSections { get; } =
-    [
-        new("profiles", "Профили", "", false),
-        new("hotkeys", "Горячие клавиши", "", false),
-        new("settings", "Параметры", "", false),
-    ];
+    [ObservableProperty]
+    public partial PageViewModel CurrentPage { get; set; }
 
-    public MainWindowViewModel(IDeviceService device)
+    /// <summary>Sections belonging to the headset.</summary>
+    public ObservableCollection<NavSection> DeviceSections { get; }
+
+    /// <summary>Sections belonging to the application; always reachable.</summary>
+    public ObservableCollection<NavSection> AppSections { get; }
+
+    public MainWindowViewModel(
+        IDeviceService device,
+        OverviewViewModel overview,
+        SoundViewModel sound,
+        MicrophoneViewModel microphone,
+        SystemViewModel system,
+        AdvancedViewModel advanced,
+        ProfilesViewModel profiles,
+        HotkeysViewModel hotkeys,
+        SettingsViewModel settings)
     {
         ArgumentNullException.ThrowIfNull(device);
+        ArgumentNullException.ThrowIfNull(overview);
 
         _device = device;
-        Selected = DeviceSections[0];
+
+        DeviceSections =
+        [
+            new NavSection(overview),
+            new NavSection(sound),
+            new NavSection(microphone),
+            new NavSection(system),
+            new NavSection(advanced),
+        ];
+
+        AppSections =
+        [
+            new NavSection(profiles),
+            new NavSection(hotkeys),
+            new NavSection(settings),
+        ];
+
+        CurrentPage = overview;
+        SelectedDeviceSection = DeviceSections[0];
         State = device.State;
 
         _device.StateChanged += OnStateChanged;
@@ -52,46 +78,36 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private void OnStateChanged(object? sender, DeviceState state) =>
         Dispatcher.UIThread.Post(() => State = state);
 
-    // ---------- projections for the view ----------
-
-    public string DeviceTitle => State.DeviceName ?? "Audeze Maxwell";
-
-    public string DeviceSubtitle => State.ControlTransport switch
+    // The two lists are separate controls, so selecting in one has to clear the other
+    // or both would show a highlighted row at once.
+    partial void OnSelectedDeviceSectionChanged(NavSection? value)
     {
-        null when State.DonglePresent => "Xbox · только донгл",
-        null => "не подключены",
-        _ => $"Xbox · прошивка {State.FirmwareVersion ?? "—"}",
-    };
+        if (value is null) return;
+        SelectedAppSection = null;
+        CurrentPage = value.Page;
+    }
 
-    public string BatteryText => State.HasBattery ? $"{State.BatteryPercent}%" : "—";
-
-    public string ConnectionText => State.Connection switch
+    partial void OnSelectedAppSectionChanged(NavSection? value)
     {
-        ConnectionState.NotFound => "Наушники не найдены",
-        ConnectionState.MonitorOnly => "Подключён только донгл — доступен мониторинг",
-        _ => State.IsCharging ? "Заряжается" : "Подключено по кабелю",
-    };
+        if (value is null) return;
+        SelectedDeviceSection = null;
+        CurrentPage = value.Page;
+    }
 
-    public bool CanControl => State.CanControl;
-
-    public bool ShowNotFound => State.Connection == ConnectionState.NotFound;
-
-    public bool ShowMonitorOnly => State.Connection == ConnectionState.MonitorOnly;
-
-    /// <summary>
-    /// The projections above are computed from <see cref="State"/>, so every one of
-    /// them has to be re-read whenever the snapshot is replaced.
-    /// </summary>
     partial void OnStateChanged(DeviceState value)
     {
         OnPropertyChanged(nameof(DeviceTitle));
-        OnPropertyChanged(nameof(DeviceSubtitle));
-        OnPropertyChanged(nameof(BatteryText));
-        OnPropertyChanged(nameof(ConnectionText));
-        OnPropertyChanged(nameof(CanControl));
-        OnPropertyChanged(nameof(ShowNotFound));
-        OnPropertyChanged(nameof(ShowMonitorOnly));
+        OnPropertyChanged(nameof(TrayStatus));
     }
+
+    public string DeviceTitle => State.DeviceName ?? "Audeze Maxwell";
+
+    public string TrayStatus => State.Connection switch
+    {
+        ConnectionState.NotFound => "Не подключено",
+        ConnectionState.MonitorOnly => "Только донгл",
+        _ => State.HasBattery ? $"{State.BatteryPercent}%" : "Подключено",
+    };
 
     public void Dispose()
     {
@@ -99,5 +115,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         _disposed = true;
 
         _device.StateChanged -= OnStateChanged;
+
+        foreach (NavSection section in DeviceSections) section.Page.Dispose();
+        foreach (NavSection section in AppSections) section.Page.Dispose();
     }
 }

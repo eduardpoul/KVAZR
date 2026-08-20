@@ -1,0 +1,150 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:pages="using:Maxwell.App.ViewModels.Pages"
+             xmlns:conv="using:Maxwell.App.Converters"
+             x:Class="Maxwell.App.Views.Pages.OverviewView"
+             x:DataType="pages:OverviewViewModel">
+
+  <UserControl.Resources>
+    <conv:NoiseReductionLabelConverter x:Key="NrLabel" />
+  </UserControl.Resources>
+
+  <StackPanel Spacing="12">
+
+    <!-- Nothing connected -->
+    <Border Classes="card" IsVisible="{Binding ShowNotFound}">
+      <StackPanel Spacing="8">
+        <TextBlock Classes="cardTitle" Text="Наушники не найдены" />
+        <TextBlock Classes="secondary"
+                   Text="Включите Maxwell и подключите кабель USB-C или беспроводной адаптер. Приложение подхватит устройство само." />
+      </StackPanel>
+    </Border>
+
+    <!-- Dongle only -->
+    <Border Classes="card" IsVisible="{Binding ShowMonitorOnly}">
+      <StackPanel Spacing="8">
+        <TextBlock Classes="cardTitle" Text="Подключён только донгл — доступен мониторинг" />
+        <TextBlock Classes="secondary"
+                   Text="Донгл передаёт звук, но не отвечает ни на одну команду настройки. Подключите кабель USB-C, чтобы менять параметры." />
+      </StackPanel>
+    </Border>
+
+    <!-- Device summary -->
+    <Border Classes="card" IsVisible="{Binding ShowDevice}">
+      <Grid ColumnDefinitions="*,Auto" Margin="20">
+        <StackPanel Grid.Column="0" Spacing="6" VerticalAlignment="Center">
+          <TextBlock Classes="cardTitle" FontSize="{DynamicResource FontSizeSubtitle}"
+                     Text="{Binding State.DeviceName, FallbackValue='Audeze Maxwell'}" />
+          <TextBlock Classes="secondary" Text="{Binding FirmwareText}" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Classes="secondary" Text="{Binding CableText}" />
+          </StackPanel>
+          <TextBlock Classes="secondary" Text="{Binding DongleText}" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right" Spacing="2">
+          <TextBlock Classes="bigNumber" Text="{Binding BatteryText}"
+                     HorizontalAlignment="Right"
+                     Foreground="{DynamicResource AccentPrimaryBrush}" />
+          <TextBlock Classes="caption" Text="{Binding ChargeText}" HorizontalAlignment="Right" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Game / Chat mix -->
+    <Border Classes="card" IsVisible="{Binding State.CanControl}">
+      <StackPanel Spacing="10">
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2">
+            <TextBlock Classes="cardTitle" Text="Game / Chat Mix" />
+            <TextBlock Classes="caption"
+                       Text="Дублирует колесо на чашке — значение подхватывается при изменении на наушниках" />
+          </StackPanel>
+          <TextBlock Grid.Column="1" Classes="value" Text="{Binding ChatMixText}" />
+        </Grid>
+
+        <Slider Minimum="0" Maximum="20" TickFrequency="10" IsSnapToTickEnabled="False"
+                Value="{Binding ChatMix}" />
+
+        <Grid ColumnDefinitions="*,*,*">
+          <TextBlock Grid.Column="0" Classes="caption" Text="0 · только игра" />
+          <TextBlock Grid.Column="1" Classes="caption" Text="10 · баланс"
+                     HorizontalAlignment="Center" />
+          <TextBlock Grid.Column="2" Classes="caption" Text="20 · только чат"
+                     HorizontalAlignment="Right" />
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <!-- Microphone summary -->
+    <Border Classes="card" IsVisible="{Binding State.CanControl}">
+      <StackPanel Spacing="10">
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2">
+            <TextBlock Classes="cardTitle" Text="Шумоподавление микрофона" />
+            <TextBlock Classes="caption"
+                       Text="Обрабатывает исходящий голос, внешний шум в наушниках не глушит" />
+          </StackPanel>
+          <ListBox Grid.Column="1" Classes="segmented"
+                   ItemsSource="{Binding NoiseReductionModes}"
+                   SelectedItem="{Binding NoiseReduction}"
+                   VerticalAlignment="Center">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Converter={StaticResource NrLabel}}" />
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+
+        <Separator Classes="divider" />
+
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2">
+            <TextBlock Classes="cardTitle" Text="Микрофон" />
+            <TextBlock Classes="caption" Text="Мьют на Maxwell только физический — подъёмом бума" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+            <TextBlock Classes="value" Text="{Binding MicStatusText}" />
+            <Border Classes="pill">
+              <TextBlock Text="{Binding BoomMicText}" />
+            </Border>
+          </StackPanel>
+        </Grid>
+
+        <Separator Classes="divider" />
+
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2">
+            <TextBlock Classes="cardTitle" Text="Сайдтон" />
+            <TextBlock Classes="caption" Text="{Binding SidetoneText}" />
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <!-- Sound summary -->
+    <Border Classes="card" IsVisible="{Binding State.CanControl}">
+      <StackPanel Spacing="10">
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <TextBlock Grid.Column="0" Classes="cardTitle" Text="Пресет эквалайзера"
+                     VerticalAlignment="Center" />
+          <Border Grid.Column="1" Classes="pill accent">
+            <TextBlock Text="{Binding PresetText}" />
+          </Border>
+        </Grid>
+
+        <Separator Classes="divider" />
+
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2">
+            <TextBlock Classes="cardTitle" Text="Звуковые устройства Windows" />
+            <TextBlock Classes="caption"
+                       Text="Game-Audeze Maxwell — игры и системный звук · Chat-Audeze Maxwell — голосовой чат" />
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </Border>
+
+  </StackPanel>
+</UserControl>

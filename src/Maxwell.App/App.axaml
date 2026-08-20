@@ -6,6 +6,7 @@
 
   <Application.Styles>
     <sty:FluentAvaloniaTheme PreferSystemTheme="True" />
+    <StyleInclude Source="avares://Maxwell/Styles/Controls.axaml" />
   </Application.Styles>
 
   <Application.Resources>

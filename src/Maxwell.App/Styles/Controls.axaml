@@ -1,0 +1,157 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Shared surface and type styles, taken from the Claude Design canvas: cards are
+    white on #F3F3F3 with an 8px radius and a hairline border, rows are 1px-divided
+    inside a card, and the type scale is 11/12/13/14 with 28 for the big numbers.
+  -->
+
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="{DynamicResource LayerCardBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource StrokeDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource RadiusCard}" />
+  </Style>
+
+  <Style Selector="Border.card > StackPanel">
+    <Setter Property="Margin" Value="20" />
+  </Style>
+
+  <!-- A row inside a card: title on the left, control on the right.
+       ColumnDefinitions is a CLR property rather than an AvaloniaProperty, so it
+       cannot be set here and each Grid declares it directly. -->
+  <Style Selector="Grid.row">
+    <Setter Property="MinHeight" Value="48" />
+  </Style>
+
+  <Style Selector="Separator.divider">
+    <Setter Property="Background" Value="{DynamicResource StrokeSubtleBrush}" />
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Margin" Value="0,4" />
+  </Style>
+
+  <Style Selector="TextBlock.sectionTitle">
+    <Setter Property="FontSize" Value="{DynamicResource FontSizeSubtitle}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector="TextBlock.cardTitle">
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
+  </Style>
+
+  <Style Selector="TextBlock.secondary">
+    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    <Setter Property="FontSize" Value="{DynamicResource FontSizeSecondary}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <Style Selector="TextBlock.caption">
+    <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}" />
+    <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <Style Selector="TextBlock.value">
+    <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="TextBlock.bigNumber">
+    <Setter Property="FontSize" Value="{DynamicResource FontSizeTitle}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!-- Small status pill, used for "Отсоединён", "Под вопросом" and similar. -->
+  <Style Selector="Border.pill">
+    <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
+    <Setter Property="Padding" Value="8,3" />
+    <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="Border.pill > TextBlock">
+    <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+  </Style>
+
+  <Style Selector="Border.pill.accent">
+    <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
+  </Style>
+  <Style Selector="Border.pill.accent > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource AccentPrimaryBrush}" />
+  </Style>
+
+  <Style Selector="Border.pill.warning > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+  </Style>
+
+  <!--
+    Segmented choice, used for noise reduction (off / low / high) and the theme
+    picker. The design draws these as bordered tiles that fill with the accent tint
+    when active, not as radio buttons.
+  -->
+  <Style Selector="ListBox.segmented">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <StackPanel Orientation="Horizontal" Spacing="8" />
+      </ItemsPanelTemplate>
+    </Setter>
+  </Style>
+
+  <Style Selector="ListBox.segmented ListBoxItem">
+    <Setter Property="MinWidth" Value="96" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Padding" Value="14,0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource StrokeDefaultBrush}" />
+    <Setter Property="Background" Value="{DynamicResource LayerCardBrush}" />
+    <Setter Property="FontSize" Value="{DynamicResource FontSizeSecondary}" />
+  </Style>
+
+  <Style Selector="ListBox.segmented ListBoxItem:selected">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}" />
+    <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentPrimaryBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!-- EQ preset tiles: same idea, wrapped and taller because they carry a subtitle. -->
+  <Style Selector="ListBox.tiles">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <WrapPanel Orientation="Horizontal" />
+      </ItemsPanelTemplate>
+    </Setter>
+  </Style>
+
+  <Style Selector="ListBox.tiles ListBoxItem">
+    <Setter Property="Width" Value="150" />
+    <Setter Property="Height" Value="56" />
+    <Setter Property="Margin" Value="0,0,8,8" />
+    <Setter Property="Padding" Value="12,0" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource StrokeDefaultBrush}" />
+    <Setter Property="Background" Value="{DynamicResource LayerCardBrush}" />
+  </Style>
+
+  <Style Selector="ListBox.tiles ListBoxItem:selected">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}" />
+    <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
+  </Style>
+
+</Styles>

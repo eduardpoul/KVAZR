@@ -1,5 +1,6 @@
 using Avalonia;
 using Maxwell.App.ViewModels;
+using Maxwell.App.ViewModels.Pages;
 using Maxwell.App.Views;
 using Maxwell.Core;
 using Maxwell.Core.Services;
@@ -42,6 +43,14 @@ internal static class Program
         builder.Services.AddWindowsHid();
         builder.Services.AddMaxwellCore();
 
+        builder.Services.AddSingleton<OverviewViewModel>();
+        builder.Services.AddSingleton<SoundViewModel>();
+        builder.Services.AddSingleton<MicrophoneViewModel>();
+        builder.Services.AddSingleton<SystemViewModel>();
+        builder.Services.AddSingleton<AdvancedViewModel>();
+        builder.Services.AddSingleton<ProfilesViewModel>();
+        builder.Services.AddSingleton<HotkeysViewModel>();
+        builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<MainWindowViewModel>();
         builder.Services.AddSingleton<MainWindow>();
 

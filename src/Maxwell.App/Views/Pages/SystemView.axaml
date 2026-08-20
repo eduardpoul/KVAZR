@@ -1,0 +1,85 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:pages="using:Maxwell.App.ViewModels.Pages"
+             x:Class="Maxwell.App.Views.Pages.SystemView"
+             x:DataType="pages:SystemViewModel">
+
+  <StackPanel Spacing="12">
+
+    <Border Classes="card" IsVisible="{Binding !IsAvailable}">
+      <StackPanel Spacing="8">
+        <TextBlock Classes="cardTitle" Text="Нужен кабель USB-C" />
+        <TextBlock Classes="secondary"
+                   Text="По беспроводному донглу наушники не отвечают на команды настройки." />
+      </StackPanel>
+    </Border>
+
+    <Border Classes="card" IsVisible="{Binding IsAvailable}">
+      <StackPanel Spacing="10">
+
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2">
+            <TextBlock Classes="cardTitle" Text="Таймер автовыключения" />
+            <TextBlock Classes="caption" Text="Когда нет звука и активности" />
+          </StackPanel>
+          <TextBlock Grid.Column="1" Classes="value" Text="{Binding AutoPowerOffText}"
+                     TextWrapping="Wrap" MaxWidth="320" TextAlignment="Right" />
+        </Grid>
+
+        <Separator Classes="divider" />
+
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2">
+            <TextBlock Classes="cardTitle" Text="Датчики head-tracking" />
+            <TextBlock Classes="caption"
+                       Text="Команда записи в прошивке есть, но для оригинального Maxwell функция официально не описана" />
+          </StackPanel>
+          <Border Grid.Column="1" Classes="pill warning">
+            <TextBlock Text="Под вопросом" />
+          </Border>
+        </Grid>
+
+        <Separator Classes="divider" />
+
+        <StackPanel Spacing="6">
+          <Grid Classes="row" ColumnDefinitions="*,Auto" MinHeight="24">
+            <StackPanel Grid.Column="0" Spacing="2">
+              <TextBlock Text="Громкость голосовых подсказок" />
+              <TextBlock Classes="caption" Text="Озвучка включения, выключения и смены пресета EQ · 0–255" />
+            </StackPanel>
+            <TextBlock Grid.Column="1" Classes="value" Text="{Binding VoicePromptText}" />
+          </Grid>
+          <Slider Minimum="0" Maximum="255" Value="{Binding VoicePromptLevel}" />
+          <Grid ColumnDefinitions="*,*">
+            <TextBlock Grid.Column="0" Classes="caption" Text="тихо" />
+            <TextBlock Grid.Column="1" Classes="caption" Text="громко" HorizontalAlignment="Right" />
+          </Grid>
+        </StackPanel>
+
+      </StackPanel>
+    </Border>
+
+    <!-- Device state -->
+    <Border Classes="card">
+      <StackPanel Spacing="10">
+        <TextBlock Classes="cardTitle" Text="Состояние устройства" />
+
+        <Grid Classes="row" ColumnDefinitions="*,Auto" MinHeight="32">
+          <TextBlock Grid.Column="0" Classes="secondary" Text="Прошивка" />
+          <TextBlock Grid.Column="1" Classes="value" Text="{Binding FirmwareText}" />
+        </Grid>
+
+        <Grid Classes="row" ColumnDefinitions="*,Auto" MinHeight="32">
+          <TextBlock Grid.Column="0" Classes="secondary" Text="Питание" />
+          <TextBlock Grid.Column="1" Classes="value" Text="{Binding PowerText}" />
+        </Grid>
+
+        <Grid Classes="row" ColumnDefinitions="*,Auto" MinHeight="32">
+          <TextBlock Grid.Column="0" Classes="secondary" Text="Подключение" />
+          <TextBlock Grid.Column="1" Classes="value" Text="{Binding ConnectionText}" />
+        </Grid>
+      </StackPanel>
+    </Border>
+
+  </StackPanel>
+</UserControl>

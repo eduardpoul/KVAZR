@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:pages="using:Maxwell.App.ViewModels.Pages"
+             x:Class="Maxwell.App.Views.Pages.PlaceholderView"
+             x:DataType="pages:PlaceholderViewModel">
+
+  <Border Classes="card">
+    <StackPanel Spacing="10">
+      <Border Classes="pill" HorizontalAlignment="Left">
+        <TextBlock Text="Ещё не реализовано" />
+      </Border>
+      <TextBlock Classes="cardTitle" Text="{Binding Title}" />
+      <TextBlock Classes="secondary" Text="{Binding Explanation}" />
+    </StackPanel>
+  </Border>
+
+</UserControl>

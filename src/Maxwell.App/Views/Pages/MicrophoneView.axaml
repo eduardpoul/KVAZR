@@ -1,0 +1,123 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:pages="using:Maxwell.App.ViewModels.Pages"
+             xmlns:conv="using:Maxwell.App.Converters"
+             x:Class="Maxwell.App.Views.Pages.MicrophoneView"
+             x:DataType="pages:MicrophoneViewModel">
+
+  <UserControl.Resources>
+    <conv:NoiseReductionLabelConverter x:Key="NrLabel" />
+  </UserControl.Resources>
+
+  <StackPanel Spacing="12">
+
+    <Border Classes="card" IsVisible="{Binding !IsAvailable}">
+      <StackPanel Spacing="8">
+        <TextBlock Classes="cardTitle" Text="Нужен кабель USB-C" />
+        <TextBlock Classes="secondary"
+                   Text="По беспроводному донглу наушники не отвечают на команды настройки." />
+      </StackPanel>
+    </Border>
+
+    <!-- Boom mic detached -->
+    <Border Classes="card" IsVisible="{Binding BoomMicDetached}">
+      <StackPanel Spacing="8">
+        <TextBlock Classes="cardTitle" Text="Бум-микрофон отсоединён" />
+        <TextBlock Classes="secondary"
+                   Text="Наушники автоматически переключились на встроенный массив в чашках. Часть настроек относится только к съёмному микрофону и сейчас недоступна." />
+      </StackPanel>
+    </Border>
+
+    <!-- Noise reduction -->
+    <Border Classes="card" IsVisible="{Binding IsAvailable}">
+      <StackPanel Spacing="10">
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2">
+            <TextBlock Classes="cardTitle" Text="Шумоподавление" />
+            <TextBlock Classes="caption"
+                       Text="Чистит исходящий голос: механическая клавиатура, вентиляторы, фоновые голоса. Внешний шум в наушниках не глушит." />
+          </StackPanel>
+          <ListBox Grid.Column="1" Classes="segmented"
+                   ItemsSource="{Binding NoiseReductionModes}"
+                   SelectedItem="{Binding NoiseReduction}"
+                   VerticalAlignment="Center">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Converter={StaticResource NrLabel}}" />
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+
+        <Separator Classes="divider" />
+
+        <StackPanel Spacing="6">
+          <Grid Classes="row" ColumnDefinitions="*,Auto" MinHeight="24">
+            <StackPanel Grid.Column="0" Spacing="2">
+              <TextBlock Text="Уровень микрофона" />
+              <TextBlock Classes="caption" Text="0–255 · требует подключённого бум-микрофона"
+                         IsVisible="{Binding !BoomMicAttached}" />
+            </StackPanel>
+            <TextBlock Grid.Column="1" Classes="value" Text="{Binding MicLevelText}" />
+          </Grid>
+          <Slider Minimum="0" Maximum="255" Value="{Binding MicLevel}"
+                  IsEnabled="{Binding BoomMicAttached}" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- Sidetone -->
+    <Border Classes="card" IsVisible="{Binding IsAvailable}">
+      <StackPanel Spacing="10">
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2">
+            <TextBlock Classes="cardTitle" Text="Сайдтон" />
+            <TextBlock Classes="caption" Text="Свой голос слышно в наушниках" />
+          </StackPanel>
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding SidetoneEnabled}"
+                        OnContent="" OffContent="" VerticalAlignment="Center" />
+        </Grid>
+
+        <StackPanel Spacing="6" IsEnabled="{Binding SidetoneEnabled}">
+          <Grid Classes="row" ColumnDefinitions="*,Auto" MinHeight="24">
+            <StackPanel Grid.Column="0" Spacing="2">
+              <TextBlock Text="Уровень сайдтона" />
+              <TextBlock Classes="caption" Text="Максимум читается из наушников, не задан в приложении" />
+            </StackPanel>
+            <TextBlock Grid.Column="1" Classes="value" Text="{Binding SidetoneLevelText}" />
+          </Grid>
+          <Slider Minimum="0" Maximum="{Binding SidetoneMaximum}"
+                  TickFrequency="1" IsSnapToTickEnabled="True"
+                  Value="{Binding SidetoneLevel}" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- Status -->
+    <Border Classes="card" IsVisible="{Binding IsAvailable}">
+      <StackPanel Spacing="10">
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2">
+            <TextBlock Classes="cardTitle" Text="Микрофон замьючен" />
+            <TextBlock Classes="caption"
+                       Text="Мьют на Maxwell только физический — подъёмом бума. Команды записи не существует, поэтому это индикатор." />
+          </StackPanel>
+          <TextBlock Grid.Column="1" Classes="value" Text="{Binding MicMuteText}" />
+        </Grid>
+
+        <Separator Classes="divider" />
+
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2">
+            <TextBlock Classes="cardTitle" Text="Встроенный массив" />
+            <TextBlock Classes="caption" Text="Beamforming в чашках, включается автоматически при отсоединении бума" />
+          </StackPanel>
+          <Border Grid.Column="1" Classes="pill accent">
+            <TextBlock Text="Активен" />
+          </Border>
+        </Grid>
+      </StackPanel>
+    </Border>
+
+  </StackPanel>
+</UserControl>

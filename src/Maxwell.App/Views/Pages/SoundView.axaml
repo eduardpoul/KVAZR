@@ -1,0 +1,99 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:pages="using:Maxwell.App.ViewModels.Pages"
+             xmlns:model="using:Maxwell.Core.Model"
+             xmlns:conv="using:Maxwell.App.Converters"
+             x:Class="Maxwell.App.Views.Pages.SoundView"
+             x:DataType="pages:SoundViewModel">
+
+  <StackPanel Spacing="12">
+
+    <Border Classes="card" IsVisible="{Binding !IsAvailable}">
+      <StackPanel Spacing="8">
+        <TextBlock Classes="cardTitle" Text="Нужен кабель USB-C" />
+        <TextBlock Classes="secondary"
+                   Text="По беспроводному донглу наушники не отвечают на команды настройки. Подключите кабель, чтобы менять звук." />
+      </StackPanel>
+    </Border>
+
+    <!-- EQ presets -->
+    <Border Classes="card" IsVisible="{Binding IsAvailable}">
+      <StackPanel Spacing="12">
+        <StackPanel Spacing="2">
+          <TextBlock Classes="cardTitle" Text="Пресеты эквалайзера" />
+          <TextBlock Classes="caption" Text="6 встроенных и 4 пользовательских слота" />
+        </StackPanel>
+
+        <ListBox Classes="tiles"
+                 ItemsSource="{Binding Presets}"
+                 SelectedItem="{Binding SelectedPreset}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="model:EqPreset">
+              <StackPanel Spacing="2" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                <TextBlock Classes="caption"
+                           Text="{Binding IsUserSlot, Converter={x:Static conv:PresetKindConverter.Instance}}" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Separator Classes="divider" />
+
+        <StackPanel Spacing="4">
+          <TextBlock Classes="cardTitle" Text="Редактор полос" />
+          <TextBlock Classes="caption"
+                     Text="Команды записи полос ещё не разобраны — переключать пресеты можно, править их содержимое пока нет." />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- Volume and balance -->
+    <Border Classes="card" IsVisible="{Binding IsAvailable}">
+      <StackPanel Spacing="14">
+        <StackPanel Spacing="2">
+          <TextBlock Classes="cardTitle" Text="Громкость и баланс" />
+          <TextBlock Classes="caption"
+                     Text="Потолок 150 — выше физически опасно для излучателя. Значения 136 и 142 прошивка не принимает и они пропускаются." />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+          <Grid Classes="row" ColumnDefinitions="*,Auto" MinHeight="24">
+            <TextBlock Grid.Column="0" Text="Общая громкость" />
+            <TextBlock Grid.Column="1" Classes="value" Text="{Binding AmpGainText}" />
+          </Grid>
+          <Slider Minimum="0" Maximum="{Binding GainMaximum}" Value="{Binding AmpGain}" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+          <Grid Classes="row" ColumnDefinitions="*,Auto" MinHeight="24">
+            <TextBlock Grid.Column="0" Text="Баланс чашек" />
+            <TextBlock Grid.Column="1" Classes="value" Text="{Binding BalanceText}" />
+          </Grid>
+          <Slider Minimum="{Binding BalanceMinimum}" Maximum="{Binding BalanceMaximum}"
+                  TickFrequency="1" IsSnapToTickEnabled="True"
+                  Value="{Binding Balance}" />
+        </StackPanel>
+
+        <Separator Classes="divider" />
+
+        <StackPanel Spacing="6">
+          <Grid Classes="row" ColumnDefinitions="*,Auto" MinHeight="24">
+            <TextBlock Grid.Column="0" Text="Левый канал" />
+            <TextBlock Grid.Column="1" Classes="value" Text="{Binding LeftGainText}" />
+          </Grid>
+          <Slider Minimum="0" Maximum="{Binding GainMaximum}" Value="{Binding LeftGain}" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+          <Grid Classes="row" ColumnDefinitions="*,Auto" MinHeight="24">
+            <TextBlock Grid.Column="0" Text="Правый канал" />
+            <TextBlock Grid.Column="1" Classes="value" Text="{Binding RightGainText}" />
+          </Grid>
+          <Slider Minimum="0" Maximum="{Binding GainMaximum}" Value="{Binding RightGain}" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+  </StackPanel>
+</UserControl>

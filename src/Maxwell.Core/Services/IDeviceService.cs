@@ -33,6 +33,9 @@ public interface IDeviceService
 
     Task<bool> SetVoicePromptLevelAsync(byte level, CancellationToken cancellationToken = default);
 
+    /// <summary>Boom microphone level. Only answers while the boom mic is attached.</summary>
+    Task<bool> SetMicLevelAsync(byte level, CancellationToken cancellationToken = default);
+
     Task<bool> SetEqPresetAsync(byte index, CancellationToken cancellationToken = default);
 
     /// <summary>Master, left and right amplifier gain. Rejected above the safe ceiling.</summary>

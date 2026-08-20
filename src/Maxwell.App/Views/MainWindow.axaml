@@ -1,6 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Maxwell.App.ViewModels"
+        xmlns:pages="using:Maxwell.App.ViewModels.Pages"
+        xmlns:views="using:Maxwell.App.Views.Pages"
         x:Class="Maxwell.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Maxwell.App"
@@ -11,6 +13,14 @@
         FontSize="{DynamicResource FontSizeBody}"
         Foreground="{DynamicResource TextPrimaryBrush}"
         WindowDecorations="BorderOnly">
+
+  <Window.DataTemplates>
+    <DataTemplate DataType="pages:OverviewViewModel"><views:OverviewView /></DataTemplate>
+    <DataTemplate DataType="pages:SoundViewModel"><views:SoundView /></DataTemplate>
+    <DataTemplate DataType="pages:MicrophoneViewModel"><views:MicrophoneView /></DataTemplate>
+    <DataTemplate DataType="pages:SystemViewModel"><views:SystemView /></DataTemplate>
+    <DataTemplate DataType="pages:PlaceholderViewModel"><views:PlaceholderView /></DataTemplate>
+  </Window.DataTemplates>
 
   <Window.Styles>
 
@@ -41,12 +51,6 @@
       <Setter Property="Margin" Value="12,10,12,4" />
     </Style>
 
-    <Style Selector="TextBlock.secondary">
-      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
-      <Setter Property="FontSize" Value="{DynamicResource FontSizeSecondary}" />
-    </Style>
-
-    <!-- Navigation entries: 40px rows with an accent rail on the selected one. -->
     <Style Selector="ListBox.nav">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
@@ -57,14 +61,6 @@
       <Setter Property="Padding" Value="0" />
       <Setter Property="Margin" Value="4,1" />
       <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
-    </Style>
-
-    <Style Selector="Border.card">
-      <Setter Property="Background" Value="{DynamicResource LayerCardBrush}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource StrokeDefaultBrush}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="{DynamicResource RadiusCard}" />
-      <Setter Property="Padding" Value="20" />
     </Style>
 
   </Window.Styles>
@@ -97,29 +93,17 @@
     <!-- Body -->
     <Grid Grid.Row="1" ColumnDefinitions="260,*">
 
-      <!-- Navigation -->
       <ScrollViewer Grid.Column="0" Padding="8,0,8,12">
         <StackPanel Spacing="2">
-
-          <Border Height="32" Margin="4,0,4,8"
-                  CornerRadius="{DynamicResource RadiusSmall}"
-                  Background="{DynamicResource LayerCardBrush}"
-                  BorderBrush="{DynamicResource StrokeSubtleBrush}"
-                  BorderThickness="1">
-            <TextBlock Text="Поиск" Margin="10,0" VerticalAlignment="Center"
-                       FontSize="{DynamicResource FontSizeSecondary}"
-                       Foreground="{DynamicResource TextTertiaryBrush}" />
-          </Border>
 
           <TextBlock Classes="groupHeader" Text="{Binding DeviceTitle}" />
 
           <ListBox Classes="nav"
                    ItemsSource="{Binding DeviceSections}"
-                   SelectedItem="{Binding Selected}">
+                   SelectedItem="{Binding SelectedDeviceSection}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="vm:NavSection">
-                <TextBlock Text="{Binding Title}" Margin="12,0"
-                           VerticalAlignment="Center" />
+                <TextBlock Text="{Binding Title}" Margin="12,0" VerticalAlignment="Center" />
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
@@ -128,11 +112,10 @@
 
           <ListBox Classes="nav"
                    ItemsSource="{Binding AppSections}"
-                   SelectedItem="{Binding Selected}">
+                   SelectedItem="{Binding SelectedAppSection}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="vm:NavSection">
-                <TextBlock Text="{Binding Title}" Margin="12,0"
-                           VerticalAlignment="Center" />
+                <TextBlock Text="{Binding Title}" Margin="12,0" VerticalAlignment="Center" />
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
@@ -143,49 +126,8 @@
       <!-- Content -->
       <ScrollViewer Grid.Column="1" Padding="12,0,24,24">
         <StackPanel Spacing="16">
-
-          <TextBlock Text="{Binding Selected.Title}"
-                     FontSize="{DynamicResource FontSizeSubtitle}"
-                     FontWeight="SemiBold"
-                     Margin="0,4,0,0" />
-
-          <!-- Nothing connected -->
-          <Border Classes="card" IsVisible="{Binding ShowNotFound}">
-            <StackPanel Spacing="8">
-              <TextBlock Text="Наушники не найдены" FontWeight="SemiBold" />
-              <TextBlock Classes="secondary" TextWrapping="Wrap"
-                         Text="Включите Maxwell и подключите кабель USB-C или беспроводной адаптер. Приложение подхватит устройство само." />
-            </StackPanel>
-          </Border>
-
-          <!-- Dongle only: monitoring works, configuration does not -->
-          <Border Classes="card" IsVisible="{Binding ShowMonitorOnly}">
-            <StackPanel Spacing="8">
-              <TextBlock Text="Подключён только донгл — доступен мониторинг" FontWeight="SemiBold" />
-              <TextBlock Classes="secondary" TextWrapping="Wrap"
-                         Text="Донгл передаёт звук, но не отвечает на команды настройки. Подключите кабель USB-C, чтобы менять параметры." />
-            </StackPanel>
-          </Border>
-
-          <!-- Device summary -->
-          <Border Classes="card" IsVisible="{Binding CanControl}">
-            <Grid ColumnDefinitions="*,Auto">
-              <StackPanel Grid.Column="0" Spacing="4">
-                <TextBlock Text="{Binding DeviceTitle}" FontWeight="SemiBold"
-                           FontSize="{DynamicResource FontSizeSubtitle}" />
-                <TextBlock Classes="secondary" Text="{Binding DeviceSubtitle}" />
-                <TextBlock Classes="secondary" Text="{Binding ConnectionText}" />
-              </StackPanel>
-
-              <TextBlock Grid.Column="1"
-                         Text="{Binding BatteryText}"
-                         FontSize="{DynamicResource FontSizeTitle}"
-                         FontWeight="SemiBold"
-                         VerticalAlignment="Center"
-                         Foreground="{DynamicResource AccentPrimaryBrush}" />
-            </Grid>
-          </Border>
-
+          <TextBlock Classes="sectionTitle" Text="{Binding CurrentPage.Title}" Margin="0,4,0,0" />
+          <ContentControl Content="{Binding CurrentPage}" />
         </StackPanel>
       </ScrollViewer>
 
