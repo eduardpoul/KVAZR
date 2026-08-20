@@ -2,7 +2,9 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Maxwell.Race.Native;
 
-namespace Maxwell.Race;
+using Maxwell.Race.Abstractions;
+
+namespace Maxwell.Race.Diagnostics;
 
 /// <summary>One declared report in a collection's HID descriptor.</summary>
 public sealed record ReportDeclaration(int Direction, byte ReportId, ushort UsagePage, ushort Usage, int Bits)
@@ -39,7 +41,8 @@ public static class HidDescriptor
             try
             {
                 var caps = new HidNative.HidpCaps();
-                HidNative.HidP_GetCaps(preparsed, ref caps);
+                if (HidNative.HidP_GetCaps(preparsed, ref caps) != HidNative.HidpStatusSuccess)
+                    return declarations;
 
                 Collect(HidNative.HidpInput, caps.NumberInputValueCaps, preparsed, declarations);
                 Collect(HidNative.HidpOutput, caps.NumberOutputValueCaps, preparsed, declarations);
@@ -74,7 +77,7 @@ public static class HidDescriptor
 
     public static void Dump(TextWriter output)
     {
-        foreach (MaxwellInterface iface in MaxwellHid.Enumerate())
+        foreach (MaxwellInterface iface in new Windows.WindowsHidEnumerator().Enumerate())
         {
             string collection = ExtractCollection(iface.Path);
             output.WriteLine($"  PID 0x{iface.ProductId:X4}  {collection}  usage {iface.UsagePage:X4}:{iface.Usage:X2}  " +

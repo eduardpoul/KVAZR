@@ -1,46 +1,40 @@
 using Maxwell.Race;
+using Maxwell.Race.Protocol;
 
 namespace Maxwell.Cli;
 
 /// <summary>
 /// Exercises every known function and puts each setting back the way it was.
-/// Each write is verified by reading it back, then reverted and verified again,
-/// and a final snapshot is diffed against the opening one to prove nothing drifted.
-/// Undocumented 0x0900 write registers are deliberately not touched: an unknown
-/// register cannot be restored if it turns out to be destructive.
+/// Each write is verified by reading it back, then reverted and verified again, and a
+/// final snapshot is diffed against the opening one to prove nothing drifted.
+/// Undocumented write registers are deliberately untouched: an unknown register cannot
+/// be restored if it turns out to be destructive.
 /// </summary>
 internal static class TestSuite
 {
-    internal sealed record Result(string Area, string Command, string Status, string Detail);
+    internal sealed record Result(string Area, string Status, string Detail);
 
-    private static readonly byte[] ReadableSubs = BuildRange();
-
-    private static byte[] BuildRange()
+    public static async Task<IReadOnlyList<Result>> RunAsync(RaceSession session, TextWriter output)
     {
-        var subs = new byte[0x40];
-        for (int i = 0; i < subs.Length; i++) subs[i] = (byte)i;
-        return subs;
-    }
+        ArgumentNullException.ThrowIfNull(session);
+        ArgumentNullException.ThrowIfNull(output);
 
-    public static List<Result> Run(RaceSession session, TextWriter output)
-    {
         var results = new List<Result>();
 
         output.WriteLine("  capturing baseline...");
-        Dictionary<byte, int> baseline = Snapshot(session);
+        Dictionary<byte, int> baseline = await SnapshotAsync(session).ConfigureAwait(false);
         output.WriteLine($"  baseline: {baseline.Count} readable sub-commands");
         output.WriteLine();
 
-        RunReadTests(session, results, output);
-        RunWriteTests(session, results, output);
-        RunUnreachedTests(session, results, output);
+        await RunReadTestsAsync(session, results, output).ConfigureAwait(false);
+        await RunWriteTestsAsync(session, results, output).ConfigureAwait(false);
 
         output.WriteLine();
         output.WriteLine("  verifying every setting is back where it started...");
-        Dictionary<byte, int> final = Snapshot(session);
+        Dictionary<byte, int> final = await SnapshotAsync(session).ConfigureAwait(false);
 
         var drift = new List<string>();
-        foreach (byte sub in baseline.Keys.Union(final.Keys).OrderBy(s => s))
+        foreach (byte sub in baseline.Keys.Union(final.Keys).Order())
         {
             baseline.TryGetValue(sub, out int before);
             final.TryGetValue(sub, out int after);
@@ -50,176 +44,143 @@ internal static class TestSuite
         if (drift.Count == 0)
         {
             output.WriteLine("  RESTORED: final snapshot matches the baseline exactly.");
-            results.Add(new Result("Safety", "restore check", "PASS", "all values back to baseline"));
+            results.Add(new Result("Safety", "PASS", "all values back to baseline"));
         }
         else
         {
             output.WriteLine($"  DRIFT on {drift.Count} value(s): {string.Join(", ", drift)}");
-            results.Add(new Result("Safety", "restore check", "FAIL", string.Join("; ", drift)));
+            results.Add(new Result("Safety", "FAIL", string.Join("; ", drift)));
         }
 
         return results;
     }
 
-    private static Dictionary<byte, int> Snapshot(RaceSession session)
+    private static async Task<Dictionary<byte, int>> SnapshotAsync(RaceSession session)
     {
         var values = new Dictionary<byte, int>();
-        foreach (byte sub in ReadableSubs)
+        for (int sub = 0x00; sub <= 0x3F; sub++)
         {
-            int value = session.ReadValue(sub, attempts: 2, windowMs: 140);
-            if (value >= 0) values[sub] = value;
+            int value = await session.ReadValueAsync((byte)sub).ConfigureAwait(false);
+            if (value >= 0) values[(byte)sub] = value;
         }
         return values;
     }
 
-    // ---------- reads ----------
-
-    private static void RunReadTests(RaceSession session, List<Result> results, TextWriter output)
+    private static async Task RunReadTestsAsync(RaceSession session, List<Result> results, TextWriter output)
     {
         output.WriteLine("  -- reads --");
 
-        int battery = session.ReadBattery();
-        Add(results, output, "Battery", "0x0CD6", battery >= 0, battery >= 0 ? $"{battery}%" : "no reply");
+        int battery = await session.ReadBatteryAsync().ConfigureAwait(false);
+        Add(results, output, "Battery", battery >= 0, battery >= 0 ? $"{battery}%" : "no reply");
 
-        foreach ((byte sub, string name) in new[]
+        foreach ((byte sub, string name) in new (byte, string)[]
         {
-            (RaceSession.SubGainMaster, "Master gain"),
-            (RaceSession.SubGainLeft, "Left gain"),
-            (RaceSession.SubGainRight, "Right gain"),
-            ((byte)0x25, "Balance slider"),
-            ((byte)0x27, "Volume"),
-            ((byte)0x20, "Source preference"),
-            (RaceSession.SubAudioSource, "Audio source state"),
+            (MaxwellFeatures.AmpGain, "Amp gain"),
+            (MaxwellFeatures.LeftGain, "Left gain"),
+            (MaxwellFeatures.RightGain, "Right gain"),
+            (MaxwellFeatures.EarcupBalance, "Earcup balance"),
+            (MaxwellFeatures.NoiseReduction, "Noise reduction"),
+            (MaxwellFeatures.SidetoneLevel, "Sidetone level"),
+            (MaxwellFeatures.MaxSidetoneLevel, "Max sidetone level"),
+            (MaxwellFeatures.VpLevel, "Voice prompt level"),
+            (MaxwellFeatures.PeqIndex, "EQ preset index"),
+            (MaxwellFeatures.MicMute, "Mic mute"),
+            (MaxwellFeatures.MicLevel, "Mic level"),
+            (MaxwellFeatures.IsNewFilm, "Source flag"),
         })
         {
-            int value = session.ReadValue(sub);
-            Add(results, output, name, $"0x0901 sub 0x{sub:X2}", value >= 0,
-                value >= 0 ? $"{value} (0x{value:X2})" : "no reply");
+            int value = await session.ReadValueAsync(sub).ConfigureAwait(false);
+            Add(results, output, name, value >= 0, value >= 0 ? $"{value} (0x{value:X2})" : "no reply");
         }
 
-        RacePacket? status = session
-            .SendRaw(new byte[] { 0x80, 0x05, 0x5A, 0x03, 0x00, 0x10, 0x09 })
-            .FirstOrDefault(p => p.Command == 0x0910);
-        Add(results, output, "Status struct", "0x0910", status is not null,
-            status is not null ? status.Hex : "no reply");
+        int chatMix = await session.ReadChatMixAsync().ConfigureAwait(false);
+        Add(results, output, "ChatMix", chatMix >= 0, chatMix >= 0 ? chatMix.ToString() : "no reply");
 
-        string? version = null;
-        foreach (uint address in FirmwareAddresses.For(session.Interface.Transport))
-        {
-            version = session.ReadVersionString(address);
-            if (version is not null) break;
-        }
-        Add(results, output, "Firmware version", "0x1680", version is not null, version ?? "not resolved");
+        int sidetoneState = await session.ReadNamespace2CAsync(MaxwellFeatures.SidetoneState).ConfigureAwait(false);
+        Add(results, output, "Sidetone on/off", sidetoneState >= 0,
+            sidetoneState >= 0 ? sidetoneState.ToString() : "no reply");
+
+        int autoOff = await session.ReadNamespace2CAsync(MaxwellFeatures.AutoPowerOff).ConfigureAwait(false);
+        Add(results, output, "Auto power off", autoOff >= 0, autoOff >= 0 ? autoOff.ToString() : "no reply");
+
+        byte[]? status = await session.ReadStatusAsync().ConfigureAwait(false);
+        Add(results, output, "Status struct", status is not null,
+            status is not null ? Convert.ToHexString(status) : "no reply");
     }
 
-    // ---------- writes, each reverted ----------
-
-    private static void RunWriteTests(RaceSession session, List<Result> results, TextWriter output)
+    private static async Task RunWriteTestsAsync(RaceSession session, List<Result> results, TextWriter output)
     {
         output.WriteLine();
         output.WriteLine("  -- writes (each one reverted immediately) --");
 
-        TestWrite(session, results, output, RaceSession.SubGainMaster, "Master gain", GainProbe);
-        TestWrite(session, results, output, RaceSession.SubGainLeft, "Left gain", GainProbe);
-        TestWrite(session, results, output, RaceSession.SubGainRight, "Right gain", GainProbe);
-        TestWrite(session, results, output, 0x25, "Balance slider", current => (byte)(current == 0x80 ? 0x7F : 0x80));
-        TestWrite(session, results, output, RaceSession.SubAudioSource, "Audio source state",
-            current => (byte)(current == 0x0A ? 0x00 : 0x0A));
+        await TestWriteAsync(session, results, output, MaxwellFeatures.AmpGain, "Amp gain", StepDown)
+            .ConfigureAwait(false);
+        await TestWriteAsync(session, results, output, MaxwellFeatures.LeftGain, "Left gain", StepDown)
+            .ConfigureAwait(false);
+        await TestWriteAsync(session, results, output, MaxwellFeatures.RightGain, "Right gain", StepDown)
+            .ConfigureAwait(false);
+        await TestWriteAsync(session, results, output, MaxwellFeatures.EarcupBalance, "Earcup balance",
+            current => (byte)(current == 0x80 ? 0x7F : 0x80)).ConfigureAwait(false);
+
+        await TestChatMixAsync(session, results, output).ConfigureAwait(false);
     }
 
     /// <summary>Step one away from the current gain, staying clear of the reserved codes.</summary>
-    private static byte GainProbe(int current)
+    private static byte StepDown(int current)
     {
         int candidate = current > 0 ? current - 1 : current + 1;
-        while (RaceSession.IsReservedGain(candidate) || candidate is < 0 or > RaceSession.MaxGain)
+        while (RaceCommands.IsReservedGain(candidate) || candidate is < 0 or > RaceCommands.MaxGain)
             candidate--;
         return (byte)candidate;
     }
 
-    private static void TestWrite(RaceSession session, List<Result> results, TextWriter output,
+    private static async Task TestWriteAsync(RaceSession session, List<Result> results, TextWriter output,
         byte sub, string name, Func<int, byte> pickProbe)
     {
-        int original = session.ReadValue(sub);
+        int original = await session.ReadValueAsync(sub).ConfigureAwait(false);
         if (original < 0)
         {
-            Add(results, output, name + " (write)", $"0x0900 sub 0x{sub:X2}", false, "cannot read original, skipped");
+            Add(results, output, name + " (write)", false, "cannot read original, skipped");
             return;
         }
 
         byte probe = pickProbe(original);
 
-        try
-        {
-            bool applied = session.WriteValue(sub, probe);
-            int observed = session.ReadValue(sub);
+        bool applied = await session.WriteValueAsync(sub, probe).ConfigureAwait(false);
+        int observed = await session.ReadValueAsync(sub).ConfigureAwait(false);
 
-            bool restored = session.WriteValue(sub, (byte)original);
-            int back = session.ReadValue(sub);
+        bool restored = await session.WriteValueAsync(sub, (byte)original).ConfigureAwait(false);
+        int back = await session.ReadValueAsync(sub).ConfigureAwait(false);
 
-            string detail = $"{original} -> {probe} ({(applied && observed == probe ? "took" : $"read {observed}")}), " +
-                            $"restored to {back}{(restored && back == original ? "" : " FAILED")}";
-
-            Add(results, output, name + " (write)", $"0x0900 sub 0x{sub:X2}",
-                applied && observed == probe && back == original, detail);
-
-            if (back != original)
-                output.WriteLine($"     !! {name} did not revert: expected {original}, got {back}");
-        }
-        catch (ArgumentOutOfRangeException ex)
-        {
-            Add(results, output, name + " (write)", $"0x0900 sub 0x{sub:X2}", false, "blocked: " + ex.Message);
-        }
+        Add(results, output, name + " (write)", applied && observed == probe && back == original,
+            $"{original} -> {probe} ({(observed == probe ? "took" : $"read {observed}")}), " +
+            $"restored to {back}{(restored && back == original ? "" : " FAILED")}");
     }
 
-    // ---------- features whose command is not known ----------
-
-    private static void RunUnreachedTests(RaceSession session, List<Result> results, TextWriter output)
+    private static async Task TestChatMixAsync(RaceSession session, List<Result> results, TextWriter output)
     {
-        output.WriteLine();
-        output.WriteLine("  -- features with no confirmed command --");
-
-        // ChatMix turned out to be readable on 0x2C83, so its original value is
-        // known and the write can be exercised and reverted like the others.
-        int chatMix = session.ReadChatMix();
-        Add(results, output, "ChatMix", "0x2C83 sub 0x0B", chatMix >= 0,
-            chatMix >= 0 ? $"{chatMix} ({Describe(chatMix)})" : "no reply");
-
-        if (chatMix >= 0)
+        int original = await session.ReadChatMixAsync().ConfigureAwait(false);
+        if (original < 0)
         {
-            byte probe = (byte)(chatMix == RaceSession.ChatMixBalanced ? 5 : RaceSession.ChatMixBalanced);
-            bool applied = session.WriteChatMix(probe);
-            int observed = session.ReadChatMix();
-
-            bool restored = session.WriteChatMix((byte)chatMix);
-            int back = session.ReadChatMix();
-
-            Add(results, output, "ChatMix (write)", "0x2C82 sub 0x0B",
-                applied && observed == probe && back == chatMix,
-                $"{chatMix} -> {probe} ({(observed == probe ? "took" : $"read {observed}")}), restored to {back}");
+            Add(results, output, "ChatMix (write)", false, "cannot read original, skipped");
+            return;
         }
 
-        // Sidetone is documented as sharing the ChatMix handler; sub 0x0C is the
-        // next slot along, so it is the cheapest candidate to test for.
-        int sidetone = session.ReadNamespace2C(0x0C);
-        Add(results, output, "Sidetone (candidate)", "0x2C83 sub 0x0C", sidetone >= 0,
-            sidetone >= 0 ? $"{sidetone} (0x{sidetone:X2}) - meaning unconfirmed" : "no reply");
+        byte probe = (byte)(original == RaceCommands.ChatMixBalanced ? 5 : RaceCommands.ChatMixBalanced);
 
-        foreach (string feature in new[] { "EQ / PEQ preset", "Mic noise reduction", "Mic mute" })
-            Add(results, output, feature, "unknown", false, "no command identified yet");
+        bool applied = await session.WriteChatMixAsync(probe).ConfigureAwait(false);
+        int observed = await session.ReadChatMixAsync().ConfigureAwait(false);
+
+        await session.WriteChatMixAsync((byte)original).ConfigureAwait(false);
+        int back = await session.ReadChatMixAsync().ConfigureAwait(false);
+
+        Add(results, output, "ChatMix (write)", applied && observed == probe && back == original,
+            $"{original} -> {probe} ({(observed == probe ? "took" : $"read {observed}")}), restored to {back}");
     }
 
-    private static string Describe(int chatMix) => chatMix switch
+    private static void Add(List<Result> results, TextWriter output, string area, bool ok, string detail)
     {
-        0 => "all game",
-        RaceSession.ChatMixBalanced => "balanced",
-        RaceSession.ChatMixMax => "all chat",
-        _ => "custom",
-    };
-
-    private static void Add(List<Result> results, TextWriter output,
-        string area, string command, bool ok, string detail)
-    {
-        results.Add(new Result(area, command, ok ? "PASS" : "FAIL", detail));
+        results.Add(new Result(area, ok ? "PASS" : "FAIL", detail));
         output.WriteLine($"     [{(ok ? "ok" : "--")}] {area,-24} {detail}");
     }
 }

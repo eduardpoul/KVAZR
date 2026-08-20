@@ -67,6 +67,9 @@ internal static class HidNative
     internal const int HidpOutput = 1;
     internal const int HidpFeature = 2;
 
+    /// <summary>HIDP_STATUS_SUCCESS. The HIDP_* functions return an NTSTATUS, and success is not zero.</summary>
+    internal const int HidpStatusSuccess = 0x00110000;
+
     /// <summary>HIDP_VALUE_CAPS. 72 bytes on both architectures; every field is naturally aligned.</summary>
     [StructLayout(LayoutKind.Sequential)]
     internal struct HidpValueCaps

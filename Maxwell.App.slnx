@@ -3,4 +3,7 @@
     <Project Path="src/Maxwell.Cli/Maxwell.Cli.csproj" />
     <Project Path="src/Maxwell.Race/Maxwell.Race.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Maxwell.Race.Tests/Maxwell.Race.Tests.csproj" />
+  </Folder>
 </Solution>

@@ -1,0 +1,26 @@
+<Project>
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!-- Warnings are defects. The device layer is P/Invoke-heavy, where a warning
+         ignored today is a memory corruption bug tomorrow. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Product>Maxwell.App</Product>
+    <Company>Maxwell.App</Company>
+    <Authors>Eduard Poul</Authors>
+    <Version>0.9.0</Version>
+  </PropertyGroup>
+
+</Project>
