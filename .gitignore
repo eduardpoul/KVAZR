@@ -1,0 +1,38 @@
+## .NET build output
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+artifacts/
+
+## Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+*.sln.docstates
+
+## Test and coverage
+[Tt]est[Rr]esult*/
+coverage*.json
+coverage*.xml
+*.coverage
+*.trx
+
+## NuGet
+*.nupkg
+*.snupkg
+packages/
+!packages/build/
+
+## Diagnostic output from the CLI harness
+*.log
+*.binlog
+dis.txt
+*.hex
+
+## OS
+[Tt]humbs.db
+.DS_Store

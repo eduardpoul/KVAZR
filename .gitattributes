@@ -1,0 +1,23 @@
+# Normalise line endings so Windows checkouts do not churn diffs.
+* text=auto
+
+*.cs      text diff=csharp
+*.csproj  text
+*.props   text
+*.targets text
+*.axaml   text
+*.xaml    text
+*.json    text
+*.md      text
+*.yml     text
+*.sh      text eol=lf
+*.slnx    text
+
+# Binary assets — never touch these.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.ico  binary
+*.bin  binary
+*.dll  binary
