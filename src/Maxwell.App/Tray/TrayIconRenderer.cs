@@ -148,6 +148,11 @@ internal static class TrayIconRenderer
     /// </summary>
     private static TrayPanel PanelOfSystem()
     {
+        // Only Windows keeps the taskbar theme in the registry. Elsewhere the dark
+        // assumption is the safer default: light digits on a dark plate survive a light
+        // panel better than the reverse.
+        if (!OperatingSystem.IsWindows()) return TrayPanel.Dark;
+
         try
         {
             object? value = Registry.GetValue(
