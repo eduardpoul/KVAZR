@@ -96,7 +96,7 @@ public sealed class CapabilityShowcaseViewModel
     }
 
     private static CapabilityViewModel Cell(CapabilityState state, IDeviceSession session) =>
-        CapabilityViewModelFactory.Create(state, session, verbose: true);
+        CapabilityViewModelFactory.Create(state, session, HintDetail.Full);
 
     // ---------- the five descriptors, drawn from real Maxwell capabilities ----------
 

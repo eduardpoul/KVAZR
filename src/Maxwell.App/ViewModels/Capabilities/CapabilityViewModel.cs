@@ -5,6 +5,19 @@ using Maxwell.Core.Devices;
 
 namespace Maxwell.App.ViewModels.Capabilities;
 
+/// <summary>How much the hint line is allowed to say.</summary>
+public enum HintDetail
+{
+    /// <summary>Only a refused write. The tray panel has room for nothing else.</summary>
+    Terse,
+
+    /// <summary>Everything except "not verified yet", which the amber dot already says.</summary>
+    Normal,
+
+    /// <summary>Every state in words. For the showcase, whose job is to demonstrate them.</summary>
+    Full,
+}
+
 /// <summary>How the hint line under a control should read.</summary>
 public enum HintKind
 {
@@ -60,12 +73,12 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     protected IDeviceSession? Session { get; }
 
     /// <summary>
-    /// Spell out every state in words. The showcase does, because demonstrating them is
-    /// its whole purpose; a device page does not, because most of a Maxwell's
-    /// capabilities are untested and nine identical sentences down one page stop being
-    /// read by the third. There the amber dot and its tooltip carry it.
+    /// How much the hint may say. A device page drops "not verified yet", because most
+    /// of a Maxwell's capabilities are untested and nine identical sentences down one
+    /// page stop being read by the third. The tray panel drops everything but a refusal,
+    /// because it is 360 pixels wide and exists to be glanced at.
     /// </summary>
-    public bool Verbose { get; init; }
+    public HintDetail Detail { get; init; } = HintDetail.Normal;
 
     [ObservableProperty]
     public partial CapabilityState State { get; private set; }
@@ -108,10 +121,12 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     public string? Hint => State switch
     {
         { WriteError: { } error } => error,
+        _ when Detail == HintDetail.Terse => null,
         { IsAvailable: false } => Descriptor.RequirementHint,
         { IsWriting: true } => "Применяется…",
         { Status: CapabilityStatus.Unavailable } => "Функция есть, способа вызвать пока нет",
-        { Status: CapabilityStatus.Untested } when Verbose => "Ещё не проверено на живом устройстве",
+        { Status: CapabilityStatus.Untested } when Detail == HintDetail.Full =>
+            "Ещё не проверено на живом устройстве",
         { ChangedExternally: true } => "Изменено на устройстве",
         _ when IsIrreversible => Descriptor.Note ?? "Первая запись необратима",
         _ => Descriptor.Note,

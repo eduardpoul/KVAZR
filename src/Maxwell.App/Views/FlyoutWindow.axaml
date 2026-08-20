@@ -1,0 +1,126 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:cap="using:Maxwell.App.ViewModels.Capabilities"
+        xmlns:controls="using:Maxwell.App.Controls"
+        xmlns:conv="using:Maxwell.App.Converters"
+        xmlns:devices="using:Maxwell.App.ViewModels.Devices"
+        xmlns:vm="using:Maxwell.App.ViewModels"
+        x:Class="Maxwell.App.Views.FlyoutWindow"
+        x:DataType="vm:FlyoutViewModel"
+        Width="360"
+        MaxHeight="600"
+        SizeToContent="Height"
+        SystemDecorations="None"
+        ShowInTaskbar="False"
+        Topmost="True"
+        CornerRadius="8"
+        Background="{DynamicResource LayerCardBrush}"
+        FontFamily="Segoe UI Variable Text, Segoe UI, sans-serif"
+        FontSize="{DynamicResource FontSizeBody}"
+        Foreground="{DynamicResource TextPrimaryBrush}">
+
+  <!--
+    Artboard 3a-3c. 360 wide, and the height is capped at 600 because six devices reach
+    it — past that the list scrolls rather than growing off the screen.
+
+    The primary device gets a picture and two or three controls; every other device is
+    one row. Anything beyond a glance and a nudge belongs in the window.
+  -->
+
+  <Window.Resources>
+    <conv:DeviceImageConverter x:Key="DeviceImage" />
+  </Window.Resources>
+
+      <Border BorderBrush="{DynamicResource StrokeDefaultBrush}" BorderThickness="1" CornerRadius="8">
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="16" Spacing="12">
+
+          <TextBlock Classes="caption" Text="{Binding Heading}" />
+
+          <!-- Nothing attached. Short, because the tray is not the place to explain. -->
+          <TextBlock Classes="secondary"
+                     IsVisible="{Binding !HasDevices}"
+                     Text="Устройств не найдено" />
+
+          <!-- Primary device -->
+          <Grid ColumnDefinitions="Auto,*,Auto" IsVisible="{Binding HasDevices}">
+            <Border Grid.Column="0" Width="64" Height="64"
+                    Background="{DynamicResource LayerAltBrush}"
+                    CornerRadius="{DynamicResource RadiusSmall}"
+                    ClipToBounds="True"
+                    Margin="0,0,14,0">
+              <Image Source="{Binding Primary.ImageKey, Converter={StaticResource DeviceImage}}"
+                     Stretch="UniformToFill" />
+            </Border>
+
+            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+              <TextBlock Classes="cardTitle" Text="{Binding Primary.DisplayName}"
+                         TextTrimming="CharacterEllipsis" />
+              <TextBlock Classes="caption" Text="{Binding Primary.Status}" />
+            </StackPanel>
+
+            <TextBlock Grid.Column="2"
+                       FontSize="{DynamicResource FontSizeSubtitle}"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       Text="{Binding Primary.Battery}" />
+          </Grid>
+
+          <!-- Quick controls. Label and value on one line, the control under it: at
+               360 px a slider and a label do not share a row without one of them
+               becoming useless. -->
+          <ItemsControl ItemsSource="{Binding Quick}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="cap:CapabilityViewModel">
+                <StackPanel Spacing="4" Margin="0,4">
+                  <TextBlock Classes="caption" Text="{Binding Title}" />
+                  <controls:CapabilityControl HorizontalAlignment="Stretch" />
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <Separator Classes="divider" IsVisible="{Binding HasOthers}" />
+
+          <!-- Every other device: 56 px, name and battery, nothing else. -->
+          <ItemsControl ItemsSource="{Binding Others}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="devices:DeviceListItemViewModel">
+                <Grid ColumnDefinitions="Auto,*,Auto" Height="56">
+                  <Border Grid.Column="0" Width="34" Height="34"
+                          Background="{DynamicResource LayerAltBrush}"
+                          CornerRadius="{DynamicResource RadiusSmall}"
+                          ClipToBounds="True"
+                          Margin="0,0,12,0"
+                          VerticalAlignment="Center">
+                    <Image Source="{Binding ImageKey, Converter={StaticResource DeviceImage}}"
+                           Stretch="UniformToFill" />
+                  </Border>
+
+                  <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Classes="caption" Text="{Binding Status}" />
+                  </StackPanel>
+
+                  <TextBlock Grid.Column="2" Classes="secondary"
+                             VerticalAlignment="Center"
+                             Text="{Binding Battery}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <Separator Classes="divider" />
+
+          <Button Classes="navRoot"
+                  Command="{Binding OpenSettingsCommand}"
+                  HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Left">
+            <TextBlock Text="Все настройки" Margin="8,0" />
+          </Button>
+
+        </StackPanel>
+    </ScrollViewer>
+  </Border>
+
+</Window>

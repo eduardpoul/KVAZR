@@ -6,6 +6,7 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using Maxwell.App.Platform;
 using Maxwell.App.Tray;
+using Maxwell.App.ViewModels;
 using Maxwell.App.Views;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Settings;
@@ -15,10 +16,14 @@ namespace Maxwell.App;
 
 public partial class App : Application, IDisposable
 {
+    /// <summary>Development affordance: show the tray panel as soon as the app is up.</summary>
+    internal static bool PresentFlyoutOnStart { get; set; }
+
     private readonly IServiceProvider? _services;
 
     private TrayIcon? _tray;
     private MainWindow? _window;
+    private FlyoutWindow? _flyout;
     private IDeviceRegistry? _registry;
     private PrimaryDevice? _primary;
     private ISettingsStore? _settings;
@@ -55,9 +60,18 @@ public partial class App : Application, IDisposable
             _primary = _services.GetRequiredService<PrimaryDevice>();
             _registry.DevicesChanged += OnDevicesChanged;
 
+            // Seeded, not announced. Discovery runs before the tray subscribes, and a
+            // device already attached at launch has not just connected — popping the
+            // panel every time the app starts is not what "on connect" means.
+            _lastAvailability = _services.GetRequiredService<PrimaryDevice>().Snapshot?.Availability;
+
             _hotkeys = _services.GetRequiredService<HotkeyCoordinator>();
             _hotkeys.WindowRequested += (_, _) => Dispatcher.UIThread.Post(ShowWindow);
             _hotkeys.Apply();
+
+            _flyout = _services.GetRequiredService<FlyoutWindow>();
+            _services.GetRequiredService<FlyoutViewModel>().SettingsRequested +=
+                (_, _) => Dispatcher.UIThread.Post(ShowWindow);
 
             BuildTray();
 
@@ -68,6 +82,11 @@ public partial class App : Application, IDisposable
             // showing the window then would defeat the point of starting with Windows.
             bool startHidden = desktop.Args?.Contains("--minimised", StringComparer.OrdinalIgnoreCase) == true;
             if (!startHidden) _window.Show();
+
+            if (PresentFlyoutOnStart)
+            {
+                Dispatcher.UIThread.Post(ShowFlyout, DispatcherPriority.Background);
+            }
 
             desktop.Exit += (_, _) => Dispose();
         }
@@ -91,7 +110,9 @@ public partial class App : Application, IDisposable
             Menu = [open, new NativeMenuItemSeparator(), quit],
         };
 
-        _tray.Clicked += (_, _) => ShowWindow();
+        // Clicking the tray opens the panel, not the window. The window is a place you
+        // go to; the panel is a place you glance at.
+        _tray.Clicked += (_, _) => ShowFlyout();
 
         TrayIcon.SetIcons(this, [_tray]);
     }
@@ -122,7 +143,7 @@ public partial class App : Application, IDisposable
             bool becameUsable = _lastAvailability != now && now == DeviceAvailability.Active;
             _lastAvailability = now;
 
-            if (becameUsable && _settings?.Current.ShowConnectPopup == true) ShowWindow();
+            if (becameUsable && _settings?.Current.ShowConnectPopup == true) ShowFlyout();
         });
 
     private void RefreshTray()
@@ -152,6 +173,11 @@ public partial class App : Application, IDisposable
             $"{device.Info.DisplayName} — {percent}%{(device.IsCharging ? ", заряжается" : string.Empty)}",
         _ => $"{device.Info.DisplayName} — подключено",
     };
+
+    private void ShowFlyout()
+    {
+        _flyout?.Present();
+    }
 
     private void ShowWindow()
     {

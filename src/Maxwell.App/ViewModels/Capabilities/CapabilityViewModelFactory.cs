@@ -15,22 +15,22 @@ public static class CapabilityViewModelFactory
     public static CapabilityViewModel Create(
         CapabilityState state,
         IDeviceSession? session,
-        bool verbose = false)
+        HintDetail detail = HintDetail.Normal)
     {
         ArgumentNullException.ThrowIfNull(state);
 
         return state.Descriptor.Primitive switch
         {
-            CapabilityPrimitive.Toggle => new ToggleCapabilityViewModel(state, session) { Verbose = verbose },
-            CapabilityPrimitive.Range => new RangeCapabilityViewModel(state, session) { Verbose = verbose },
-            CapabilityPrimitive.Choice => new ChoiceCapabilityViewModel(state, session) { Verbose = verbose },
-            CapabilityPrimitive.Action => new ActionCapabilityViewModel(state, session) { Verbose = verbose },
+            CapabilityPrimitive.Toggle => new ToggleCapabilityViewModel(state, session) { Detail = detail },
+            CapabilityPrimitive.Range => new RangeCapabilityViewModel(state, session) { Detail = detail },
+            CapabilityPrimitive.Choice => new ChoiceCapabilityViewModel(state, session) { Detail = detail },
+            CapabilityPrimitive.Action => new ActionCapabilityViewModel(state, session) { Detail = detail },
 
             // Readout is also the honest fallback for primitives that have no control
             // yet — KeyMap, ButtonMap, Curve and the rest arrive with the screens that
             // need them. Showing the value read-only says less than the design intends,
             // but it never lies about what the user can do.
-            _ => new ReadoutCapabilityViewModel(state, session) { Verbose = verbose },
+            _ => new ReadoutCapabilityViewModel(state, session) { Detail = detail },
         };
     }
 

@@ -33,6 +33,10 @@ internal static class Program
         IHost host = CreateHost(args);
         host.Start();
 
+        // A panel that only appears on a tray click cannot be looked at while working
+        // on it; --flyout presents it at startup.
+        App.PresentFlyoutOnStart = Array.IndexOf(args, "--flyout") >= 0;
+
         try
         {
             return BuildAvaloniaApp(host.Services).StartWithClassicDesktopLifetime(args);
@@ -78,6 +82,8 @@ internal static class Program
 
         builder.Services.AddSingleton<CapabilityShowcaseViewModel>();
         builder.Services.AddSingleton<ShellViewModel>();
+        builder.Services.AddSingleton<FlyoutViewModel>();
+        builder.Services.AddSingleton<FlyoutWindow>();
         builder.Services.AddSingleton<MainWindow>();
 
         return builder.Build();
