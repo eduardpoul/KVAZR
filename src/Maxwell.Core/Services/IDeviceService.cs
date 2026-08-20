@@ -42,6 +42,15 @@ public interface IDeviceService
     Task<bool> SetGainAsync(GainChannel channel, byte value, CancellationToken cancellationToken = default);
 
     Task<bool> SetEarcupBalanceAsync(byte value, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Wipes the headset back to factory settings. Irreversible, and it takes any
+    /// custom firmware balance with it. The flag must be passed deliberately.
+    /// </summary>
+    Task<bool> FactoryResetAsync(bool confirmed, CancellationToken cancellationToken = default);
+
+    /// <summary>Drops the dongle pairing and re-enters pairing mode.</summary>
+    Task<bool> StartPairingAsync(bool confirmed, CancellationToken cancellationToken = default);
 }
 
 public enum GainChannel

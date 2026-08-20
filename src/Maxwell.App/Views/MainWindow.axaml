@@ -21,7 +21,8 @@
     <DataTemplate DataType="pages:SystemViewModel"><views:SystemView /></DataTemplate>
     <DataTemplate DataType="pages:SettingsViewModel"><views:SettingsView /></DataTemplate>
     <DataTemplate DataType="pages:HotkeysViewModel"><views:HotkeysView /></DataTemplate>
-    <DataTemplate DataType="pages:PlaceholderViewModel"><views:PlaceholderView /></DataTemplate>
+    <DataTemplate DataType="pages:ProfilesViewModel"><views:ProfilesView /></DataTemplate>
+    <DataTemplate DataType="pages:AdvancedViewModel"><views:AdvancedView /></DataTemplate>
   </Window.DataTemplates>
 
   <Window.Styles>

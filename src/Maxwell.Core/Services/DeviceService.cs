@@ -293,6 +293,46 @@ public sealed class DeviceService : IDeviceService, IDisposable
         WriteAsync(s => s.WriteValueAsync(MaxwellFeatures.EarcupBalance, value, cancellationToken),
             state => state with { EarcupBalance = value }, cancellationToken);
 
+    public async Task<bool> FactoryResetAsync(bool confirmed, CancellationToken cancellationToken = default)
+    {
+        RaceSession? session = _session;
+        if (session is null) return false;
+
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            bool sent = await session.FactoryResetAsync(confirmed, cancellationToken).ConfigureAwait(false);
+
+            // The headset reboots, so the session is stale whether or not it answered.
+            CloseSession();
+            Publish(DeviceState.Empty with { UpdatedAt = DateTimeOffset.Now });
+            return sent;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    public async Task<bool> StartPairingAsync(bool confirmed, CancellationToken cancellationToken = default)
+    {
+        RaceSession? session = _session;
+        if (session is null) return false;
+
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            bool sent = await session.StartPairingAsync(confirmed, cancellationToken).ConfigureAwait(false);
+            CloseSession();
+            Publish(DeviceState.Empty with { UpdatedAt = DateTimeOffset.Now });
+            return sent;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
     private async Task<bool> WriteAsync(
         Func<RaceSession, Task<bool>> write,
         Func<DeviceState, DeviceState> apply,

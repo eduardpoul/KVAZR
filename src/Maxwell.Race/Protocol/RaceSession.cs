@@ -249,6 +249,55 @@ public sealed class RaceSession : IDisposable
         return false;
     }
 
+    // ---------- destructive ----------
+
+    /// <summary>
+    /// Wipes the headset back to factory settings — presets, earcup balance and gain
+    /// levels all go. There is no undo, and a custom firmware balance is lost with it.
+    ///
+    /// The <paramref name="confirmed"/> flag exists so this cannot be reached by a
+    /// mistyped command id: it has to be passed deliberately at the call site.
+    /// </summary>
+    public async Task<bool> FactoryResetAsync(bool confirmed, CancellationToken cancellationToken = default)
+    {
+        if (!confirmed) throw new InvalidOperationException("A factory reset must be explicitly confirmed.");
+
+        byte[] body = [0x80, 0x05, 0x5A, 0x04, 0x00, 0x01, 0x11, 0x95];
+        return await SendFireAndForgetAsync(body, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Drops the current dongle pairing and re-enters pairing mode. The headset stops
+    /// working over the air until it is paired again.
+    /// </summary>
+    public async Task<bool> StartPairingAsync(bool confirmed, CancellationToken cancellationToken = default)
+    {
+        if (!confirmed) throw new InvalidOperationException("Re-pairing must be explicitly confirmed.");
+
+        byte[] body = [0x80, 0x05, 0x5A, 0x04, 0x00, 0x01, 0x11, 0xAA];
+        return await SendFireAndForgetAsync(body, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Sends a command that reboots or reconfigures the device, so no reply is expected
+    /// and the absence of one is not a failure.
+    /// </summary>
+    private async Task<bool> SendFireAndForgetAsync(byte[] body, CancellationToken cancellationToken)
+    {
+        byte[] report = RaceCodec.BuildShortReport(body, Descriptor.OutputReportLength);
+
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            DrainCore();
+            return _transport.Write(report);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
     // ---------- memory ----------
 
     /// <summary>Read four bytes of flash or SRAM via 0x1680. Over a dongle link this hits the dongle.</summary>

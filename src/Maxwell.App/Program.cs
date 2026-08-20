@@ -60,6 +60,7 @@ internal static class Program
         builder.Services.AddSingleton<SoundViewModel>();
         builder.Services.AddSingleton<MicrophoneViewModel>();
         builder.Services.AddSingleton<SystemViewModel>();
+        builder.Services.AddSingleton<IProfileService, ProfileService>();
         builder.Services.AddSingleton<AdvancedViewModel>();
         builder.Services.AddSingleton<ProfilesViewModel>();
         builder.Services.AddSingleton<HotkeysViewModel>();
