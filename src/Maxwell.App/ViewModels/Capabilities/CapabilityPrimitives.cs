@@ -49,7 +49,12 @@ public sealed partial class RangeCapabilityViewModel : CapabilityViewModel
     public RangeCapabilityViewModel(CapabilityState state, IDeviceSession? session)
         : base(state, session)
     {
-        Value = state.Value.AsNumber(state.Range?.Min ?? 0);
+        // The reading has to be seeded here as well as on update: a page builds its
+        // controls straight from a snapshot without going through Apply, and a settle
+        // that finds no reading would drag the value back to zero.
+        _reading = state.Value.AsNumber(state.Range?.Min ?? 0);
+
+        Value = _reading;
         HasValue = !state.Value.IsAbsent;
     }
 
