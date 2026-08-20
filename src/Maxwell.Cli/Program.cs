@@ -16,6 +16,14 @@ Console.WriteLine("Maxwell RACE harness");
 Console.WriteLine("====================");
 Console.WriteLine();
 
+// The device-model path is a different entry point entirely: it goes through the
+// registry rather than opening a session by hand, so it runs before the direct HID
+// route below — with --mock there may be no Audeze hardware attached at all.
+if (args.Contains("--devices"))
+{
+    return await DeviceInventory.RunAsync(args.Contains("--mock")).ConfigureAwait(false);
+}
+
 var enumerator = new WindowsHidEnumerator();
 IReadOnlyList<MaxwellInterface> all = enumerator.Enumerate();
 

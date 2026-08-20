@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Maxwell.Core\Maxwell.Core.csproj" />
     <ProjectReference Include="..\Maxwell.Race\Maxwell.Race.csproj" />
   </ItemGroup>
 
