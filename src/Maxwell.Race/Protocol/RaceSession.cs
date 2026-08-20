@@ -200,7 +200,7 @@ public sealed class RaceSession : IDisposable
     }
 
     /// <summary>Set ChatMix (0..20) and verify it by reading back.</summary>
-    public async Task<bool> WriteChatMixAsync(byte value, CancellationToken cancellationToken = default)
+    public Task<bool> WriteChatMixAsync(byte value, CancellationToken cancellationToken = default)
     {
         if (value > RaceCommands.ChatMixMax)
         {
@@ -208,8 +208,14 @@ public sealed class RaceSession : IDisposable
                 $"ChatMix ranges 0..{RaceCommands.ChatMixMax}.");
         }
 
-        byte[] body = [0x80, 0x05, 0x5A, 0x05, 0x00, 0x82, 0x2C, MaxwellFeatures.ChatMix, 0x00, value];
-        return await WriteVerifiedAsync(body, () => ReadChatMixAsync(cancellationToken),
+        return WriteNamespace2CAsync(MaxwellFeatures.ChatMix, value, cancellationToken);
+    }
+
+    /// <summary>Write into the 0x2C82 namespace — ChatMix, sidetone state — and verify it.</summary>
+    public async Task<bool> WriteNamespace2CAsync(byte sub, byte value, CancellationToken cancellationToken = default)
+    {
+        byte[] body = [0x80, 0x05, 0x5A, 0x05, 0x00, 0x82, 0x2C, sub, 0x00, value];
+        return await WriteVerifiedAsync(body, () => ReadNamespace2CAsync(sub, cancellationToken),
             value, cancellationToken).ConfigureAwait(false);
     }
 
