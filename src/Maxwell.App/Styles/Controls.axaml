@@ -187,4 +187,24 @@
     <Setter Property="BoxShadow" Value="0 0 0 3 #380F6CBD" />
   </Style>
 
+  <!-- Root navigation entry, above the device groups. -->
+  <Style Selector="Button.navRoot">
+    <Setter Property="Height" Value="36" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector="Button.navRoot:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}" />
+  </Style>
+
+  <Style Selector="TextBox.search">
+    <Setter Property="Height" Value="32" />
+    <Setter Property="FontSize" Value="{DynamicResource FontSizeSecondary}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
+  </Style>
+
 </Styles>

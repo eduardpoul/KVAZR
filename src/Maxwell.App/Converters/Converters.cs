@@ -95,3 +95,18 @@ public sealed class HintToneBrushConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();
 }
+
+/// <summary>
+/// Dims a device that is not attached. Dimmed rather than hidden: a keyboard in a bag
+/// still belongs in the list, with the time it was last seen instead of a row of zeroes.
+/// </summary>
+public sealed class PresenceOpacityConverter : IValueConverter
+{
+    public static readonly PresenceOpacityConverter Instance = new();
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is true ? 1.0 : 0.55;
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}

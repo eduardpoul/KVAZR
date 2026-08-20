@@ -3,27 +3,25 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Maxwell.App.ViewModels;
-using Maxwell.Core.Services;
 
 namespace Maxwell.App.Views;
 
 public partial class MainWindow : Window
 {
-    private readonly IDeviceService? _device;
+    private readonly ShellViewModel? _shell;
 
     public MainWindow()
     {
         InitializeComponent();
     }
 
-    public MainWindow(MainWindowViewModel viewModel, IDeviceService device)
+    public MainWindow(ShellViewModel shell)
         : this()
     {
-        ArgumentNullException.ThrowIfNull(viewModel);
-        ArgumentNullException.ThrowIfNull(device);
+        ArgumentNullException.ThrowIfNull(shell);
 
-        DataContext = viewModel;
-        _device = device;
+        DataContext = shell;
+        _shell = shell;
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
@@ -34,7 +32,7 @@ public partial class MainWindow : Window
 
         // Opening the window is the moment a full read is worth its cost; the polling
         // loop deliberately only keeps the battery warm.
-        _ = _device?.RefreshAllAsync();
+        _shell?.OnWindowOpened();
     }
 
     /// <summary>The client area is extended over the chrome, so dragging is ours to implement.</summary>

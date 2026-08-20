@@ -1,0 +1,79 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:cap="using:Maxwell.App.ViewModels.Capabilities"
+             xmlns:controls="using:Maxwell.App.Controls"
+             xmlns:devices="using:Maxwell.App.ViewModels.Devices"
+             xmlns:core="using:Maxwell.Core.Devices"
+             x:Class="Maxwell.App.Views.Pages.DevicePageView"
+             x:DataType="devices:DevicePageViewModel">
+
+  <!--
+    Every device in the application, of every class and every vendor, is drawn by this
+    file. Sections are the capability domains in enum order and an empty one does not
+    appear, so a mouse and a headset lay out identically without either being authored.
+  -->
+
+  <StackPanel Spacing="12">
+
+    <!-- Header -->
+    <Border Classes="card">
+      <Grid ColumnDefinitions="*,Auto" Margin="20">
+
+        <StackPanel Grid.Column="0" Spacing="6">
+          <TextBlock Classes="sectionTitle" Text="{Binding Title}" />
+
+          <ItemsControl ItemsSource="{Binding Transports}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="core:TransportInfo">
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,1">
+                  <TextBlock Classes="secondary" Text="{Binding Label}" />
+                  <TextBlock Classes="caption" Text="управление"
+                             IsVisible="{Binding CarriesControl}" />
+                  <TextBlock Classes="caption" Text="звук"
+                             IsVisible="{Binding CarriesAudio}" />
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Spacing="2" HorizontalAlignment="Right">
+          <TextBlock FontSize="{DynamicResource FontSizeTitle}"
+                     FontWeight="SemiBold"
+                     HorizontalAlignment="Right"
+                     Text="{Binding Battery}" />
+          <TextBlock Classes="caption" HorizontalAlignment="Right" Text="{Binding Freshness}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- A degraded device explains itself calmly. Never red: a headset reachable only
+         over its dongle is being used exactly as intended. -->
+    <Border Classes="card" IsVisible="{Binding StateNotice, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+      <TextBlock Classes="secondary" Margin="20" Text="{Binding StateNotice}" />
+    </Border>
+
+    <!-- Sections, generated -->
+    <ItemsControl ItemsSource="{Binding Sections}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="devices:CapabilitySectionViewModel">
+          <StackPanel Spacing="6" Margin="0,0,0,12">
+            <TextBlock Classes="groupHeader" Text="{Binding Title}" />
+
+            <Border Classes="card">
+              <ItemsControl ItemsSource="{Binding Items}" Margin="20">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="cap:CapabilityViewModel">
+                    <controls:CapabilityRow Margin="0,6" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Border>
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+  </StackPanel>
+
+</UserControl>

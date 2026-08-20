@@ -2,9 +2,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Maxwell.App.ViewModels"
         xmlns:pages="using:Maxwell.App.ViewModels.Pages"
+        xmlns:devices="using:Maxwell.App.ViewModels.Devices"
         xmlns:views="using:Maxwell.App.Views.Pages"
         x:Class="Maxwell.App.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
+        x:DataType="vm:ShellViewModel"
         Title="Maxwell.App"
         Width="1040" Height="720"
         MinWidth="880" MinHeight="560"
@@ -14,15 +15,12 @@
         Foreground="{DynamicResource TextPrimaryBrush}"
         WindowDecorations="BorderOnly">
 
+  <!-- Three templates for the whole application. There is no per-model page: a device
+       page is assembled from what the device declares, whatever vendor made it. -->
   <Window.DataTemplates>
-    <DataTemplate DataType="pages:OverviewViewModel"><views:OverviewView /></DataTemplate>
-    <DataTemplate DataType="pages:SoundViewModel"><views:SoundView /></DataTemplate>
-    <DataTemplate DataType="pages:MicrophoneViewModel"><views:MicrophoneView /></DataTemplate>
-    <DataTemplate DataType="pages:SystemViewModel"><views:SystemView /></DataTemplate>
-    <DataTemplate DataType="pages:SettingsViewModel"><views:SettingsView /></DataTemplate>
-    <DataTemplate DataType="pages:HotkeysViewModel"><views:HotkeysView /></DataTemplate>
-    <DataTemplate DataType="pages:ProfilesViewModel"><views:ProfilesView /></DataTemplate>
-    <DataTemplate DataType="pages:AdvancedViewModel"><views:AdvancedView /></DataTemplate>
+    <DataTemplate DataType="vm:DashboardViewModel"><views:DashboardView /></DataTemplate>
+    <DataTemplate DataType="devices:DevicePageViewModel"><views:DevicePageView /></DataTemplate>
+    <DataTemplate DataType="pages:CapabilityShowcaseViewModel"><views:CapabilityShowcaseView /></DataTemplate>
   </Window.DataTemplates>
 
   <Window.Styles>
@@ -99,14 +97,29 @@
       <ScrollViewer Grid.Column="0" Padding="8,0,8,12">
         <StackPanel Spacing="2">
 
-          <TextBlock Classes="groupHeader" Text="{Binding DeviceTitle}" />
+          <TextBox Classes="search" Watermark="Поиск"
+                   Text="{Binding SearchText}"
+                   Margin="4,0,4,6" />
+
+          <Button Classes="navRoot" Command="{Binding ShowDashboardCommand}"
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+            <TextBlock Text="Все устройства" Margin="8,0" />
+          </Button>
+
+          <TextBlock Classes="groupHeader" Text="УСТРОЙСТВА"
+                     IsVisible="{Binding HasDevices}" />
 
           <ListBox Classes="nav"
-                   ItemsSource="{Binding DeviceSections}"
-                   SelectedItem="{Binding SelectedDeviceSection}">
+                   ItemsSource="{Binding Devices}"
+                   SelectedItem="{Binding SelectedDevice}">
             <ListBox.ItemTemplate>
-              <DataTemplate x:DataType="vm:NavSection">
-                <TextBlock Text="{Binding Title}" Margin="12,0" VerticalAlignment="Center" />
+              <DataTemplate x:DataType="devices:DeviceListItemViewModel">
+                <Grid ColumnDefinitions="*,Auto" Margin="12,0">
+                  <TextBlock Grid.Column="0" Text="{Binding DisplayName}"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Grid.Column="1" Classes="caption" Text="{Binding Battery}"
+                             VerticalAlignment="Center" />
+                </Grid>
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
@@ -117,7 +130,7 @@
                    ItemsSource="{Binding AppSections}"
                    SelectedItem="{Binding SelectedAppSection}">
             <ListBox.ItemTemplate>
-              <DataTemplate x:DataType="vm:NavSection">
+              <DataTemplate x:DataType="vm:AppSection">
                 <TextBlock Text="{Binding Title}" Margin="12,0" VerticalAlignment="Center" />
               </DataTemplate>
             </ListBox.ItemTemplate>
@@ -129,7 +142,7 @@
       <!-- Content -->
       <ScrollViewer Grid.Column="1" Padding="12,0,24,24">
         <StackPanel Spacing="16">
-          <TextBlock Classes="sectionTitle" Text="{Binding SelectedTitle}" Margin="0,4,0,0" />
+          <TextBlock Classes="sectionTitle" Text="{Binding HeaderTitle}" Margin="0,4,0,0" />
           <ContentControl Content="{Binding CurrentPage}" />
         </StackPanel>
       </ScrollViewer>

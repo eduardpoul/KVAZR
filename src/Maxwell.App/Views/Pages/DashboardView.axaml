@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Maxwell.App.ViewModels"
+             xmlns:devices="using:Maxwell.App.ViewModels.Devices"
+             xmlns:conv="using:Maxwell.App.Converters"
+             x:Class="Maxwell.App.Views.Pages.DashboardView"
+             x:DataType="vm:DashboardViewModel">
+
+  <!--
+    Artboard 1a. One row carries image, name, kind, transport, state and battery, and
+    nothing else: a list that tries to say everything about six devices says nothing
+    about any of them.
+  -->
+
+  <UserControl.Resources>
+    <conv:PresenceOpacityConverter x:Key="PresenceOpacity" />
+  </UserControl.Resources>
+
+  <StackPanel Spacing="12">
+
+    <!-- Empty state, artboard 6c. Not an error — this is what a first launch looks
+         like, and it should read as an introduction rather than a failure. -->
+    <Border Classes="card" IsVisible="{Binding IsEmpty}">
+      <StackPanel Spacing="8" Margin="24">
+        <TextBlock Classes="sectionTitle" Text="Устройств пока нет" />
+        <TextBlock Classes="secondary" MaxWidth="520"
+                   Text="Подключите наушники, мышь или клавиатуру — приложение найдёт их само. Заряд появится в трее, настройки — на странице устройства." />
+      </StackPanel>
+    </Border>
+
+    <ItemsControl ItemsSource="{Binding Devices}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="devices:DeviceListItemViewModel">
+          <Border Classes="card" Margin="0,0,0,8" Opacity="{Binding IsPresent, Converter={StaticResource PresenceOpacity}}">
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="20">
+
+              <Border Grid.Column="0" Width="44" Height="44"
+                      Background="{DynamicResource LayerAltBrush}"
+                      CornerRadius="{DynamicResource RadiusSmall}"
+                      Margin="0,0,16,0" />
+
+              <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                <TextBlock Classes="cardTitle" Text="{Binding DisplayName}" />
+                <TextBlock Classes="caption" Text="{Binding Status}" />
+              </StackPanel>
+
+              <TextBlock Grid.Column="2"
+                         FontSize="{DynamicResource FontSizeSubtitle}"
+                         FontWeight="SemiBold"
+                         VerticalAlignment="Center"
+                         Text="{Binding Battery}" />
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+  </StackPanel>
+
+</UserControl>

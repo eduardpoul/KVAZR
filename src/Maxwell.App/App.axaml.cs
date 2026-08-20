@@ -7,8 +7,7 @@ using Avalonia.Threading;
 using Maxwell.App.Platform;
 using Maxwell.App.Tray;
 using Maxwell.App.Views;
-using Maxwell.Core.Model;
-using Maxwell.Core.Services;
+using Maxwell.Core.Devices;
 using Maxwell.Core.Settings;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,10 +19,11 @@ public partial class App : Application, IDisposable
 
     private TrayIcon? _tray;
     private MainWindow? _window;
-    private IDeviceService? _device;
+    private IDeviceRegistry? _registry;
+    private PrimaryDevice? _primary;
     private ISettingsStore? _settings;
     private HotkeyCoordinator? _hotkeys;
-    private ConnectionState _lastConnection = ConnectionState.NotFound;
+    private DeviceAvailability? _lastAvailability;
     private bool _disposed;
 
     /// <summary>Used by the XAML previewer, which cannot supply a container.</summary>
@@ -51,8 +51,9 @@ public partial class App : Application, IDisposable
             _settings.Changed += OnSettingsChanged;
             ApplyTheme(_settings.Current.Theme);
 
-            _device = _services.GetRequiredService<IDeviceService>();
-            _device.StateChanged += OnDeviceStateChanged;
+            _registry = _services.GetRequiredService<IDeviceRegistry>();
+            _primary = _services.GetRequiredService<PrimaryDevice>();
+            _registry.DevicesChanged += OnDevicesChanged;
 
             _hotkeys = _services.GetRequiredService<HotkeyCoordinator>();
             _hotkeys.WindowRequested += (_, _) => Dispatcher.UIThread.Post(ShowWindow);
@@ -84,8 +85,8 @@ public partial class App : Application, IDisposable
 
         _tray = new TrayIcon
         {
-            Icon = TrayIconRenderer.Render(DeviceState.Unknown, charging: false),
-            ToolTipText = "Maxwell — поиск устройства…",
+            Icon = TrayIconRenderer.Render(-1, charging: false),
+            ToolTipText = "Поиск устройств…",
             IsVisible = true,
             Menu = [open, new NativeMenuItemSeparator(), quit],
         };
@@ -109,44 +110,47 @@ public partial class App : Application, IDisposable
         _ => ThemeVariant.Default,
     };
 
-    private void OnDeviceStateChanged(object? sender, DeviceState state)
-    {
-        // The device service raises this from its polling thread.
+    private void OnDevicesChanged(object? sender, EventArgs e) =>
+        // The registry raises this from the polling thread.
         Dispatcher.UIThread.Post(() =>
         {
             RefreshTray();
 
+            DeviceAvailability? now = _primary?.Snapshot?.Availability;
+
             // Announce a connection once, on the transition — not on every poll.
-            bool becameUsable = _lastConnection != state.Connection
-                && state.Connection == ConnectionState.Active;
+            bool becameUsable = _lastAvailability != now && now == DeviceAvailability.Active;
+            _lastAvailability = now;
 
-            _lastConnection = state.Connection;
-
-            if (becameUsable && _settings?.Current.ShowConnectPopup == true && state.HasBattery)
-                ShowWindow();
+            if (becameUsable && _settings?.Current.ShowConnectPopup == true) ShowWindow();
         });
-    }
 
     private void RefreshTray()
     {
-        if (_tray is null || _device is null) return;
+        if (_tray is null) return;
 
-        DeviceState state = _device.State;
+        DeviceSnapshot? device = _primary?.Snapshot;
         bool withPercentage = _settings?.Current.ShowPercentageInTray ?? true;
 
         _tray.Icon = TrayIconRenderer.Render(
-            withPercentage ? state.BatteryPercent : DeviceState.Unknown,
-            state.IsCharging);
+            withPercentage ? device?.BatteryPercent ?? -1 : -1,
+            device?.IsCharging ?? false);
 
-        _tray.ToolTipText = Describe(state);
+        _tray.ToolTipText = Describe(device);
     }
 
-    private static string Describe(DeviceState state) => state.Connection switch
+    /// <summary>
+    /// One icon can carry one device. The tooltip names it, because with several
+    /// attached a bare percentage answers the wrong question.
+    /// </summary>
+    private static string Describe(DeviceSnapshot? device) => device switch
     {
-        ConnectionState.NotFound => "Maxwell — не подключено",
-        ConnectionState.MonitorOnly => "Maxwell — только донгл, для настройки нужен кабель",
-        _ when state.HasBattery => $"Maxwell — {state.BatteryPercent}%{(state.IsCharging ? ", заряжается" : "")}",
-        _ => "Maxwell — подключено",
+        null => "Устройств не найдено",
+        { Availability: DeviceAvailability.MonitorOnly } =>
+            $"{device.Info.DisplayName} — только мониторинг, для настройки нужен кабель",
+        { BatteryPercent: { } percent } =>
+            $"{device.Info.DisplayName} — {percent}%{(device.IsCharging ? ", заряжается" : string.Empty)}",
+        _ => $"{device.Info.DisplayName} — подключено",
     };
 
     private void ShowWindow()
@@ -169,7 +173,7 @@ public partial class App : Application, IDisposable
         if (_disposed) return;
         _disposed = true;
 
-        if (_device is not null) _device.StateChanged -= OnDeviceStateChanged;
+        if (_registry is not null) _registry.DevicesChanged -= OnDevicesChanged;
         if (_settings is not null) _settings.Changed -= OnSettingsChanged;
 
         // The tray icon is an OS resource; leaving it behind puts a dead icon in the

@@ -1,19 +1,21 @@
 using Maxwell.App.Platform.Windows;
-using Maxwell.Core.Model;
-using Maxwell.Core.Services;
+using Maxwell.Core.Devices;
 using Maxwell.Core.Settings;
 
 namespace Maxwell.App.Platform;
 
 /// <summary>
-/// Turns global shortcuts into device commands. Sits between the raw hotkey service and
-/// <see cref="IDeviceService"/> so neither has to know about the other, and so the
-/// bindings can be re-applied whenever settings change.
+/// Turns global shortcuts into capability writes.
+///
+/// Written against capabilities rather than against one headset, which makes the same
+/// five shortcuts work on anything that declares the matching capability: a shortcut
+/// that steps ChatMix drives an Audeze and a Logitech identically, and does nothing at
+/// all on a mouse that has no such thing.
 /// </summary>
 public sealed class HotkeyCoordinator : IDisposable
 {
     private readonly IHotkeyService _hotkeys;
-    private readonly IDeviceService _device;
+    private readonly PrimaryDevice _primary;
     private readonly ISettingsStore _settings;
 
     private bool _disposed;
@@ -24,14 +26,14 @@ public sealed class HotkeyCoordinator : IDisposable
     /// <summary>Actions that could not be bound, usually because another app owns the combination.</summary>
     public IReadOnlyList<string> Rejected { get; private set; } = [];
 
-    public HotkeyCoordinator(IHotkeyService hotkeys, IDeviceService device, ISettingsStore settings)
+    public HotkeyCoordinator(IHotkeyService hotkeys, PrimaryDevice primary, ISettingsStore settings)
     {
         ArgumentNullException.ThrowIfNull(hotkeys);
-        ArgumentNullException.ThrowIfNull(device);
+        ArgumentNullException.ThrowIfNull(primary);
         ArgumentNullException.ThrowIfNull(settings);
 
         _hotkeys = hotkeys;
-        _device = device;
+        _primary = primary;
         _settings = settings;
 
         _hotkeys.Triggered += OnTriggered;
@@ -40,10 +42,12 @@ public sealed class HotkeyCoordinator : IDisposable
 
     public void Apply()
     {
-        List<HotkeyBinding> bindings = _settings.Current.Hotkeys
-            .Where(pair => HotkeyActions.ById(pair.Key) is not null)
-            .Select(pair => new HotkeyBinding(pair.Key, pair.Value))
-            .ToList();
+        List<HotkeyBinding> bindings =
+        [
+            .. _settings.Current.Hotkeys
+                .Where(pair => HotkeyActions.ById(pair.Key) is not null)
+                .Select(pair => new HotkeyBinding(pair.Key, pair.Value)),
+        ];
 
         Rejected = _hotkeys.Apply(bindings);
     }
@@ -58,39 +62,39 @@ public sealed class HotkeyCoordinator : IDisposable
             return;
         }
 
-        // Everything else needs a cable; over the dongle the headset answers nothing.
-        if (!_device.State.CanControl) return;
+        DeviceSnapshot? snapshot = _primary.Snapshot;
+        IDeviceSession? session = _primary.Session;
 
-        _ = HandleAsync(actionId);
+        // Everything else needs a channel that answers. Over a dongle the headset is
+        // silent, and a shortcut that quietly does nothing is better than one that
+        // pretends to have worked.
+        if (snapshot is null || session is null || !snapshot.CanControl) return;
+
+        _ = HandleAsync(actionId, snapshot, session);
     }
 
-    private async Task HandleAsync(string actionId)
+    private static async Task HandleAsync(string actionId, DeviceSnapshot device, IDeviceSession session)
     {
-        DeviceState state = _device.State;
-
         switch (actionId)
         {
-            case HotkeyActions.ChatMixUp when state.ChatMix >= 0:
-                await _device.SetChatMixAsync(
-                    (byte)Math.Min(state.ChatMix + 1, 20)).ConfigureAwait(false);
+            case HotkeyActions.ChatMixUp:
+                await StepAsync(device, session, CapabilityIds.MixChat, +1).ConfigureAwait(false);
                 break;
 
-            case HotkeyActions.ChatMixDown when state.ChatMix >= 0:
-                await _device.SetChatMixAsync(
-                    (byte)Math.Max(state.ChatMix - 1, 0)).ConfigureAwait(false);
+            case HotkeyActions.ChatMixDown:
+                await StepAsync(device, session, CapabilityIds.MixChat, -1).ConfigureAwait(false);
                 break;
 
-            case HotkeyActions.NoiseCycle when state.NoiseReduction is { } mode:
-                await _device.SetNoiseReductionAsync(Next(mode)).ConfigureAwait(false);
+            case HotkeyActions.NoiseCycle:
+                await CycleAsync(device, session, CapabilityIds.MicNoiseReduction).ConfigureAwait(false);
                 break;
 
-            case HotkeyActions.SidetoneToggle when state.SidetoneEnabled is { } enabled:
-                await _device.SetSidetoneEnabledAsync(!enabled).ConfigureAwait(false);
+            case HotkeyActions.SidetoneToggle:
+                await FlipAsync(device, session, CapabilityIds.MicSidetone).ConfigureAwait(false);
                 break;
 
-            case HotkeyActions.PresetNext when state.EqPresetIndex >= 0:
-                await _device.SetEqPresetAsync(
-                    (byte)((state.EqPresetIndex + 1) % EqPresets.All.Count)).ConfigureAwait(false);
+            case HotkeyActions.PresetNext:
+                await CycleAsync(device, session, CapabilityIds.AudioEqPreset).ConfigureAwait(false);
                 break;
 
             default:
@@ -98,12 +102,49 @@ public sealed class HotkeyCoordinator : IDisposable
         }
     }
 
-    private static NoiseReductionMode Next(NoiseReductionMode mode) => mode switch
+    /// <summary>Moves a range by one step, clamped to the bounds the device reported.</summary>
+    private static async Task StepAsync(
+        DeviceSnapshot device,
+        IDeviceSession session,
+        string capabilityId,
+        int direction)
     {
-        NoiseReductionMode.Off => NoiseReductionMode.Low,
-        NoiseReductionMode.Low => NoiseReductionMode.High,
-        _ => NoiseReductionMode.Off,
-    };
+        if (device.Get(capabilityId) is not { CanWrite: true } state) return;
+        if (state.Value is not NumberValue current || state.Range is not { } range) return;
+
+        int next = Math.Clamp(current.Value + (Math.Max(1, range.Step) * direction), range.Min, range.Max);
+        if (next == current.Value) return;
+
+        await session.WriteAsync(capabilityId, CapabilityValue.Of(next)).ConfigureAwait(false);
+    }
+
+    private static async Task CycleAsync(DeviceSnapshot device, IDeviceSession session, string capabilityId)
+    {
+        if (device.Get(capabilityId) is not { CanWrite: true } state) return;
+
+        IReadOnlyList<CapabilityChoice> choices = state.Descriptor.Choices;
+        if (choices.Count == 0) return;
+
+        int current = state.Value.AsChoiceIndex();
+        int position = 0;
+
+        for (int i = 0; i < choices.Count; i++)
+        {
+            if (choices[i].Index == current) position = i;
+        }
+
+        int next = choices[(position + 1) % choices.Count].Index;
+
+        await session.WriteAsync(capabilityId, CapabilityValue.Choice(next)).ConfigureAwait(false);
+    }
+
+    private static async Task FlipAsync(DeviceSnapshot device, IDeviceSession session, string capabilityId)
+    {
+        if (device.Get(capabilityId) is not { CanWrite: true } state) return;
+        if (state.Value is not FlagValue current) return;
+
+        await session.WriteAsync(capabilityId, CapabilityValue.Of(!current.Value)).ConfigureAwait(false);
+    }
 
     public void Dispose()
     {
