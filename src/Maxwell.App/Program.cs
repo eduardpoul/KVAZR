@@ -36,6 +36,7 @@ internal static class Program
         // A panel that only appears on a tray click cannot be looked at while working
         // on it; --flyout presents it at startup.
         App.PresentFlyoutOnStart = Array.IndexOf(args, "--flyout") >= 0;
+        App.PresentPopupOnStart = Array.IndexOf(args, "--popup") >= 0;
 
         try
         {
@@ -78,12 +79,16 @@ internal static class Program
         // The stand-in mouse and keyboard are development scaffolding: ten of the
         // design's artboards are about devices that are not on this desk, and without
         // something to render the shell would be built headset-shaped.
-        builder.Services.AddDeviceRegistry(includeMockDevices: true);
+        // --mock-crowd fills the list out so the crowded cases can be looked at; the
+        // panel's height ceiling is specified at six devices and two will not reach it.
+        int mocks = Array.IndexOf(args, "--mock-crowd") >= 0 ? 5 : 2;
+        builder.Services.AddDeviceRegistry(includeMockDevices: true, mockDeviceCount: mocks);
 
         builder.Services.AddSingleton<CapabilityShowcaseViewModel>();
         builder.Services.AddSingleton<ShellViewModel>();
         builder.Services.AddSingleton<FlyoutViewModel>();
         builder.Services.AddSingleton<FlyoutWindow>();
+        builder.Services.AddSingleton<ConnectPopupWindow>();
         builder.Services.AddSingleton<MainWindow>();
 
         return builder.Build();

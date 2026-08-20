@@ -42,7 +42,8 @@ public static class ServiceCollectionExtensions
     /// </param>
     public static IServiceCollection AddDeviceRegistry(
         this IServiceCollection services,
-        bool includeMockDevices = false)
+        bool includeMockDevices = false,
+        int mockDeviceCount = 2)
     {
         ArgumentNullException.ThrowIfNull(services);
 
@@ -58,7 +59,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ICapabilityLedger, SettingsCapabilityLedger>();
         services.AddSingleton<IDeviceDriver, AudezeRaceDriver>();
 
-        if (includeMockDevices) services.AddSingleton<IDeviceDriver, MockDeviceDriver>();
+        if (includeMockDevices)
+        {
+            services.AddSingleton<IDeviceDriver>(_ => new MockDeviceDriver(mockDeviceCount));
+        }
 
         services.AddSingleton<IDeviceRegistry, DeviceRegistry>();
 

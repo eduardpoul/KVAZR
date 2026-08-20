@@ -19,11 +19,15 @@ public partial class App : Application, IDisposable
     /// <summary>Development affordance: show the tray panel as soon as the app is up.</summary>
     internal static bool PresentFlyoutOnStart { get; set; }
 
+    /// <summary>Development affordance: show the connect announcement without a connect.</summary>
+    internal static bool PresentPopupOnStart { get; set; }
+
     private readonly IServiceProvider? _services;
 
     private TrayIcon? _tray;
     private MainWindow? _window;
     private FlyoutWindow? _flyout;
+    private ConnectPopupWindow? _popup;
     private IDeviceRegistry? _registry;
     private PrimaryDevice? _primary;
     private ISettingsStore? _settings;
@@ -70,6 +74,7 @@ public partial class App : Application, IDisposable
             _hotkeys.Apply();
 
             _flyout = _services.GetRequiredService<FlyoutWindow>();
+            _popup = _services.GetRequiredService<ConnectPopupWindow>();
             _services.GetRequiredService<FlyoutViewModel>().SettingsRequested +=
                 (_, _) => Dispatcher.UIThread.Post(ShowWindow);
 
@@ -86,6 +91,16 @@ public partial class App : Application, IDisposable
             if (PresentFlyoutOnStart)
             {
                 Dispatcher.UIThread.Post(ShowFlyout, DispatcherPriority.Background);
+            }
+
+            if (PresentPopupOnStart)
+            {
+                Dispatcher.UIThread.Post(
+                    () =>
+                    {
+                        if (_primary?.Snapshot is { } device) _popup?.Present(device);
+                    },
+                    DispatcherPriority.Background);
             }
 
             desktop.Exit += (_, _) => Dispose();
@@ -143,7 +158,12 @@ public partial class App : Application, IDisposable
             bool becameUsable = _lastAvailability != now && now == DeviceAvailability.Active;
             _lastAvailability = now;
 
-            if (becameUsable && _settings?.Current.ShowConnectPopup == true) ShowFlyout();
+            if (becameUsable
+                && _settings?.Current.ShowConnectPopup == true
+                && _primary?.Snapshot is { } connected)
+            {
+                _popup?.Present(connected);
+            }
         });
 
     private void RefreshTray()

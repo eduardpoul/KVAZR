@@ -31,9 +31,24 @@
     <conv:DeviceImageConverter x:Key="DeviceImage" />
   </Window.Resources>
 
-      <Border BorderBrush="{DynamicResource StrokeDefaultBrush}" BorderThickness="1" CornerRadius="8">
+  <Border BorderBrush="{DynamicResource StrokeDefaultBrush}" BorderThickness="1" CornerRadius="8">
+    <DockPanel>
+
+      <!-- Pinned. Once six devices push the list past the height ceiling the footer
+           would scroll out of reach, and the way into the window would be the one
+           thing the panel hides. -->
+      <StackPanel DockPanel.Dock="Bottom" Margin="16,0,16,12" Spacing="8">
+        <Separator Classes="divider" Margin="0" />
+        <Button Classes="navRoot"
+                Command="{Binding OpenSettingsCommand}"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Left">
+          <TextBlock Text="Все настройки" Margin="8,0" />
+        </Button>
+      </StackPanel>
+
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="16" Spacing="12">
+        <StackPanel Margin="16,16,16,8" Spacing="12">
 
           <TextBlock Classes="caption" Text="{Binding Heading}" />
 
@@ -110,17 +125,10 @@
             </ItemsControl.ItemTemplate>
           </ItemsControl>
 
-          <Separator Classes="divider" />
-
-          <Button Classes="navRoot"
-                  Command="{Binding OpenSettingsCommand}"
-                  HorizontalAlignment="Stretch"
-                  HorizontalContentAlignment="Left">
-            <TextBlock Text="Все настройки" Margin="8,0" />
-          </Button>
-
         </StackPanel>
-    </ScrollViewer>
+      </ScrollViewer>
+
+    </DockPanel>
   </Border>
 
 </Window>
