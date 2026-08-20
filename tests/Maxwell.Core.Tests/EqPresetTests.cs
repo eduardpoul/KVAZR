@@ -4,46 +4,55 @@ using Xunit;
 namespace Maxwell.Core.Tests;
 
 /// <summary>
-/// The preset table is the one place where a plausible-looking list is silently wrong:
-/// nothing in the app can tell that index 1 is Treble Boost rather than Bass Boost,
-/// because the only thing that disagrees is the voice prompt in the user's ears. The
-/// order shipped for a while taken from the Audeze user guide, which lists Treble Boost
-/// last, and every selection past index 0 announced the wrong preset.
+/// The preset table is the one place where a plausible-looking list is silently wrong.
+/// Nothing in the app can tell that index 1 is Audeze rather than Bass Boost, because
+/// the only thing that disagrees is the voice prompt in the wearer's ears — so this got
+/// shipped wrong twice: once with the order printed in the Audeze user guide, and once
+/// with the vendor application's order numbered from zero.
 ///
-/// These tests lock the firmware order so it cannot drift back to the printed one.
+/// The two anchors below are the ones actually confirmed by listening to the headset.
 /// </summary>
 public sealed class EqPresetTests
 {
-    /// <summary>
-    /// The vendor application's own sequence, read out of the literal block that
-    /// follows its getCurrentEqName routine.
-    /// </summary>
     [Theory]
-    [InlineData(0, "Audeze")]
-    [InlineData(1, "Treble Boost")]
-    [InlineData(2, "Bass Boost")]
-    [InlineData(3, "Immersive")]
-    [InlineData(4, "Competition")]
-    [InlineData(5, "Footsteps")]
+    [InlineData(1, "Audeze")]
+    [InlineData(2, "Treble Boost")]
+    [InlineData(3, "Bass Boost")]
+    [InlineData(4, "Immersive")]
+    [InlineData(5, "Competition")]
+    [InlineData(6, "Footsteps")]
     public void FactoryPreset_MatchesFirmwareOrder(byte index, string expected) =>
         Assert.Equal(expected, EqPresets.NameOf(index));
 
+    /// <summary>
+    /// The two readings taken from the device itself. Everything else in the table is
+    /// interpolation between them, so if either moves the table is wrong again.
+    /// </summary>
     [Fact]
-    public void TrebleBoost_IsNotLast()
+    public void ConfirmedByListeningToTheHeadset()
     {
-        // Guarding the specific mistake rather than the general shape: the guide order
-        // puts Treble Boost at 5, and that is the value that has to stay wrong.
-        Assert.NotEqual("Treble Boost", EqPresets.NameOf(5));
-        Assert.Equal("Treble Boost", EqPresets.NameOf(1));
+        Assert.Equal("Audeze", EqPresets.NameOf(1));
+        Assert.Equal("Competition", EqPresets.NameOf(5));
+    }
+
+    /// <summary>
+    /// Slot 0 is accepted by the firmware but is not one of the ten, and no one has
+    /// established what it is. It must stay nameless rather than acquire a guess.
+    /// </summary>
+    [Fact]
+    public void SlotZero_IsNotOneOfTheTen()
+    {
+        Assert.Null(EqPresets.ByIndex(0));
+        Assert.DoesNotContain(EqPresets.All, preset => preset.Index == 0);
     }
 
     [Fact]
-    public void Slots_AreTenContiguousIndices()
+    public void Slots_AreNumberedOneToTen()
     {
         Assert.Equal(10, EqPresets.All.Count);
 
-        for (byte i = 0; i < EqPresets.All.Count; i++)
-            Assert.Equal(i, EqPresets.All[i].Index);
+        for (int i = 0; i < EqPresets.All.Count; i++)
+            Assert.Equal(i + 1, EqPresets.All[i].Index);
     }
 
     [Fact]
@@ -55,14 +64,36 @@ public sealed class EqPresetTests
         Assert.All(EqPresets.All.Skip(6), p => Assert.True(p.IsUserSlot));
     }
 
-    /// <summary>An index the headset has no slot for must not produce a confident name.</summary>
     [Theory]
     [InlineData(-1)]
-    [InlineData(10)]
+    [InlineData(0)]
+    [InlineData(11)]
     [InlineData(255)]
     public void IndexOutsideTheRange_HasNoName(int index)
     {
         Assert.Null(EqPresets.ByIndex(index));
         Assert.Equal("—", EqPresets.NameOf(index));
     }
+
+    [Theory]
+    [InlineData(1, 2)]
+    [InlineData(6, 7)]
+    [InlineData(9, 10)]
+    public void Next_StepsThroughTheSlots(int current, byte expected) =>
+        Assert.Equal(expected, EqPresets.Next(current));
+
+    /// <summary>
+    /// The wrap is the reason Next exists: modulo on the raw index would land on 0,
+    /// which the ten slots do not include.
+    /// </summary>
+    [Fact]
+    public void Next_WrapsPastTheLastSlotToTheFirst() =>
+        Assert.Equal(1, EqPresets.Next(10));
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(42)]
+    public void Next_FromOutsideTheRange_EntersAtTheFirstSlot(int index) =>
+        Assert.Equal(1, EqPresets.Next(index));
 }

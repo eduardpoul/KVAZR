@@ -73,7 +73,7 @@ public static class MaxwellFeatures
     public static readonly Feature[] Readable =
     [
         new("Battery level", Access.ReadOnly, RaceCommands.Battery, 0x00, "no sub-command"),
-        new("EQ preset index", Access.ReadWrite, RaceCommands.Read, PeqIndex, "10 slots"),
+        new("EQ preset index", Access.ReadWrite, RaceCommands.Read, PeqIndex, "slots 1-10; 0 accepted, unidentified"),
         new("Voice prompt level", Access.ReadWrite, RaceCommands.Read, VpLevel, ""),
         new("Mic mute", Access.ReadOnly, RaceCommands.Read, MicMute, "hardware controlled"),
         new("Mic noise reduction", Access.ReadWrite, RaceCommands.Read, NoiseReduction, "0 off, 1 low, 2 high"),

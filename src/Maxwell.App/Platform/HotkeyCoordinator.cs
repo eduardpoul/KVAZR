@@ -94,6 +94,9 @@ public sealed class HotkeyCoordinator : IDisposable
                 break;
 
             case HotkeyActions.PresetNext:
+                // Cycling walks the declared choice list rather than doing modulo on the
+                // raw value, so slots numbered one to ten step correctly without the
+                // capability layer knowing that they start at one.
                 await CycleAsync(device, session, CapabilityIds.AudioEqPreset).ConfigureAwait(false);
                 break;
 
