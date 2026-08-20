@@ -28,7 +28,13 @@ public static class CapabilityIds
 
     // Audio
     public const string AudioVolume = "audio.volume";
-    public const string AudioChannelGain = "audio.channel_gain";
+
+    // Left and right are two Range capabilities rather than one RangeGroup. The grouped
+    // primitive exists in the taxonomy, but no driver needs a linked pair yet and
+    // inventing its value shape before something demands it would be guesswork.
+    public const string AudioGainLeft = "audio.gain_left";
+    public const string AudioGainRight = "audio.gain_right";
+
     public const string AudioBalance = "audio.balance";
     public const string AudioEqPreset = "audio.eq_preset";
     public const string AudioEqGraphic = "audio.eq_graphic";
