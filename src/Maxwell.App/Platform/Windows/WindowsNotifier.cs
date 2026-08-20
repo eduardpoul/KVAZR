@@ -1,6 +1,7 @@
 // Windows-only: the toast package only ships for the Windows target.
 #if WINDOWS
 using System.Runtime.Versioning;
+using Avalonia.Threading;
 using DesktopNotifications;
 using DesktopNotifications.Windows;
 using Maxwell.Core.Abstractions;
@@ -12,9 +13,14 @@ namespace Maxwell.App.Platform.Windows;
 /// <summary>
 /// Windows toast notifications for an unpackaged app.
 ///
-/// Initialisation is deferred to the first notification rather than done at startup:
-/// registering the toast identity touches the Start Menu, and a user who never hits a
-/// low battery should not pay for that on every launch.
+/// Everything runs on the UI thread. The toast objects are COM, and they must live in a
+/// long-lived STA apartment: created on a short-lived STA thread instead, they survive
+/// initialisation and then fail on Show with CO_E_OBJNOTCONNECTED once that thread has
+/// exited and torn its apartment down. The UI thread is STA and lives as long as the app.
+///
+/// Initialisation is still deferred to the first notification: registering the toast
+/// identity writes a Start Menu shortcut, and a user who never hits a low battery should
+/// not pay for that on every launch.
 /// </summary>
 [SupportedOSPlatform("windows")]
 public sealed class WindowsNotifier : INotifier, IDisposable
@@ -42,11 +48,11 @@ public sealed class WindowsNotifier : INotifier, IDisposable
             WindowsNotificationManager manager =
                 await EnsureManagerAsync(cancellationToken).ConfigureAwait(false);
 
-            // The second argument is the expiry; null lets the shell decide, which is
-            // what a battery warning wants.
-            await manager.ShowNotification(
+            // Shown from the same apartment the notifier was created in; the expiry is
+            // left to the shell, which is what a battery warning wants.
+            await Dispatcher.UIThread.InvokeAsync(() => manager.ShowNotification(
                 new Notification { Title = title, Body = message },
-                expirationTime: null).ConfigureAwait(false);
+                expirationTime: null)).ConfigureAwait(false);
         }
 #pragma warning disable CA1031 // A failed toast must never take down the polling loop.
         catch (Exception ex)
@@ -69,8 +75,12 @@ public sealed class WindowsNotifier : INotifier, IDisposable
         {
             if (_manager is not null) return _manager;
 
-            var context = WindowsApplicationContext.FromCurrentProcess("Maxwell.App");
-            var manager = new WindowsNotificationManager(context);
+            WindowsNotificationManager manager = await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var context = WindowsApplicationContext.FromCurrentProcess("Maxwell.App");
+                return new WindowsNotificationManager(context);
+            }).GetTask().ConfigureAwait(false);
+
             await manager.Initialize().ConfigureAwait(false);
 
             _manager = manager;
