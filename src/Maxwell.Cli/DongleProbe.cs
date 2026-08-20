@@ -39,6 +39,7 @@ public static class DongleProbe
 
         int answered = 0;
         answered += await KnownGoodAsync(session, output).ConfigureAwait(false);
+        answered += await TargetByteAsync(session, output).ConfigureAwait(false);
         answered += await SweepAsync(session, output).ConfigureAwait(false);
 
         output.WriteLine();
@@ -94,10 +95,39 @@ public static class DongleProbe
         return hits;
     }
 
+    /// <summary>
+    /// Sweep the leading byte with a battery read, which is harmless and which we know
+    /// the headset answers over the cable.
+    ///
+    /// The vendor library separates AVAirohaLocalDevice from AVAirohaRemoteDevice and
+    /// carries a whole family of AVDual* tasks, so the protocol addresses the dongle
+    /// and the headset behind it differently somewhere. This byte sits where such a
+    /// selector would sit, and 0x80 is the only value anyone has tried.
+    /// </summary>
+    private static async Task<int> TargetByteAsync(RaceSession session, TextWriter output)
+    {
+        output.WriteLine();
+        output.WriteLine("  [2] Leading byte 0x00-0xFF with a battery read");
+
+        int hits = 0;
+
+        for (int target = 0x00; target <= 0xFF; target++)
+        {
+            IReadOnlyList<byte[]> fresh = await session
+                .ProbeBodyAsync(ReadBody(RaceCommands.Battery, (byte)target), longFraming: false, windowMs: 140)
+                .ConfigureAwait(false);
+
+            if (fresh.Count > 0) hits += Report(output, $"target 0x{target:X2}", fresh);
+        }
+
+        if (hits == 0) output.WriteLine("      no value routed anywhere");
+        return hits;
+    }
+
     private static async Task<int> SweepAsync(RaceSession session, TextWriter output)
     {
         output.WriteLine();
-        output.WriteLine($"  [2] Sweeping {Families.Length} families x 256, 120 ms each");
+        output.WriteLine($"  [3] Sweeping {Families.Length} families x 256, 120 ms each");
 
         int hits = 0;
         int sent = 0;
@@ -123,11 +153,22 @@ public static class DongleProbe
         return hits;
     }
 
-    /// <summary>A read-shaped body with no payload: <c>05 5A &lt;len&gt; &lt;cmd&gt;</c>.</summary>
-    private static byte[] ReadBody(ushort command) =>
+    /// <summary>
+    /// A read-shaped body with no payload: <c>80 05 5A &lt;len:u16&gt; &lt;cmd:u16&gt;</c>.
+    ///
+    /// The leading byte is not decoration. Under the short framing the report becomes
+    /// <c>06 &lt;len&gt; 80 05 5A ...</c>, which puts the magic on byte 3 where the chip
+    /// parses it. Drop that byte and everything shifts down one, the magic lands on
+    /// byte 2, and every packet is silently discarded — which reads exactly like a
+    /// device that has nothing to say.
+    /// </summary>
+    private static byte[] ReadBody(ushort command, byte target = DefaultTarget) =>
     [
-        0x05, 0x5A, 0x02, 0x00, (byte)command, (byte)(command >> 8),
+        target, 0x05, 0x5A, 0x03, 0x00, (byte)command, (byte)(command >> 8),
     ];
+
+    /// <summary>The leading byte every working request carries.</summary>
+    private const byte DefaultTarget = 0x80;
 
     private static int Report(TextWriter output, string label, IReadOnlyList<byte[]> fresh)
     {
