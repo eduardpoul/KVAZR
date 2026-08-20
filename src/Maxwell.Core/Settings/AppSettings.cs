@@ -48,6 +48,12 @@ public sealed class AppSettings
         ["window.show"] = "Ctrl+Alt+Space",
     };
 
+    /// <summary>Named device presets the user has saved.</summary>
+    public List<DeviceProfile> Profiles { get; set; } = [];
+
+    /// <summary>Switch profiles automatically when a matching process starts.</summary>
+    public bool AutoSwitchProfiles { get; set; }
+
     public AppSettings Clone() => new()
     {
         Theme = Theme,
@@ -59,6 +65,8 @@ public sealed class AppSettings
         LowBatteryThreshold = LowBatteryThreshold,
         NotifyChargeComplete = NotifyChargeComplete,
         Hotkeys = new Dictionary<string, string>(Hotkeys, StringComparer.Ordinal),
+        Profiles = Profiles.Select(p => p.Clone()).ToList(),
+        AutoSwitchProfiles = AutoSwitchProfiles,
     };
 }
 

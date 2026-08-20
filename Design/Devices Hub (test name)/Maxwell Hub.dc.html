@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<script src="./image-slot.js"></script>
+<style>
+  body { margin: 0; background: #E9E9E9; font-family: "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #0F6CBD; text-decoration: none; }
+  a:hover { color: #0C5AA6; text-decoration: underline; }
+</style>
+</helmet>
+
+<section style="display: flex; flex-direction: column; gap: 28px; padding: 48px; color: #1B1B1B;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <div style="font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #707070;">Turn 4 · Полное приложение</div>
+    <div style="font-size: 26px; font-weight: 600; letter-spacing: -0.01em;">Разделы внутри устройства, весь функционал из спецификации</div>
+    <div style="font-size: 14px; color: #5C5C5C; max-width: 860px; text-wrap: pretty;">Навигация теперь двухуровневая: «Устройства» — список, под ним разделы выбранного устройства (Обзор, Звук, Микрофон, Система, Дополнительно), ниже — параметры самого приложения (Профили, Горячие клавиши, Параметры). Экраны: <a href="#4a">4a</a> список, <a href="#4b">4b</a> обзор, <a href="#4c">4c</a> звук, <a href="#4d">4d</a> микрофон, <a href="#4e">4e</a> система, <a href="#4f">4f</a> дополнительно, <a href="#4g">4g</a> профили, <a href="#4h">4h</a> горячие клавиши, <a href="#4i">4i</a> параметры, <a href="#4j">4j</a> только донгл, <a href="#4k">4k</a> ничего не найдено.</div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start;">
+
+    <div id="4a" style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="font-size: 12px; font-weight: 700; color: #FFFFFF; background: #1B1B1B; border-radius: 4px; padding: 3px 8px;">4a</div>
+        <div style="font-size: 14px; font-weight: 600;">Список устройств</div>
+      </div>
+      <div style="width: 1040px; height: 720px; background: #F3F3F3; border: 1px solid rgba(0,0,0,0.10); border-radius: 8px; box-shadow: 0 24px 48px rgba(0,0,0,0.16); overflow: hidden; display: flex; flex-direction: column; color: #1B1B1B;">
+        <div style="height: 48px; display: flex; align-items: center; flex: none;">
+          <div style="display: flex; align-items: center; gap: 12px; padding-left: 16px;">
+            <div style="width: 18px; height: 18px; border-radius: 4px; background: #0F6CBD; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 11px; font-weight: 700;">M</div>
+            <div style="font-size: 12px;">Maxwell.App</div>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="display: flex; align-items: stretch; height: 100%;">
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9472;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9633;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 11px;" style-hover="background: #C42B1C; color: #FFF">&#10005;</div>
+          </div>
+        </div>
+        <div style="flex: 1; display: flex; min-height: 0;">
+          <div style="width: 260px; flex: none; display: flex; flex-direction: column; gap: 2px; padding: 0 8px 12px;">
+            <div style="height: 32px; margin: 0 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.45); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 13px; color: #8A8A8A;">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4.2"></circle><path d="M10.2 10.2 13.5 13.5"></path></svg>
+              Поиск
+            </div>
+            <div style="height: 40px; border-radius: 4px; background: #EBEBEB; display: flex; align-items: center; gap: 12px; padding: 0 12px; position: relative; font-size: 14px; font-weight: 600;">
+              <div style="position: absolute; left: 0; top: 12px; width: 3px; height: 16px; border-radius: 2px; background: #0F6CBD;"></div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 10V8a5 5 0 0 1 10 0v2"></path><rect x="1.8" y="9" width="2.8" height="4.4" rx="1.4"></rect><rect x="11.4" y="9" width="2.8" height="4.4" rx="1.4"></rect></svg>
+              Устройства
+            </div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">AUDEZE MAXWELL · XBOX</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.4 11a6 6 0 1 1 11.2 0"></path><path d="M8 8.6 10.6 6"></path></svg>
+              Обзор
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2.5v11M8 2.5v11M12 2.5v11"></path><circle cx="4" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="8" cy="10" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="12" cy="5" r="1.6" fill="currentColor" stroke="none"></circle></svg>
+              Звук
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="6" y="2" width="4" height="7" rx="2"></rect><path d="M3.6 8a4.4 4.4 0 0 0 8.8 0M8 12.4V14"></path></svg>
+              Микрофон
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg>
+              Система
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9.6 2.6a3.4 3.4 0 0 0 4 4L9 11.2l-2.2-2.2 2.8-6.4Z"></path><path d="M6.2 9.4 2.6 13"></path></svg>
+              Дополнительно
+            </div>
+            <div style="flex: 1;"></div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">ПРИЛОЖЕНИЕ</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="4" rx="1.4"></rect><rect x="2.2" y="9" width="11.6" height="4" rx="1.4"></rect></svg>
+              Профили
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.8" y="4.5" width="12.4" height="7" rx="1.6"></rect><path d="M4.4 7h.1M6.8 7h.1M9.2 7h.1M11.6 7h.1M5 9.4h6"></path></svg>
+              Горячие клавиши
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"></circle><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"></path></svg>
+              Параметры
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 0; background: #F9F9F9; border-top: 1px solid rgba(0,0,0,0.06); border-left: 1px solid rgba(0,0,0,0.06); border-top-left-radius: 8px; padding: 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;">
+            <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+              <div style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em;">Устройства</div>
+              <div style="display: flex; gap: 8px;"><div style="height: 32px; border-radius: 4px; background: #0F6CBD; color: #FFF; font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0 14px; cursor: pointer;" style-hover="background: #115EA3">Добавить</div></div>
+            </div>
+            <div style="font-size: 12px; font-weight: 600; color: #616161; letter-spacing: 0.02em; padding-left: 2px;">ПОДКЛЮЧЕНЫ &#183; 2</div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 0 16px;">
+              <sc-for list="{{ connected }}" as="d" hint-placeholder-count="2">
+                <div style="height: 84px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid {{ d.divLight }};" style-hover="background: rgba(0,0,0,0.02)">
+                  <div style="width: 56px; height: 56px; flex: none; border-radius: 4px; background: #FAFAFA; overflow: hidden;"><div style="width: 100%; height: 100%; background-image: {{ d.imgCss }}; background-size: contain; background-repeat: no-repeat; background-position: center;"></div></div>
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div style="font-size: 15px; font-weight: 600;">{{ d.name }}</div>
+                      <div style="font-size: 11px; font-weight: 600; color: #0F6CBD; background: rgba(15,108,189,0.10); border: 1px solid rgba(15,108,189,0.20); border-radius: 4px; padding: 1px 6px;">{{ d.chip }}</div>
+                      <div style="font-size: 11px; font-weight: 600; color: {{ d.tColor }}; background: {{ d.tBg }}; border: 1px solid {{ d.tBorder }}; border-radius: 4px; padding: 1px 6px;">{{ d.transport }}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; color: #616161;">
+                      <div style="width: 7px; height: 7px; border-radius: 50%; background: {{ d.dot }};"></div>
+                      {{ d.sub }}
+                    </div>
+                  </div>
+                  <div style="flex: none; width: 148px; display: flex; align-items: center; gap: 10px;">
+                    <div style="height: 5px; flex: 1; border-radius: 3px; background: #E0E0E0; overflow: hidden;"><div style="height: 100%; border-radius: 3px; background: {{ d.barLight }}; width: {{ d.battW }};"></div></div>
+                    <div style="font-size: 13px; color: #616161; width: 40px; text-align: right;">{{ d.batt }}</div>
+                  </div>
+                  <div style="flex: none; height: 30px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); font-size: 13px; display: flex; align-items: center; gap: 6px; padding: 0 12px; cursor: pointer;" style-hover="background: #F5F5F5">Открыть<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3.6 10.4 8 6 12.4"></path></svg></div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-size: 12px; font-weight: 600; color: #616161; letter-spacing: 0.02em; padding-left: 2px;">ОТКЛЮЧЕНЫ &#183; 2</div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 0 16px;">
+              <sc-for list="{{ offline }}" as="d" hint-placeholder-count="2">
+                <div style="height: 84px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid {{ d.divLight }};" style-hover="background: rgba(0,0,0,0.02)">
+                  <div style="width: 56px; height: 56px; flex: none; border-radius: 4px; background: #FAFAFA; overflow: hidden;"><div style="width: 100%; height: 100%; background-image: {{ d.imgCss }}; background-size: contain; background-repeat: no-repeat; background-position: center;"></div></div>
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div style="font-size: 15px; font-weight: 600;">{{ d.name }}</div>
+                      <div style="font-size: 11px; font-weight: 600; color: #0F6CBD; background: rgba(15,108,189,0.10); border: 1px solid rgba(15,108,189,0.20); border-radius: 4px; padding: 1px 6px;">{{ d.chip }}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; color: #616161;">
+                      <div style="width: 7px; height: 7px; border-radius: 50%; background: {{ d.dot }};"></div>
+                      {{ d.sub }}
+                    </div>
+                  </div>
+                  <div style="flex: none; width: 148px; display: flex; align-items: center; gap: 10px;">
+                    <div style="height: 5px; flex: 1; border-radius: 3px; background: #E0E0E0; overflow: hidden;"><div style="height: 100%; border-radius: 3px; background: {{ d.barLight }}; width: {{ d.battW }};"></div></div>
+                    <div style="font-size: 13px; color: #616161; width: 40px; text-align: right;">{{ d.batt }}</div>
+                  </div>
+                  <div style="flex: none; height: 30px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); font-size: 13px; display: flex; align-items: center; gap: 6px; padding: 0 12px; cursor: pointer;" style-hover="background: #F5F5F5">Открыть<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3.6 10.4 8 6 12.4"></path></svg></div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="4b" style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="font-size: 12px; font-weight: 700; color: #FFFFFF; background: #1B1B1B; border-radius: 4px; padding: 3px 8px;">4b</div>
+        <div style="font-size: 14px; font-weight: 600;">Обзор устройства</div>
+      </div>
+      <div style="width: 1040px; height: 720px; background: #F3F3F3; border: 1px solid rgba(0,0,0,0.10); border-radius: 8px; box-shadow: 0 24px 48px rgba(0,0,0,0.16); overflow: hidden; display: flex; flex-direction: column; color: #1B1B1B;">
+        <div style="height: 48px; display: flex; align-items: center; flex: none;">
+          <div style="display: flex; align-items: center; gap: 12px; padding-left: 16px;">
+            <div style="width: 18px; height: 18px; border-radius: 4px; background: #0F6CBD; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 11px; font-weight: 700;">M</div>
+            <div style="font-size: 12px;">Maxwell.App</div>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="display: flex; align-items: stretch; height: 100%;">
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9472;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9633;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 11px;" style-hover="background: #C42B1C; color: #FFF">&#10005;</div>
+          </div>
+        </div>
+        <div style="flex: 1; display: flex; min-height: 0;">
+          <div style="width: 260px; flex: none; display: flex; flex-direction: column; gap: 2px; padding: 0 8px 12px;">
+            <div style="height: 32px; margin: 0 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.45); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 13px; color: #8A8A8A;">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4.2"></circle><path d="M10.2 10.2 13.5 13.5"></path></svg>
+              Поиск
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 10V8a5 5 0 0 1 10 0v2"></path><rect x="1.8" y="9" width="2.8" height="4.4" rx="1.4"></rect><rect x="11.4" y="9" width="2.8" height="4.4" rx="1.4"></rect></svg>
+              Устройства
+            </div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">AUDEZE MAXWELL · XBOX</div>
+            <div style="height: 40px; border-radius: 4px; background: #EBEBEB; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; position: relative; font-size: 14px; font-weight: 600;">
+              <div style="position: absolute; left: 0; top: 12px; width: 3px; height: 16px; border-radius: 2px; background: #0F6CBD;"></div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.4 11a6 6 0 1 1 11.2 0"></path><path d="M8 8.6 10.6 6"></path></svg>
+              Обзор
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2.5v11M8 2.5v11M12 2.5v11"></path><circle cx="4" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="8" cy="10" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="12" cy="5" r="1.6" fill="currentColor" stroke="none"></circle></svg>
+              Звук
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="6" y="2" width="4" height="7" rx="2"></rect><path d="M3.6 8a4.4 4.4 0 0 0 8.8 0M8 12.4V14"></path></svg>
+              Микрофон
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg>
+              Система
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9.6 2.6a3.4 3.4 0 0 0 4 4L9 11.2l-2.2-2.2 2.8-6.4Z"></path><path d="M6.2 9.4 2.6 13"></path></svg>
+              Дополнительно
+            </div>
+            <div style="flex: 1;"></div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">ПРИЛОЖЕНИЕ</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="4" rx="1.4"></rect><rect x="2.2" y="9" width="11.6" height="4" rx="1.4"></rect></svg>
+              Профили
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.8" y="4.5" width="12.4" height="7" rx="1.6"></rect><path d="M4.4 7h.1M6.8 7h.1M9.2 7h.1M11.6 7h.1M5 9.4h6"></path></svg>
+              Горячие клавиши
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"></circle><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"></path></svg>
+              Параметры
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 0; background: #F9F9F9; border-top: 1px solid rgba(0,0,0,0.06); border-left: 1px solid rgba(0,0,0,0.06); border-top-left-radius: 8px; padding: 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;">
+            <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+              <div style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em;">Обзор</div>
+              
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 18px;">
+              <div style="display: flex; gap: 20px; align-items: center;">
+                <div style="width: 132px; height: 132px; flex: none; border-radius: 6px; background: #FAFAFA; overflow: hidden;">
+                  <image-slot id="mx4-device" style="width: 100%; height: 100%;" shape="rounded" radius="6" fit="contain" src="assets/maxwell-main.jpg" placeholder="Фото"></image-slot>
+                </div>
+                <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px;">
+                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <div style="font-size: 20px; font-weight: 600; white-space: nowrap;">Audeze Maxwell</div>
+                    <div style="font-size: 11px; font-weight: 600; color: #0F6CBD; background: rgba(15,108,189,0.10); border: 1px solid rgba(15,108,189,0.20); border-radius: 4px; padding: 2px 7px; white-space: nowrap;">Xbox</div>
+                    <div style="font-size: 11px; font-weight: 600; color: #616161; background: rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.10); border-radius: 4px; padding: 2px 7px; white-space: nowrap;">Прошивка 1.0.1.74</div>
+                  </div>
+                  <div style="display: flex; align-items: flex-end; gap: 10px;">
+                    <div style="font-size: 34px; font-weight: 600; line-height: 1;">{{ battery }}%</div>
+                    <div style="display: flex; align-items: center; gap: 5px; padding-bottom: 4px; font-size: 13px; color: #0F7B0F;"><svg width="14" height="14" viewBox="0 0 16 16" fill="#0F7B0F" stroke="none"><path d="M9 1.6 4 8.8h3l-1 5.6 5-7.2H8l1-5.6Z"></path></svg>Заряжается</div>
+                  </div>
+                  <div style="height: 6px; border-radius: 3px; background: #E0E0E0; overflow: hidden;"><div style="height: 100%; border-radius: 3px; background: #0F6CBD; width: {{ batteryW }};"></div></div>
+                  <div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 2px;">
+                    <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; color: #1B1B1B; background: rgba(15,123,15,0.08); border: 1px solid rgba(15,123,15,0.20); border-radius: 4px; padding: 4px 9px; white-space: nowrap;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M6 2v4a2 2 0 0 0 4 0V2"></path><path d="M8 8v3a3 3 0 0 0 3 3h2"></path></svg>Кабель USB-C &#183; настройка доступна</div>
+                    <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; color: #1B1B1B; background: rgba(15,108,189,0.06); border: 1px solid rgba(15,108,189,0.18); border-radius: 4px; padding: 4px 9px; white-space: nowrap;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.4 6.6a8 8 0 0 1 11.2 0M4.8 9a4.8 4.8 0 0 1 6.4 0"></path><circle cx="8" cy="11.8" r="1" fill="currentColor" stroke="none"></circle></svg>Донгл 2.4 ГГц &#183; звук</div>
+                  </div>
+                </div>
+                <div style="flex: none; width: 152px; display: flex; flex-direction: column; gap: 8px; border-left: 1px solid rgba(0,0,0,0.06); padding-left: 16px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 12px;"><div style="color: #8A8A8A;">Микрофон</div><div style="font-weight: 600;">{{ micStatus }}</div></div>
+                  <div style="display: flex; justify-content: space-between; font-size: 12px;"><div style="color: #8A8A8A;">Бум-микрофон</div><div style="font-weight: 600;">Отсоединён</div></div>
+                  <div style="display: flex; justify-content: space-between; font-size: 12px;"><div style="color: #8A8A8A;">Пресет EQ</div><div style="font-weight: 600;">{{ preset }}</div></div>
+                  <div style="display: flex; justify-content: space-between; font-size: 12px;"><div style="color: #8A8A8A;">Опрос заряда</div><div style="font-weight: 600;">30 с</div></div>
+                </div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 18px;">
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px;">
+                  <div style="font-size: 14px; font-weight: 600;">Game / Chat Mix</div>
+                  <div style="font-size: 13px; color: #616161;">{{ chatMixLabel }}</div>
+                </div>
+                <div style="height: 20px; display: flex; align-items: center; cursor: pointer;" onClick="{{ onChatMix }}">
+                  <div style="position: relative; height: 4px; width: 100%; border-radius: 2px; background: #DBDBDB;">
+                    <div style="position: absolute; left: 0; top: 0; height: 4px; border-radius: 2px; background: #0F6CBD; width: {{ chatMixW }};"></div>
+                    <div style="position: absolute; top: -7px; margin-left: -9px; width: 18px; height: 18px; border-radius: 50%; background: #FFF; border: 1px solid rgba(0,0,0,0.10); box-shadow: 0 1px 3px rgba(0,0,0,0.14); display: flex; align-items: center; justify-content: center; left: {{ chatMixW }};"><div style="width: 8px; height: 8px; border-radius: 50%; background: #0F6CBD;"></div></div>
+                  </div>
+                </div>
+                  <div style="display: flex; justify-content: space-between; font-size: 11px; color: #8A8A8A;"><div>0 · только игра</div><div>10 · баланс</div><div>20 · только чат</div></div>
+                <div style="font-size: 12px; color: #8A8A8A;">Дублирует колесо на чашке — значение подхватывается при изменении на наушниках</div>
+              </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 2px;">
+                  <div style="flex: 1; border: 1px solid rgba(0,0,0,0.06); border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;">
+                    <div style="font-size: 13px; font-weight: 600;">Game-Audeze Maxwell</div>
+                    <div style="font-size: 12px; color: #8A8A8A;">Игры и системный звук</div>
+                  </div>
+                  <div style="flex: 1; border: 1px solid rgba(0,0,0,0.06); border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;">
+                    <div style="font-size: 13px; font-weight: 600;">Chat-Audeze Maxwell</div>
+                    <div style="font-size: 12px; color: #8A8A8A;">Discord, голосовой чат</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px;">
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 16px;">
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="font-size: 14px; font-weight: 600;">Шумоподавление микрофона</div>
+                <div style="display: flex; gap: 8px;">
+                  <sc-for list="{{ nrOpts }}" as="o" hint-placeholder-count="3">
+                    <div style="height: 32px; border-radius: 4px; padding: 0 16px; display: flex; align-items: center; font-size: 13px; cursor: pointer; background: {{ o.bg }}; color: {{ o.color }}; border: 1px solid {{ o.border }}; font-weight: {{ o.weight }};" onClick="{{ o.onClick }}">{{ o.label }}</div>
+                  </sc-for>
+                </div>
+                <div style="font-size: 12px; color: #8A8A8A;">Обрабатывает исходящий голос, внешний шум не глушит</div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 16px;">
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <div style="font-size: 14px; font-weight: 600;">Сайдтон</div>
+                  <div style="width: 40px; height: 20px; border-radius: 10px; display: flex; align-items: center; padding: 0 2px; cursor: pointer; background: {{ sidetoneBg }}; border: 1px solid {{ sidetoneBorder }}; justify-content: {{ sidetoneJustify }};" onClick="{{ onSidetone }}"><div style="width: 12px; height: 12px; border-radius: 50%; background: {{ sidetoneKnob }};"></div></div>
+                </div>
+                <div style="font-size: 12px; color: #8A8A8A;">Свой голос в наушниках &#183; уровень {{ sidetoneLvl }} из 31</div>
+                <div style="height: 30px; min-width: 100%; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 10px; font-size: 13px; cursor: pointer;" style-hover="background: #F5F5F5">Пресет EQ: {{ preset }}<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#616161" stroke-width="1.4"><path d="M4 6.2 8 10.2l4-4"></path></svg></div>
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="4c" style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="font-size: 12px; font-weight: 700; color: #FFFFFF; background: #1B1B1B; border-radius: 4px; padding: 3px 8px;">4c</div>
+        <div style="font-size: 14px; font-weight: 600;">Звук — EQ, баланс, громкость</div>
+      </div>
+      <div style="width: 1040px; height: 720px; background: #F3F3F3; border: 1px solid rgba(0,0,0,0.10); border-radius: 8px; box-shadow: 0 24px 48px rgba(0,0,0,0.16); overflow: hidden; display: flex; flex-direction: column; color: #1B1B1B;">
+        <div style="height: 48px; display: flex; align-items: center; flex: none;">
+          <div style="display: flex; align-items: center; gap: 12px; padding-left: 16px;">
+            <div style="width: 18px; height: 18px; border-radius: 4px; background: #0F6CBD; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 11px; font-weight: 700;">M</div>
+            <div style="font-size: 12px;">Maxwell.App</div>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="display: flex; align-items: stretch; height: 100%;">
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9472;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9633;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 11px;" style-hover="background: #C42B1C; color: #FFF">&#10005;</div>
+          </div>
+        </div>
+        <div style="flex: 1; display: flex; min-height: 0;">
+          <div style="width: 260px; flex: none; display: flex; flex-direction: column; gap: 2px; padding: 0 8px 12px;">
+            <div style="height: 32px; margin: 0 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.45); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 13px; color: #8A8A8A;">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4.2"></circle><path d="M10.2 10.2 13.5 13.5"></path></svg>
+              Поиск
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 10V8a5 5 0 0 1 10 0v2"></path><rect x="1.8" y="9" width="2.8" height="4.4" rx="1.4"></rect><rect x="11.4" y="9" width="2.8" height="4.4" rx="1.4"></rect></svg>
+              Устройства
+            </div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">AUDEZE MAXWELL · XBOX</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.4 11a6 6 0 1 1 11.2 0"></path><path d="M8 8.6 10.6 6"></path></svg>
+              Обзор
+            </div>
+            <div style="height: 40px; border-radius: 4px; background: #EBEBEB; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; position: relative; font-size: 14px; font-weight: 600;">
+              <div style="position: absolute; left: 0; top: 12px; width: 3px; height: 16px; border-radius: 2px; background: #0F6CBD;"></div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2.5v11M8 2.5v11M12 2.5v11"></path><circle cx="4" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="8" cy="10" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="12" cy="5" r="1.6" fill="currentColor" stroke="none"></circle></svg>
+              Звук
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="6" y="2" width="4" height="7" rx="2"></rect><path d="M3.6 8a4.4 4.4 0 0 0 8.8 0M8 12.4V14"></path></svg>
+              Микрофон
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg>
+              Система
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9.6 2.6a3.4 3.4 0 0 0 4 4L9 11.2l-2.2-2.2 2.8-6.4Z"></path><path d="M6.2 9.4 2.6 13"></path></svg>
+              Дополнительно
+            </div>
+            <div style="flex: 1;"></div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">ПРИЛОЖЕНИЕ</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="4" rx="1.4"></rect><rect x="2.2" y="9" width="11.6" height="4" rx="1.4"></rect></svg>
+              Профили
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.8" y="4.5" width="12.4" height="7" rx="1.6"></rect><path d="M4.4 7h.1M6.8 7h.1M9.2 7h.1M11.6 7h.1M5 9.4h6"></path></svg>
+              Горячие клавиши
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"></circle><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"></path></svg>
+              Параметры
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 0; background: #F9F9F9; border-top: 1px solid rgba(0,0,0,0.06); border-left: 1px solid rgba(0,0,0,0.06); border-top-left-radius: 8px; padding: 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;">
+            <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+              <div style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em;">Звук</div>
+              <div style="display: flex; gap: 8px;"><div style="height: 32px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0 14px; cursor: pointer;" style-hover="background: #F5F5F5">Сбросить</div><div style="height: 32px; border-radius: 4px; background: #0F6CBD; color: #FFF; font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0 14px; cursor: pointer;" style-hover="background: #115EA3">Записать в наушники</div></div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 18px;">
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <div style="font-size: 14px; font-weight: 600;">Пресеты эквалайзера</div>
+                  <div style="font-size: 12px; color: #8A8A8A;">6 встроенных и 4 пользовательских слота</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
+                  <sc-for list="{{ eqPresets }}" as="p" hint-placeholder-count="10">
+                    <div style="height: 38px; border-radius: 6px; padding: 0 10px; display: flex; flex-direction: column; justify-content: center; gap: 0px; cursor: pointer; background: {{ p.bg }}; border: 1px solid {{ p.border }};" onClick="{{ p.onClick }}">
+                      <div style="font-size: 13px; font-weight: {{ p.weight }}; color: {{ p.color }};">{{ p.label }}</div>
+                      <div style="font-size: 11px; color: #8A8A8A;">{{ p.kind }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 18px;">
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <div style="font-size: 14px; font-weight: 600;">АЧХ пресета «{{ preset }}»</div>
+                  <div style="font-size: 11px; font-weight: 600; color: #986F0B; background: rgba(152,111,11,0.10); border: 1px solid rgba(152,111,11,0.22); border-radius: 4px; padding: 2px 7px;">Редактор полос — позже</div>
+                </div>
+                <div style="height: 88px; display: flex; align-items: stretch; gap: 8px; border-top: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.06); padding: 10px 0;">
+                  <sc-for list="{{ curveLight }}" as="c" hint-placeholder-count="10">
+                    <div style="flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px;">
+                      <div style="width: 100%; border-radius: 3px; background: {{ c.bg }}; flex: 0 0 auto; height: {{ c.h }};"></div>
+                      <div style="font-size: 10px; color: #8A8A8A;">{{ c.hz }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 16px 18px;">
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <div style="font-size: 14px; font-weight: 600;">Громкость и баланс</div>
+                  <div style="font-size: 12px; color: #986F0B;">Потолок 150 — выше физически опасно для излучателя</div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px;">
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px;">
+                      <div style="font-size: 13px; font-weight: 600;">Общая громкость</div>
+                      <div style="font-size: 12px; color: #616161;">{{ gain }}</div>
+                    </div>
+                    <div style="height: 18px; display: flex; align-items: center; cursor: pointer;" onClick="{{ onGain }}">
+                      <div style="position: relative; height: 4px; width: 100%; border-radius: 2px; background: #DBDBDB;">
+                        <div style="position: absolute; left: 0; top: 0; height: 4px; border-radius: 2px; background: #0F6CBD; width: {{ gainW }};"></div>
+                        <div style="position: absolute; top: -7px; margin-left: -9px; width: 18px; height: 18px; border-radius: 50%; background: #FFF; border: 1px solid rgba(0,0,0,0.10); box-shadow: 0 1px 3px rgba(0,0,0,0.14); display: flex; align-items: center; justify-content: center; left: {{ gainW }};"><div style="width: 8px; height: 8px; border-radius: 50%; background: #0F6CBD;"></div></div>
+                      </div>
+                    </div>
+                    <div style="font-size: 11px; color: #8A8A8A;">0–150</div>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px;">
+                      <div style="font-size: 13px; font-weight: 600;">Баланс чашек</div>
+                      <div style="font-size: 12px; color: #616161;">{{ balanceLabel }}</div>
+                    </div>
+                    <div style="height: 18px; display: flex; align-items: center; cursor: pointer;" onClick="{{ onBalance }}">
+                      <div style="position: relative; height: 4px; width: 100%; border-radius: 2px; background: #DBDBDB;">
+                        <div style="position: absolute; left: 0; top: 0; height: 4px; border-radius: 2px; background: #0F6CBD; width: {{ balanceW }};"></div>
+                        <div style="position: absolute; top: -7px; margin-left: -9px; width: 18px; height: 18px; border-radius: 50%; background: #FFF; border: 1px solid rgba(0,0,0,0.10); box-shadow: 0 1px 3px rgba(0,0,0,0.14); display: flex; align-items: center; justify-content: center; left: {{ balanceW }};"><div style="width: 8px; height: 8px; border-radius: 50%; background: #0F6CBD;"></div></div>
+                      </div>
+                    </div>
+                    <div style="font-size: 11px; color: #8A8A8A;">Центр 128, ход ±6</div>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px;">
+                      <div style="font-size: 13px; font-weight: 600;">Левый канал</div>
+                      <div style="font-size: 12px; color: #616161;">{{ gainL }}</div>
+                    </div>
+                    <div style="height: 18px; display: flex; align-items: center; cursor: pointer;" onClick="{{ onGainL }}">
+                      <div style="position: relative; height: 4px; width: 100%; border-radius: 2px; background: #DBDBDB;">
+                        <div style="position: absolute; left: 0; top: 0; height: 4px; border-radius: 2px; background: #0F6CBD; width: {{ gainLW }};"></div>
+                        <div style="position: absolute; top: -7px; margin-left: -9px; width: 18px; height: 18px; border-radius: 50%; background: #FFF; border: 1px solid rgba(0,0,0,0.10); box-shadow: 0 1px 3px rgba(0,0,0,0.14); display: flex; align-items: center; justify-content: center; left: {{ gainLW }};"><div style="width: 8px; height: 8px; border-radius: 50%; background: #0F6CBD;"></div></div>
+                      </div>
+                    </div>
+                    <div style="font-size: 11px; color: #8A8A8A;">0–150</div>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px;">
+                      <div style="font-size: 13px; font-weight: 600;">Правый канал</div>
+                      <div style="font-size: 12px; color: #616161;">{{ gainR }}</div>
+                    </div>
+                    <div style="height: 18px; display: flex; align-items: center; cursor: pointer;" onClick="{{ onGainR }}">
+                      <div style="position: relative; height: 4px; width: 100%; border-radius: 2px; background: #DBDBDB;">
+                        <div style="position: absolute; left: 0; top: 0; height: 4px; border-radius: 2px; background: #0F6CBD; width: {{ gainRW }};"></div>
+                        <div style="position: absolute; top: -7px; margin-left: -9px; width: 18px; height: 18px; border-radius: 50%; background: #FFF; border: 1px solid rgba(0,0,0,0.10); box-shadow: 0 1px 3px rgba(0,0,0,0.14); display: flex; align-items: center; justify-content: center; left: {{ gainRW }};"><div style="width: 8px; height: 8px; border-radius: 50%; background: #0F6CBD;"></div></div>
+                      </div>
+                    </div>
+                    <div style="font-size: 11px; color: #8A8A8A;">0–150</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="4d" style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="font-size: 12px; font-weight: 700; color: #FFFFFF; background: #1B1B1B; border-radius: 4px; padding: 3px 8px;">4d</div>
+        <div style="font-size: 14px; font-weight: 600;">Микрофон</div>
+      </div>
+      <div style="width: 1040px; height: 720px; background: #F3F3F3; border: 1px solid rgba(0,0,0,0.10); border-radius: 8px; box-shadow: 0 24px 48px rgba(0,0,0,0.16); overflow: hidden; display: flex; flex-direction: column; color: #1B1B1B;">
+        <div style="height: 48px; display: flex; align-items: center; flex: none;">
+          <div style="display: flex; align-items: center; gap: 12px; padding-left: 16px;">
+            <div style="width: 18px; height: 18px; border-radius: 4px; background: #0F6CBD; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 11px; font-weight: 700;">M</div>
+            <div style="font-size: 12px;">Maxwell.App</div>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="display: flex; align-items: stretch; height: 100%;">
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9472;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9633;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 11px;" style-hover="background: #C42B1C; color: #FFF">&#10005;</div>
+          </div>
+        </div>
+        <div style="flex: 1; display: flex; min-height: 0;">
+          <div style="width: 260px; flex: none; display: flex; flex-direction: column; gap: 2px; padding: 0 8px 12px;">
+            <div style="height: 32px; margin: 0 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.45); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 13px; color: #8A8A8A;">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4.2"></circle><path d="M10.2 10.2 13.5 13.5"></path></svg>
+              Поиск
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 10V8a5 5 0 0 1 10 0v2"></path><rect x="1.8" y="9" width="2.8" height="4.4" rx="1.4"></rect><rect x="11.4" y="9" width="2.8" height="4.4" rx="1.4"></rect></svg>
+              Устройства
+            </div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">AUDEZE MAXWELL · XBOX</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.4 11a6 6 0 1 1 11.2 0"></path><path d="M8 8.6 10.6 6"></path></svg>
+              Обзор
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2.5v11M8 2.5v11M12 2.5v11"></path><circle cx="4" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="8" cy="10" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="12" cy="5" r="1.6" fill="currentColor" stroke="none"></circle></svg>
+              Звук
+            </div>
+            <div style="height: 40px; border-radius: 4px; background: #EBEBEB; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; position: relative; font-size: 14px; font-weight: 600;">
+              <div style="position: absolute; left: 0; top: 12px; width: 3px; height: 16px; border-radius: 2px; background: #0F6CBD;"></div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="6" y="2" width="4" height="7" rx="2"></rect><path d="M3.6 8a4.4 4.4 0 0 0 8.8 0M8 12.4V14"></path></svg>
+              Микрофон
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg>
+              Система
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9.6 2.6a3.4 3.4 0 0 0 4 4L9 11.2l-2.2-2.2 2.8-6.4Z"></path><path d="M6.2 9.4 2.6 13"></path></svg>
+              Дополнительно
+            </div>
+            <div style="flex: 1;"></div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">ПРИЛОЖЕНИЕ</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="4" rx="1.4"></rect><rect x="2.2" y="9" width="11.6" height="4" rx="1.4"></rect></svg>
+              Профили
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.8" y="4.5" width="12.4" height="7" rx="1.6"></rect><path d="M4.4 7h.1M6.8 7h.1M9.2 7h.1M11.6 7h.1M5 9.4h6"></path></svg>
+              Горячие клавиши
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"></circle><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"></path></svg>
+              Параметры
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 0; background: #F9F9F9; border-top: 1px solid rgba(0,0,0,0.06); border-left: 1px solid rgba(0,0,0,0.06); border-top-left-radius: 8px; padding: 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;">
+            <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+              <div style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em;">Микрофон</div>
+              
+            </div>
+            <div style="background: rgba(152,111,11,0.08); border: 1px solid rgba(152,111,11,0.24); border-radius: 8px; padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#986F0B" stroke-width="1.3"><path d="M8 2.4 14.4 13.6H1.6L8 2.4Z"></path><path d="M8 6.4v3.2M8 11.4h.1"></path></svg>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 3px;">
+                <div style="font-size: 14px; font-weight: 600;">Бум-микрофон отсоединён</div>
+                <div style="font-size: 12px; color: #616161; text-wrap: pretty;">Работает встроенный массив в чашках. Уровень микрофона и мьют доступны только с подключённым бумом — переключение происходит автоматически.</div>
+              </div>
+              <div style="height: 32px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0 14px; cursor: pointer;" style-hover="background: #F5F5F5">Как подключить</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 18px;">
+              <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <div style="font-size: 14px; font-weight: 600;">Шумоподавление</div>
+                  <div style="font-size: 11px; font-weight: 600; color: #616161; background: rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.10); border-radius: 4px; padding: 2px 7px;">Тест впереди</div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <sc-for list="{{ nrOpts }}" as="o" hint-placeholder-count="3">
+                    <div style="height: 32px; border-radius: 4px; padding: 0 16px; display: flex; align-items: center; font-size: 13px; cursor: pointer; background: {{ o.bg }}; color: {{ o.color }}; border: 1px solid {{ o.border }}; font-weight: {{ o.weight }};" onClick="{{ o.onClick }}">{{ o.label }}</div>
+                  </sc-for>
+                </div>
+                <div style="font-size: 12px; color: #8A8A8A;">Чистит исходящий голос: механическая клавиатура, вентиляторы, фоновые голоса</div>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 16px;">
+              <div style="display: flex; flex-direction: column; gap: 10px; opacity: 0.55;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px;">
+                  <div style="font-size: 14px; font-weight: 600;">Уровень микрофона</div>
+                  <div style="font-size: 13px; color: #616161;">—</div>
+                </div>
+                <div style="height: 20px; display: flex; align-items: center;">
+                  <div style="position: relative; height: 4px; width: 100%; border-radius: 2px; background: #DBDBDB;">
+                    <div style="position: absolute; left: 0; top: 0; height: 4px; border-radius: 2px; background: #B3B3B3; width: 78%;"></div>
+                    <div style="position: absolute; top: -7px; margin-left: -9px; width: 18px; height: 18px; border-radius: 50%; background: #FFF; border: 1px solid rgba(0,0,0,0.10); box-shadow: 0 1px 3px rgba(0,0,0,0.14); display: flex; align-items: center; justify-content: center; left: 78%;"><div style="width: 8px; height: 8px; border-radius: 50%; background: #B3B3B3;"></div></div>
+                  </div>
+                </div>
+
+                <div style="font-size: 12px; color: #8A8A8A;">Недоступно без бум-микрофона · 0–255</div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 16px;">
+              <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <div style="font-size: 14px; font-weight: 600;">Сайдтон</div>
+                  <div style="width: 40px; height: 20px; border-radius: 10px; display: flex; align-items: center; padding: 0 2px; cursor: pointer; background: {{ sidetoneBg }}; border: 1px solid {{ sidetoneBorder }}; justify-content: {{ sidetoneJustify }};" onClick="{{ onSidetone }}"><div style="width: 12px; height: 12px; border-radius: 50%; background: {{ sidetoneKnob }};"></div></div>
+                </div>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px;">
+                  <div style="font-size: 14px; font-weight: 600;">Уровень сайдтона</div>
+                  <div style="font-size: 13px; color: #616161;">{{ sidetoneLvl }}</div>
+                </div>
+                <div style="height: 20px; display: flex; align-items: center; cursor: pointer;" onClick="{{ onSidetoneLvl }}">
+                  <div style="position: relative; height: 4px; width: 100%; border-radius: 2px; background: #DBDBDB;">
+                    <div style="position: absolute; left: 0; top: 0; height: 4px; border-radius: 2px; background: #0F6CBD; width: {{ sidetoneW }};"></div>
+                    <div style="position: absolute; top: -7px; margin-left: -9px; width: 18px; height: 18px; border-radius: 50%; background: #FFF; border: 1px solid rgba(0,0,0,0.10); box-shadow: 0 1px 3px rgba(0,0,0,0.14); display: flex; align-items: center; justify-content: center; left: {{ sidetoneW }};"><div style="width: 8px; height: 8px; border-radius: 50%; background: #0F6CBD;"></div></div>
+                  </div>
+                </div>
+
+                <div style="font-size: 12px; color: #8A8A8A;">Максимум 31 — читается из наушников</div>
+              </div>
+              </div>
+            </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 4px 16px;">
+              <div style="min-height: 52px; display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06);">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="6" y="2" width="4" height="7" rx="2"></rect><path d="M3.6 8a4.4 4.4 0 0 0 8.8 0M8 12.4V14"></path></svg>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-size: 14px;">Микрофон замьючен</div>
+                  <div style="font-size: 12px; color: #8A8A8A;">Мьют на Maxwell только физический — подъёмом бума</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #616161;"><div style="width: 8px; height: 8px; border-radius: 50%; background: #8A8A8A;"></div>{{ micStatus }}</div>
+              </div>
+              <div style="min-height: 52px; display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid transparent;">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0F6CBD" stroke-width="1.3"><circle cx="8" cy="8" r="6"></circle><path d="M8 7.2v4M8 4.8h.1"></path></svg>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-size: 14px;">Встроенный массив</div>
+                  <div style="font-size: 12px; color: #8A8A8A;">Beamforming в чашках, включается автоматически</div>
+                </div>
+                <div style="font-size: 11px; font-weight: 600; color: #0F7B0F; background: rgba(15,123,15,0.10); border: 1px solid rgba(15,123,15,0.20); border-radius: 4px; padding: 2px 7px;">Активен</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="4e" style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="font-size: 12px; font-weight: 700; color: #FFFFFF; background: #1B1B1B; border-radius: 4px; padding: 3px 8px;">4e</div>
+        <div style="font-size: 14px; font-weight: 600;">Система</div>
+      </div>
+      <div style="width: 1040px; height: 720px; background: #F3F3F3; border: 1px solid rgba(0,0,0,0.10); border-radius: 8px; box-shadow: 0 24px 48px rgba(0,0,0,0.16); overflow: hidden; display: flex; flex-direction: column; color: #1B1B1B;">
+        <div style="height: 48px; display: flex; align-items: center; flex: none;">
+          <div style="display: flex; align-items: center; gap: 12px; padding-left: 16px;">
+            <div style="width: 18px; height: 18px; border-radius: 4px; background: #0F6CBD; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 11px; font-weight: 700;">M</div>
+            <div style="font-size: 12px;">Maxwell.App</div>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="display: flex; align-items: stretch; height: 100%;">
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9472;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9633;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 11px;" style-hover="background: #C42B1C; color: #FFF">&#10005;</div>
+          </div>
+        </div>
+        <div style="flex: 1; display: flex; min-height: 0;">
+          <div style="width: 260px; flex: none; display: flex; flex-direction: column; gap: 2px; padding: 0 8px 12px;">
+            <div style="height: 32px; margin: 0 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.45); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 13px; color: #8A8A8A;">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4.2"></circle><path d="M10.2 10.2 13.5 13.5"></path></svg>
+              Поиск
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 10V8a5 5 0 0 1 10 0v2"></path><rect x="1.8" y="9" width="2.8" height="4.4" rx="1.4"></rect><rect x="11.4" y="9" width="2.8" height="4.4" rx="1.4"></rect></svg>
+              Устройства
+            </div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">AUDEZE MAXWELL · XBOX</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.4 11a6 6 0 1 1 11.2 0"></path><path d="M8 8.6 10.6 6"></path></svg>
+              Обзор
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2.5v11M8 2.5v11M12 2.5v11"></path><circle cx="4" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="8" cy="10" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="12" cy="5" r="1.6" fill="currentColor" stroke="none"></circle></svg>
+              Звук
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="6" y="2" width="4" height="7" rx="2"></rect><path d="M3.6 8a4.4 4.4 0 0 0 8.8 0M8 12.4V14"></path></svg>
+              Микрофон
+            </div>
+            <div style="height: 40px; border-radius: 4px; background: #EBEBEB; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; position: relative; font-size: 14px; font-weight: 600;">
+              <div style="position: absolute; left: 0; top: 12px; width: 3px; height: 16px; border-radius: 2px; background: #0F6CBD;"></div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg>
+              Система
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9.6 2.6a3.4 3.4 0 0 0 4 4L9 11.2l-2.2-2.2 2.8-6.4Z"></path><path d="M6.2 9.4 2.6 13"></path></svg>
+              Дополнительно
+            </div>
+            <div style="flex: 1;"></div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">ПРИЛОЖЕНИЕ</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="4" rx="1.4"></rect><rect x="2.2" y="9" width="11.6" height="4" rx="1.4"></rect></svg>
+              Профили
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.8" y="4.5" width="12.4" height="7" rx="1.6"></rect><path d="M4.4 7h.1M6.8 7h.1M9.2 7h.1M11.6 7h.1M5 9.4h6"></path></svg>
+              Горячие клавиши
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"></circle><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"></path></svg>
+              Параметры
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 0; background: #F9F9F9; border-top: 1px solid rgba(0,0,0,0.06); border-left: 1px solid rgba(0,0,0,0.06); border-top-left-radius: 8px; padding: 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;">
+            <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+              <div style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em;">Система</div>
+              
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 4px 16px;">
+              <div style="min-height: 52px; display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06);">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-size: 14px;">Таймер автовыключения</div>
+                  <div style="font-size: 12px; color: #8A8A8A;">Когда нет звука и активности</div>
+                </div>
+                <div style="height: 30px; min-width: 150px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 10px; font-size: 13px; cursor: pointer;" style-hover="background: #F5F5F5">30 минут<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#616161" stroke-width="1.4"><path d="M4 6.2 8 10.2l4-4"></path></svg></div>
+              </div>
+              <div style="min-height: 52px; display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid transparent;">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"></circle><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"></path></svg>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-size: 14px;">Датчики head-tracking</div>
+                  <div style="font-size: 12px; color: #8A8A8A;">Для оригинального Maxwell официально не описаны</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;"><div style="font-size: 11px; font-weight: 600; color: #986F0B; background: rgba(152,111,11,0.10); border: 1px solid rgba(152,111,11,0.22); border-radius: 4px; padding: 2px 7px;">Под вопросом</div><div style="width: 40px; height: 20px; border-radius: 10px; display: flex; align-items: center; padding: 0 2px; cursor: pointer; background: {{ headTrackBg }}; border: 1px solid {{ headTrackBorder }}; justify-content: {{ headTrackJustify }};" onClick="{{ onHeadTrack }}"><div style="width: 12px; height: 12px; border-radius: 50%; background: {{ headTrackKnob }};"></div></div></div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 18px;">
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px;">
+                  <div style="font-size: 14px; font-weight: 600;">Громкость голосовых подсказок</div>
+                  <div style="font-size: 13px; color: #616161;">{{ voice }}</div>
+                </div>
+                <div style="height: 20px; display: flex; align-items: center; cursor: pointer;" onClick="{{ onVoice }}">
+                  <div style="position: relative; height: 4px; width: 100%; border-radius: 2px; background: #DBDBDB;">
+                    <div style="position: absolute; left: 0; top: 0; height: 4px; border-radius: 2px; background: #0F6CBD; width: {{ voiceW }};"></div>
+                    <div style="position: absolute; top: -7px; margin-left: -9px; width: 18px; height: 18px; border-radius: 50%; background: #FFF; border: 1px solid rgba(0,0,0,0.10); box-shadow: 0 1px 3px rgba(0,0,0,0.14); display: flex; align-items: center; justify-content: center; left: {{ voiceW }};"><div style="width: 8px; height: 8px; border-radius: 50%; background: #0F6CBD;"></div></div>
+                  </div>
+                </div>
+                  <div style="display: flex; justify-content: space-between; font-size: 11px; color: #8A8A8A;"><div>тихо</div><div></div><div>громко</div></div>
+                <div style="font-size: 12px; color: #8A8A8A;">Озвучка включения, выключения и смены пресета EQ · 0–255</div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 18px;">
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="font-size: 14px; font-weight: 600;">Состояние устройства</div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                  <div style="border: 1px solid rgba(0,0,0,0.06); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 4px;">
+                    <div style="font-size: 12px; color: #8A8A8A;">Прошивка</div>
+                    <div style="font-size: 15px; font-weight: 600;">1.0.1.74</div>
+                  </div>
+                  <div style="border: 1px solid rgba(0,0,0,0.06); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 4px;">
+                    <div style="font-size: 12px; color: #8A8A8A;">Питание</div>
+                    <div style="font-size: 15px; font-weight: 600;">Включено</div>
+                  </div>
+                  <div style="border: 1px solid rgba(0,0,0,0.06); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 4px;">
+                    <div style="font-size: 12px; color: #8A8A8A;">Подключение</div>
+                    <div style="font-size: 15px; font-weight: 600;">Кабель и донгл</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="4f" style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="font-size: 12px; font-weight: 700; color: #FFFFFF; background: #1B1B1B; border-radius: 4px; padding: 3px 8px;">4f</div>
+        <div style="font-size: 14px; font-weight: 600;">Дополнительно</div>
+      </div>
+      <div style="width: 1040px; height: 720px; background: #F3F3F3; border: 1px solid rgba(0,0,0,0.10); border-radius: 8px; box-shadow: 0 24px 48px rgba(0,0,0,0.16); overflow: hidden; display: flex; flex-direction: column; color: #1B1B1B;">
+        <div style="height: 48px; display: flex; align-items: center; flex: none;">
+          <div style="display: flex; align-items: center; gap: 12px; padding-left: 16px;">
+            <div style="width: 18px; height: 18px; border-radius: 4px; background: #0F6CBD; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 11px; font-weight: 700;">M</div>
+            <div style="font-size: 12px;">Maxwell.App</div>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="display: flex; align-items: stretch; height: 100%;">
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9472;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9633;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 11px;" style-hover="background: #C42B1C; color: #FFF">&#10005;</div>
+          </div>
+        </div>
+        <div style="flex: 1; display: flex; min-height: 0;">
+          <div style="width: 260px; flex: none; display: flex; flex-direction: column; gap: 2px; padding: 0 8px 12px;">
+            <div style="height: 32px; margin: 0 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.45); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 13px; color: #8A8A8A;">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4.2"></circle><path d="M10.2 10.2 13.5 13.5"></path></svg>
+              Поиск
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 10V8a5 5 0 0 1 10 0v2"></path><rect x="1.8" y="9" width="2.8" height="4.4" rx="1.4"></rect><rect x="11.4" y="9" width="2.8" height="4.4" rx="1.4"></rect></svg>
+              Устройства
+            </div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">AUDEZE MAXWELL · XBOX</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.4 11a6 6 0 1 1 11.2 0"></path><path d="M8 8.6 10.6 6"></path></svg>
+              Обзор
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2.5v11M8 2.5v11M12 2.5v11"></path><circle cx="4" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="8" cy="10" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="12" cy="5" r="1.6" fill="currentColor" stroke="none"></circle></svg>
+              Звук
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="6" y="2" width="4" height="7" rx="2"></rect><path d="M3.6 8a4.4 4.4 0 0 0 8.8 0M8 12.4V14"></path></svg>
+              Микрофон
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg>
+              Система
+            </div>
+            <div style="height: 40px; border-radius: 4px; background: #EBEBEB; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; position: relative; font-size: 14px; font-weight: 600;">
+              <div style="position: absolute; left: 0; top: 12px; width: 3px; height: 16px; border-radius: 2px; background: #0F6CBD;"></div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9.6 2.6a3.4 3.4 0 0 0 4 4L9 11.2l-2.2-2.2 2.8-6.4Z"></path><path d="M6.2 9.4 2.6 13"></path></svg>
+              Дополнительно
+            </div>
+            <div style="flex: 1;"></div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">ПРИЛОЖЕНИЕ</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="4" rx="1.4"></rect><rect x="2.2" y="9" width="11.6" height="4" rx="1.4"></rect></svg>
+              Профили
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.8" y="4.5" width="12.4" height="7" rx="1.6"></rect><path d="M4.4 7h.1M6.8 7h.1M9.2 7h.1M11.6 7h.1M5 9.4h6"></path></svg>
+              Горячие клавиши
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"></circle><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"></path></svg>
+              Параметры
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 0; background: #F9F9F9; border-top: 1px solid rgba(0,0,0,0.06); border-left: 1px solid rgba(0,0,0,0.06); border-top-left-radius: 8px; padding: 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;">
+            <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+              <div style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em;">Дополнительно</div>
+              
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 18px;">
+              <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 3px;">
+                  <div style="font-size: 14px; font-weight: 600;">Обновление прошивки</div>
+                  <div style="font-size: 12px; color: #8A8A8A;">Установлена 1.0.1.74 &#183; доступна 1.0.2.10</div>
+                </div>
+                <div style="height: 32px; border-radius: 4px; background: #0F6CBD; color: #FFF; font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0 14px; cursor: pointer;" style-hover="background: #115EA3">Обновить</div>
+              </div>
+              <div style="margin-top: 14px; height: 6px; border-radius: 3px; background: #E0E0E0; overflow: hidden;"><div style="height: 100%; width: 0%; border-radius: 3px; background: #0F6CBD;"></div></div>
+              <div style="margin-top: 8px; font-size: 12px; color: #986F0B;">Во время обновления нельзя отключать кабель и выключать наушники</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 4px 16px;">
+              <div style="min-height: 52px; display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06);">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.4 6.6a8 8 0 0 1 11.2 0M4.8 9a4.8 4.8 0 0 1 6.4 0"></path><circle cx="8" cy="11.8" r="1" fill="currentColor" stroke="none"></circle></svg>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-size: 14px;">Сопряжение с донглом</div>
+                  <div style="font-size: 12px; color: #8A8A8A;">Разорвёт текущую пару — потребуется подтверждение</div>
+                </div>
+                <div style="height: 32px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0 14px; cursor: pointer;" style-hover="background: #F5F5F5">Сопрячь заново</div>
+              </div>
+              <div style="min-height: 52px; display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid transparent;">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M6 2v4a2 2 0 0 0 4 0V2"></path><path d="M8 8v3a3 3 0 0 0 3 3h2"></path></svg>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-size: 14px;">Проверить подключение</div>
+                  <div style="font-size: 12px; color: #8A8A8A;">Диагностика кабеля и донгла</div>
+                </div>
+                <div style="height: 32px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0 14px; cursor: pointer;" style-hover="background: #F5F5F5">Запустить</div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(196,43,28,0.30); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 18px; display: flex; align-items: center; gap: 16px;">
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 3px;">
+                <div style="font-size: 14px; font-weight: 600; color: #C42B1C;">Сброс к заводским настройкам</div>
+                <div style="font-size: 12px; color: #616161; text-wrap: pretty;">Стирает пресеты, баланс чашек и уровни громкости. Подтверждение обязательно, отменить нельзя.</div>
+              </div>
+              <div style="height: 32px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(196,43,28,0.40); color: #C42B1C; font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0 14px; cursor: pointer;" style-hover="background: rgba(196,43,28,0.06)">Сбросить</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="4g" style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="font-size: 12px; font-weight: 700; color: #FFFFFF; background: #1B1B1B; border-radius: 4px; padding: 3px 8px;">4g</div>
+        <div style="font-size: 14px; font-weight: 600;">Профили</div>
+      </div>
+      <div style="width: 1040px; height: 720px; background: #F3F3F3; border: 1px solid rgba(0,0,0,0.10); border-radius: 8px; box-shadow: 0 24px 48px rgba(0,0,0,0.16); overflow: hidden; display: flex; flex-direction: column; color: #1B1B1B;">
+        <div style="height: 48px; display: flex; align-items: center; flex: none;">
+          <div style="display: flex; align-items: center; gap: 12px; padding-left: 16px;">
+            <div style="width: 18px; height: 18px; border-radius: 4px; background: #0F6CBD; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 11px; font-weight: 700;">M</div>
+            <div style="font-size: 12px;">Maxwell.App</div>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="display: flex; align-items: stretch; height: 100%;">
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9472;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9633;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 11px;" style-hover="background: #C42B1C; color: #FFF">&#10005;</div>
+          </div>
+        </div>
+        <div style="flex: 1; display: flex; min-height: 0;">
+          <div style="width: 260px; flex: none; display: flex; flex-direction: column; gap: 2px; padding: 0 8px 12px;">
+            <div style="height: 32px; margin: 0 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.45); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 13px; color: #8A8A8A;">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4.2"></circle><path d="M10.2 10.2 13.5 13.5"></path></svg>
+              Поиск
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 10V8a5 5 0 0 1 10 0v2"></path><rect x="1.8" y="9" width="2.8" height="4.4" rx="1.4"></rect><rect x="11.4" y="9" width="2.8" height="4.4" rx="1.4"></rect></svg>
+              Устройства
+            </div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">AUDEZE MAXWELL · XBOX</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.4 11a6 6 0 1 1 11.2 0"></path><path d="M8 8.6 10.6 6"></path></svg>
+              Обзор
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2.5v11M8 2.5v11M12 2.5v11"></path><circle cx="4" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="8" cy="10" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="12" cy="5" r="1.6" fill="currentColor" stroke="none"></circle></svg>
+              Звук
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="6" y="2" width="4" height="7" rx="2"></rect><path d="M3.6 8a4.4 4.4 0 0 0 8.8 0M8 12.4V14"></path></svg>
+              Микрофон
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg>
+              Система
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9.6 2.6a3.4 3.4 0 0 0 4 4L9 11.2l-2.2-2.2 2.8-6.4Z"></path><path d="M6.2 9.4 2.6 13"></path></svg>
+              Дополнительно
+            </div>
+            <div style="flex: 1;"></div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">ПРИЛОЖЕНИЕ</div>
+            <div style="height: 40px; border-radius: 4px; background: #EBEBEB; display: flex; align-items: center; gap: 12px; padding: 0 12px; position: relative; font-size: 14px; font-weight: 600;">
+              <div style="position: absolute; left: 0; top: 12px; width: 3px; height: 16px; border-radius: 2px; background: #0F6CBD;"></div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="4" rx="1.4"></rect><rect x="2.2" y="9" width="11.6" height="4" rx="1.4"></rect></svg>
+              Профили
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.8" y="4.5" width="12.4" height="7" rx="1.6"></rect><path d="M4.4 7h.1M6.8 7h.1M9.2 7h.1M11.6 7h.1M5 9.4h6"></path></svg>
+              Горячие клавиши
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"></circle><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"></path></svg>
+              Параметры
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 0; background: #F9F9F9; border-top: 1px solid rgba(0,0,0,0.06); border-left: 1px solid rgba(0,0,0,0.06); border-top-left-radius: 8px; padding: 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;">
+            <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+              <div style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em;">Профили</div>
+              <div style="display: flex; gap: 8px;"><div style="height: 32px; border-radius: 4px; background: #0F6CBD; color: #FFF; font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0 14px; cursor: pointer;" style-hover="background: #115EA3">Новый профиль</div></div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 4px 16px;">
+              <sc-for list="{{ profiles }}" as="p" hint-placeholder-count="3">
+                <div style="min-height: 68px; display: flex; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid {{ p.div }};" style-hover="background: rgba(0,0,0,0.02)">
+                  <div style="width: 6px; height: 34px; border-radius: 3px; background: {{ p.mark }};"></div>
+                  <div style="flex: 1; display: flex; flex-direction: column; gap: 3px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div style="font-size: 14px; font-weight: 600;">{{ p.name }}</div>
+                      <div style="font-size: 11px; font-weight: 600; color: {{ p.tagColor }}; background: {{ p.tagBg }}; border: 1px solid {{ p.tagBorder }}; border-radius: 4px; padding: 1px 6px;">{{ p.tag }}</div>
+                    </div>
+                    <div style="font-size: 12px; color: #8A8A8A;">{{ p.sub }}</div>
+                  </div>
+                  <div style="font-size: 12px; color: #616161; width: 190px;">{{ p.trigger }}</div>
+                  <div style="height: 30px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); font-size: 13px; display: flex; align-items: center; padding: 0 12px; cursor: pointer;" style-hover="background: #F5F5F5">Изменить</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 4px 16px;">
+              <div style="min-height: 52px; display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid transparent;">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="4" rx="1.4"></rect><rect x="2.2" y="9" width="11.6" height="4" rx="1.4"></rect></svg>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-size: 14px;">Автопереключение профиля</div>
+                  <div style="font-size: 12px; color: #8A8A8A;">По запущенной игре или приложению</div>
+                </div>
+                <div style="width: 40px; height: 20px; border-radius: 10px; display: flex; align-items: center; padding: 0 2px; cursor: pointer; background: {{ autoProfileBg }}; border: 1px solid {{ autoProfileBorder }}; justify-content: {{ autoProfileJustify }};" onClick="{{ onAutoProfile }}"><div style="width: 12px; height: 12px; border-radius: 50%; background: {{ autoProfileKnob }};"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="4h" style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="font-size: 12px; font-weight: 700; color: #FFFFFF; background: #1B1B1B; border-radius: 4px; padding: 3px 8px;">4h</div>
+        <div style="font-size: 14px; font-weight: 600;">Горячие клавиши</div>
+      </div>
+      <div style="width: 1040px; height: 720px; background: #F3F3F3; border: 1px solid rgba(0,0,0,0.10); border-radius: 8px; box-shadow: 0 24px 48px rgba(0,0,0,0.16); overflow: hidden; display: flex; flex-direction: column; color: #1B1B1B;">
+        <div style="height: 48px; display: flex; align-items: center; flex: none;">
+          <div style="display: flex; align-items: center; gap: 12px; padding-left: 16px;">
+            <div style="width: 18px; height: 18px; border-radius: 4px; background: #0F6CBD; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 11px; font-weight: 700;">M</div>
+            <div style="font-size: 12px;">Maxwell.App</div>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="display: flex; align-items: stretch; height: 100%;">
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9472;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9633;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 11px;" style-hover="background: #C42B1C; color: #FFF">&#10005;</div>
+          </div>
+        </div>
+        <div style="flex: 1; display: flex; min-height: 0;">
+          <div style="width: 260px; flex: none; display: flex; flex-direction: column; gap: 2px; padding: 0 8px 12px;">
+            <div style="height: 32px; margin: 0 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.45); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 13px; color: #8A8A8A;">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4.2"></circle><path d="M10.2 10.2 13.5 13.5"></path></svg>
+              Поиск
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 10V8a5 5 0 0 1 10 0v2"></path><rect x="1.8" y="9" width="2.8" height="4.4" rx="1.4"></rect><rect x="11.4" y="9" width="2.8" height="4.4" rx="1.4"></rect></svg>
+              Устройства
+            </div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">AUDEZE MAXWELL · XBOX</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.4 11a6 6 0 1 1 11.2 0"></path><path d="M8 8.6 10.6 6"></path></svg>
+              Обзор
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2.5v11M8 2.5v11M12 2.5v11"></path><circle cx="4" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="8" cy="10" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="12" cy="5" r="1.6" fill="currentColor" stroke="none"></circle></svg>
+              Звук
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="6" y="2" width="4" height="7" rx="2"></rect><path d="M3.6 8a4.4 4.4 0 0 0 8.8 0M8 12.4V14"></path></svg>
+              Микрофон
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg>
+              Система
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9.6 2.6a3.4 3.4 0 0 0 4 4L9 11.2l-2.2-2.2 2.8-6.4Z"></path><path d="M6.2 9.4 2.6 13"></path></svg>
+              Дополнительно
+            </div>
+            <div style="flex: 1;"></div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">ПРИЛОЖЕНИЕ</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="4" rx="1.4"></rect><rect x="2.2" y="9" width="11.6" height="4" rx="1.4"></rect></svg>
+              Профили
+            </div>
+            <div style="height: 40px; border-radius: 4px; background: #EBEBEB; display: flex; align-items: center; gap: 12px; padding: 0 12px; position: relative; font-size: 14px; font-weight: 600;">
+              <div style="position: absolute; left: 0; top: 12px; width: 3px; height: 16px; border-radius: 2px; background: #0F6CBD;"></div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.8" y="4.5" width="12.4" height="7" rx="1.6"></rect><path d="M4.4 7h.1M6.8 7h.1M9.2 7h.1M11.6 7h.1M5 9.4h6"></path></svg>
+              Горячие клавиши
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"></circle><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"></path></svg>
+              Параметры
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 0; background: #F9F9F9; border-top: 1px solid rgba(0,0,0,0.06); border-left: 1px solid rgba(0,0,0,0.06); border-top-left-radius: 8px; padding: 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;">
+            <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+              <div style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em;">Горячие клавиши</div>
+              <div style="display: flex; gap: 8px;"><div style="height: 32px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0 14px; cursor: pointer;" style-hover="background: #F5F5F5">Сбросить все</div></div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 4px 16px;">
+              <div style="min-height: 52px; display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid transparent;">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.8" y="4.5" width="12.4" height="7" rx="1.6"></rect><path d="M4.4 7h.1M6.8 7h.1M9.2 7h.1M11.6 7h.1M5 9.4h6"></path></svg>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-size: 14px;">Глобальные горячие клавиши</div>
+                  <div style="font-size: 12px; color: #8A8A8A;">Работают, когда окно свёрнуто</div>
+                </div>
+                <div style="width: 40px; height: 20px; border-radius: 10px; display: flex; align-items: center; padding: 0 2px; cursor: pointer; background: {{ hkBg }}; border: 1px solid {{ hkBorder }}; justify-content: {{ hkJustify }};" onClick="{{ onHk }}"><div style="width: 12px; height: 12px; border-radius: 50%; background: {{ hkKnob }};"></div></div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 4px 16px;">
+              <sc-for list="{{ hotkeys }}" as="h" hint-placeholder-count="5">
+                <div style="min-height: 56px; display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid {{ h.div }};">
+                  <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                    <div style="font-size: 14px;">{{ h.action }}</div>
+                    <div style="font-size: 12px; color: #8A8A8A;">{{ h.sub }}</div>
+                  </div>
+                  <div style="font-size: 12px; font-family: 'Cascadia Mono', Consolas, monospace; background: #F3F3F3; border: 1px solid rgba(0,0,0,0.08); border-radius: 4px; padding: 4px 10px;">{{ h.keys }}</div>
+                  <div style="height: 30px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); font-size: 13px; display: flex; align-items: center; padding: 0 12px; cursor: pointer;" style-hover="background: #F5F5F5">Изменить</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="4i" style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="font-size: 12px; font-weight: 700; color: #FFFFFF; background: #1B1B1B; border-radius: 4px; padding: 3px 8px;">4i</div>
+        <div style="font-size: 14px; font-weight: 600;">Параметры приложения</div>
+      </div>
+      <div style="width: 1040px; height: 720px; background: #F3F3F3; border: 1px solid rgba(0,0,0,0.10); border-radius: 8px; box-shadow: 0 24px 48px rgba(0,0,0,0.16); overflow: hidden; display: flex; flex-direction: column; color: #1B1B1B;">
+        <div style="height: 48px; display: flex; align-items: center; flex: none;">
+          <div style="display: flex; align-items: center; gap: 12px; padding-left: 16px;">
+            <div style="width: 18px; height: 18px; border-radius: 4px; background: #0F6CBD; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 11px; font-weight: 700;">M</div>
+            <div style="font-size: 12px;">Maxwell.App</div>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="display: flex; align-items: stretch; height: 100%;">
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9472;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9633;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 11px;" style-hover="background: #C42B1C; color: #FFF">&#10005;</div>
+          </div>
+        </div>
+        <div style="flex: 1; display: flex; min-height: 0;">
+          <div style="width: 260px; flex: none; display: flex; flex-direction: column; gap: 2px; padding: 0 8px 12px;">
+            <div style="height: 32px; margin: 0 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.45); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 13px; color: #8A8A8A;">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4.2"></circle><path d="M10.2 10.2 13.5 13.5"></path></svg>
+              Поиск
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 10V8a5 5 0 0 1 10 0v2"></path><rect x="1.8" y="9" width="2.8" height="4.4" rx="1.4"></rect><rect x="11.4" y="9" width="2.8" height="4.4" rx="1.4"></rect></svg>
+              Устройства
+            </div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">AUDEZE MAXWELL · XBOX</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.4 11a6 6 0 1 1 11.2 0"></path><path d="M8 8.6 10.6 6"></path></svg>
+              Обзор
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2.5v11M8 2.5v11M12 2.5v11"></path><circle cx="4" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="8" cy="10" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="12" cy="5" r="1.6" fill="currentColor" stroke="none"></circle></svg>
+              Звук
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="6" y="2" width="4" height="7" rx="2"></rect><path d="M3.6 8a4.4 4.4 0 0 0 8.8 0M8 12.4V14"></path></svg>
+              Микрофон
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg>
+              Система
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9.6 2.6a3.4 3.4 0 0 0 4 4L9 11.2l-2.2-2.2 2.8-6.4Z"></path><path d="M6.2 9.4 2.6 13"></path></svg>
+              Дополнительно
+            </div>
+            <div style="flex: 1;"></div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">ПРИЛОЖЕНИЕ</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="4" rx="1.4"></rect><rect x="2.2" y="9" width="11.6" height="4" rx="1.4"></rect></svg>
+              Профили
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.8" y="4.5" width="12.4" height="7" rx="1.6"></rect><path d="M4.4 7h.1M6.8 7h.1M9.2 7h.1M11.6 7h.1M5 9.4h6"></path></svg>
+              Горячие клавиши
+            </div>
+            <div style="height: 40px; border-radius: 4px; background: #EBEBEB; display: flex; align-items: center; gap: 12px; padding: 0 12px; position: relative; font-size: 14px; font-weight: 600;">
+              <div style="position: absolute; left: 0; top: 12px; width: 3px; height: 16px; border-radius: 2px; background: #0F6CBD;"></div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"></circle><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"></path></svg>
+              Параметры
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 0; background: #F9F9F9; border-top: 1px solid rgba(0,0,0,0.06); border-left: 1px solid rgba(0,0,0,0.06); border-top-left-radius: 8px; padding: 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;">
+            <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+              <div style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em;">Параметры</div>
+              
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 18px;">
+              <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div style="font-size: 14px; font-weight: 600;">Тема</div>
+                <div style="display: flex; gap: 8px;">
+                  <sc-for list="{{ themes }}" as="o" hint-placeholder-count="3">
+                    <div style="height: 32px; border-radius: 4px; padding: 0 16px; display: flex; align-items: center; font-size: 13px; cursor: pointer; background: {{ o.bg }}; color: {{ o.color }}; border: 1px solid {{ o.border }}; font-weight: {{ o.weight }};" onClick="{{ o.onClick }}">{{ o.label }}</div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 4px 16px;">
+              <div style="min-height: 52px; display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06);">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"></circle><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"></path></svg>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-size: 14px;">Запускать вместе с Windows</div>
+                  <div style="font-size: 12px; color: #8A8A8A;">Свёрнутым в область уведомлений</div>
+                </div>
+                <div style="width: 40px; height: 20px; border-radius: 10px; display: flex; align-items: center; padding: 0 2px; cursor: pointer; background: {{ autoBg }}; border: 1px solid {{ autoBorder }}; justify-content: {{ autoJustify }};" onClick="{{ onAuto }}"><div style="width: 12px; height: 12px; border-radius: 50%; background: {{ autoKnob }};"></div></div>
+              </div>
+              <div style="min-height: 52px; display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06);">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 10V8a5 5 0 0 1 10 0v2"></path><rect x="1.8" y="9" width="2.8" height="4.4" rx="1.4"></rect><rect x="11.4" y="9" width="2.8" height="4.4" rx="1.4"></rect></svg>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-size: 14px;">Значок в области уведомлений</div>
+                  <div style="font-size: 12px; color: #8A8A8A;">Процент заряда рисуется прямо в иконке</div>
+                </div>
+                <div style="width: 40px; height: 20px; border-radius: 10px; display: flex; align-items: center; padding: 0 2px; cursor: pointer; background: {{ trayBg }}; border: 1px solid {{ trayBorder }}; justify-content: {{ trayJustify }};" onClick="{{ onTray }}"><div style="width: 12px; height: 12px; border-radius: 50%; background: {{ trayKnob }};"></div></div>
+              </div>
+              <div style="min-height: 52px; display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06);">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0F6CBD" stroke-width="1.3"><circle cx="8" cy="8" r="6"></circle><path d="M8 7.2v4M8 4.8h.1"></path></svg>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-size: 14px;">Попап при подключении</div>
+                  <div style="font-size: 12px; color: #8A8A8A;">Показывает заряд при включении наушников или подключении кабеля</div>
+                </div>
+                <div style="width: 40px; height: 20px; border-radius: 10px; display: flex; align-items: center; padding: 0 2px; cursor: pointer; background: {{ popupBg }}; border: 1px solid {{ popupBorder }}; justify-content: {{ popupJustify }};" onClick="{{ onPopup }}"><div style="width: 12px; height: 12px; border-radius: 50%; background: {{ popupKnob }};"></div></div>
+              </div>
+              <div style="min-height: 52px; display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06);">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#986F0B" stroke-width="1.3"><path d="M8 2.4 14.4 13.6H1.6L8 2.4Z"></path><path d="M8 6.4v3.2M8 11.4h.1"></path></svg>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-size: 14px;">Уведомление о низком заряде</div>
+                  <div style="font-size: 12px; color: #8A8A8A;">Системный тост при заряде ниже порога</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;"><div style="height: 30px; min-width: 96px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 10px; font-size: 13px; cursor: pointer;" style-hover="background: #F5F5F5">15 %<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#616161" stroke-width="1.4"><path d="M4 6.2 8 10.2l4-4"></path></svg></div><div style="width: 40px; height: 20px; border-radius: 10px; display: flex; align-items: center; padding: 0 2px; cursor: pointer; background: {{ lowBattBg }}; border: 1px solid {{ lowBattBorder }}; justify-content: {{ lowBattJustify }};" onClick="{{ onLowBatt }}"><div style="width: 12px; height: 12px; border-radius: 50%; background: {{ lowBattKnob }};"></div></div></div>
+              </div>
+              <div style="min-height: 52px; display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid transparent;">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-size: 14px;">Язык</div>
+                  <div style="font-size: 12px; color: #8A8A8A;">Требуется перезапуск</div>
+                </div>
+                <div style="height: 30px; min-width: 140px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 10px; font-size: 13px; cursor: pointer;" style-hover="background: #F5F5F5">Русский<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#616161" stroke-width="1.4"><path d="M4 6.2 8 10.2l4-4"></path></svg></div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 18px;">
+              <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="width: 40px; height: 40px; border-radius: 8px; background: #0F6CBD; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 18px; font-weight: 700;">M</div>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-size: 14px; font-weight: 600;">Maxwell.App 0.9.0</div>
+                  <div style="font-size: 12px; color: #8A8A8A;">Работает офлайн, без сбора данных и подписок</div>
+                </div>
+                <div style="height: 32px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0 14px; cursor: pointer;" style-hover="background: #F5F5F5">Проверить обновления</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="4j" style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="font-size: 12px; font-weight: 700; color: #FFFFFF; background: #1B1B1B; border-radius: 4px; padding: 3px 8px;">4j</div>
+        <div style="font-size: 14px; font-weight: 600;">Состояние: подключён только донгл</div>
+      </div>
+      <div style="width: 1040px; height: 720px; background: #F3F3F3; border: 1px solid rgba(0,0,0,0.10); border-radius: 8px; box-shadow: 0 24px 48px rgba(0,0,0,0.16); overflow: hidden; display: flex; flex-direction: column; color: #1B1B1B;">
+        <div style="height: 48px; display: flex; align-items: center; flex: none;">
+          <div style="display: flex; align-items: center; gap: 12px; padding-left: 16px;">
+            <div style="width: 18px; height: 18px; border-radius: 4px; background: #0F6CBD; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 11px; font-weight: 700;">M</div>
+            <div style="font-size: 12px;">Maxwell.App</div>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="display: flex; align-items: stretch; height: 100%;">
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9472;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9633;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 11px;" style-hover="background: #C42B1C; color: #FFF">&#10005;</div>
+          </div>
+        </div>
+        <div style="flex: 1; display: flex; min-height: 0;">
+          <div style="width: 260px; flex: none; display: flex; flex-direction: column; gap: 2px; padding: 0 8px 12px;">
+            <div style="height: 32px; margin: 0 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.45); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 13px; color: #8A8A8A;">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4.2"></circle><path d="M10.2 10.2 13.5 13.5"></path></svg>
+              Поиск
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 10V8a5 5 0 0 1 10 0v2"></path><rect x="1.8" y="9" width="2.8" height="4.4" rx="1.4"></rect><rect x="11.4" y="9" width="2.8" height="4.4" rx="1.4"></rect></svg>
+              Устройства
+            </div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">AUDEZE MAXWELL · XBOX</div>
+            <div style="height: 40px; border-radius: 4px; background: #EBEBEB; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; position: relative; font-size: 14px; font-weight: 600;">
+              <div style="position: absolute; left: 0; top: 12px; width: 3px; height: 16px; border-radius: 2px; background: #0F6CBD;"></div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.4 11a6 6 0 1 1 11.2 0"></path><path d="M8 8.6 10.6 6"></path></svg>
+              Обзор
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2.5v11M8 2.5v11M12 2.5v11"></path><circle cx="4" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="8" cy="10" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="12" cy="5" r="1.6" fill="currentColor" stroke="none"></circle></svg>
+              Звук
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="6" y="2" width="4" height="7" rx="2"></rect><path d="M3.6 8a4.4 4.4 0 0 0 8.8 0M8 12.4V14"></path></svg>
+              Микрофон
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg>
+              Система
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9.6 2.6a3.4 3.4 0 0 0 4 4L9 11.2l-2.2-2.2 2.8-6.4Z"></path><path d="M6.2 9.4 2.6 13"></path></svg>
+              Дополнительно
+            </div>
+            <div style="flex: 1;"></div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">ПРИЛОЖЕНИЕ</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="4" rx="1.4"></rect><rect x="2.2" y="9" width="11.6" height="4" rx="1.4"></rect></svg>
+              Профили
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.8" y="4.5" width="12.4" height="7" rx="1.6"></rect><path d="M4.4 7h.1M6.8 7h.1M9.2 7h.1M11.6 7h.1M5 9.4h6"></path></svg>
+              Горячие клавиши
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"></circle><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"></path></svg>
+              Параметры
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 0; background: #F9F9F9; border-top: 1px solid rgba(0,0,0,0.06); border-left: 1px solid rgba(0,0,0,0.06); border-top-left-radius: 8px; padding: 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;">
+            <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+              <div style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em;">Обзор</div>
+              
+            </div>
+            <div style="background: rgba(15,108,189,0.06); border: 1px solid rgba(15,108,189,0.20); border-radius: 8px; padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#0F6CBD" stroke-width="1.3"><circle cx="8" cy="8" r="6"></circle><path d="M8 7.2v4M8 4.8h.1"></path></svg>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 3px;">
+                <div style="font-size: 14px; font-weight: 600;">Подключён только донгл — доступен мониторинг</div>
+                <div style="font-size: 12px; color: #616161; text-wrap: pretty;">По беспроводному адаптеру наушники не отвечают на команды настройки: заряд и состояние видны, изменение параметров недоступно. Подключите кабель USB-C, чтобы настраивать — звук при этом может идти через донгл.</div>
+              </div>
+              <div style="height: 32px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0 14px; cursor: pointer;" style-hover="background: #F5F5F5">Что подключить</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 18px;">
+              <div style="display: flex; gap: 20px; align-items: center;">
+                <div style="width: 132px; height: 132px; flex: none; border-radius: 6px; background: #FAFAFA; overflow: hidden; opacity: 0.9;">
+                  <image-slot id="mx4-monitor" style="width: 100%; height: 100%;" shape="rounded" radius="6" fit="contain" src="assets/maxwell-main.jpg" placeholder="Фото"></image-slot>
+                </div>
+                <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="font-size: 20px; font-weight: 600;">Audeze Maxwell</div>
+                    <div style="font-size: 11px; font-weight: 600; color: #986F0B; background: rgba(152,111,11,0.10); border: 1px solid rgba(152,111,11,0.22); border-radius: 4px; padding: 2px 7px;">Только мониторинг</div>
+                  </div>
+                  <div style="display: flex; align-items: flex-end; gap: 10px;">
+                    <div style="font-size: 34px; font-weight: 600; line-height: 1;">{{ battery }}%</div>
+                    <div style="font-size: 13px; color: #616161; padding-bottom: 4px;">осталось примерно {{ hoursLeft }} ч</div>
+                  </div>
+                  <div style="height: 6px; border-radius: 3px; background: #E0E0E0; overflow: hidden;"><div style="height: 100%; border-radius: 3px; background: #0F6CBD; width: {{ batteryW }};"></div></div>
+                  <div style="display: flex; gap: 10px; padding-top: 2px;">
+                    <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; color: #8A8A8A; background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.08); border-radius: 4px; padding: 4px 9px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M6 2v4a2 2 0 0 0 4 0V2"></path><path d="M8 8v3a3 3 0 0 0 3 3h2"></path></svg>Кабель не подключён</div>
+                    <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; color: #1B1B1B; background: rgba(15,108,189,0.06); border: 1px solid rgba(15,108,189,0.18); border-radius: 4px; padding: 4px 9px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.4 6.6a8 8 0 0 1 11.2 0M4.8 9a4.8 4.8 0 0 1 6.4 0"></path><circle cx="8" cy="11.8" r="1" fill="currentColor" stroke="none"></circle></svg>Донгл 2.4 ГГц &#183; звук</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 18px;">
+              <div style="display: flex; flex-direction: column; gap: 10px; opacity: 0.55;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px;">
+                  <div style="font-size: 14px; font-weight: 600;">Game / Chat Mix</div>
+                  <div style="font-size: 13px; color: #616161;">10</div>
+                </div>
+                <div style="height: 20px; display: flex; align-items: center;">
+                  <div style="position: relative; height: 4px; width: 100%; border-radius: 2px; background: #DBDBDB;">
+                    <div style="position: absolute; left: 0; top: 0; height: 4px; border-radius: 2px; background: #B3B3B3; width: 50%;"></div>
+                    <div style="position: absolute; top: -7px; margin-left: -9px; width: 18px; height: 18px; border-radius: 50%; background: #FFF; border: 1px solid rgba(0,0,0,0.10); box-shadow: 0 1px 3px rgba(0,0,0,0.14); display: flex; align-items: center; justify-content: center; left: 50%;"><div style="width: 8px; height: 8px; border-radius: 50%; background: #B3B3B3;"></div></div>
+                  </div>
+                </div>
+                  <div style="display: flex; justify-content: space-between; font-size: 11px; color: #8A8A8A;"><div>0 · игра</div><div>10 · баланс</div><div>20 · чат</div></div>
+                <div style="font-size: 12px; color: #8A8A8A;">Настройка недоступна по донглу — колесо на чашке продолжает работать</div>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px;">
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 16px;">
+              <div style="display: flex; flex-direction: column; gap: 12px; opacity: 0.55;">
+                <div style="font-size: 14px; font-weight: 600;">Шумоподавление микрофона</div>
+                <div style="display: flex; gap: 8px;">
+                  <div style="height: 32px; border-radius: 4px; padding: 0 16px; display: flex; align-items: center; font-size: 13px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); color: #8A8A8A;">Выкл</div>
+                  <div style="height: 32px; border-radius: 4px; padding: 0 16px; display: flex; align-items: center; font-size: 13px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); color: #8A8A8A;">Низкое</div>
+                  <div style="height: 32px; border-radius: 4px; padding: 0 16px; display: flex; align-items: center; font-size: 13px; background: #F3F3F3; border: 1px solid rgba(0,0,0,0.10); color: #8A8A8A;">Высокое</div>
+                </div>
+                <div style="font-size: 12px; color: #8A8A8A;">Требуется кабель</div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 16px;">
+              <div style="display: flex; flex-direction: column; gap: 12px; opacity: 0.55;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <div style="font-size: 14px; font-weight: 600;">Сайдтон</div>
+                  <div style="width: 40px; height: 20px; border-radius: 10px; background: #F3F3F3; border: 1px solid rgba(0,0,0,0.30); display: flex; align-items: center; justify-content: flex-start; padding: 0 2px;"><div style="width: 12px; height: 12px; border-radius: 50%; background: #B3B3B3;"></div></div>
+                </div>
+                <div style="font-size: 12px; color: #8A8A8A;">Требуется кабель</div>
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="4k" style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="font-size: 12px; font-weight: 700; color: #FFFFFF; background: #1B1B1B; border-radius: 4px; padding: 3px 8px;">4k</div>
+        <div style="font-size: 14px; font-weight: 600;">Состояние: устройство не найдено</div>
+      </div>
+      <div style="width: 1040px; height: 720px; background: #F3F3F3; border: 1px solid rgba(0,0,0,0.10); border-radius: 8px; box-shadow: 0 24px 48px rgba(0,0,0,0.16); overflow: hidden; display: flex; flex-direction: column; color: #1B1B1B;">
+        <div style="height: 48px; display: flex; align-items: center; flex: none;">
+          <div style="display: flex; align-items: center; gap: 12px; padding-left: 16px;">
+            <div style="width: 18px; height: 18px; border-radius: 4px; background: #0F6CBD; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 11px; font-weight: 700;">M</div>
+            <div style="font-size: 12px;">Maxwell.App</div>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="display: flex; align-items: stretch; height: 100%;">
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9472;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9633;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 11px;" style-hover="background: #C42B1C; color: #FFF">&#10005;</div>
+          </div>
+        </div>
+        <div style="flex: 1; display: flex; min-height: 0;">
+          <div style="width: 260px; flex: none; display: flex; flex-direction: column; gap: 2px; padding: 0 8px 12px;">
+            <div style="height: 32px; margin: 0 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.45); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 13px; color: #8A8A8A;">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4.2"></circle><path d="M10.2 10.2 13.5 13.5"></path></svg>
+              Поиск
+            </div>
+            <div style="height: 40px; border-radius: 4px; background: #EBEBEB; display: flex; align-items: center; gap: 12px; padding: 0 12px; position: relative; font-size: 14px; font-weight: 600;">
+              <div style="position: absolute; left: 0; top: 12px; width: 3px; height: 16px; border-radius: 2px; background: #0F6CBD;"></div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 10V8a5 5 0 0 1 10 0v2"></path><rect x="1.8" y="9" width="2.8" height="4.4" rx="1.4"></rect><rect x="11.4" y="9" width="2.8" height="4.4" rx="1.4"></rect></svg>
+              Устройства
+            </div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">AUDEZE MAXWELL · XBOX</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.4 11a6 6 0 1 1 11.2 0"></path><path d="M8 8.6 10.6 6"></path></svg>
+              Обзор
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2.5v11M8 2.5v11M12 2.5v11"></path><circle cx="4" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="8" cy="10" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="12" cy="5" r="1.6" fill="currentColor" stroke="none"></circle></svg>
+              Звук
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="6" y="2" width="4" height="7" rx="2"></rect><path d="M3.6 8a4.4 4.4 0 0 0 8.8 0M8 12.4V14"></path></svg>
+              Микрофон
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg>
+              Система
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 34px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9.6 2.6a3.4 3.4 0 0 0 4 4L9 11.2l-2.2-2.2 2.8-6.4Z"></path><path d="M6.2 9.4 2.6 13"></path></svg>
+              Дополнительно
+            </div>
+            <div style="flex: 1;"></div>
+            <div style="font-size: 11px; font-weight: 600; color: #8A8A8A; letter-spacing: 0.04em; padding: 10px 12px 4px;">ПРИЛОЖЕНИЕ</div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="4" rx="1.4"></rect><rect x="2.2" y="9" width="11.6" height="4" rx="1.4"></rect></svg>
+              Профили
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.8" y="4.5" width="12.4" height="7" rx="1.6"></rect><path d="M4.4 7h.1M6.8 7h.1M9.2 7h.1M11.6 7h.1M5 9.4h6"></path></svg>
+              Горячие клавиши
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"></circle><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"></path></svg>
+              Параметры
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 0; background: #F9F9F9; border-top: 1px solid rgba(0,0,0,0.06); border-left: 1px solid rgba(0,0,0,0.06); border-top-left-radius: 8px; padding: 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;">
+            <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+              <div style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em;">Устройства</div>
+              
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center;">
+              <div style="width: 84px; height: 84px; border-radius: 50%; background: #F0F0F0; display: flex; align-items: center; justify-content: center; color: #8A8A8A;">
+                <svg width="34" height="34" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.1"><path d="M3 10V8a5 5 0 0 1 10 0v2"></path><rect x="1.8" y="9" width="2.8" height="4.4" rx="1.4"></rect><rect x="11.4" y="9" width="2.8" height="4.4" rx="1.4"></rect></svg>
+              </div>
+              <div style="font-size: 18px; font-weight: 600;">Наушники не найдены</div>
+              <div style="font-size: 13px; color: #616161; max-width: 380px; text-wrap: pretty;">Включите Maxwell и подключите кабель USB-C или беспроводной адаптер. Приложение подхватит устройство само.</div>
+              <div style="display: flex; gap: 8px; padding-top: 4px;"><div style="height: 32px; border-radius: 4px; background: #0F6CBD; color: #FFF; font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0 14px; cursor: pointer;" style-hover="background: #115EA3">Искать снова</div><div style="height: 32px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0 14px; cursor: pointer;" style-hover="background: #F5F5F5">Поддерживаемые модели</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 28px; padding: 48px; color: #1B1B1B;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <div style="font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #707070;">Turn 2 · Дашборд устройств</div>
+    <div style="font-size: 26px; font-weight: 600; letter-spacing: -0.01em;">Список устройств с переходом в детали</div>
+    <div style="font-size: 14px; color: #5C5C5C; max-width: 720px; text-wrap: pretty;">Боковая навигация из <a href="#1a">1a</a> в обеих темах. <a href="#2a">2a</a> — светлая, <a href="#2b">2b</a> — тёмная. Все устройства одинаковыми строками: сверху подключённые, ниже отключённые; «Подробнее» ведёт на экран устройства.</div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start;">
+
+    <div id="2a" style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="font-size: 12px; font-weight: 700; color: #FFFFFF; background: #1B1B1B; border-radius: 4px; padding: 3px 8px;">2a</div>
+        <div style="font-size: 14px; font-weight: 600;">Light · дашборд</div>
+      </div>
+
+      <div style="width: 1040px; height: 720px; background: #F3F3F3; border: 1px solid rgba(0,0,0,0.10); border-radius: 8px; box-shadow: 0 24px 48px rgba(0,0,0,0.16); overflow: hidden; display: flex; flex-direction: column; color: #1B1B1B;">
+        <div style="height: 48px; display: flex; align-items: center; flex: none;">
+          <div style="display: flex; align-items: center; gap: 12px; padding-left: 16px;">
+            <div style="width: 18px; height: 18px; border-radius: 4px; background: #0F6CBD; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 11px; font-weight: 700;">M</div>
+            <div style="font-size: 12px;">Maxwell Hub</div>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="display: flex; align-items: stretch; height: 100%;">
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9472;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px;" style-hover="background: rgba(0,0,0,0.05)">&#9633;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 11px;" style-hover="background: #C42B1C; color: #FFF">&#10005;</div>
+          </div>
+        </div>
+
+        <div style="flex: 1; display: flex; min-height: 0;">
+          <div style="width: 260px; flex: none; display: flex; flex-direction: column; gap: 4px; padding: 0 8px 12px;">
+            <div style="height: 32px; margin: 0 4px 12px; border-radius: 4px; background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.45); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 13px; color: #8A8A8A;">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4.2"></circle><path d="M10.2 10.2 13.5 13.5"></path></svg>
+              Поиск
+            </div>
+            <div style="height: 40px; border-radius: 4px; background: #EBEBEB; display: flex; align-items: center; gap: 12px; padding: 0 12px; position: relative; font-size: 14px; font-weight: 600;">
+              <div style="position: absolute; left: 0; top: 12px; width: 3px; height: 16px; border-radius: 2px; background: #0F6CBD;"></div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 10V8a5 5 0 0 1 10 0v2"></path><rect x="1.8" y="9" width="2.8" height="4.4" rx="1.4"></rect><rect x="11.4" y="9" width="2.8" height="4.4" rx="1.4"></rect></svg>
+              Устройства
+              <div style="flex: 1;"></div>
+              <div style="font-size: 12px; color: #616161;">4</div>
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2.5v11M8 2.5v11M12 2.5v11"></path><circle cx="4" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="8" cy="10" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="12" cy="5" r="1.6" fill="currentColor" stroke="none"></circle></svg>
+              Эквалайзер
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="6" y="2" width="4" height="7" rx="2"></rect><path d="M3.6 8a4.4 4.4 0 0 0 8.8 0M8 12.4V14"></path></svg>
+              Микрофон
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.8" y="4.5" width="12.4" height="7" rx="1.6"></rect><path d="M4.4 7h.1M6.8 7h.1M9.2 7h.1M11.6 7h.1M5 9.4h6"></path></svg>
+              Горячие клавиши
+            </div>
+            <div style="flex: 1;"></div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px;" style-hover="background: rgba(0,0,0,0.04)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"></circle><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"></path></svg>
+              Параметры
+            </div>
+          </div>
+
+          <div style="flex: 1; min-width: 0; background: #F9F9F9; border-top: 1px solid rgba(0,0,0,0.06); border-left: 1px solid rgba(0,0,0,0.06); border-top-left-radius: 8px; padding: 26px 30px; display: flex; flex-direction: column; gap: 16px; overflow: hidden;">
+            <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+              <div style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em;">Устройства</div>
+              <div style="height: 32px; border-radius: 4px; background: #0F6CBD; color: #FFF; font-size: 14px; display: flex; align-items: center; gap: 8px; padding: 0 14px; cursor: pointer;" style-hover="background: #115EA3">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3.4v9.2M3.4 8h9.2"></path></svg>
+                Добавить
+              </div>
+            </div>
+
+            <div style="font-size: 12px; font-weight: 600; color: #616161; letter-spacing: 0.02em; padding-left: 2px;">ПОДКЛЮЧЕНЫ &#183; 2</div>
+
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 0 16px;">
+              <sc-for list="{{ connected }}" as="d" hint-placeholder-count="2">
+                <div style="height: 84px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid {{ d.divLight }};" style-hover="background: rgba(0,0,0,0.02)">
+                  <div style="width: 56px; height: 56px; flex: none; border-radius: 4px; background: #FAFAFA; overflow: hidden;">
+                    <div style="width: 100%; height: 100%; background-image: {{ d.imgCss }}; background-size: contain; background-repeat: no-repeat; background-position: center;"></div>
+                  </div>
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div style="font-size: 15px; font-weight: 600;">{{ d.name }}</div>
+                      <div style="font-size: 11px; font-weight: 600; color: #0F6CBD; background: rgba(15,108,189,0.10); border: 1px solid rgba(15,108,189,0.20); border-radius: 4px; padding: 1px 6px;">{{ d.chip }}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; color: #616161;">
+                      <div style="width: 7px; height: 7px; border-radius: 50%; background: {{ d.dot }};"></div>
+                      {{ d.sub }}
+                    </div>
+                  </div>
+                  <div style="flex: none; width: 148px; display: flex; align-items: center; gap: 10px;">
+                    <div style="height: 5px; flex: 1; border-radius: 3px; background: #E0E0E0; overflow: hidden;">
+                      <div style="height: 100%; border-radius: 3px; background: {{ d.barLight }}; width: {{ d.battW }};"></div>
+                    </div>
+                    <div style="font-size: 13px; color: #616161; width: 40px; text-align: right;">{{ d.batt }}</div>
+                  </div>
+                  <div style="flex: none; height: 30px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); font-size: 13px; display: flex; align-items: center; gap: 6px; padding: 0 12px; cursor: pointer;" style-hover="background: #F5F5F5">
+                    Подробнее
+                    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3.6 10.4 8 6 12.4"></path></svg>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="font-size: 12px; font-weight: 600; color: #616161; letter-spacing: 0.02em; padding-left: 2px;">ОТКЛЮЧЕНЫ &#183; 2</div>
+
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 0 16px;">
+              <sc-for list="{{ offline }}" as="d" hint-placeholder-count="2">
+                <div style="height: 84px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid {{ d.divLight }};" style-hover="background: rgba(0,0,0,0.02)">
+                  <div style="width: 56px; height: 56px; flex: none; border-radius: 4px; background: #FAFAFA; overflow: hidden;">
+                    <div style="width: 100%; height: 100%; background-image: {{ d.imgCss }}; background-size: contain; background-repeat: no-repeat; background-position: center;"></div>
+                  </div>
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div style="font-size: 15px; font-weight: 600;">{{ d.name }}</div>
+                      <div style="font-size: 11px; font-weight: 600; color: #0F6CBD; background: rgba(15,108,189,0.10); border: 1px solid rgba(15,108,189,0.20); border-radius: 4px; padding: 1px 6px;">{{ d.chip }}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; color: #616161;">
+                      <div style="width: 7px; height: 7px; border-radius: 50%; background: {{ d.dot }};"></div>
+                      {{ d.sub }}
+                    </div>
+                  </div>
+                  <div style="flex: none; width: 148px; display: flex; align-items: center; gap: 10px;">
+                    <div style="height: 5px; flex: 1; border-radius: 3px; background: #E0E0E0; overflow: hidden;">
+                      <div style="height: 100%; border-radius: 3px; background: {{ d.barLight }}; width: {{ d.battW }};"></div>
+                    </div>
+                    <div style="font-size: 13px; color: #616161; width: 40px; text-align: right;">{{ d.batt }}</div>
+                  </div>
+                  <div style="flex: none; height: 30px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.10); border-bottom-color: rgba(0,0,0,0.20); font-size: 13px; display: flex; align-items: center; gap: 6px; padding: 0 12px; cursor: pointer;" style-hover="background: #F5F5F5">
+                    Подробнее
+                    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3.6 10.4 8 6 12.4"></path></svg>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="2b" style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="font-size: 12px; font-weight: 700; color: #FFFFFF; background: #1B1B1B; border-radius: 4px; padding: 3px 8px;">2b</div>
+        <div style="font-size: 14px; font-weight: 600;">Dark · дашборд</div>
+      </div>
+
+      <div style="width: 1040px; height: 720px; background: #1F1F1F; border: 1px solid rgba(255,255,255,0.10); border-radius: 8px; box-shadow: 0 24px 48px rgba(0,0,0,0.35); overflow: hidden; display: flex; flex-direction: column; color: #FFFFFF;">
+        <div style="height: 48px; display: flex; align-items: center; flex: none;">
+          <div style="display: flex; align-items: center; gap: 12px; padding-left: 16px;">
+            <div style="width: 18px; height: 18px; border-radius: 4px; background: #479EF5; display: flex; align-items: center; justify-content: center; color: #0A0A0A; font-size: 11px; font-weight: 700;">M</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.86);">Maxwell Hub</div>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="display: flex; align-items: stretch; height: 100%;">
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: rgba(255,255,255,0.86);" style-hover="background: rgba(255,255,255,0.06)">&#9472;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: rgba(255,255,255,0.86);" style-hover="background: rgba(255,255,255,0.06)">&#9633;</div>
+            <div style="width: 46px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: rgba(255,255,255,0.86);" style-hover="background: #C42B1C">&#10005;</div>
+          </div>
+        </div>
+
+        <div style="flex: 1; display: flex; min-height: 0;">
+          <div style="width: 260px; flex: none; display: flex; flex-direction: column; gap: 4px; padding: 0 8px 12px;">
+            <div style="height: 32px; margin: 0 4px 12px; border-radius: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07); border-bottom: 1px solid rgba(255,255,255,0.40); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 13px; color: rgba(255,255,255,0.45);">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4.2"></circle><path d="M10.2 10.2 13.5 13.5"></path></svg>
+              Поиск
+            </div>
+            <div style="height: 40px; border-radius: 4px; background: rgba(255,255,255,0.08); display: flex; align-items: center; gap: 12px; padding: 0 12px; position: relative; font-size: 14px; font-weight: 600;">
+              <div style="position: absolute; left: 0; top: 12px; width: 3px; height: 16px; border-radius: 2px; background: #479EF5;"></div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 10V8a5 5 0 0 1 10 0v2"></path><rect x="1.8" y="9" width="2.8" height="4.4" rx="1.4"></rect><rect x="11.4" y="9" width="2.8" height="4.4" rx="1.4"></rect></svg>
+              Устройства
+              <div style="flex: 1;"></div>
+              <div style="font-size: 12px; color: rgba(255,255,255,0.55);">4</div>
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px; color: rgba(255,255,255,0.86);" style-hover="background: rgba(255,255,255,0.05)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2.5v11M8 2.5v11M12 2.5v11"></path><circle cx="4" cy="6" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="8" cy="10" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="12" cy="5" r="1.6" fill="currentColor" stroke="none"></circle></svg>
+              Эквалайзер
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px; color: rgba(255,255,255,0.86);" style-hover="background: rgba(255,255,255,0.05)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="6" y="2" width="4" height="7" rx="2"></rect><path d="M3.6 8a4.4 4.4 0 0 0 8.8 0M8 12.4V14"></path></svg>
+              Микрофон
+            </div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px; color: rgba(255,255,255,0.86);" style-hover="background: rgba(255,255,255,0.05)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.8" y="4.5" width="12.4" height="7" rx="1.6"></rect><path d="M4.4 7h.1M6.8 7h.1M9.2 7h.1M11.6 7h.1M5 9.4h6"></path></svg>
+              Горячие клавиши
+            </div>
+            <div style="flex: 1;"></div>
+            <div style="height: 40px; border-radius: 4px; display: flex; align-items: center; gap: 12px; padding: 0 12px; font-size: 14px; color: rgba(255,255,255,0.86);" style-hover="background: rgba(255,255,255,0.05)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"></circle><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"></path></svg>
+              Параметры
+            </div>
+          </div>
+
+          <div style="flex: 1; min-width: 0; background: #272727; border-top: 1px solid rgba(255,255,255,0.07); border-left: 1px solid rgba(255,255,255,0.07); border-top-left-radius: 8px; padding: 26px 30px; display: flex; flex-direction: column; gap: 16px; overflow: hidden;">
+            <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+              <div style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em;">Устройства</div>
+              <div style="height: 32px; border-radius: 4px; background: #479EF5; color: #0A0A0A; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; padding: 0 14px; cursor: pointer;" style-hover="background: #62ABF5">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3.4v9.2M3.4 8h9.2"></path></svg>
+                Добавить
+              </div>
+            </div>
+
+            <div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.55); letter-spacing: 0.02em; padding-left: 2px;">ПОДКЛЮЧЕНЫ &#183; 2</div>
+
+            <div style="background: #2B2B2B; border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 0 16px;">
+              <sc-for list="{{ connected }}" as="d" hint-placeholder-count="2">
+                <div style="height: 84px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid {{ d.divDark }};" style-hover="background: rgba(255,255,255,0.03)">
+                  <div style="width: 56px; height: 56px; flex: none; border-radius: 4px; background: #FFFFFF; overflow: hidden;">
+                    <div style="width: 100%; height: 100%; background-image: {{ d.imgCss }}; background-size: contain; background-repeat: no-repeat; background-position: center;"></div>
+                  </div>
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div style="font-size: 15px; font-weight: 600;">{{ d.name }}</div>
+                      <div style="font-size: 11px; font-weight: 600; color: #479EF5; background: rgba(71,158,245,0.12); border: 1px solid rgba(71,158,245,0.24); border-radius: 4px; padding: 1px 6px;">{{ d.chip }}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; color: rgba(255,255,255,0.62);">
+                      <div style="width: 7px; height: 7px; border-radius: 50%; background: {{ d.dotDark }};"></div>
+                      {{ d.sub }}
+                    </div>
+                  </div>
+                  <div style="flex: none; width: 148px; display: flex; align-items: center; gap: 10px;">
+                    <div style="height: 5px; flex: 1; border-radius: 3px; background: rgba(255,255,255,0.14); overflow: hidden;">
+                      <div style="height: 100%; border-radius: 3px; background: {{ d.barDark }}; width: {{ d.battW }};"></div>
+                    </div>
+                    <div style="font-size: 13px; color: rgba(255,255,255,0.62); width: 40px; text-align: right;">{{ d.batt }}</div>
+                  </div>
+                  <div style="flex: none; height: 30px; border-radius: 4px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09); font-size: 13px; display: flex; align-items: center; gap: 6px; padding: 0 12px; cursor: pointer;" style-hover="background: rgba(255,255,255,0.10)">
+                    Подробнее
+                    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3.6 10.4 8 6 12.4"></path></svg>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.55); letter-spacing: 0.02em; padding-left: 2px;">ОТКЛЮЧЕНЫ &#183; 2</div>
+
+            <div style="background: #2B2B2B; border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 0 16px;">
+              <sc-for list="{{ offline }}" as="d" hint-placeholder-count="2">
+                <div style="height: 84px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid {{ d.divDark }};" style-hover="background: rgba(255,255,255,0.03)">
+                  <div style="width: 56px; height: 56px; flex: none; border-radius: 4px; background: #FFFFFF; overflow: hidden;">
+                    <div style="width: 100%; height: 100%; background-image: {{ d.imgCss }}; background-size: contain; background-repeat: no-repeat; background-position: center;"></div>
+                  </div>
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div style="font-size: 15px; font-weight: 600;">{{ d.name }}</div>
+                      <div style="font-size: 11px; font-weight: 600; color: #479EF5; background: rgba(71,158,245,0.12); border: 1px solid rgba(71,158,245,0.24); border-radius: 4px; padding: 1px 6px;">{{ d.chip }}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; color: rgba(255,255,255,0.62);">
+                      <div style="width: 7px; height: 7px; border-radius: 50%; background: {{ d.dotDark }};"></div>
+                      {{ d.sub }}
+                    </div>
+                  </div>
+                  <div style="flex: none; width: 148px; display: flex; align-items: center; gap: 10px;">
+                    <div style="height: 5px; flex: 1; border-radius: 3px; background: rgba(255,255,255,0.14); overflow: hidden;">
+                      <div style="height: 100%; border-radius: 3px; background: {{ d.barDark }}; width: {{ d.battW }};"></div>
+                    </div>
+                    <div style="font-size: 13px; color: rgba(255,255,255,0.62); width: 40px; text-align: right;">{{ d.batt }}</div>
+                  </div>
+                  <div style="flex: none; height: 30px; border-radius: 4px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09); font-size: 13px; display: flex; align-items: center; gap: 6px; padding: 0 12px; cursor: pointer;" style-hover="background: rgba(255,255,255,0.10)">
+                    Подробнее
+                    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3.6 10.4 8 6 12.4"></path></svg>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script data-dc-script data-props='{"battery":{"editor":"range","default":82,"min":0,"max":100,"step":1,"unit":"%","tsType":"number","section":"Состояние"}}'>
+class Component extends DCLogic {
+  state = {
+    chatMix: 10, nr: 'Высокое', sidetone: true, sidetoneLvl: 18,
+    gain: 147, gainL: 147, gainR: 147, balance: 128, voice: 11,
+    preset: 'Footsteps', headTrack: false,
+    hk: true, auto: true, tray: true, popup: true, lowBatt: true, autoProfile: true,
+    theme: 'Системная'
+  };
+
+  ratio(e) {
+    const r = e.currentTarget.getBoundingClientRect();
+    return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+  }
+
+  toggleVals(on) {
+    return on
+      ? { bg: '#0F6CBD', border: '#0F6CBD', knob: '#FFFFFF', justify: 'flex-end' }
+      : { bg: '#F3F3F3', border: 'rgba(0,0,0,0.45)', knob: '#5C5C5C', justify: 'flex-start' };
+  }
+
+  pick(list, current, key) {
+    return list.map(label => ({
+      label,
+      bg: label === current ? 'rgba(15,108,189,0.10)' : '#FFFFFF',
+      color: label === current ? '#0F6CBD' : '#1B1B1B',
+      border: label === current ? 'rgba(15,108,189,0.35)' : 'rgba(0,0,0,0.10)',
+      weight: label === current ? 600 : 400,
+      onClick: () => this.setState({ [key]: label })
+    }));
+  }
+
+  renderVals() {
+    const s = this.state;
+    const battery = this.props.battery ?? 82;
+    const out = {};
+
+    [['sidetone', 'onSidetone'], ['headTrack', 'onHeadTrack'], ['hk', 'onHk'], ['auto', 'onAuto'],
+     ['tray', 'onTray'], ['popup', 'onPopup'], ['lowBatt', 'onLowBatt'], ['autoProfile', 'onAutoProfile']].forEach(([k, h]) => {
+      const t = this.toggleVals(s[k]);
+      out[k + 'Bg'] = t.bg; out[k + 'Border'] = t.border; out[k + 'Knob'] = t.knob; out[k + 'Justify'] = t.justify;
+      out[h] = () => this.setState(p => ({ [k]: !p[k] }));
+    });
+
+    // sliders with real device ranges
+    const range = (k, min, max, step) => (e) => {
+      const raw = min + this.ratio(e) * (max - min);
+      const v = step ? Math.round(raw / step) * step : Math.round(raw);
+      this.setState({ [k]: Math.max(min, Math.min(max, v)) });
+    };
+    const w = (v, min, max) => Math.round(((v - min) / (max - min)) * 100) + '%';
+
+    const prep = (list) => list.map((d, i) => ({
+      ...d,
+      battW: d.pct + '%',
+      imgCss: 'url("' + d.img + '")',
+      barLight: d.pct < 25 ? '#C42B1C' : '#0F6CBD',
+      barDark: d.pct < 25 ? '#E67471' : '#479EF5',
+      dotDark: d.dot === '#0F7B0F' ? '#6CCB5F' : d.dot === '#986F0B' ? '#FDE300' : 'rgba(255,255,255,0.35)',
+      divLight: i === list.length - 1 ? 'transparent' : 'rgba(0,0,0,0.06)',
+      divDark: i === list.length - 1 ? 'transparent' : 'rgba(255,255,255,0.07)',
+      tColor: d.transport === 'Кабель и донгл' ? '#0F7B0F' : '#616161',
+      tBg: d.transport === 'Кабель и донгл' ? 'rgba(15,123,15,0.10)' : 'rgba(0,0,0,0.04)',
+      tBorder: d.transport === 'Кабель и донгл' ? 'rgba(15,123,15,0.20)' : 'rgba(0,0,0,0.10)'
+    }));
+
+    const builtIn = ['Audeze', 'Bass Boost', 'Immersive', 'Competition', 'Footsteps', 'Treble Boost'];
+    const user = ['EQ1', 'EQ2', 'EQ3', 'EQ4'];
+    const curves = {
+      'Audeze': [1, 1, 0, 0, 0, 0, 1, 1, 0, -1],
+      'Bass Boost': [10, 9, 6, 2, 0, 0, 0, 1, 1, 0],
+      'Immersive': [6, 5, 2, 0, 1, 2, 4, 6, 7, 5],
+      'Competition': [-4, -2, 0, 2, 4, 6, 8, 5, 1, -1],
+      'Footsteps': [-6, -4, -1, 3, 6, 9, 11, 7, 2, -2],
+      'Treble Boost': [-2, -1, 0, 0, 1, 3, 6, 9, 10, 8],
+      'EQ1': [2, 5, 0, -2, 2, 6, 1, -1, 4, 2],
+      'EQ2': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      'EQ3': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      'EQ4': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    };
+    const hz = ['32', '64', '125', '250', '500', '1k', '2k', '4k', '8k', '16k'];
+    const bands = curves[s.preset] || curves['Audeze'];
+
+    const profiles = [
+      { name: 'Соревновательный', tag: 'Активен', sub: 'Footsteps · чат громче · сайдтон выкл', trigger: 'Counter-Strike 2', mark: '#0F6CBD', tone: 'blue' },
+      { name: 'Кино', tag: 'Профиль', sub: 'Immersive · баланс на игру · громкость 140', trigger: 'Вручную', mark: '#8A8A8A', tone: 'grey' },
+      { name: 'Созвоны', tag: 'Профиль', sub: 'Audeze · шумоподавление высокое · сайдтон вкл', trigger: 'Teams, Zoom', mark: '#8A8A8A', tone: 'grey' }
+    ].map((p, i, arr) => ({
+      ...p,
+      div: i === arr.length - 1 ? 'transparent' : 'rgba(0,0,0,0.06)',
+      tagColor: p.tone === 'blue' ? '#0F6CBD' : '#616161',
+      tagBg: p.tone === 'blue' ? 'rgba(15,108,189,0.10)' : 'rgba(0,0,0,0.04)',
+      tagBorder: p.tone === 'blue' ? 'rgba(15,108,189,0.20)' : 'rgba(0,0,0,0.10)'
+    }));
+
+    const hotkeys = [
+      { action: 'Game / Chat Mix', sub: 'Шаг 1 из 20', keys: 'Ctrl + Alt + ↑ / ↓' },
+      { action: 'Шумоподавление микрофона', sub: 'Выкл → низкое → высокое', keys: 'Ctrl + Alt + N' },
+      { action: 'Сайдтон', sub: 'Включить или выключить', keys: 'Ctrl + Alt + S' },
+      { action: 'Следующий пресет EQ', sub: 'По кругу из 10 слотов', keys: 'Ctrl + Alt + E' },
+      { action: 'Показать окно', sub: 'Из области уведомлений', keys: 'Ctrl + Alt + Space' }
+    ].map((h, i, arr) => ({ ...h, div: i === arr.length - 1 ? 'transparent' : 'rgba(0,0,0,0.06)' }));
+
+    const bal = s.balance - 128;
+
+    return Object.assign(out, {
+      battery,
+      batteryW: battery + '%',
+      hoursLeft: Math.round((battery / 100) * 78),
+      preset: s.preset,
+      micStatus: 'Не замьючен',
+
+      connected: prep([
+        { name: 'Audeze Maxwell', chip: 'Xbox', transport: 'Кабель и донгл', sub: 'Настройка доступна · прошивка 1.0.1.74', batt: battery + '%', pct: battery, img: 'assets/maxwell-main.jpg', dot: '#0F7B0F' },
+        { name: 'Maxwell Ultraviolet', chip: 'Xbox', transport: 'Донгл', sub: 'Только мониторинг · нужен кабель для настройки', batt: '64%', pct: 64, img: 'assets/maxwell-ultraviolet-front.jpg', dot: '#986F0B' }
+      ]),
+      offline: prep([
+        { name: 'Maxwell 2 ANC', chip: 'PS5', sub: 'Не в сети · заряжается', batt: '41%', pct: 41, img: 'assets/maxwell2-anc-xbox.webp', dot: '#986F0B' },
+        { name: 'Maxwell PlayStation', chip: 'PS5', sub: 'Не в сети · 2 дня назад', batt: '18%', pct: 18, img: 'assets/maxwell-front.jpg', dot: '#8A8A8A' }
+      ]),
+
+      chatMixLabel: s.chatMix + (s.chatMix === 10 ? ' · баланс' : s.chatMix < 10 ? ' · больше игры' : ' · больше чата'),
+      chatMixW: w(s.chatMix, 0, 20),
+      onChatMix: range('chatMix', 0, 20),
+
+      gain: s.gain,
+      gainW: w(s.gain, 0, 150),
+      onGain: range('gain', 0, 150),
+      gainL: s.gainL,
+      gainLW: w(s.gainL, 0, 150),
+      onGainL: range('gainL', 0, 150),
+      gainR: s.gainR,
+      gainRW: w(s.gainR, 0, 150),
+      onGainR: range('gainR', 0, 150),
+
+      balanceLabel: bal === 0 ? 'Центр · 128' : (bal < 0 ? 'Влево ' + Math.abs(bal) : 'Вправо ' + bal) + ' · ' + s.balance,
+      balanceW: w(s.balance, 122, 134),
+      onBalance: range('balance', 122, 134),
+
+      sidetoneLvl: s.sidetoneLvl,
+      sidetoneW: w(s.sidetoneLvl, 0, 31),
+      onSidetoneLvl: range('sidetoneLvl', 0, 31),
+
+      voice: s.voice,
+      voiceW: w(s.voice, 0, 255),
+      onVoice: range('voice', 0, 255),
+
+      nrOpts: this.pick(['Выкл', 'Низкое', 'Высокое'], s.nr, 'nr'),
+      themes: this.pick(['Светлая', 'Тёмная', 'Системная'], s.theme, 'theme'),
+
+      eqPresets: builtIn.concat(user).map(label => ({
+        label,
+        kind: user.indexOf(label) >= 0 ? 'Пользовательский' : 'Встроенный',
+        bg: label === s.preset ? 'rgba(15,108,189,0.10)' : '#FFFFFF',
+        color: label === s.preset ? '#0F6CBD' : '#1B1B1B',
+        border: label === s.preset ? 'rgba(15,108,189,0.35)' : 'rgba(0,0,0,0.10)',
+        weight: label === s.preset ? 600 : 400,
+        onClick: () => this.setState({ preset: label })
+      })),
+
+      curveLight: bands.map((v, i) => ({
+        h: Math.round(8 + ((v + 12) / 24) * 84) + 'px',
+        db: (v > 0 ? '+' : '') + v,
+        hz: hz[i],
+        bg: i > 2 && i < 7 ? '#0F6CBD' : 'rgba(15,108,189,0.45)'
+      })),
+
+      profiles,
+      hotkeys
+    });
+  }
+}
+</script>
+</body>
+</html>
