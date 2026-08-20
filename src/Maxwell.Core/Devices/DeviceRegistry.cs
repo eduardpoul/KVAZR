@@ -101,7 +101,8 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
                 await session.MarkAbsentAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            Raise();
+            // No event of our own: discovery runs on a timer and usually finds exactly
+            // what it found last time. The sessions announce the passes that mattered.
         }
         finally
         {

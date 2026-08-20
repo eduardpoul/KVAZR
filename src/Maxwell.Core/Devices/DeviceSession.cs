@@ -73,9 +73,13 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            bool wasPresent = _present;
+
             _info = info;
             _present = true;
             _lastSeenAt = DateTimeOffset.Now;
+
+            bool connected = false;
 
             if (_connection is null)
             {
@@ -83,12 +87,17 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
                 {
                     _connection = await _driver.ConnectAsync(info, cancellationToken).ConfigureAwait(false);
                     SeedCapabilities(_connection);
+                    connected = true;
                 }
                 catch (IOException ex)
                 {
                     _logger.DeviceHasNoControlChannel(ex, info.Key);
                 }
             }
+
+            // Discovery runs on a timer and mostly finds exactly what it found last
+            // time. Announcing that is pure noise for everyone downstream.
+            if (wasPresent && !connected) return;
 
             Publish();
         }
@@ -175,8 +184,12 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
 
             _writtenSinceRefresh.Clear();
 
-            if (changed) _updatedAt = DateTimeOffset.Now;
+            // Publishing an identical snapshot makes every consumer re-render for
+            // nothing. At a poll every few seconds across several devices that is most
+            // of the events the interface would ever see.
+            if (!changed) return;
 
+            _updatedAt = DateTimeOffset.Now;
             Publish();
         }
         finally

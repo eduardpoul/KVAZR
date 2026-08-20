@@ -21,7 +21,8 @@ Console.WriteLine();
 // route below — with --mock there may be no Audeze hardware attached at all.
 if (args.Contains("--devices"))
 {
-    return await DeviceInventory.RunAsync(args.Contains("--mock")).ConfigureAwait(false);
+    TimeSpan? watch = args.Contains("--watch") ? TimeSpan.FromSeconds(30) : null;
+    return await DeviceInventory.RunAsync(args.Contains("--mock"), watch).ConfigureAwait(false);
 }
 
 var enumerator = new WindowsHidEnumerator();

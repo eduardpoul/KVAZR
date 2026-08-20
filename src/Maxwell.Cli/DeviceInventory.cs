@@ -1,6 +1,8 @@
+using Maxwell.Core.Abstractions;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Drivers.Audeze;
 using Maxwell.Core.Drivers.Mock;
+using Maxwell.Core.Polling;
 using Maxwell.Race.Windows;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -15,7 +17,10 @@ namespace Maxwell.Cli;
 /// </summary>
 internal static class DeviceInventory
 {
-    public static async Task<int> RunAsync(bool includeMocks, CancellationToken cancellationToken = default)
+    public static async Task<int> RunAsync(
+        bool includeMocks,
+        TimeSpan? watchFor = null,
+        CancellationToken cancellationToken = default)
     {
         List<IDeviceDriver> drivers =
             [new AudezeRaceDriver(new WindowsHidEnumerator(), new WindowsHidTransportFactory())];
@@ -24,6 +29,8 @@ internal static class DeviceInventory
 
         using var registry = new DeviceRegistry(
             drivers, new InMemoryCapabilityLedger(), NullLoggerFactory.Instance);
+
+        if (watchFor is { } window) return await WatchAsync(registry, window, cancellationToken).ConfigureAwait(false);
 
         await registry.DiscoverAsync(cancellationToken).ConfigureAwait(false);
 
@@ -43,6 +50,73 @@ internal static class DeviceInventory
             Print(registry.Session(device.Info.Key)?.Snapshot ?? device);
         }
 
+        return 0;
+    }
+
+    /// <summary>
+    /// Runs the real scheduler against real hardware for a while and prints every read.
+    /// The point is to watch the cadence: whether the interval stretches when nothing is
+    /// on screen, whether a device that stops answering backs off instead of hammering.
+    /// </summary>
+    private static async Task<int> WatchAsync(
+        DeviceRegistry registry,
+        TimeSpan window,
+        CancellationToken cancellationToken)
+    {
+        var settings = new MemorySettingsStore();
+
+        using var scheduler = new DevicePollingScheduler(
+            registry,
+            NullNotifier.Instance,
+            settings,
+            new StaticOptions<DevicePollingOptions>(new DevicePollingOptions
+            {
+                // Short enough to see several passes inside the watch window.
+                Interval = TimeSpan.FromSeconds(3),
+                DiscoveryInterval = TimeSpan.FromSeconds(2),
+                IdleDiscoveryInterval = TimeSpan.FromSeconds(6),
+            }),
+            NullLogger<DevicePollingScheduler>.Instance);
+
+        registry.DevicesChanged += (_, _) =>
+        {
+            foreach (DeviceSnapshot device in registry.Devices)
+            {
+                string battery = device.BatteryPercent is { } percent ? $"{percent}%" : "—";
+                string chat = device.Get(CapabilityIds.MixChat)?.Value is NumberValue mix
+                    ? $"  chatmix {mix.Value}"
+                    : string.Empty;
+
+                Console.WriteLine(
+                    $"  {DateTimeOffset.Now:HH:mm:ss}  {device.Info.DisplayName,-28} " +
+                    $"{device.Availability,-12} {battery,4}{chat}");
+            }
+        };
+
+        using var stop = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        Console.WriteLine($"Watching for {window.TotalSeconds:0} s. Attention: Idle -> Glance -> Focused.");
+        Console.WriteLine();
+
+        await scheduler.StartAsync(stop.Token).ConfigureAwait(false);
+
+        // Walk the attention levels so the change in cadence is visible in the timestamps.
+        await Task.Delay(window / 3, stop.Token).ConfigureAwait(false);
+        Console.WriteLine("  -- flyout opened --");
+        scheduler.SetAttention(PollingAttention.Glance);
+
+        await Task.Delay(window / 3, stop.Token).ConfigureAwait(false);
+        string? first = registry.Devices.FirstOrDefault(d => d.CanControl)?.Info.Key;
+        Console.WriteLine($"  -- page opened: {first ?? "none"} --");
+        scheduler.SetAttention(PollingAttention.Focused, first);
+
+        await Task.Delay(window / 3, stop.Token).ConfigureAwait(false);
+
+        await stop.CancelAsync().ConfigureAwait(false);
+        await scheduler.StopAsync(CancellationToken.None).ConfigureAwait(false);
+
+        Console.WriteLine();
+        Console.WriteLine("Stopped.");
         return 0;
     }
 

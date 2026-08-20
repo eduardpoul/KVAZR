@@ -3,6 +3,7 @@ using Maxwell.Core.Abstractions;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Drivers.Audeze;
 using Maxwell.Core.Drivers.Mock;
+using Maxwell.Core.Polling;
 using Maxwell.Core.Services;
 using Maxwell.Race.Abstractions;
 using Maxwell.Race.Windows;
@@ -45,12 +46,27 @@ public static class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        // Two owners of the same hardware is the one failure this layer exists to
+        // prevent, and it does not announce itself: the device answers the wrong
+        // question instead of refusing. Fail at startup rather than in the field.
+        if (services.Any(d => d.ServiceType == typeof(IDeviceService)))
+        {
+            throw new InvalidOperationException(
+                "AddMaxwellCore and AddDeviceRegistry both claim the device. Register one.");
+        }
+
         services.AddSingleton<ICapabilityLedger, SettingsCapabilityLedger>();
         services.AddSingleton<IDeviceDriver, AudezeRaceDriver>();
 
         if (includeMockDevices) services.AddSingleton<IDeviceDriver, MockDeviceDriver>();
 
         services.AddSingleton<IDeviceRegistry, DeviceRegistry>();
+
+        services.AddSingleton<DevicePollingScheduler>();
+        services.AddSingleton<IPollingCoordinator>(sp => sp.GetRequiredService<DevicePollingScheduler>());
+        services.AddHostedService(sp => sp.GetRequiredService<DevicePollingScheduler>());
+
+        services.TryAddNotifier();
 
         return services;
     }
