@@ -147,6 +147,9 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
 
         DateTimeOffset nextWake = _nextDiscovery;
 
+        AppSettings settings = _settings.Current;
+        var hiddenKeys = settings.HiddenDevices.Keys.ToHashSet(StringComparer.Ordinal);
+
         foreach (DeviceSnapshot device in _registry.Devices)
         {
             string key = device.Info.Key;
@@ -154,8 +157,13 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
             (PollingAttention attention, string? focused) = Current();
             Entry entry = EntryFor(key);
 
+            // Read here rather than filtered out of the registry: the settings screen
+            // has to be able to list what is hidden, so the registry stays complete and
+            // every surface decides for itself what to show.
+            bool hidden = DeviceVisibility.IsHidden(device.Info, hiddenKeys, settings.HideSilentDevices);
+
             PollPlan plan = PollingPolicy.Plan(
-                new PollSubject(key, device.IsPresent, device.CanControl, entry.Failures),
+                new PollSubject(key, device.IsPresent, device.CanControl, entry.Failures, hidden),
                 attention,
                 focused,
                 options);

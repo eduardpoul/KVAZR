@@ -3,6 +3,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Maxwell.App.ViewModels.Capabilities;
+using Maxwell.App.Platform;
 using Maxwell.App.ViewModels.Devices;
 using Maxwell.App.ViewModels.Pages;
 using Maxwell.Core.Devices;
@@ -19,13 +20,22 @@ public sealed record AppSection(string Title, object Page);
 /// </summary>
 public sealed class DashboardViewModel : ObservableObject
 {
-    public DashboardViewModel(ObservableCollection<DeviceListItemViewModel> devices)
+    public DashboardViewModel(ShellViewModel shell, ObservableCollection<DeviceListItemViewModel> devices)
     {
+        ArgumentNullException.ThrowIfNull(shell);
         ArgumentNullException.ThrowIfNull(devices);
 
+        Shell = shell;
         Devices = devices;
         Devices.CollectionChanged += (_, _) => OnPropertyChanged(nameof(IsEmpty));
     }
+
+    /// <summary>
+    /// The shell, reachable from a row so that acting on a device does not need the
+    /// row to own a service. Hiding a device changes what several other surfaces show,
+    /// which makes it the shell's business rather than the row's.
+    /// </summary>
+    public ShellViewModel Shell { get; }
 
     public ObservableCollection<DeviceListItemViewModel> Devices { get; }
 
@@ -45,6 +55,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     private readonly IDeviceRegistry _registry;
     private readonly IPollingCoordinator _polling;
     private readonly IConfirmationPrompt _confirm;
+    private readonly HiddenDevices _hidden;
     private readonly Dictionary<string, DevicePageViewModel> _pages = new(StringComparer.Ordinal);
 
     private bool _disposed;
@@ -53,22 +64,26 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         IDeviceRegistry registry,
         IPollingCoordinator polling,
         IConfirmationPrompt confirm,
+        HiddenDevices hidden,
         CapabilityShowcaseViewModel showcase)
     {
         ArgumentNullException.ThrowIfNull(registry);
         ArgumentNullException.ThrowIfNull(polling);
         ArgumentNullException.ThrowIfNull(confirm);
+        ArgumentNullException.ThrowIfNull(hidden);
         ArgumentNullException.ThrowIfNull(showcase);
 
         _registry = registry;
         _polling = polling;
         _confirm = confirm;
+        _hidden = hidden;
 
         AppSections = [new AppSection(showcase.Title, showcase)];
-        Dashboard = new DashboardViewModel(Devices);
+        Dashboard = new DashboardViewModel(this, Devices);
         CurrentPage = Dashboard;
 
         _registry.DevicesChanged += OnDevicesChanged;
+        _hidden.Changed += OnDevicesChanged;
         Sync();
     }
 
@@ -230,9 +245,47 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         return -1;
     }
 
+    /// <summary>
+    /// A device earns its row by being visible and by matching what was typed. Hiding is
+    /// checked first because it is the stronger statement: search narrows what is on
+    /// screen for a moment, hiding says keep this off my screen.
+    /// </summary>
     private bool Matches(DeviceSnapshot snapshot) =>
-        string.IsNullOrWhiteSpace(SearchText)
-        || snapshot.Info.DisplayName.Contains(SearchText, StringComparison.CurrentCultureIgnoreCase);
+        _hidden.IsVisible(snapshot)
+        && (string.IsNullOrWhiteSpace(SearchText)
+            || snapshot.Info.DisplayName.Contains(SearchText, StringComparison.CurrentCultureIgnoreCase));
+
+    /// <summary>How many devices are being kept off the screen, for the line offering them back.</summary>
+    public int HiddenCount => _hidden.Count;
+
+    public bool HasHidden => HiddenCount > 0;
+
+    /// <summary>
+    /// Puts a device away: off the dashboard, out of the tray, out of notifications, and
+    /// no longer polled. The pairing in Windows is untouched.
+    /// </summary>
+    [RelayCommand]
+    private async Task HideDeviceAsync(DeviceListItemViewModel? device)
+    {
+        if (device is null) return;
+
+        await _hidden.HideAsync(device.Key, DateTimeOffset.Now).ConfigureAwait(true);
+        OnPropertyChanged(nameof(HiddenCount));
+        OnPropertyChanged(nameof(HasHidden));
+    }
+
+    /// <summary>
+    /// Brings everything back. This exists on the dashboard, and not only in the
+    /// settings screen it will eventually live in, because hiding without a visible way
+    /// back is a trap rather than a feature.
+    /// </summary>
+    [RelayCommand]
+    private async Task ShowHiddenAsync()
+    {
+        await _hidden.ShowAllAsync().ConfigureAwait(true);
+        OnPropertyChanged(nameof(HiddenCount));
+        OnPropertyChanged(nameof(HasHidden));
+    }
 
     public void Dispose()
     {
@@ -240,6 +293,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         _disposed = true;
 
         _registry.DevicesChanged -= OnDevicesChanged;
+        _hidden.Changed -= OnDevicesChanged;
 
         foreach (DevicePageViewModel page in _pages.Values) page.Dispose();
         _pages.Clear();

@@ -84,10 +84,28 @@ public sealed class AppSettings
     public Dictionary<string, List<string>> ConfirmedCapabilities { get; set; } =
         new(StringComparer.Ordinal);
 
+    /// <summary>
+    /// Devices the user has put away, and when. Hidden is not forgotten: the pairing in
+    /// Windows is untouched and the device returns intact when it is unhidden. The date
+    /// is kept because a list of hidden things with no dates is impossible to reason
+    /// about six months later — "the keyboard in the drawer" needs a when.
+    /// </summary>
+    public Dictionary<string, DateTimeOffset> HiddenDevices { get; set; } =
+        new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Put anonymous devices away without being asked. A machine with a car stereo and a
+    /// neighbour's speaker paired shows them on first launch, and a list where several
+    /// rows are bare addresses teaches the user to distrust the whole list.
+    /// </summary>
+    public bool HideSilentDevices { get; set; } = true;
+
     public AppSettings Clone() => new()
     {
         ConfirmedCapabilities = ConfirmedCapabilities.ToDictionary(
             p => p.Key, p => new List<string>(p.Value), StringComparer.Ordinal),
+        HiddenDevices = new Dictionary<string, DateTimeOffset>(HiddenDevices, StringComparer.Ordinal),
+        HideSilentDevices = HideSilentDevices,
         Theme = Theme,
         RunAtLogin = RunAtLogin,
         StartMinimised = StartMinimised,

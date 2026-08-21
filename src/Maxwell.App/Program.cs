@@ -107,6 +107,7 @@ internal static class Program
             new ModalConfirmation(sp.GetRequiredService<MainWindow>));
 
         builder.Services.AddSingleton<CapabilityShowcaseViewModel>();
+        builder.Services.AddSingleton<Platform.HiddenDevices>();
         builder.Services.AddSingleton<ShellViewModel>();
         builder.Services.AddSingleton<FlyoutViewModel>();
         builder.Services.AddSingleton<FlyoutWindow>();

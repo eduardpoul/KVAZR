@@ -61,7 +61,8 @@ public readonly record struct PollSubject(
     string DeviceKey,
     bool IsPresent,
     bool CanControl,
-    int ConsecutiveFailures);
+    int ConsecutiveFailures,
+    bool IsHidden = false);
 
 public readonly record struct PollPlan(PollScope Scope, TimeSpan Interval)
 {
@@ -83,6 +84,11 @@ public static class PollingPolicy
         ArgumentNullException.ThrowIfNull(options);
 
         if (!subject.IsPresent) return PollPlan.Skip;
+
+        // A device the user has put away costs its own battery to answer a question
+        // nobody is going to read. Hiding it from the screens while still waking it
+        // every thirty seconds would be the worst of both.
+        if (subject.IsHidden) return PollPlan.Skip;
 
         // A device that is not answering is re-probed by discovery, which asks it one
         // cheap question on every sweep. Polling it as well would climb the failure

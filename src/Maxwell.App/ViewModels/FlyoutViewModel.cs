@@ -39,13 +39,18 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
     private const int QuickCount = 3;
 
     private readonly IDeviceRegistry _registry;
+    private readonly HiddenDevices _hidden;
     private readonly PrimaryDevice _primary;
     private readonly IPollingCoordinator _polling;
 
     private string? _quickDeviceKey;
     private bool _disposed;
 
-    public FlyoutViewModel(IDeviceRegistry registry, PrimaryDevice primary, IPollingCoordinator polling)
+    public FlyoutViewModel(
+        IDeviceRegistry registry,
+        PrimaryDevice primary,
+        IPollingCoordinator polling,
+        HiddenDevices hidden)
     {
         ArgumentNullException.ThrowIfNull(registry);
         ArgumentNullException.ThrowIfNull(primary);
@@ -55,7 +60,11 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
         _primary = primary;
         _polling = polling;
 
+        ArgumentNullException.ThrowIfNull(hidden);
+        _hidden = hidden;
+
         _registry.DevicesChanged += OnDevicesChanged;
+        _hidden.Changed += OnDevicesChanged;
         Sync();
     }
 
@@ -75,7 +84,13 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
 
     public bool HasDevices => Primary is not null;
 
-    public string Heading => _registry.Devices.Count switch
+    /// <summary>
+    /// The devices this panel may show. A heading that counts rows the list then
+    /// filters out is a number the user cannot reconcile with what is in front of them.
+    /// </summary>
+    private List<DeviceSnapshot> Visible => [.. _registry.Devices.Where(_hidden.IsVisible)];
+
+    public string Heading => Visible.Count switch
     {
         0 => "Устройства",
         1 => "Устройства",
@@ -129,7 +144,7 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
 
     private void SyncOthers(string primaryKey)
     {
-        List<DeviceSnapshot> rest = [.. _registry.Devices.Where(d => d.Info.Key != primaryKey)];
+        List<DeviceSnapshot> rest = [.. Visible.Where(d => d.Info.Key != primaryKey)];
 
         foreach (DeviceSnapshot snapshot in rest)
         {
@@ -187,6 +202,7 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
         _disposed = true;
 
         _registry.DevicesChanged -= OnDevicesChanged;
+        _hidden.Changed -= OnDevicesChanged;
         ClearQuick();
     }
 }

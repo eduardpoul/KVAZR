@@ -33,6 +33,12 @@ internal static class PlatformServices
         services.AddSingleton<INotifier, WindowsNotifier>();
         services.AddSingleton<IBluetoothMonitor, Maxwell.Race.Windows.WindowsBluetoothMonitor>();
         services.AddSingleton<IHotkeyService, WindowsHotkeys>();
+
+        // What makes the device list contain the user's actual devices rather than
+        // only the ones this application has a driver for. Registered here because
+        // it is platform code; the registry picks it up if it is present and does
+        // without it on platforms where it is not.
+        services.AddSingleton<ISystemDeviceEnumerator, Maxwell.Race.Windows.WindowsSystemDeviceEnumerator>();
 #else
         if (OperatingSystem.IsLinux())
         {

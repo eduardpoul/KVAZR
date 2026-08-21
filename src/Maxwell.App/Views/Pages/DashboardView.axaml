@@ -33,6 +33,20 @@
       <ItemsControl.ItemTemplate>
         <DataTemplate x:DataType="devices:DeviceListItemViewModel">
           <Border Classes="card" Margin="0,0,0,8" Opacity="{Binding IsPresent, Converter={StaticResource PresenceOpacity}}">
+
+            <!--
+              Artboard 13a. Putting a device away is a right-click rather than a control
+              on the row: it happens once in the life of a device, and a permanent button
+              would sit beside the battery of every device forever for it.
+            -->
+            <Border.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Скрыть устройство"
+                          Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).Shell.HideDeviceCommand}"
+                          CommandParameter="{Binding}" />
+              </ContextMenu>
+            </Border.ContextMenu>
+
             <Grid ColumnDefinitions="Auto,*,Auto" Margin="20">
 
               <Border Grid.Column="0" Width="52" Height="52"
@@ -58,6 +72,19 @@
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
+
+    <!--
+      Hiding without a visible way back is a trap rather than a feature, so the count
+      and the way back live on the dashboard itself and not only in the settings screen
+      they will eventually also appear in. It is absent entirely when nothing is hidden.
+    -->
+    <StackPanel Orientation="Horizontal" Spacing="10"
+                IsVisible="{Binding Shell.HasHidden}">
+      <TextBlock Classes="caption" VerticalAlignment="Center"
+                 Text="{Binding Shell.HiddenCount, StringFormat='Скрыто: {0}'}" />
+      <Button Content="Показать все"
+              Command="{Binding Shell.ShowHiddenCommand}" />
+    </StackPanel>
 
   </StackPanel>
 
