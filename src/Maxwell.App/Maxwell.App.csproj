@@ -20,8 +20,6 @@
       settings folder and the autostart registry value, and the last of those would
       leave every existing installation launching a name that no longer exists.
     -->
-    <Product>KVAZR</Product>
-    <Company>KVAZR</Company>
     <AssemblyTitle>KVAZR</AssemblyTitle>
     <ApplicationIcon>Assets\kvazr.ico</ApplicationIcon>
 

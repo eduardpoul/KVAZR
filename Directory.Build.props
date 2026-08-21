@@ -17,8 +17,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Product>Maxwell.App</Product>
-    <Company>Maxwell.App</Company>
+    <Product>KVAZR</Product>
+    <Company>KVAZR</Company>
     <Authors>Eduard Poul</Authors>
     <Version>0.9.0</Version>
   </PropertyGroup>
