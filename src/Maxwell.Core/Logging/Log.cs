@@ -31,8 +31,26 @@ internal static partial class Log
     [LoggerMessage(EventId = 1201, Level = LogLevel.Warning, Message = "Settings could not be written to {Path}")]
     public static partial void SettingsNotSaved(this ILogger logger, Exception exception, string path);
 
+    [LoggerMessage(EventId = 1400, Level = LogLevel.Warning, Message = "Firmware manifest {Address} returned HTTP {Status}")]
+    public static partial void FirmwareManifestFailed(this ILogger logger, string address, int status);
+
+    [LoggerMessage(EventId = 1401, Level = LogLevel.Warning, Message = "Firmware check against {Address} did not complete")]
+    public static partial void FirmwareCheckFailed(this ILogger logger, Exception exception, string address);
+
+    [LoggerMessage(EventId = 1402, Level = LogLevel.Information, Message = "Firmware check: installed {Installed}, published {Latest}")]
+    public static partial void FirmwareChecked(this ILogger logger, string installed, string latest);
+
+    // Used only by the parked downloader; kept so re-enabling it is one flag.
+    [LoggerMessage(EventId = 1403, Level = LogLevel.Warning,
+        Message = "Firmware image at {Address} rejected: {Bytes} bytes is not a plausible size")]
+    public static partial void FirmwareImageRejected(this ILogger logger, string address, long bytes);
+
+    [LoggerMessage(EventId = 1404, Level = LogLevel.Information,
+        Message = "Firmware {Version} downloaded to {Directory} ({Bytes} bytes)")]
+    public static partial void FirmwareDownloaded(this ILogger logger, string version, string directory, long bytes);
+
     [LoggerMessage(EventId = 1300, Level = LogLevel.Information,
-        Message = "{DeviceKey} is present but offers no control channel; monitoring only")]
+        Message = "{DeviceKey} is present but does not answer; asking again on the next sweep")]
     public static partial void DeviceHasNoControlChannel(this ILogger logger, Exception exception, string deviceKey);
 
     [LoggerMessage(EventId = 1301, Level = LogLevel.Warning, Message = "{DeviceKey} read failed; dropping the channel")]

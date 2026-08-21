@@ -1,3 +1,5 @@
+using Maxwell.Core.Firmware;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Runtime.Versioning;
 using Maxwell.Core.Abstractions;
 using Maxwell.Core.Devices;
@@ -26,6 +28,21 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IDeviceService, DeviceService>();
         services.AddHostedService<DevicePollingService>();
         services.TryAddNotifier();
+
+        services.TryAddSingleton(TimeProvider.System);
+
+        // One long-lived client against one fixed S3 host. IHttpClientFactory exists to
+        // recycle handlers so DNS changes are picked up by long-running services; a
+        // desktop app that talks to a single bucket a few times a year does not have
+        // that problem, and the factory would be a package dependency for nothing.
+        services.TryAddSingleton(_ => new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(30),
+        });
+
+        services.AddSingleton<IFirmwareCatalog, FirmwareCatalog>();
+        services.AddSingleton<FirmwareUpdateService>();
+        services.AddHostedService<FirmwareCheckService>();
 
         return services;
     }

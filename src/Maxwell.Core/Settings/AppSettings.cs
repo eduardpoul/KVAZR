@@ -54,6 +54,28 @@ public sealed class AppSettings
     /// <summary>Switch profiles automatically when a matching process starts.</summary>
     public bool AutoSwitchProfiles { get; set; }
 
+    /// <summary>Ask Audeze once a week whether newer firmware has been published.</summary>
+    public bool CheckFirmwareUpdates { get; set; } = true;
+
+    /// <summary>When the last successful check ran. Null means it never has.</summary>
+    public DateTimeOffset? LastFirmwareCheck { get; set; }
+
+    /// <summary>
+    /// The published version the user has already been told about, so the notice fires
+    /// once per release rather than once per check.
+    /// </summary>
+    public string? AnnouncedFirmware { get; set; }
+
+    /// <summary>
+    /// What the last check found, so the screen has something to show on the next launch.
+    /// Without this the section sits empty until the weekly interval comes round again,
+    /// which is up to seven days of a page that looks broken.
+    /// </summary>
+    public string? LatestFirmware { get; set; }
+
+    /// <summary>Versions Audeze published at the last check, newest first.</summary>
+    public List<string> AvailableFirmware { get; set; } = [];
+
     /// <summary>
     /// Capability ids the hardware has accepted a write for, keyed by device. These are
     /// promotions from "command known, never tested" to verified: once a device has
@@ -77,6 +99,11 @@ public sealed class AppSettings
         Hotkeys = new Dictionary<string, string>(Hotkeys, StringComparer.Ordinal),
         Profiles = Profiles.Select(p => p.Clone()).ToList(),
         AutoSwitchProfiles = AutoSwitchProfiles,
+        CheckFirmwareUpdates = CheckFirmwareUpdates,
+        LastFirmwareCheck = LastFirmwareCheck,
+        AnnouncedFirmware = AnnouncedFirmware,
+        LatestFirmware = LatestFirmware,
+        AvailableFirmware = [.. AvailableFirmware],
     };
 }
 
