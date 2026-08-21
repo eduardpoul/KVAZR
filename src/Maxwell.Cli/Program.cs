@@ -25,6 +25,9 @@ if (args.Contains("--devices"))
     return await DeviceInventory.RunAsync(args.Contains("--mock"), watch).ConfigureAwait(false);
 }
 
+// Tier zero on its own: everything the operating system knows with no driver involved.
+if (args.Contains("--system")) return SystemInventory.Run(args.Contains("--raw"));
+
 var enumerator = new WindowsHidEnumerator();
 IReadOnlyList<MaxwellInterface> all = enumerator.Enumerate();
 

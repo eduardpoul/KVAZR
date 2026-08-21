@@ -1,0 +1,277 @@
+using System.Globalization;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
+using System.Text;
+
+using Maxwell.Race.Abstractions;
+
+namespace Maxwell.Race.Windows;
+
+/// <summary>
+/// Walks the device tree and reports every peripheral node Windows has, whoever made it.
+///
+/// This is the floor the whole application stands on: it needs no protocol, no vendor
+/// knowledge and no catalogue entry, so it finds a device the first time it is plugged
+/// in rather than the first time someone teaches us about it. What it returns is thin —
+/// a name, a class, a link and sometimes a battery — but it is thin for every device
+/// equally, which is what makes the tail of the catalogue tractable.
+///
+/// Only the enumerators that carry peripherals are scanned. A full pass over the device
+/// tree is thousands of nodes, nearly all of them software.
+/// </summary>
+[SupportedOSPlatform("windows")]
+public sealed class WindowsSystemDeviceEnumerator : ISystemDeviceEnumerator
+{
+    /// <summary>
+    /// BTHENUM carries classic profile nodes, BTHHFENUM the Hands-Free audio node —
+    /// which is the one that actually holds the battery — and BTHLEDEVICE the low-energy
+    /// devices. HID and USB cover everything on a wire or a dongle.
+    /// </summary>
+    private static readonly (string Enumerator, SystemDeviceLink Link)[] Sources =
+    [
+        ("BTHENUM", SystemDeviceLink.Bluetooth),
+        ("BTHHFENUM", SystemDeviceLink.Bluetooth),
+        ("BTHLEDEVICE", SystemDeviceLink.BluetoothLe),
+        ("HID", SystemDeviceLink.Usb),
+        ("USB", SystemDeviceLink.Usb),
+    ];
+
+    public IReadOnlyList<SystemDeviceNode> Enumerate()
+    {
+        var nodes = new List<SystemDeviceNode>();
+
+        foreach ((string enumerator, SystemDeviceLink link) in Sources)
+        {
+            IntPtr set = Native.SetupDiGetClassDevs(
+                IntPtr.Zero, enumerator, IntPtr.Zero, Native.DigcfAllClasses | Native.DigcfPresent);
+
+            if (set == Native.InvalidHandle) continue;
+
+            try
+            {
+                var info = new Native.SpDevInfoData { Size = Marshal.SizeOf<Native.SpDevInfoData>() };
+
+                for (int i = 0; Native.SetupDiEnumDeviceInfo(set, i, ref info); i++)
+                {
+                    if (Read(set, ref info, link) is { } node) nodes.Add(node);
+                }
+            }
+            finally
+            {
+                Native.SetupDiDestroyDeviceInfoList(set);
+            }
+        }
+
+        return nodes;
+    }
+
+    private static SystemDeviceNode? Read(IntPtr set, ref Native.SpDevInfoData info, SystemDeviceLink link)
+    {
+        if (ReadString(set, ref info, Native.DevPkeyInstanceId) is not { Length: > 0 } instanceId) return null;
+
+        // Without a container id there is nothing to group this node with, and an
+        // ungrouped node would surface as a device of its own — one headset arriving as
+        // four entries. Better to drop it than to invent an identity for it.
+        if (ReadGuid(set, ref info, Native.DevPkeyContainerId) is not { } container) return null;
+        if (container == Guid.Empty || container == Native.NotAPhysicalDevice) return null;
+
+        // A BLE node sitting on the classic enumerators still belongs on the LE link.
+        SystemDeviceLink actual = instanceId.StartsWith("BTHLE", StringComparison.OrdinalIgnoreCase)
+            ? SystemDeviceLink.BluetoothLe
+            : link;
+
+        (ushort? vid, ushort? pid) = ParseIds(instanceId);
+
+        return new SystemDeviceNode
+        {
+            InstanceId = instanceId,
+            ContainerId = container,
+            Link = actual,
+            ClassGuid = info.ClassGuid,
+            IsDeviceRoot = instanceId.Contains(@"\DEV_", StringComparison.OrdinalIgnoreCase),
+            Name = ReadString(set, ref info, Native.DevPkeyName),
+            BusReportedName = ReadString(set, ref info, Native.DevPkeyBusReportedName),
+            Manufacturer = ReadString(set, ref info, Native.DevPkeyManufacturer),
+            BatteryPercent = ReadByte(set, ref info, Native.DevPkeyBatteryLevel),
+            ClassOfDevice = ReadUInt32(set, ref info, Native.DevPkeyClassOfDevice),
+            Address = ReadString(set, ref info, Native.DevPkeyBluetoothAddress),
+            VendorId = vid,
+            ProductId = pid,
+            ArrivedAt = ReadFileTime(set, ref info, Native.DevPkeyLastArrival),
+        };
+    }
+
+    /// <summary>
+    /// Pulls the USB ids out of an instance id such as
+    /// <c>HID\VID_046D&amp;PID_C547&amp;MI_01\7&amp;1e2f...</c>. Bluetooth instance ids carry
+    /// them too on devices that declare a PnP id, and leave them out otherwise.
+    /// </summary>
+    private static (ushort? Vendor, ushort? Product) ParseIds(string instanceId)
+    {
+        return (Find("VID_"), Find("PID_"));
+
+        ushort? Find(string marker)
+        {
+            int at = instanceId.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            if (at < 0) return null;
+
+            int start = at + marker.Length;
+            if (start + 4 > instanceId.Length) return null;
+
+            return ushort.TryParse(
+                instanceId.AsSpan(start, 4), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ushort value)
+                ? value
+                : null;
+        }
+    }
+
+    private static string? ReadString(IntPtr set, ref Native.SpDevInfoData info, Native.DevPropKey key)
+    {
+        byte[]? buffer = ReadRaw(set, ref info, key);
+        if (buffer is null) return null;
+
+        string value = Encoding.Unicode.GetString(buffer).TrimEnd('\0');
+        return value.Length == 0 ? null : value;
+    }
+
+    private static Guid? ReadGuid(IntPtr set, ref Native.SpDevInfoData info, Native.DevPropKey key)
+    {
+        byte[]? buffer = ReadRaw(set, ref info, key);
+        return buffer is { Length: 16 } ? new Guid(buffer) : null;
+    }
+
+    private static uint? ReadUInt32(IntPtr set, ref Native.SpDevInfoData info, Native.DevPropKey key)
+    {
+        byte[]? buffer = ReadRaw(set, ref info, key);
+        return buffer is { Length: >= 4 } ? BitConverter.ToUInt32(buffer, 0) : null;
+    }
+
+    private static DateTimeOffset? ReadFileTime(IntPtr set, ref Native.SpDevInfoData info, Native.DevPropKey key)
+    {
+        byte[]? buffer = ReadRaw(set, ref info, key);
+        if (buffer is not { Length: >= 8 }) return null;
+
+        long ticks = BitConverter.ToInt64(buffer, 0);
+        if (ticks <= 0) return null;
+
+        try
+        {
+            return DateTimeOffset.FromFileTime(ticks);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return null;
+        }
+    }
+
+    private static int? ReadByte(IntPtr set, ref Native.SpDevInfoData info, Native.DevPropKey key)
+    {
+        byte[] buffer = new byte[1];
+
+        return Native.SetupDiGetDeviceProperty(set, ref info, ref key, out _, buffer, 1, out _, 0)
+            ? buffer[0]
+            : null;
+    }
+
+    private static byte[]? ReadRaw(IntPtr set, ref Native.SpDevInfoData info, Native.DevPropKey key)
+    {
+        Native.SetupDiGetDeviceProperty(set, ref info, ref key, out _, null, 0, out int needed, 0);
+        if (needed <= 0) return null;
+
+        byte[] buffer = new byte[needed];
+
+        return Native.SetupDiGetDeviceProperty(set, ref info, ref key, out _, buffer, needed, out _, 0)
+            ? buffer
+            : null;
+    }
+
+    private static class Native
+    {
+        internal const int DigcfPresent = 0x2;
+        internal const int DigcfAllClasses = 0x4;
+
+        internal static readonly IntPtr InvalidHandle = new(-1);
+
+        /// <summary>
+        /// The container id Windows stamps on nodes that are not devices in their own
+        /// right — hubs, host controllers, the Bluetooth radio itself. Windows saying so
+        /// outright beats any list of names that look like plumbing: an ASMedia hub was
+        /// passing a peripheral-class filter because it exposes a HID interface for port
+        /// control, and no naming rule would have caught that.
+        /// </summary>
+        internal static readonly Guid NotAPhysicalDevice = new("00000000-0000-0000-ffff-ffffffffffff");
+
+        /// <summary>DEVPKEY_NAME.</summary>
+        internal static readonly DevPropKey DevPkeyName =
+            new(new Guid("b725f130-47ef-101a-a5f1-02608c9eebac"), 10);
+
+        /// <summary>DEVPKEY_Device_InstanceId.</summary>
+        internal static readonly DevPropKey DevPkeyInstanceId =
+            new(new Guid("78c34fc8-104a-4aca-9ea4-524d52996e57"), 256);
+
+        /// <summary>DEVPKEY_Device_ContainerId — the same value on every node of one device.</summary>
+        internal static readonly DevPropKey DevPkeyContainerId =
+            new(new Guid("8c7ed206-3f8a-4827-b3ab-ae9e1faefc6c"), 2);
+
+        /// <summary>DEVPKEY_Device_Manufacturer.</summary>
+        internal static readonly DevPropKey DevPkeyManufacturer =
+            new(new Guid("a45c254e-df1c-4efd-8020-67d146a850e0"), 13);
+
+        /// <summary>
+        /// DEVPKEY_Device_BusReportedDeviceDesc — the USB iProduct string or the
+        /// Bluetooth friendly name, which is the only place the product name appears.
+        /// </summary>
+        internal static readonly DevPropKey DevPkeyBusReportedName =
+            new(new Guid("540b947e-8b40-45bc-a8a2-6a0b894cbda2"), 4);
+
+        /// <summary>DEVPKEY_Device_LastArrivalDate.</summary>
+        internal static readonly DevPropKey DevPkeyLastArrival =
+            new(new Guid("80497100-8c73-48b9-aad9-ce387e19c56e"), 102);
+
+        /// <summary>DEVPKEY_Bluetooth_DeviceAddress.</summary>
+        internal static readonly DevPropKey DevPkeyBluetoothAddress =
+            new(new Guid("2bd67d8b-8beb-48d5-87e0-6cda3428040a"), 1);
+
+        /// <summary>DEVPKEY_Bluetooth_ClassOfDevice.</summary>
+        internal static readonly DevPropKey DevPkeyClassOfDevice =
+            new(new Guid("2bd67d8b-8beb-48d5-87e0-6cda3428040a"), 10);
+
+        /// <summary>DEVPKEY_Bluetooth_Battery — a single byte, 0..100.</summary>
+        internal static readonly DevPropKey DevPkeyBatteryLevel =
+            new(new Guid("104ea319-6ee2-4701-bd47-8ddbf425bbe5"), 2);
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct SpDevInfoData
+        {
+            public int Size;
+            public Guid ClassGuid;
+            public int DevInst;
+            public IntPtr Reserved;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct DevPropKey(Guid formatId, uint propertyId)
+        {
+            public Guid FormatId = formatId;
+            public uint PropertyId = propertyId;
+        }
+
+        [DllImport("setupapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern IntPtr SetupDiGetClassDevs(
+            IntPtr classGuid, string? enumerator, IntPtr hwnd, int flags);
+
+        [DllImport("setupapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool SetupDiEnumDeviceInfo(IntPtr devInfo, int index, ref SpDevInfoData info);
+
+        [DllImport("setupapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool SetupDiGetDeviceProperty(
+            IntPtr devInfo, ref SpDevInfoData info, ref DevPropKey key,
+            out ulong propertyType, byte[]? buffer, int bufferSize, out int requiredSize, int flags);
+
+        [DllImport("setupapi.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool SetupDiDestroyDeviceInfoList(IntPtr devInfo);
+    }
+}
