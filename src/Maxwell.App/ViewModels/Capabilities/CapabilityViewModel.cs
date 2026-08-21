@@ -106,10 +106,17 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
 
     public bool ChangedExternally => State.ChangedExternally;
 
-    /// <summary>Warned about before the write, never after.</summary>
-    public bool IsIrreversible => !Descriptor.IsReversible;
+    /// <summary>
+    /// Warned about before the write, never after — and only where a write exists.
+    ///
+    /// Both of these are claims about writing, so neither applies to a value that is only
+    /// ever read. Ungated, the battery percentage carried "the first write cannot be
+    /// undone" next to it, which is not a caution but a puzzle. Artboard 2a says the same
+    /// thing in its own words: against the indicator row it prints "не применяется".
+    /// </summary>
+    public bool IsIrreversible => !Descriptor.IsReversible && Descriptor.IsWritable;
 
-    public bool NeedsConfirmation => Descriptor.Risk != CapabilityRisk.Safe;
+    public bool NeedsConfirmation => Descriptor.Risk != CapabilityRisk.Safe && Descriptor.IsWritable;
 
     /// <summary>True when the control may be operated at all.</summary>
     public bool CanEdit => State.CanWrite && Session is not null;
@@ -129,13 +136,26 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
             "Ещё не проверено на живом устройстве",
         { ChangedExternally: true } => "Изменено на устройстве",
         _ when IsIrreversible => Descriptor.Note ?? "Первая запись необратима",
+
+        // Risk explained in words beside the control rather than left to the button.
+        // Only the Action control draws a mark of its own, so without this every other
+        // primitive's dangerous state was indistinguishable from its ordinary one — the
+        // user would meet the consequence for the first time in the confirmation dialog,
+        // which is later than the design system allows.
+        _ when NeedsConfirmation => Descriptor.Note ?? Descriptor.Risk switch
+        {
+            CapabilityRisk.Hidden => "Скрыто в «Дополнительно», спросим подтверждение",
+            _ => "Спросим подтверждение с описанием последствий",
+        },
+
         _ => Descriptor.Note,
     };
 
     public HintKind HintTone => State switch
     {
         { WriteError: not null } => HintKind.Error,
-        _ when IsIrreversible && !HasError && IsAvailable && !IsWriting => HintKind.Warning,
+        _ when (IsIrreversible || NeedsConfirmation) && !HasError && IsAvailable && !IsWriting =>
+            HintKind.Warning,
         _ => Hint is null ? HintKind.None : HintKind.Info,
     };
 

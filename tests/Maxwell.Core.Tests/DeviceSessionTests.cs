@@ -16,6 +16,7 @@ public sealed class DeviceSessionTests
     private const string Ceiling = "test.ceiling";
     private const string NeedsCable = "test.needs_cable";
     private const string Plain = "test.plain";
+    private const string Grouped = "test.grouped";
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
@@ -120,6 +121,57 @@ public sealed class DeviceSessionTests
         Assert.NotNull(session.Snapshot.LastSeenAt);
     }
 
+    /// <summary>
+    /// A composite goes to the device whole and comes back whole. Half a curve is not
+    /// something the hardware has a command for, so the session must not be able to
+    /// store one either.
+    /// </summary>
+    [Fact]
+    public async Task AGroupedValue_SurvivesTheRoundTripIntact()
+    {
+        (DeviceSession session, Fixture fixture) = await StartAsync();
+
+        CapabilityValue moved = CapabilityValue.Numbers(1600, 800);
+
+        Assert.True(await session.WriteAsync(Grouped, moved, Ct));
+        Assert.Equal(moved, session.Snapshot.Capabilities[Grouped].Value);
+
+        await session.RefreshAllAsync(Ct);
+
+        Assert.Equal(moved, session.Snapshot.Capabilities[Grouped].Value);
+        Assert.Equal(moved, fixture.Connection.Values[Grouped]);
+    }
+
+    /// <summary>
+    /// A poll that reads back the same numbers is not the user's mouse being touched.
+    ///
+    /// This is the case that made the vector shape carry its own equality: the generated
+    /// record comparison looks at the list by reference, so every refresh produced a
+    /// fresh instance that compared unequal, and every volatile composite lit its
+    /// "changed on the device" ring every few seconds until the ring meant nothing.
+    /// </summary>
+    [Fact]
+    public async Task ARepeatedGroupedReading_IsNotReportedAsAnExternalChange()
+    {
+        (DeviceSession session, _) = await StartAsync();
+
+        await session.RefreshAllAsync(Ct);
+        await session.RefreshAllAsync(Ct);
+
+        Assert.False(session.Snapshot.Capabilities[Grouped].ChangedExternally);
+    }
+
+    [Fact]
+    public async Task AGroupedValueChangedOnTheDevice_IsReportedAsExternal()
+    {
+        (DeviceSession session, Fixture fixture) = await StartAsync();
+
+        fixture.Connection.Values[Grouped] = CapabilityValue.Numbers(3200, 3200);
+        await session.RefreshAllAsync(Ct);
+
+        Assert.True(session.Snapshot.Capabilities[Grouped].ChangedExternally);
+    }
+
     // ---------- fixture ----------
 
     /// <summary>
@@ -185,6 +237,7 @@ public sealed class DeviceSessionTests
             [Ceiling] = CapabilityValue.Of(31),
             [Ranged] = CapabilityValue.Of(9),
             [NeedsCable] = CapabilityValue.Of(1),
+            [Grouped] = CapabilityValue.Numbers(1600, 1200),
         };
 
         public IReadOnlyList<Capability> Capabilities { get; } =
@@ -229,6 +282,20 @@ public sealed class DeviceSessionTests
                 Requirement = RequirementKind.ControlChannel,
                 RequirementHint = "Настройка доступна по кабелю",
             },
+            new()
+            {
+                Id = Grouped,
+                Domain = CapabilityDomain.Pointing,
+                Primitive = CapabilityPrimitive.RangeGroup,
+                Title = "Grouped",
+
+                // Volatile on purpose: the external-change flag is only computed for
+                // capabilities the device can move on its own, and it is the flag these
+                // cases are about.
+                IsVolatile = true,
+                Range = new CapabilityRange { Min = 200, Max = 8000 },
+                Members = [new(0, "X"), new(1, "Y")],
+            },
         ];
 
         public IReadOnlyList<TransportInfo> Transports { get; } =
@@ -236,8 +303,15 @@ public sealed class DeviceSessionTests
             new() { Kind = TransportKind.UsbCable, Label = "USB", IsPresent = true, CarriesControl = true },
         ];
 
-        public Task<CapabilityValue> ReadAsync(string capabilityId, CancellationToken cancellationToken = default) =>
-            Task.FromResult(Values.GetValueOrDefault(capabilityId, CapabilityValue.Absent));
+        public Task<CapabilityValue> ReadAsync(string capabilityId, CancellationToken cancellationToken = default)
+        {
+            CapabilityValue value = Values.GetValueOrDefault(capabilityId, CapabilityValue.Absent);
+
+            // Rebuilt rather than handed back, because a real driver decodes bytes into a
+            // new value on every read. Returning the stored instance would let a
+            // reference comparison pass and hide the precise bug these cases exist for.
+            return Task.FromResult(value is VectorValue v ? CapabilityValue.Vector([.. v.Items]) : value);
+        }
 
         public Task<bool> WriteAsync(
             string capabilityId,

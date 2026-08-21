@@ -29,9 +29,11 @@ public static class CapabilityIds
     // Audio
     public const string AudioVolume = "audio.volume";
 
-    // Left and right are two Range capabilities rather than one RangeGroup. The grouped
-    // primitive exists in the taxonomy, but no driver needs a linked pair yet and
-    // inventing its value shape before something demands it would be guesswork.
+    // Left and right stay two Range capabilities rather than becoming one RangeGroup.
+    // The grouped primitive now exists and the stand-in mouse uses it, but the RACE
+    // driver writes these through two separate registers with separate ceilings, and
+    // presenting them as one control would promise an atomic write the protocol cannot
+    // make. They are grouped on screen by their section, which is enough.
     public const string AudioGainLeft = "audio.gain_left";
     public const string AudioGainRight = "audio.gain_right";
 
@@ -53,8 +55,17 @@ public static class CapabilityIds
 
     // Pointer
     public const string PointerDpi = "pointer.dpi";
+    public const string PointerDpiXy = "pointer.dpi_xy";
     public const string PointerReportRate = "pointer.report_rate";
     public const string ButtonsMap = "buttons.map";
+
+    // Like head tracking below, this one sits outside the shared vocabulary and is
+    // marked as such deliberately. A sensor response curve is drawn in the design's
+    // gamepad artboard and offered by several vendors' own applications, but neither
+    // HID++ nor anything else we have read exposes it, so no driver can honestly claim
+    // it. It exists so the curve primitive has a device page to live on before the
+    // hardware that owns it arrives.
+    public const string PointerResponse = "pointer.response";
 
     // Keyboard
     public const string KeysMap = "keys.map";
@@ -64,6 +75,7 @@ public static class CapabilityIds
     public const string LightOn = "light.on";
     public const string LightBrightness = "light.brightness";
     public const string LightEffect = "light.effect";
+    public const string LightColor = "light.color";
 
     // Profiles and maintenance
     public const string ProfilesOnboard = "profiles.onboard";

@@ -105,21 +105,64 @@ public sealed class MockDeviceDriver : IDeviceDriver
         [CapabilityIds.PowerBattery] = CapabilityValue.Of(64),
         [CapabilityIds.PowerCharging] = CapabilityValue.Of(false),
         [CapabilityIds.LinkSignal] = CapabilityValue.Of(92),
+        [CapabilityIds.LinkHosts] = CapabilityValue.Choice(0),
         [CapabilityIds.PointerDpi] = CapabilityValue.Of(1600),
+        [CapabilityIds.PointerDpiXy] = CapabilityValue.Numbers(1600, 1200),
         [CapabilityIds.PointerReportRate] = CapabilityValue.Choice(3),
+
+        // A gentle S: slow movements damped, fast ones let through. Believable rather
+        // than flat, because a flat curve and an unread one would look identical and
+        // this control's whole job is to keep those two apart.
+        [CapabilityIds.PointerResponse] = CapabilityValue.Numbers(-28, -16, -6, 0, 9, 20, 31),
+
+        [CapabilityIds.ButtonsMap] = CapabilityValue.Vector(
+        [
+            CapabilityValue.Choice(1),
+            CapabilityValue.Choice(2),
+            CapabilityValue.Choice(3),
+            CapabilityValue.Choice(4),
+        ]),
+
+        [CapabilityIds.LightOn] = CapabilityValue.Of(true),
         [CapabilityIds.LightBrightness] = CapabilityValue.Of(40),
         [CapabilityIds.LightEffect] = CapabilityValue.Choice(1),
+        [CapabilityIds.LightColor] = CapabilityValue.Numbers(0x2C6FD1, 0x7B4EC4),
+        [CapabilityIds.ProfilesOnboard] = CapabilityValue.Choice(0),
     };
 
     private static Dictionary<string, CapabilityValue> KeyboardSeed => new(StringComparer.Ordinal)
     {
         [CapabilityIds.PowerBattery] = CapabilityValue.Of(81),
         [CapabilityIds.PowerCharging] = CapabilityValue.Of(true),
+        [CapabilityIds.LinkHosts] = CapabilityValue.Choice(1),
+        [CapabilityIds.KeysMap] = Layout,
         [CapabilityIds.KeysLayers] = CapabilityValue.Of(4),
         [CapabilityIds.LightOn] = CapabilityValue.Of(true),
         [CapabilityIds.LightBrightness] = CapabilityValue.Of(70),
         [CapabilityIds.LightEffect] = CapabilityValue.Choice(2),
+        [CapabilityIds.LightColor] = CapabilityValue.Numbers(0x3FA45B),
+        [CapabilityIds.ProfilesOnboard] = CapabilityValue.Choice(0),
     };
+
+    /// <summary>
+    /// Two layers answered and two not.
+    ///
+    /// A real VIA read fetches layers one at a time and a keyboard that has only been
+    /// asked for the first two is the ordinary case, not a fault. Leaving the upper two
+    /// absent is what makes the control demonstrate the difference between a key with
+    /// no assignment and a key nobody has asked about — which is the same difference
+    /// the whole value hierarchy exists to preserve.
+    /// </summary>
+    private static CapabilityValue Layout => CapabilityValue.Vector(
+    [
+        Legends(MockCatalogs.BaseLayer),
+        Legends(MockCatalogs.FunctionLayer),
+        CapabilityValue.Absent,
+        CapabilityValue.Absent,
+    ]);
+
+    private static CapabilityValue Legends(IReadOnlyList<string> layer) =>
+        CapabilityValue.Vector([.. layer.Select(CapabilityValue.Of)]);
 }
 
 /// <summary>Keeps its values in a dictionary and takes every write.</summary>

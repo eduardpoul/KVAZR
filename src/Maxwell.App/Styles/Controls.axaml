@@ -187,6 +187,137 @@
     <Setter Property="BoxShadow" Value="0 0 0 3 #380F6CBD" />
   </Style>
 
+  <!--
+    Composite primitives: the parts of a capability that has several at once. They share
+    the frame and the hint line with every other control, so what is left here is only
+    the geometry of the parts themselves.
+  -->
+
+  <!-- Lighting colours. A ring rather than a fill for the selection, because filling a
+       swatch would change the colour it is there to show. -->
+  <Style Selector="ListBox.swatches">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <StackPanel Orientation="Horizontal" Spacing="4" />
+      </ItemsPanelTemplate>
+    </Setter>
+  </Style>
+
+  <!-- Sized explicitly, including the minimum. The base theme gives a list item a
+       minimum width meant for a row of text, and eight colour chips inherited it and
+       spread themselves across the panel with five of them off the end. -->
+  <Style Selector="ListBox.swatches ListBoxItem">
+    <Setter Property="Width" Value="28" />
+    <Setter Property="Height" Value="28" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+
+    <!-- The padding is the gap between the selection ring and the colour. Without it a
+         blue swatch selected in an accent-blue ring is a blue square with a blue edge,
+         which is to say no ring at all. -->
+    <Setter Property="Padding" Value="3" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
+    <Setter Property="BorderThickness" Value="1.5" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+
+  <!-- A hairline round every chip. White is a colour a keyboard can be set to, and on a
+       white card an unbordered white swatch is a hole in the row rather than an option. -->
+  <Style Selector="ListBox.swatches ListBoxItem > Border">
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource StrokeStrongBrush}" />
+  </Style>
+
+  <Style Selector="ListBox.swatches ListBoxItem:selected">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentPrimaryBrush}" />
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+
+  <!-- Keyboard layer tabs. Narrower than the segmented choice above: four of them have
+       to sit over a key grid without being wider than it. -->
+  <Style Selector="ListBox.layers">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <StackPanel Orientation="Horizontal" Spacing="4" />
+      </ItemsPanelTemplate>
+    </Setter>
+  </Style>
+
+  <Style Selector="ListBox.layers ListBoxItem">
+    <Setter Property="MinWidth" Value="46" />
+    <Setter Property="Height" Value="20" />
+    <Setter Property="Padding" Value="6,0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource StrokeDefaultBrush}" />
+    <Setter Property="Background" Value="{DynamicResource LayerCardBrush}" />
+    <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}" />
+  </Style>
+
+  <Style Selector="ListBox.layers ListBoxItem:selected">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}" />
+    <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentPrimaryBrush}" />
+  </Style>
+
+  <!-- One key of a layout. Sized so a full row of a compact board fits the panel the
+       design gives it, and legible at that size only because the legends are short. -->
+  <Style Selector="Border.keycap">
+    <Setter Property="Width" Value="17" />
+    <Setter Property="Height" Value="17" />
+    <Setter Property="Margin" Value="1" />
+    <Setter Property="CornerRadius" Value="3" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource StrokeDefaultBrush}" />
+    <Setter Property="Background" Value="{DynamicResource LayerAltBrush}" />
+  </Style>
+
+  <Style Selector="Border.keycap.selected">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentPrimaryBrush}" />
+    <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
+  </Style>
+
+  <!-- A key nobody has read. Blank, not zeroed: a cap printed with something the
+       keyboard never reported is the same lie a slider showing 0 would be. -->
+  <Style Selector="Border.keycap.unread">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{DynamicResource StrokeSubtleBrush}" />
+  </Style>
+
+  <Style Selector="Border.keycap > TextBlock">
+    <Setter Property="FontSize" Value="8" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+  </Style>
+
+  <!-- The button on a profile or host slot. Small, because there is one per row. -->
+  <Style Selector="Button.slot">
+    <Setter Property="Height" Value="24" />
+    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!-- A free slot is an invitation, not a setting. Muted so the occupied rows read
+       first, and never red: an empty profile is not a fault. -->
+  <Style Selector="Grid.slot.empty TextBlock.cardTitle">
+    <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
   <!-- Root navigation entry, above the device groups. -->
   <Style Selector="Button.navRoot">
     <Setter Property="Height" Value="36" />

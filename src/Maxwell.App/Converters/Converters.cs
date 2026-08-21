@@ -2,6 +2,7 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Maxwell.App.ViewModels.Capabilities;
@@ -92,6 +93,30 @@ public sealed class HintToneBrushConverter : IValueConverter
         };
 
         return Application.Current?.TryFindResource(key, out object? brush) == true ? brush : null;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>
+/// Paints a lighting swatch from the packed RGB the device speaks in.
+///
+/// The colour is opaque on purpose. A translucent swatch would take its tint from
+/// whatever is behind it, so the same reading would look like two different colours in
+/// the two themes — and this is the one control whose entire job is to show a colour
+/// accurately.
+/// </summary>
+public sealed class PackedColorBrushConverter : IValueConverter
+{
+    public static readonly PackedColorBrushConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not int packed || packed < 0) return null;
+
+        return new SolidColorBrush(
+            Color.FromRgb((byte)(packed >> 16), (byte)(packed >> 8), (byte)packed));
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>

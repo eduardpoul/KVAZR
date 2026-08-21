@@ -36,6 +36,45 @@ public sealed record CapabilityChoice(int Index, string Label)
 }
 
 /// <summary>
+/// One part of a composite primitive: a channel of a <see cref="CapabilityPrimitive.RangeGroup"/>,
+/// a band of a <see cref="CapabilityPrimitive.Curve"/>, a zone of a
+/// <see cref="CapabilityPrimitive.Lighting"/> rig, a mouse button, a key position, an
+/// onboard profile slot, a host slot.
+///
+/// Kept apart from <see cref="CapabilityChoice"/> on purpose, and the distinction is
+/// worth the second type: choices are alternatives, of which exactly one holds at a
+/// time, while members are parts that each carry their own reading simultaneously. A
+/// ButtonMap needs both at once — its members are the buttons, its choices are the
+/// actions any of them can be given — so folding the two into one list would have left
+/// that capability undescribable.
+/// </summary>
+/// <param name="Index">
+/// The member's position in the reading vector, numbered from zero and dense. A driver
+/// that skips a number would silently shift every member after it against the values it
+/// reported, so the catalog tests enforce it.
+/// </param>
+/// <param name="Label">What the part is called on the device: "Левый", "1 кГц", "Кнопка 4".</param>
+public sealed record CapabilityMember(int Index, string Label)
+{
+    /// <summary>Secondary line: what the slot holds, or why it is empty.</summary>
+    public string? Hint { get; init; }
+
+    /// <summary>
+    /// Bounds for this member alone. Null falls back to the capability's own
+    /// <see cref="Capability.Range"/>, which is what a curve wants — ten bands sharing
+    /// one gain scale — while a sensor that resolves X and Y separately wants its own.
+    /// </summary>
+    public CapabilityRange? Range { get; init; }
+
+    /// <summary>
+    /// The slot exists but holds nothing: a free host slot, an onboard profile never
+    /// written. Drawn as an invitation to fill it rather than as something to select,
+    /// because selecting an empty profile would apply nothing and look like a failure.
+    /// </summary>
+    public bool IsEmpty { get; init; }
+}
+
+/// <summary>
 /// What a device can do, described so the shell can draw it without knowing which
 /// device it is. Supplied by the driver once per connection and immutable thereafter;
 /// the changing part lives in <see cref="CapabilityState"/>.
@@ -96,6 +135,31 @@ public sealed record Capability
     public CapabilityRange? Range { get; init; }
 
     public IReadOnlyList<CapabilityChoice> Choices { get; init; } = [];
+
+    /// <summary>
+    /// The parts of a composite primitive, in the order they are drawn. Empty for the
+    /// scalar ones, which are their own single part.
+    /// </summary>
+    public IReadOnlyList<CapabilityMember> Members { get; init; } = [];
+
+    /// <summary>
+    /// How many layers a <see cref="CapabilityPrimitive.KeyMap"/> holds. One elsewhere.
+    ///
+    /// A layer is not a member: members are the key positions, and every layer has the
+    /// same ones. The count sits here rather than being inferred from the reading
+    /// because a keyboard that has not answered yet still has to draw its layer tabs.
+    /// </summary>
+    public int LayerCount { get; init; } = 1;
+
+    /// <summary>
+    /// How many key positions sit in a row, for the primitives drawn as a physical
+    /// picture. Zero lets them flow.
+    ///
+    /// Geometry belongs to the descriptor because it is a fact about the hardware, and
+    /// letting the control guess it from the member count would put the row breaks of a
+    /// 75-key board wherever the panel happened to be wide.
+    /// </summary>
+    public int GridColumns { get; init; }
 
     /// <summary>Standing caution shown with the control, e.g. a damage ceiling.</summary>
     public string? Note { get; init; }

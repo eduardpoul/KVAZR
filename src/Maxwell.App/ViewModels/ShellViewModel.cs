@@ -163,6 +163,16 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         if (index >= 0 && index < Devices.Count) SelectedDevice = Devices[index];
     }
 
+    /// <summary>
+    /// Opens the design-system matrix. Same reason as <see cref="SelectDeviceAt"/>: it
+    /// is the page every control has to be checked against, and reaching it by driving
+    /// the pointer is both unreliable and rude to whoever is using the machine.
+    /// </summary>
+    public void ShowShowcase()
+    {
+        if (AppSections.Count > 0) SelectedAppSection = AppSections[0];
+    }
+
     [RelayCommand]
     private void ShowDashboard()
     {
