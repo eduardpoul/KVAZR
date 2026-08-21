@@ -31,6 +31,14 @@ internal static class Program
             return DumpIcons(args[at + 1]);
         }
 
+        // Same argument as the icons, one phase later: the design-system matrix is wider
+        // than any window on this machine, and checking a control against the artboard
+        // means looking at it in both themes.
+        if (Array.IndexOf(args, "--dump-pages") is var pages and >= 0 && pages + 1 < args.Length)
+        {
+            return DumpPages(args[pages + 1]);
+        }
+
         IHost host = CreateHost(args);
         host.Start();
 
@@ -45,6 +53,11 @@ internal static class Program
         {
             App.OpenDeviceOnStart = index;
         }
+
+        // The design-system matrix is the surface every control is checked against, and
+        // it is reachable only through the navigation pane. Driving the pointer to get
+        // there steals the cursor from whoever is at the machine.
+        App.OpenShowcaseOnStart = Array.IndexOf(args, "--showcase") >= 0;
 
         try
         {
@@ -63,6 +76,14 @@ internal static class Program
         Tray.TrayIconPreview.Dump(path);
 
         Console.WriteLine($"wrote {path}");
+        return 0;
+    }
+
+    private static int DumpPages(string path)
+    {
+        AppBuilder.Configure<App>().UsePlatformDetect().SetupWithoutStarting();
+        Views.Pages.PagePreview.Dump(path);
+
         return 0;
     }
 

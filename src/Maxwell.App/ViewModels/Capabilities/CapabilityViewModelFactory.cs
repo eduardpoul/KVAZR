@@ -28,23 +28,20 @@ public static class CapabilityViewModelFactory
             CapabilityPrimitive.Action =>
                 new ActionCapabilityViewModel(state, session, confirm) { Detail = detail },
 
-            // Readout is also the honest fallback for primitives that have no control
-            // yet — KeyMap, ButtonMap, Curve and the rest arrive with the screens that
-            // need them. Showing the value read-only says less than the design intends,
-            // but it never lies about what the user can do.
+            CapabilityPrimitive.RangeGroup => new RangeGroupCapabilityViewModel(state, session) { Detail = detail },
+            CapabilityPrimitive.Curve => new CurveCapabilityViewModel(state, session) { Detail = detail },
+            CapabilityPrimitive.KeyMap => new KeyMapCapabilityViewModel(state, session) { Detail = detail },
+            CapabilityPrimitive.ButtonMap => new ButtonMapCapabilityViewModel(state, session) { Detail = detail },
+            CapabilityPrimitive.Lighting => new LightingCapabilityViewModel(state, session) { Detail = detail },
+            CapabilityPrimitive.ProfileSet => new ProfileSetCapabilityViewModel(state, session) { Detail = detail },
+            CapabilityPrimitive.HostSlots => new HostSlotsCapabilityViewModel(state, session) { Detail = detail },
+
+            // Readout is both a primitive in its own right and the fallback, and the
+            // fallback arm is now unreachable — every member of the enum is named above.
+            // It stays because the enum is the taxonomy's, not this file's: a thirteenth
+            // primitive should render as a read-only value on the day it is added rather
+            // than throw in front of the user.
             _ => new ReadoutCapabilityViewModel(state, session) { Detail = detail },
         };
     }
-
-    /// <summary>
-    /// Whether this primitive has a real control yet. The showcase and the device pages
-    /// use it to mark what is still a placeholder instead of quietly presenting a
-    /// read-only row as the finished design.
-    /// </summary>
-    public static bool IsImplemented(CapabilityPrimitive primitive) => primitive
-        is CapabilityPrimitive.Readout
-        or CapabilityPrimitive.Toggle
-        or CapabilityPrimitive.Range
-        or CapabilityPrimitive.Choice
-        or CapabilityPrimitive.Action;
 }

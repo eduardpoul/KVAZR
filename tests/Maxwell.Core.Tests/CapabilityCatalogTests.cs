@@ -127,6 +127,126 @@ public sealed class CapabilityCatalogTests
         }
     }
 
+    /// <summary>
+    /// Members index the reading vector positionally, so a driver that skipped a number
+    /// or repeated one would shift every member after it against the values it reported
+    /// — a mouse whose Y axis silently showed the X reading, and nothing to notice.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Catalogs))]
+    public void MembersAreNumberedFromZeroWithoutGaps(string driver, IReadOnlyList<Capability> catalog)
+    {
+        foreach (Capability c in catalog.Where(c => c.Members.Count > 0))
+        {
+            for (int i = 0; i < c.Members.Count; i++)
+            {
+                Assert.True(
+                    c.Members[i].Index == i,
+                    $"{driver}/{c.Id} member {i} is numbered {c.Members[i].Index}.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// A composite with no parts renders as an empty frame. That is a legitimate state —
+    /// Maxwell's equaliser is declared exactly so, because the firmware plainly holds one
+    /// and the command that reaches it has not been found — but only when the capability
+    /// says out loud that it cannot be reached. Anywhere else it is a driver that forgot
+    /// to describe itself, and the user gets a labelled blank.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Catalogs))]
+    public void CompositesDescribeTheirParts(string driver, IReadOnlyList<Capability> catalog)
+    {
+        CapabilityPrimitive[] composite =
+        [
+            CapabilityPrimitive.RangeGroup,
+            CapabilityPrimitive.Curve,
+            CapabilityPrimitive.KeyMap,
+            CapabilityPrimitive.ButtonMap,
+            CapabilityPrimitive.Lighting,
+            CapabilityPrimitive.ProfileSet,
+            CapabilityPrimitive.HostSlots,
+        ];
+
+        foreach (Capability c in catalog.Where(c =>
+                     composite.Contains(c.Primitive) && c.DeclaredStatus != CapabilityStatus.Unavailable))
+        {
+            Assert.True(c.Members.Count > 0, $"{driver}/{c.Id} is a {c.Primitive} with no members to draw.");
+        }
+    }
+
+    /// <summary>
+    /// A range group's tracks need bounds from somewhere. Without them every channel
+    /// would fall back to a placeholder 0–100 and a DPI pair would read as a percentage.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Catalogs))]
+    public void GroupedRangesHaveBoundsPerMemberOrShared(string driver, IReadOnlyList<Capability> catalog)
+    {
+        foreach (Capability c in catalog.Where(c => c.Primitive == CapabilityPrimitive.RangeGroup))
+        {
+            foreach (CapabilityMember member in c.Members)
+            {
+                CapabilityRange? bounds = member.Range ?? c.Range;
+
+                Assert.True(bounds is not null, $"{driver}/{c.Id}/{member.Label} has no bounds.");
+                Assert.True(bounds!.Min < bounds.Max, $"{driver}/{c.Id}/{member.Label} has an empty range.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// A button map's members are the buttons and its choices are what they can be given.
+    /// A map without the vocabulary is a row of dropdowns that open on nothing.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Catalogs))]
+    public void ButtonMapsOfferSomethingToAssign(string driver, IReadOnlyList<Capability> catalog)
+    {
+        foreach (Capability c in catalog.Where(c => c.Primitive == CapabilityPrimitive.ButtonMap))
+        {
+            Assert.True(c.Choices.Count > 0, $"{driver}/{c.Id} maps buttons to an empty list of actions.");
+        }
+    }
+
+    /// <summary>
+    /// Layers and columns are facts about the hardware, and a layout drawn without them
+    /// puts its row breaks wherever the panel happened to be wide.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Catalogs))]
+    public void KeyMapsDeclareTheirGeometry(string driver, IReadOnlyList<Capability> catalog)
+    {
+        foreach (Capability c in catalog.Where(c => c.Primitive == CapabilityPrimitive.KeyMap))
+        {
+            Assert.True(c.LayerCount >= 1, $"{driver}/{c.Id} declares {c.LayerCount} layers.");
+            Assert.True(c.GridColumns >= 1, $"{driver}/{c.Id} declares no column count.");
+
+            Assert.True(
+                c.Members.Count % c.GridColumns == 0,
+                $"{driver}/{c.Id} has {c.Members.Count} keys, which is not whole rows of {c.GridColumns}.");
+        }
+    }
+
+    /// <summary>
+    /// A slot the user can switch to has to be one the device could be on. Marking every
+    /// slot empty would leave a list that invites filling and never selects anything.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Catalogs))]
+    public void SlotListsHaveSomewhereToSwitchTo(string driver, IReadOnlyList<Capability> catalog)
+    {
+        CapabilityPrimitive[] slots = [CapabilityPrimitive.ProfileSet, CapabilityPrimitive.HostSlots];
+
+        foreach (Capability c in catalog.Where(c => slots.Contains(c.Primitive) && c.Members.Count > 0))
+        {
+            Assert.True(
+                c.Members.Any(m => !m.IsEmpty),
+                $"{driver}/{c.Id} declares every slot empty.");
+        }
+    }
+
     [Fact]
     public void MaxwellDeclaresTheDangerousOperationsAsDangerous()
     {

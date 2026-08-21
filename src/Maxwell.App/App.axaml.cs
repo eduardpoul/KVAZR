@@ -26,6 +26,16 @@ public partial class App : Application, IDisposable
     /// <summary>Development affordance: open a device page without a synthetic click.</summary>
     internal static int? OpenDeviceOnStart { get; set; }
 
+    /// <summary>
+    /// Development affordance: open the design-system matrix, maximised.
+    ///
+    /// Maximised is part of the switch rather than a second flag because the matrix is
+    /// twelve primitives wide by eight states across and does not fit a default window —
+    /// opening it at 1040 pixels shows three columns, which is not a thing anyone can
+    /// check the design against.
+    /// </summary>
+    internal static bool OpenShowcaseOnStart { get; set; }
+
     private readonly IServiceProvider? _services;
 
     private TrayIcon? _tray;
@@ -96,6 +106,13 @@ public partial class App : Application, IDisposable
             {
                 ShellViewModel shell = _services.GetRequiredService<ShellViewModel>();
                 Dispatcher.UIThread.Post(() => shell.SelectDeviceAt(index), DispatcherPriority.Background);
+            }
+
+            if (OpenShowcaseOnStart)
+            {
+                ShellViewModel shell = _services.GetRequiredService<ShellViewModel>();
+                _window.WindowState = WindowState.Maximized;
+                Dispatcher.UIThread.Post(shell.ShowShowcase, DispatcherPriority.Background);
             }
 
             if (PresentFlyoutOnStart)
