@@ -99,6 +99,7 @@ def main() -> None:
     dash = region(html, 'id="1a"')
     fly = region(html, 'id="12a"')
     empty = region(html, 'id="6c"')
+    page = region(html, 'id="5a"')
 
     tokens: list[tuple[str, str, str]] = []
 
@@ -163,6 +164,25 @@ def main() -> None:
     # instead of being found. The comment is the honesty: this one number is typed.
     num("EmptyGlyphSize", "34", "Глиф класса на карточке, из <svg width> артборда 6c")
 
+    # ---- Device page, artboard 5a ------------------------------------------------------
+    # The page is a hero and then sections; the hero is where the device is identified and
+    # the sections are where it is changed.
+    num("PagePadding", pad(find(page, "padding: 22px 28px", "padding")), "")
+    num("HeroGap", px(find(page, "display: flex; align-items: center; gap: 20px", "gap")), "")
+    num("HeroThumbSize", px(find(page, "width: 96px; height: 96px", "width")), "")
+    num("HeroThumbRadius", px(find(page, "width: 96px; height: 96px", "border-radius")), "")
+    num("HeroNameSize", px(find(page, "font-size: 26px; font-weight: 600", "font-size")), "")
+    num("HeroBatterySize", px(find(page, "font-size: 44px; font-weight: 600", "font-size")),
+        "Заряд — самое крупное на странице, потому что за ним и приходят чаще всего")
+    num("SectionHeadingSize",
+        px(find(page, "font-weight: 600; color: #616161; letter-spacing: 0.02em", "font-size")), "")
+    num("PageRowHeight", px(find(page, "height: 64px; display: flex", "height")), "")
+    num("PageRowPadding", pad(find(page, "height: 64px; display: flex", "padding")), "")
+    num("PageRowGap", px(find(page, "height: 64px; display: flex", "gap")), "")
+    num("PageRowTitleSize", px(find(page, "font-size: 14px", "font-size")), "")
+    num("PageControlWidth", px(find(page, "flex: none; width: 260px", "width")),
+        "Колонка контрола: одинаковая на всех строках, иначе значения не выстраиваются")
+
     lines = [
         "<!--",
         "  Размеры, снятые с макета машинно. НЕ ПРАВИТЬ РУКАМИ.",
@@ -197,6 +217,11 @@ def main() -> None:
         # changes, so both are emitted and the name says which is which.
         if name.endswith("Radius"):
             lines.append(f'  <CornerRadius x:Key="{name}Corner">{value}</CornerRadius>')
+
+        # A gap is often wanted as a one-sided margin, and XAML cannot build a Thickness
+        # out of a resource — "0,0,{DynamicResource X},0" is a parse error, not a binding.
+        if name.endswith("Gap"):
+            lines.append(f'  <Thickness x:Key="{name}Right">0,0,{value},0</Thickness>')
 
     lines += ["", "</ResourceDictionary>", ""]
 

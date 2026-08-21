@@ -17,6 +17,7 @@
   <sys:Double x:Key="DashRowHeight">84</sys:Double>
   <!-- Между плиткой и текстом -->
   <sys:Double x:Key="DashRowGap">16</sys:Double>
+  <Thickness x:Key="DashRowGapRight">0,0,16,0</Thickness>
   <Thickness x:Key="DashRowPadding">16,0,16,0</Thickness>
   <!-- Плитка изображения -->
   <sys:Double x:Key="DashThumbSize">60</sys:Double>
@@ -25,6 +26,7 @@
   <sys:Double x:Key="DashNameSize">15</sys:Double>
   <!-- Между пилюлями под именем -->
   <sys:Double x:Key="DashSubGap">6</sys:Double>
+  <Thickness x:Key="DashSubGapRight">0,0,6,0</Thickness>
   <!-- Пилюля класса устройства -->
   <sys:Double x:Key="DashPillSize">11</sys:Double>
   <sys:Double x:Key="DashPillRadius">4</sys:Double>
@@ -38,6 +40,7 @@
   <sys:Double x:Key="DashTitleSize">28</sys:Double>
   <sys:Double x:Key="FlyoutRowHeight">56</sys:Double>
   <sys:Double x:Key="FlyoutRowGap">12</sys:Double>
+  <Thickness x:Key="FlyoutRowGapRight">0,0,12,0</Thickness>
   <Thickness x:Key="FlyoutRowPadding">6,0,6,0</Thickness>
   <sys:Double x:Key="FlyoutRowRadius">4</sys:Double>
   <CornerRadius x:Key="FlyoutRowRadiusCorner">4</CornerRadius>
@@ -64,9 +67,27 @@
   <sys:Double x:Key="EmptyCardRadius">8</sys:Double>
   <CornerRadius x:Key="EmptyCardRadiusCorner">8</CornerRadius>
   <sys:Double x:Key="EmptyCardGap">14</sys:Double>
+  <Thickness x:Key="EmptyCardGapRight">0,0,14,0</Thickness>
   <sys:Double x:Key="EmptyCardTitleSize">14</sys:Double>
   <sys:Double x:Key="EmptyCardBodySize">12</sys:Double>
   <!-- Глиф класса на карточке, из <svg width> артборда 6c -->
   <sys:Double x:Key="EmptyGlyphSize">34</sys:Double>
+  <Thickness x:Key="PagePadding">28,22,28,22</Thickness>
+  <sys:Double x:Key="HeroGap">20</sys:Double>
+  <Thickness x:Key="HeroGapRight">0,0,20,0</Thickness>
+  <sys:Double x:Key="HeroThumbSize">96</sys:Double>
+  <sys:Double x:Key="HeroThumbRadius">8</sys:Double>
+  <CornerRadius x:Key="HeroThumbRadiusCorner">8</CornerRadius>
+  <sys:Double x:Key="HeroNameSize">26</sys:Double>
+  <!-- Заряд — самое крупное на странице, потому что за ним и приходят чаще всего -->
+  <sys:Double x:Key="HeroBatterySize">44</sys:Double>
+  <sys:Double x:Key="SectionHeadingSize">12</sys:Double>
+  <sys:Double x:Key="PageRowHeight">64</sys:Double>
+  <Thickness x:Key="PageRowPadding">16,0,16,0</Thickness>
+  <sys:Double x:Key="PageRowGap">16</sys:Double>
+  <Thickness x:Key="PageRowGapRight">0,0,16,0</Thickness>
+  <sys:Double x:Key="PageRowTitleSize">14</sys:Double>
+  <!-- Колонка контрола: одинаковая на всех строках, иначе значения не выстраиваются -->
+  <sys:Double x:Key="PageControlWidth">260</sys:Double>
 
 </ResourceDictionary>

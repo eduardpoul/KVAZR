@@ -15,70 +15,136 @@
     appear, so a mouse and a headset lay out identically without either being authored.
   -->
 
+  <UserControl.Styles>
+    <Style Selector="Border.chip">
+      <Setter Property="CornerRadius" Value="{DynamicResource DashPillRadiusCorner}" />
+      <Setter Property="Padding" Value="{DynamicResource DashPillPadding}" />
+      <Setter Property="Background" Value="{DynamicResource LayerAltBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.chip > TextBlock">
+      <Setter Property="FontSize" Value="{DynamicResource DashPillSize}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+    <Style Selector="Border.chip.transport">
+      <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Border.chip.transport > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource AccentPrimaryBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Border.sectionCard">
+      <Setter Property="Background" Value="{DynamicResource LayerCardBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource StrokeSubtleBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="{DynamicResource RadiusCard}" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+
+    <Style Selector="Border.sectionRow">
+      <Setter Property="BorderBrush" Value="{DynamicResource StrokeSubtleBrush}" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+    <Style Selector="Border.sectionRow:nth-last-child(1)">
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+
+    <!-- Upper case and small, as the artboard has it. A section label is a signpost
+         rather than a title: it should be findable while scanning and invisible while
+         reading. -->
+    <Style Selector="TextBlock.sectionHeading">
+      <Setter Property="FontSize" Value="{DynamicResource SectionHeadingSize}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+      <Setter Property="LetterSpacing" Value="0.24" />
+      <Setter Property="Margin" Value="0,4,0,0" />
+    </Style>
+  </UserControl.Styles>
+
   <StackPanel Spacing="12">
 
-    <Border Classes="card">
-      <Border.Resources>
-      </Border.Resources>
-      <Grid ColumnDefinitions="Auto,*,Auto" Margin="20">
+    <!--
+      Artboard 5a. The hero identifies the device and nothing else: the picture, the name,
+      the channels it is actually on, its firmware, and the battery — which is the largest
+      thing on the page because it is what people come for most often.
+    -->
+    <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,4">
 
-        <Border Grid.Column="0" Width="72" Height="72"
-                Background="{DynamicResource LayerAltBrush}"
-                CornerRadius="{DynamicResource RadiusSmall}"
-                ClipToBounds="True"
-                Margin="0,0,18,0"
-                VerticalAlignment="Center">
-          <ctl:DeviceThumb Photo="{Binding Photo}" Glyph="{Binding Glyph}" />
-        </Border>
+      <Border Grid.Column="0"
+              Width="{DynamicResource HeroThumbSize}"
+              Height="{DynamicResource HeroThumbSize}"
+              Background="{DynamicResource LayerAltBrush}"
+              CornerRadius="{DynamicResource HeroThumbRadiusCorner}"
+              ClipToBounds="True"
+              Margin="0,0,20,0"
+              VerticalAlignment="Center">
+        <ctl:DeviceThumb Photo="{Binding Photo}" Glyph="{Binding Glyph}" />
+      </Border>
 
-        <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
-          <TextBlock Classes="sectionTitle" Text="{Binding Title}" />
+      <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
+        <TextBlock FontSize="{DynamicResource HeroNameSize}" FontWeight="SemiBold"
+                   LetterSpacing="-0.26"
+                   Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
 
-          <ItemsControl ItemsSource="{Binding Transports}">
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <ItemsControl ItemsSource="{Binding LiveTransports}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="10" /></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="core:TransportInfo">
-                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,1">
-                  <TextBlock Classes="secondary" Text="{Binding Label}" />
-                  <TextBlock Classes="caption" Text="управление"
-                             IsVisible="{Binding CarriesControl}" />
-                  <TextBlock Classes="caption" Text="звук"
-                             IsVisible="{Binding CarriesAudio}" />
-                </StackPanel>
+                <Border Classes="chip transport">
+                  <TextBlock Text="{Binding Label}" />
+                </Border>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
+
+          <TextBlock Classes="caption" VerticalAlignment="Center"
+                     IsVisible="{Binding HasFirmware}"
+                     Text="{Binding Firmware}" />
         </StackPanel>
 
-        <StackPanel Grid.Column="2" Spacing="2" HorizontalAlignment="Right" VerticalAlignment="Center">
-          <TextBlock FontSize="{DynamicResource FontSizeTitle}"
-                     FontWeight="SemiBold"
-                     HorizontalAlignment="Right"
-                     Text="{Binding Battery}" />
-          <TextBlock Classes="caption" HorizontalAlignment="Right" Text="{Binding Freshness}" />
-        </StackPanel>
-      </Grid>
-    </Border>
+        <!-- What the current arrangement of channels means. Never red: a headset
+             reachable only over its dongle is being used exactly as intended. -->
+        <TextBlock Classes="caption" TextWrapping="Wrap"
+                   IsVisible="{Binding StateNotice, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   Text="{Binding StateNotice}" />
+      </StackPanel>
 
-    <!-- A degraded device explains itself calmly. Never red: a headset reachable only
-         over its dongle is being used exactly as intended. -->
-    <Border Classes="card" IsVisible="{Binding StateNotice, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-      <TextBlock Classes="secondary" Margin="20" Text="{Binding StateNotice}" />
-    </Border>
+      <StackPanel Grid.Column="2" Spacing="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+        <TextBlock FontSize="{DynamicResource HeroBatterySize}" FontWeight="SemiBold"
+                   LineHeight="46" LetterSpacing="-0.88"
+                   HorizontalAlignment="Right"
+                   Text="{Binding Battery}" />
+        <TextBlock Classes="caption" HorizontalAlignment="Right" Text="{Binding Freshness}" />
+      </StackPanel>
+    </Grid>
 
     <!-- Sections, generated -->
     <ItemsControl ItemsSource="{Binding Sections}">
       <ItemsControl.ItemTemplate>
         <DataTemplate x:DataType="devices:CapabilitySectionViewModel">
           <StackPanel Spacing="6" Margin="0,0,0,12">
-            <TextBlock Classes="groupHeader" Text="{Binding Title}"
+            <TextBlock Classes="sectionHeading" Text="{Binding Heading}"
                        IsVisible="{Binding !IsSensitive}" />
 
-            <!-- Ordinary section -->
-            <Border Classes="card" IsVisible="{Binding !IsSensitive}">
-              <ItemsControl ItemsSource="{Binding Items}" Margin="20,14">
+            <!--
+              Ordinary section. Rows sit inside one card with hairlines between them
+              rather than floating with margins, which is what the device list does and
+              what the artboard does here: the divider is what says these rows belong to
+              each other, and spacing alone never quite says it.
+            -->
+            <Border Classes="sectionCard" IsVisible="{Binding !IsSensitive}">
+              <ItemsControl ItemsSource="{Binding Items}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="cap:CapabilityViewModel">
-                    <controls:CapabilityRow Margin="0,8" />
+                    <Border Classes="sectionRow">
+                      <controls:CapabilityRow Margin="{DynamicResource PageRowPadding}" />
+                    </Border>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>

@@ -30,6 +30,14 @@ public sealed class CapabilitySectionViewModel : IDisposable
 
     public string Title => TitleOf(Domain);
 
+    /// <summary>
+    /// The label above the section's card. Upper case because the artboard has it that
+    /// way, and it has it that way because a section label is a signpost rather than a
+    /// heading — it should be findable while scanning the page and invisible while
+    /// reading a row.
+    /// </summary>
+    public string Heading => Title.ToUpperInvariant();
+
     public bool HasItems => Items.Count > 0;
 
     /// <summary>

@@ -12,17 +12,30 @@
     one program.
   -->
 
-  <Grid ColumnDefinitions="*,Auto" MinHeight="40">
+  <!--
+    The control column is a fixed width rather than sized to its content, and that is the
+    whole reason the page reads as a list. With every control right-aligned to its own
+    width, a row of sliders and a row of switches start at different places and the eye
+    has to find the column again on every line.
+
+    MinHeight rather than Height: the artboard's 64 is what a one- or two-line row comes
+    to, but a KeyMap or a colour picker is taller and clipping it to look tidy would be
+    tidiness at the cost of the thing being usable.
+  -->
+  <Grid ColumnDefinitions="*,Auto" MinHeight="{DynamicResource PageRowHeight}">
 
     <StackPanel Grid.Column="0" Spacing="2"
-                VerticalAlignment="Center" Margin="0,0,16,0">
-      <TextBlock Classes="cardTitle" Text="{Binding Title}" />
+                VerticalAlignment="Center"
+                Margin="{DynamicResource PageRowGapRight}">
+      <TextBlock FontSize="{DynamicResource PageRowTitleSize}" Text="{Binding Title}" />
       <TextBlock Classes="caption"
+                 TextWrapping="Wrap"
                  Text="{Binding Subtitle}"
                  IsVisible="{Binding Subtitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
     </StackPanel>
 
     <controls:CapabilityControl Grid.Column="1"
+                                Width="{DynamicResource PageControlWidth}"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center" />
   </Grid>

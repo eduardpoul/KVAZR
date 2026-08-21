@@ -55,6 +55,27 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
 
     public IReadOnlyList<TransportInfo> Transports => Snapshot.Info.Transports;
 
+    /// <summary>
+    /// The channels this device is on right now, each its own chip. Only the live ones:
+    /// a transport that is not present is not a fact about the device today, and listing
+    /// it beside the ones that are makes the reader work out which is which.
+    /// </summary>
+    public IReadOnlyList<TransportInfo> LiveTransports =>
+        [.. Snapshot.Info.Transports.Where(t => t.IsPresent)];
+
+    /// <summary>
+    /// Firmware, spelled out beside the transports as the artboard has it. Absent rather
+    /// than "unknown" when the device has not said: an empty space asks no questions,
+    /// while the word "unknown" invites the reader to go looking for a version that was
+    /// never going to be there.
+    /// </summary>
+    public string Firmware =>
+        Snapshot.Get(CapabilityIds.DeviceFirmware)?.Value is TextValue { Value.Length: > 0 } version
+            ? $"Прошивка {version.Value}"
+            : string.Empty;
+
+    public bool HasFirmware => Firmware.Length > 0;
+
     public string? ImageKey => Snapshot.Info.ImageKey;
 
     /// <summary>
@@ -169,6 +190,9 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(Title));
         OnPropertyChanged(nameof(ImageKey));
         OnPropertyChanged(nameof(Battery));
+        OnPropertyChanged(nameof(LiveTransports));
+        OnPropertyChanged(nameof(Firmware));
+        OnPropertyChanged(nameof(HasFirmware));
         OnPropertyChanged(nameof(IsCharging));
         OnPropertyChanged(nameof(Transports));
         OnPropertyChanged(nameof(StateNotice));
