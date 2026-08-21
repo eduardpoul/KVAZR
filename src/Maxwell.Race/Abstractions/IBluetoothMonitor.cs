@@ -25,9 +25,9 @@ public readonly record struct BluetoothStatus(bool Present, int BatteryPercent)
 /// battery level, which Hands-Free reports and Windows exposes as a device property,
 /// so the headset is not entirely opaque even when it is only on Bluetooth.
 ///
-/// There is an Airoha control service on the BLE side — its UUID spells "AirohaBLE" in
-/// ASCII — but reaching it means a GATT client and a second framing of RACE, which is
-/// a separate piece of work from this one.
+/// A vendor RFCOMM channel does carry something, but it speaks a protocol of Audeze's
+/// own that no binary we can read describes. See docs/BLUETOOTH.md for what was
+/// established and what it would take to go further.
 /// </summary>
 public interface IBluetoothMonitor
 {

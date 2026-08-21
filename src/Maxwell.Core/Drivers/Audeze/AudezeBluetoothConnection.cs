@@ -14,10 +14,12 @@ namespace Maxwell.Core.Drivers.Audeze;
 /// a degraded state: the capability model exists precisely so that "this link offers
 /// less" needs no special case.
 ///
-/// There is an Airoha control service on the BLE side — its UUID spells "AirohaBLE" in
-/// ASCII — so control over Bluetooth is very likely possible. Reaching it means a GATT
-/// client and a second framing of RACE, sharing no code with the HID path, and it has
-/// not been attempted.
+/// A channel for settings does exist, and it is not the one an earlier note here
+/// guessed at. There is no BLE device on this address at all; what the headset offers
+/// is a vendor RFCOMM service, and the one that connects speaks a proprietary Audeze
+/// protocol rather than RACE — RACE frames come back marked unsupported. Its UUID
+/// appears in neither Audeze.exe nor AirohaHidCoreLib.dll, so the desktop application
+/// does not use it either, which leaves no command map to lift. See docs/BLUETOOTH.md.
 /// </summary>
 internal sealed class AudezeBluetoothConnection : IDeviceConnection
 {
