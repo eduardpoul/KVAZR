@@ -1,0 +1,242 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:pages="using:Maxwell.App.ViewModels.Pages"
+             x:Class="Maxwell.App.Views.Pages.SettingsView"
+             x:DataType="pages:SettingsViewModel">
+
+  <!--
+    Artboard 7a, plus the hidden-devices section from 13b.
+
+    The sections are the same cards of rows the device page uses, and that is the point of
+    having a design system at all: a setting of the application and a setting of a device
+    are the same kind of thing to the person changing them, so they had better look it.
+
+    No Apply button and no Cancel. A switch that has visibly moved but has not taken
+    effect is a lie the screen is telling, and given the choice somebody will always close
+    the window without pressing Apply.
+  -->
+
+  <UserControl.Styles>
+    <Style Selector="Border.sectionCard">
+      <Setter Property="Background" Value="{DynamicResource LayerCardBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource StrokeSubtleBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="{DynamicResource RadiusCard}" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+
+    <Style Selector="Grid.settingRow">
+      <Setter Property="MinHeight" Value="{DynamicResource PageRowHeight}" />
+      <Setter Property="Margin" Value="{DynamicResource PageRowPadding}" />
+    </Style>
+
+    <Style Selector="Border.rule">
+      <Setter Property="BorderBrush" Value="{DynamicResource StrokeSubtleBrush}" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+
+    <Style Selector="TextBlock.sectionHeading">
+      <Setter Property="FontSize" Value="{DynamicResource SectionHeadingSize}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+      <Setter Property="LetterSpacing" Value="0.24" />
+      <Setter Property="Margin" Value="0,4,0,0" />
+    </Style>
+
+    <Style Selector="TextBlock.rowTitle">
+      <Setter Property="FontSize" Value="{DynamicResource PageRowTitleSize}" />
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Spacing="8" MaxWidth="820" HorizontalAlignment="Left">
+
+    <TextBlock Classes="sectionHeading" Text="ИКОНКА ТРЕЯ" />
+    <Border Classes="sectionCard">
+      <StackPanel>
+        <Border Classes="rule">
+          <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
+                        Margin="{DynamicResource PageRowGapRight}">
+              <TextBlock Classes="rowTitle" Text="Чей процент показывать" />
+              <TextBlock Classes="caption" Text="Основное — выбранное вручную устройство" />
+            </StackPanel>
+            <ComboBox Grid.Column="1" Width="{DynamicResource PageControlWidth}"
+                      ItemsSource="{Binding TraySources}"
+                      SelectedIndex="{Binding TraySourceIndex}" />
+          </Grid>
+        </Border>
+
+        <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
+                      Margin="{DynamicResource PageRowGapRight}">
+            <TextBlock Classes="rowTitle" Text="Показывать процент цифрами" />
+            <TextBlock Classes="caption" Text="Иначе в трее только знак" />
+          </StackPanel>
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding ShowPercentage}" />
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sectionHeading" Text="ВНЕШНИЙ ВИД" />
+    <Border Classes="sectionCard">
+      <StackPanel>
+        <Border Classes="rule">
+          <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
+                        Margin="{DynamicResource PageRowGapRight}">
+              <TextBlock Classes="rowTitle" Text="Тема" />
+              <TextBlock Classes="caption" Text="Системная следует за оформлением Windows" />
+            </StackPanel>
+            <ListBox Grid.Column="1" Classes="segmented" SelectedIndex="{Binding ThemeIndex}">
+              <ListBoxItem>Системная</ListBoxItem>
+              <ListBoxItem>Светлая</ListBoxItem>
+              <ListBoxItem>Тёмная</ListBoxItem>
+            </ListBox>
+          </Grid>
+        </Border>
+
+        <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
+                      Margin="{DynamicResource PageRowGapRight}">
+            <TextBlock Classes="rowTitle" Text="Язык" />
+            <TextBlock Classes="caption" Text="Перезапуск не нужен" />
+          </StackPanel>
+          <ComboBox Grid.Column="1" Width="{DynamicResource PageControlWidth}"
+                    ItemsSource="{Binding Languages}"
+                    SelectedIndex="{Binding LanguageIndex}" />
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sectionHeading" Text="ЗАПУСК И ТРЕЙ" />
+    <Border Classes="sectionCard">
+      <StackPanel>
+        <Border Classes="rule">
+          <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Classes="rowTitle" VerticalAlignment="Center"
+                       Margin="{DynamicResource PageRowGapRight}"
+                       Text="Запускать при входе в Windows" />
+            <ToggleSwitch Grid.Column="1" IsChecked="{Binding RunAtLogin}" />
+          </Grid>
+        </Border>
+
+        <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
+          <TextBlock Grid.Column="0" Classes="rowTitle" VerticalAlignment="Center"
+                     Margin="{DynamicResource PageRowGapRight}"
+                     Text="Закрытие окна свёртывает в трей" />
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding MinimiseOnClose}" />
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sectionHeading" Text="УВЕДОМЛЕНИЯ И ОПРОС" />
+    <Border Classes="sectionCard">
+      <StackPanel>
+        <Border Classes="rule">
+          <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
+                        Margin="{DynamicResource PageRowGapRight}">
+              <TextBlock Classes="rowTitle" Text="Порог низкого заряда" />
+              <TextBlock Classes="caption" TextWrapping="Wrap"
+                         Text="Уведомление показывается один раз на разряд" />
+            </StackPanel>
+            <Grid Grid.Column="1" Width="{DynamicResource PageControlWidth}"
+                  ColumnDefinitions="*,Auto">
+              <Slider Grid.Column="0" Minimum="5" Maximum="50" TickFrequency="5"
+                      IsSnapToTickEnabled="True"
+                      Value="{Binding LowBatteryThreshold}"
+                      VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Classes="value" MinWidth="44"
+                         TextAlignment="Right" VerticalAlignment="Center"
+                         Text="{Binding LowBatteryLabel}" />
+            </Grid>
+          </Grid>
+        </Border>
+
+        <Border Classes="rule">
+          <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
+                        Margin="{DynamicResource PageRowGapRight}">
+              <TextBlock Classes="rowTitle" Text="Попап при подключении" />
+              <TextBlock Classes="caption" Text="Короткая карточка у трея, когда устройство появилось" />
+            </StackPanel>
+            <ToggleSwitch Grid.Column="1" IsChecked="{Binding ShowConnectPopup}" />
+          </Grid>
+        </Border>
+
+        <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
+                      Margin="{DynamicResource PageRowGapRight}">
+            <TextBlock Classes="rowTitle" Text="Частота опроса устройств" />
+            <TextBlock Classes="caption" TextWrapping="Wrap"
+                       Text="Чаще — точнее заряд, выше расход батареи устройства" />
+          </StackPanel>
+          <ComboBox Grid.Column="1" Width="{DynamicResource PageControlWidth}"
+                    ItemsSource="{Binding PollIntervals}"
+                    SelectedIndex="{Binding PollIntervalIndex}" />
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <!--
+      Artboard 13b. Hidden is not forgotten: the pairing in Windows is untouched and the
+      device comes back whole. Saying that here, where the way back is, is what keeps
+      hiding from feeling like deleting.
+    -->
+    <TextBlock Classes="sectionHeading" Text="{Binding HiddenHeading}" />
+    <Border Classes="sectionCard">
+      <StackPanel>
+        <TextBlock Classes="caption" TextWrapping="Wrap"
+                   Margin="16,14,16,4"
+                   Text="Эти устройства не показываются на дашборде, в трее и в уведомлениях. Пары в Windows не тронуты: вернёте в список — данные снова начнут читаться." />
+
+        <ItemsControl ItemsSource="{Binding Hidden}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="pages:HiddenDeviceViewModel">
+              <Border Classes="rule">
+                <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
+                  <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
+                              Margin="{DynamicResource PageRowGapRight}">
+                    <TextBlock Classes="rowTitle" Text="{Binding DisplayName}" />
+                    <TextBlock Classes="caption" Text="{Binding When}" />
+                  </StackPanel>
+                  <Button Grid.Column="1" Content="Вернуть в список"
+                          Command="{Binding RestoreCommand}" />
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <TextBlock Classes="caption" Margin="16,10,16,14"
+                   IsVisible="{Binding !HasHidden}"
+                   Text="Ничего не скрыто." />
+
+        <Border Classes="rule">
+          <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
+                        Margin="{DynamicResource PageRowGapRight}">
+              <TextBlock Classes="rowTitle" Text="Скрывать новые устройства без данных" />
+              <TextBlock Classes="caption" TextWrapping="Wrap"
+                         Text="Те, что не сообщают ни имени, ни класса — сразу в скрытые" />
+            </StackPanel>
+            <ToggleSwitch Grid.Column="1" IsChecked="{Binding HideSilentDevices}" />
+          </Grid>
+        </Border>
+
+        <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
+                      Margin="{DynamicResource PageRowGapRight}">
+            <TextBlock Classes="rowTitle" Text="Вернуть все" />
+            <TextBlock Classes="caption" Text="Скрытые устройства снова появятся на дашборде" />
+          </StackPanel>
+          <Button Grid.Column="1" Content="Вернуть все"
+                  IsEnabled="{Binding HasHidden}"
+                  Command="{Binding ShowAllHiddenCommand}" />
+        </Grid>
+      </StackPanel>
+    </Border>
+
+  </StackPanel>
+
+</UserControl>

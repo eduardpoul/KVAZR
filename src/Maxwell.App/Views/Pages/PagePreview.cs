@@ -5,6 +5,9 @@ using Avalonia.Media.Imaging;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Maxwell.App.ViewModels.Devices;
+using Maxwell.App.Platform;
+using Maxwell.Core.Abstractions;
+using Maxwell.Core.Settings;
 using Maxwell.App.ViewModels.Pages;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Drivers.Mock;
@@ -57,9 +60,66 @@ internal static class PagePreview
             // developer's machine is never. Rendering it on demand is the only way it
             // gets looked at more than once.
             Render($"{path}-welcome-{suffix}.png", theme, PageWidth, () => new WelcomeView());
+            Render($"{path}-settings-{suffix}.png", theme, PageWidth, Settings);
+            Render($"{path}-about-{suffix}.png", theme, PageWidth, About);
             Render($"{path}-mouse-{suffix}.png", theme, PageWidth, () => Device(MockDeviceDriver.MouseKey));
             Render($"{path}-keyboard-{suffix}.png", theme, PageWidth, () => Device(MockDeviceDriver.KeyboardKey));
         }
+    }
+
+    /// <summary>
+    /// The settings screen with a real store behind it, so the rendered controls show
+    /// the values a first launch would. A page rendered against nulls proves the layout
+    /// and nothing about whether the bindings reach anything.
+    /// </summary>
+    private static SettingsView Settings()
+    {
+        var store = new PreviewSettings();
+        using var registry = new DeviceRegistry(
+            [], new InMemoryCapabilityLedger(), NullLoggerFactory.Instance);
+
+        return new SettingsView
+        {
+            DataContext = new SettingsViewModel(store, new PreviewAutostart(), registry, new HiddenDevices(store)),
+        };
+    }
+
+    /// <summary>Settings that live for the length of one render and touch no file.</summary>
+    private sealed class PreviewSettings : ISettingsStore
+    {
+        public AppSettings Current { get; } = new();
+
+        public event EventHandler<AppSettings>? Changed;
+
+        public Task LoadAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task SaveAsync(CancellationToken cancellationToken = default)
+        {
+            Changed?.Invoke(this, Current);
+            return Task.CompletedTask;
+        }
+    }
+
+    /// <summary>Rendering a screenshot must not write to the user's Run key.</summary>
+    private sealed class PreviewAutostart : IAutostart
+    {
+        public bool IsEnabled => false;
+
+        public bool StartsMinimised => true;
+
+        public void Enable(bool startMinimised)
+        {
+        }
+
+        public void Disable()
+        {
+        }
+    }
+
+    private static AboutView About()
+    {
+        var registry = new DeviceRegistry([], new InMemoryCapabilityLedger(), NullLoggerFactory.Instance);
+        return new AboutView { DataContext = new AboutViewModel(registry) };
     }
 
     private static CapabilityShowcaseView Showcase() =>

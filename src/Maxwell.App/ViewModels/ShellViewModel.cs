@@ -39,6 +39,8 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         IConfirmationPrompt confirm,
         HiddenDevices hidden,
         CapabilityShowcaseViewModel showcase,
+        SettingsViewModel settings,
+        AboutViewModel about,
         FirstSweep sweep)
     {
         ArgumentNullException.ThrowIfNull(registry);
@@ -46,6 +48,8 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         ArgumentNullException.ThrowIfNull(confirm);
         ArgumentNullException.ThrowIfNull(hidden);
         ArgumentNullException.ThrowIfNull(showcase);
+        ArgumentNullException.ThrowIfNull(settings);
+        ArgumentNullException.ThrowIfNull(about);
         ArgumentNullException.ThrowIfNull(sweep);
 
         _registry = registry;
@@ -53,7 +57,13 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         _confirm = confirm;
         _hidden = hidden;
 
-        AppSections = [new AppSection(showcase.Title, showcase), new AppSection(Identity.Title, Identity)];
+        AppSections =
+        [
+            new AppSection(settings.Title, settings),
+            new AppSection(showcase.Title, showcase),
+            new AppSection(Identity.Title, Identity),
+            new AppSection(about.Title, about),
+        ];
         Dashboard = new DashboardViewModel(this, Devices, Loading);
         CurrentPage = Dashboard;
 

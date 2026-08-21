@@ -1,0 +1,131 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Maxwell.App.Controls"
+             xmlns:pages="using:Maxwell.App.ViewModels.Pages"
+             x:Class="Maxwell.App.Views.Pages.AboutView"
+             x:DataType="pages:AboutViewModel">
+
+  <!--
+    Artboard 7b. The mark, the version, the firmware of whatever is attached, and the
+    credits — including the line at the foot saying this project is not connected to the
+    companies whose devices it names. That line is why shipping their product photographs
+    is comfortable rather than awkward, and it belongs somewhere a person can reach.
+  -->
+
+  <UserControl.Styles>
+    <Style Selector="Border.sectionCard">
+      <Setter Property="Background" Value="{DynamicResource LayerCardBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource StrokeSubtleBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="{DynamicResource RadiusCard}" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+    <Style Selector="Border.rule">
+      <Setter Property="BorderBrush" Value="{DynamicResource StrokeSubtleBrush}" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+    <Style Selector="Grid.settingRow">
+      <Setter Property="MinHeight" Value="{DynamicResource PageRowHeight}" />
+      <Setter Property="Margin" Value="{DynamicResource PageRowPadding}" />
+    </Style>
+    <Style Selector="TextBlock.sectionHeading">
+      <Setter Property="FontSize" Value="{DynamicResource SectionHeadingSize}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+      <Setter Property="LetterSpacing" Value="0.24" />
+      <Setter Property="Margin" Value="0,4,0,0" />
+    </Style>
+    <Style Selector="TextBlock.rowTitle">
+      <Setter Property="FontSize" Value="{DynamicResource PageRowTitleSize}" />
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Spacing="8" MaxWidth="820" HorizontalAlignment="Left">
+
+    <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,8">
+      <Border Grid.Column="0" Width="64" Height="64" Margin="0,0,20,0"
+              CornerRadius="{DynamicResource RadiusCard}"
+              Background="{DynamicResource LayerAltBrush}"
+              VerticalAlignment="Center">
+        <controls:KvazrMarkControl Width="44" Height="44"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+      </Border>
+
+      <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+        <TextBlock FontSize="{DynamicResource HeroNameSize}" FontWeight="SemiBold"
+                   LetterSpacing="-0.26" Text="{Binding Name}" />
+        <TextBlock Classes="caption" Text="{Binding Version}" />
+      </StackPanel>
+    </Grid>
+
+    <TextBlock Classes="sectionHeading" Text="ПРОШИВКИ УСТРОЙСТВ"
+               IsVisible="{Binding HasFirmware}" />
+    <Border Classes="sectionCard" IsVisible="{Binding HasFirmware}">
+      <ItemsControl ItemsSource="{Binding Firmware}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="pages:FirmwareRow">
+            <Border Classes="rule">
+              <Grid Classes="settingRow" ColumnDefinitions="*,Auto,Auto">
+                <TextBlock Grid.Column="0" Classes="rowTitle" VerticalAlignment="Center"
+                           Margin="{DynamicResource PageRowGapRight}"
+                           Text="{Binding Device}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="1" Classes="value" VerticalAlignment="Center"
+                           Text="{Binding Version}" />
+                <TextBlock Grid.Column="2" Classes="caption" VerticalAlignment="Center"
+                           Margin="12,0,0,0"
+                           IsVisible="{Binding HasChecked}"
+                           Text="{Binding Checked}" />
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </Border>
+
+    <TextBlock Classes="sectionHeading" Text="ПРОЕКТ" />
+    <Border Classes="sectionCard">
+      <StackPanel>
+        <Border Classes="rule">
+          <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
+                        Margin="{DynamicResource PageRowGapRight}">
+              <TextBlock Classes="rowTitle" Text="Протокол устройств" />
+              <TextBlock Classes="caption" TextWrapping="Wrap"
+                         Text="RACE для Audeze разобран самостоятельно. Совместимость с VIA и HID++ — по открытым описаниям протоколов" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <!--
+          The picture credits. Some of the bundled photographs carry obligations and all
+          of them have an origin worth being able to answer for; Assets/Devices/images.json
+          records each one, and this row is what makes that reachable rather than buried.
+        -->
+        <Border Classes="rule">
+          <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
+                        Margin="{DynamicResource PageRowGapRight}">
+              <TextBlock Classes="rowTitle" Text="Изображения устройств" />
+              <TextBlock Classes="caption" TextWrapping="Wrap"
+                         Text="Продуктовые снимки производителей, приведённые к общему виду. Происхождение каждого записано в Assets/Devices/images.json" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
+                      Margin="{DynamicResource PageRowGapRight}">
+            <TextBlock Classes="rowTitle" Text="Устройства без записи в каталоге" />
+            <TextBlock Classes="caption" TextWrapping="Wrap"
+                       Text="Показываются тем, что о них знает система: имя, класс, подключение и заряд, если устройство его сообщает" />
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="caption" TextWrapping="Wrap" Margin="0,10,0,0"
+               Text="{Binding Disclaimer}" />
+
+  </StackPanel>
+
+</UserControl>

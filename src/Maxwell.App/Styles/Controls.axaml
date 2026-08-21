@@ -342,6 +342,15 @@
        to open this dialog, and hiding the consequence would be worse than naming it. -->
   <!-- The one filled button. There is at most one per screen, because a second thing
        shouting for the same attention means neither is the obvious next step. -->
+  <!-- No "On"/"Off" beside the switch. The artboards never show it, and the label to
+       its left already says what the switch is for — the word only repeats the position
+       of the thumb in a second, slower way, and it does so in English. -->
+  <Style Selector="ToggleSwitch">
+    <Setter Property="OnContent" Value="" />
+    <Setter Property="OffContent" Value="" />
+    <Setter Property="MinWidth" Value="0" />
+  </Style>
+
   <Style Selector="Button.accent">
     <Setter Property="Height" Value="34" />
     <Setter Property="Padding" Value="16,0" />

@@ -1,5 +1,22 @@
 namespace Maxwell.Core.Settings;
 
+/// <summary>
+/// Whose battery the tray icon shows when several devices are attached.
+///
+/// Artboard 4c drew both answers and refused to pick; artboard 7a settles it by making it
+/// a choice, with the primary device as the default. The two are genuinely different
+/// promises: one number that stays put and can be learned, or one that is always the most
+/// urgent and therefore always moving.
+/// </summary>
+public enum TrayPercentSource
+{
+    /// <summary>The chosen device. Predictable — the user knows whose number that is.</summary>
+    Primary,
+
+    /// <summary>Whichever is closest to flat. The warning cannot be missed; the number jumps.</summary>
+    Lowest,
+}
+
 /// <summary>Which theme the window should follow.</summary>
 public enum AppTheme
 {
@@ -23,6 +40,31 @@ public sealed class AppSettings
 
     /// <summary>Draw the battery percentage into the tray icon rather than a plain glyph.</summary>
     public bool ShowPercentageInTray { get; set; } = true;
+
+    /// <summary>Whose battery the tray icon draws when several devices are attached.</summary>
+    public TrayPercentSource TrayPercentFrom { get; set; } = TrayPercentSource.Primary;
+
+    /// <summary>
+    /// Interface language as a culture name. Empty means follow the system. Applied
+    /// without a restart, which is worth saying on the screen because most applications
+    /// that offer this ask for one.
+    /// </summary>
+    public string Language { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Closing the window puts it in the tray instead of quitting. On by default, because
+    /// a tray utility that exits when its window is closed stops doing the one thing it
+    /// was installed for, and does so silently.
+    /// </summary>
+    public bool MinimiseOnClose { get; set; } = true;
+
+    /// <summary>
+    /// How often devices are asked, in seconds. Lives here rather than only in
+    /// configuration because the artboard puts it on the settings screen, and the trade
+    /// is real and personal: more often means a fresher number and a flatter battery in
+    /// the device. Zero means take the configured default.
+    /// </summary>
+    public int PollingSeconds { get; set; }
 
     /// <summary>Show a popup when the headset connects.</summary>
     public bool ShowConnectPopup { get; set; } = true;
@@ -110,6 +152,10 @@ public sealed class AppSettings
         RunAtLogin = RunAtLogin,
         StartMinimised = StartMinimised,
         ShowPercentageInTray = ShowPercentageInTray,
+        TrayPercentFrom = TrayPercentFrom,
+        Language = Language,
+        MinimiseOnClose = MinimiseOnClose,
+        PollingSeconds = PollingSeconds,
         ShowConnectPopup = ShowConnectPopup,
         NotifyLowBattery = NotifyLowBattery,
         LowBatteryThreshold = LowBatteryThreshold,
