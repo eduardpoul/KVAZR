@@ -1,5 +1,6 @@
 using Maxwell.Core.Abstractions;
 using Maxwell.Race.Abstractions;
+using Maxwell.Core.Catalogue;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Drivers.Audeze;
 using Maxwell.Core.Drivers.Mock;
@@ -36,7 +37,7 @@ internal static class DeviceInventory
 
             // Everything else on the machine. Expected to be shadowed for the Audeze —
             // that is the arrangement working, not a clash.
-            new SystemDeviceDriver(new WindowsSystemDeviceEnumerator()),
+            new SystemDeviceDriver(new WindowsSystemDeviceEnumerator(), new DeviceCatalogue()),
         ];
 
         if (includeMocks) drivers.Add(new MockDeviceDriver());

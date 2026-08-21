@@ -1,0 +1,129 @@
+{
+  "$comment": [
+    "Models, and how to recognise them. Data, never code.",
+    "",
+    "Adding a device here must never mean adding a class, because the moment it does the",
+    "hundredth device costs what the first one did. Everything in this file is an",
+    "improvement on what the operating system already reported — a better name, a class it",
+    "could not work out, a picture — and never a precondition for the device appearing at",
+    "all. Delete this file and every device still shows up, just plainer.",
+    "",
+    "unverified: true means nobody here has held the device against the entry. The",
+    "interface already has a word for that and it is the amber mark, not silence.",
+    "",
+    "The vendor table below is small on purpose. DEVPKEY_Device_Manufacturer is the author",
+    "of the driver package rather than of the hardware — it says Microsoft for a Logitech",
+    "receiver — so the vendor id is the honest source, and only ids with a justification",
+    "are listed."
+  ],
+
+  "vendors": {
+    "046d": "Logitech",
+    "0951": "Kingston",
+    "3329": "Audeze",
+    "19f5": "NuPhy",
+    "37d7": "Flydigi",
+    "05ac": "Apple"
+  },
+
+  "devices": [
+    {
+      "slug": "audeze-maxwell",
+      "vendor": "Audeze",
+      "model": "Audeze Maxwell",
+      "class": "Headset",
+      "usb": ["3329:4b18", "3329:4b19", "3329:4b1a", "3329:4b1e"],
+      "names": ["Audeze Maxwell"]
+    },
+
+    {
+      "$note": "Two product ids, one microphone. The enumerator is right to list them separately — it has no way to know — and this is where they become one device.",
+      "slug": "hyperx-quadcast-s",
+      "vendor": "HyperX",
+      "model": "HyperX QuadCast S",
+      "class": "Microphone",
+      "usb": ["0951:171d", "0951:171f"]
+    },
+
+    {
+      "$note": "The dongle, not the keyboard behind it. Which board is paired to it is a question only the VIA protocol can answer, and until that driver exists calling this a keyboard would be naming a device that is not there.",
+      "slug": "nuphy-air96-v2-dongle",
+      "vendor": "NuPhy",
+      "model": "NuPhy Air96 V2 Dongle",
+      "class": "Receiver",
+      "usb": ["19f5:3247"]
+    },
+
+    {
+      "$note": "Same again for Logitech: one receiver serves whatever is paired to it, and HID++ is what will eventually say what that is.",
+      "slug": "logitech-lightspeed-receiver",
+      "vendor": "Logitech",
+      "model": "Logitech USB Receiver",
+      "class": "Receiver",
+      "usb": ["046d:c54d", "046d:c547", "046d:c52b"]
+    },
+
+    {
+      "slug": "flydigi-cd2",
+      "vendor": "Flydigi",
+      "model": "Flydigi Charger Dock 2",
+      "usb": ["37d7:6001"]
+    },
+
+    {
+      "$note": "In the design and not on this desk. Matched by Bluetooth name only, because Apple exposes no product id Windows can see.",
+      "slug": "apple-airpods-pro-2",
+      "vendor": "Apple",
+      "model": "Apple AirPods Pro 2",
+      "class": "Earbuds",
+      "names": ["AirPods Pro"],
+      "unverified": true
+    },
+
+    {
+      "slug": "jbl-flip-6",
+      "vendor": "JBL",
+      "model": "JBL Flip 6",
+      "class": "Speaker",
+      "names": ["JBL Flip 6"],
+      "unverified": true
+    },
+
+    {
+      "$note": "The product ids are unknown here, so this only matches over Bluetooth. Adding a guessed id would be worse than matching nothing: a wrong id claims a different device is this one.",
+      "slug": "logitech-g-pro-x-superlight-2",
+      "vendor": "Logitech",
+      "model": "Logitech G Pro X Superlight 2",
+      "class": "Mouse",
+      "names": ["G Pro X Superlight 2", "PRO X Superlight 2"],
+      "unverified": true
+    },
+
+    {
+      "slug": "nuphy-air75-v2",
+      "vendor": "NuPhy",
+      "model": "NuPhy Air75 V2",
+      "class": "Keyboard",
+      "names": ["Air75 V2"],
+      "unverified": true
+    },
+
+    {
+      "slug": "nuphy-halo75-v2",
+      "vendor": "NuPhy",
+      "model": "NuPhy Halo75 V2",
+      "class": "Keyboard",
+      "names": ["Halo75"],
+      "unverified": true
+    },
+
+    {
+      "slug": "flydigi-apex-5",
+      "vendor": "Flydigi",
+      "model": "Flydigi Apex 5",
+      "class": "Gamepad",
+      "names": ["APEX 5", "Apex 5"],
+      "unverified": true
+    }
+  ]
+}

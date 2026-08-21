@@ -107,11 +107,20 @@ public sealed record DeviceInfo
     public IReadOnlyList<TransportInfo> Transports { get; init; } = [];
 
     /// <summary>
-    /// The maker is often unknown — Windows reports "(Standard system devices)" for most
-    /// peripherals and the system driver refuses to pass that on — so the model has to
-    /// stand alone rather than trailing an empty vendor and a stray space.
+    /// The name as a person would write it, maker included exactly once.
+    ///
+    /// Two things make this less obvious than it looks. The maker is often unknown, since
+    /// Windows reports "(Standard system devices)" for most peripherals and the system
+    /// driver refuses to pass that on — so the model has to be able to stand alone rather
+    /// than trailing an empty vendor and a stray space. And the model frequently already
+    /// carries the brand, whether it came from a catalogue entry or from what the device
+    /// calls itself on the bus, which is how "Flydigi Flydigi Charger Dock 2" happens.
     /// </summary>
-    public string DisplayName => string.IsNullOrWhiteSpace(Vendor) ? Model : $"{Vendor} {Model}";
+    public string DisplayName =>
+        string.IsNullOrWhiteSpace(Vendor)
+        || Model.StartsWith(Vendor, StringComparison.CurrentCultureIgnoreCase)
+            ? Model
+            : $"{Vendor} {Model}";
 
     /// <summary>The channel that answers configuration commands, when one is present.</summary>
     public TransportInfo? ControlTransport =>

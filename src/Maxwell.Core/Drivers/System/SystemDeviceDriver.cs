@@ -1,3 +1,4 @@
+using Maxwell.Core.Catalogue;
 using Maxwell.Core.Devices;
 using Maxwell.Race.Abstractions;
 
@@ -22,11 +23,18 @@ namespace Maxwell.Core.Drivers.System;
 public sealed class SystemDeviceDriver : IDeviceDriver
 {
     private readonly ISystemDeviceEnumerator _enumerator;
+    private readonly IDeviceCatalogue _catalogue;
 
-    public SystemDeviceDriver(ISystemDeviceEnumerator enumerator)
+    public SystemDeviceDriver(ISystemDeviceEnumerator enumerator, IDeviceCatalogue? catalogue = null)
     {
         ArgumentNullException.ThrowIfNull(enumerator);
+
         _enumerator = enumerator;
+
+        // Optional on purpose. Everything the catalogue adds is an improvement on what
+        // the system already reported, so running without one has to work — and the test
+        // that proves it passes EmptyCatalogue.
+        _catalogue = catalogue ?? EmptyCatalogue.Instance;
     }
 
     public string DriverId => "system";
@@ -35,42 +43,82 @@ public sealed class SystemDeviceDriver : IDeviceDriver
 
     public Task<IReadOnlyList<DeviceInfo>> DiscoverAsync(CancellationToken cancellationToken = default)
     {
-        var devices = new List<DeviceInfo>();
+        var found = new List<Candidate>();
 
         foreach (IGrouping<Guid, SystemDeviceNode> container in _enumerator.Enumerate().GroupBy(n => n.ContainerId))
         {
             List<SystemDeviceNode> nodes = [.. container];
             if (!SystemDeviceProfile.IsPeripheral(nodes)) continue;
 
-            DeviceClass deviceClass = SystemDeviceProfile.Classify(nodes);
-            string name = SystemDeviceProfile.Name(nodes);
+            HashSet<string> ids = SystemDeviceProfile.HardwareIds(container.Key, nodes);
+            string reported = SystemDeviceProfile.Name(nodes);
+
+            found.Add(new Candidate(container.Key, nodes, ids, reported, _catalogue.Match(ids, reported)));
+        }
+
+        return Task.FromResult<IReadOnlyList<DeviceInfo>>(Assemble(found));
+    }
+
+    /// <summary>
+    /// Turns the containers into devices, joining any that the catalogue says are one.
+    ///
+    /// The QuadCast S is why this exists: Windows sees two USB devices with two product
+    /// ids and is right to, since nothing it can read says otherwise. Only something with
+    /// knowledge can say they are one microphone, and that is a catalogue entry — so the
+    /// join happens here, after matching, rather than anywhere inside the enumerator.
+    /// </summary>
+    private List<DeviceInfo> Assemble(List<Candidate> found)
+    {
+        var devices = new List<DeviceInfo>();
+
+        foreach (IGrouping<string, Candidate> model in found.GroupBy(c => c.Entry?.Slug ?? $"container:{c.Container:D}"))
+        {
+            List<Candidate> parts = [.. model];
+            Candidate first = parts[0];
+            CatalogueEntry? entry = first.Entry;
+
+            List<SystemDeviceNode> nodes = [.. parts.SelectMany(p => p.Nodes)];
+            var ids = new HashSet<string>(parts.SelectMany(p => p.Ids), StringComparer.Ordinal);
+
+            DeviceClass observed = SystemDeviceProfile.Classify(nodes);
+
+            // The entry is a guess and the device is a fact. Where the hardware has said
+            // what it is, that wins — an entry claiming "headset" over a device reporting
+            // a keyboard is an entry that is wrong about this machine, and believing it
+            // would put the wrong sections on the page.
+            DeviceClass deviceClass = observed != DeviceClass.Unknown ? observed : entry?.Class ?? DeviceClass.Unknown;
 
             devices.Add(new DeviceInfo
             {
-                // Keyed on the container rather than on the product ids: a Bluetooth
-                // device has no product ids at all, and the container is the one
-                // identifier every device here is guaranteed to have.
-                Key = $"system:{container.Key:D}",
+                // Still keyed on a container even when several were joined, because the
+                // key has to survive a restart and the slug only exists while an entry
+                // matches. Lowest container id, so the choice does not depend on the
+                // order Windows happened to enumerate in.
+                Key = $"system:{parts.Min(p => p.Container):D}",
                 DriverId = DriverId,
 
-                // No maker, deliberately. The obvious property for it —
-                // DEVPKEY_Device_Manufacturer — is the manufacturer of the *driver
-                // package*, not of the hardware, so it reads "Microsoft" for a Logitech
-                // receiver and "(Standard USB Host Controller)" for a HyperX microphone.
-                // The bus-reported name already carries the brand: "HyperX QuadCast S",
-                // "NuPhy Air96 V2 Dongle", "Audeze Maxwell BT". Splitting a real maker
-                // out of that needs a vendor-id table, which is catalogue work.
-                Vendor = string.Empty,
-                Model = name,
+                // Vendor from the catalogue, or from the vendor-id table, or nothing.
+                // Never from DEVPKEY_Device_Manufacturer: that is the author of the
+                // driver package, and it reads "Microsoft" for a Logitech receiver.
+                Vendor = entry?.Vendor ?? _catalogue.Vendor(ids) ?? string.Empty,
+                Model = entry?.Model ?? first.Reported,
                 Class = deviceClass,
-                ImageKey = null,
-                HardwareIds = SystemDeviceProfile.HardwareIds(container.Key, nodes),
+                ImageKey = entry?.Slug,
+                HardwareIds = ids,
                 Transports = SystemDeviceProfile.Transports(nodes, deviceClass),
             });
         }
 
-        return Task.FromResult<IReadOnlyList<DeviceInfo>>(devices);
+        return devices;
     }
+
+    /// <summary>One container, and what the catalogue made of it.</summary>
+    private sealed record Candidate(
+        Guid Container,
+        List<SystemDeviceNode> Nodes,
+        HashSet<string> Ids,
+        string Reported,
+        CatalogueEntry? Entry);
 
     public Task<IDeviceConnection> ConnectAsync(
         DeviceInfo device,

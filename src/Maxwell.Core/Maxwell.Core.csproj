@@ -14,4 +14,11 @@
     <ProjectReference Include="..\Maxwell.Race\Maxwell.Race.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The catalogue travels inside the assembly so Core stays self-contained and
+         testable without a file path. When it outgrows a binary it becomes a document
+         fetched from a repository, and nothing above IDeviceCatalogue notices. -->
+    <EmbeddedResource Include="Catalogue/devices.json" />
+  </ItemGroup>
+
 </Project>

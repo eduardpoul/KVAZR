@@ -2,6 +2,7 @@ using Maxwell.Core.Firmware;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Runtime.Versioning;
 using Maxwell.Core.Abstractions;
+using Maxwell.Core.Catalogue;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Drivers.Audeze;
 using Maxwell.Core.Drivers.Mock;
@@ -81,6 +82,8 @@ public static class ServiceCollectionExtensions
         // the registry shadows on tier. It is here so that a machine with nothing this
         // application understands still shows the user their devices rather than an
         // empty list, which is indistinguishable from the application being broken.
+        services.TryAddSingleton<IDeviceCatalogue, DeviceCatalogue>();
+
         if (services.Any(d => d.ServiceType == typeof(ISystemDeviceEnumerator)))
         {
             services.AddSingleton<IDeviceDriver, SystemDeviceDriver>();
