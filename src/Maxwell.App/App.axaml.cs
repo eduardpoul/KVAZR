@@ -62,6 +62,7 @@ public partial class App : Application, IDisposable
     private ConnectPopupWindow? _popup;
     private IDeviceRegistry? _registry;
     private PrimaryDevice? _primary;
+    private HiddenDevices? _hidden;
     private ISettingsStore? _settings;
     private HotkeyCoordinator? _hotkeys;
     private SplashWindow? _splash;
@@ -101,6 +102,7 @@ public partial class App : Application, IDisposable
 
             _registry = _services.GetRequiredService<IDeviceRegistry>();
             _primary = _services.GetRequiredService<PrimaryDevice>();
+            _hidden = _services.GetRequiredService<HiddenDevices>();
             _registry.DevicesChanged += OnDevicesChanged;
 
             // Seeded, not announced. Discovery runs before the tray subscribes, and a
@@ -335,21 +337,14 @@ public partial class App : Application, IDisposable
     {
         if (_tray is null) return;
 
-        DeviceSnapshot? device = _primary?.Snapshot;
-
-        // Two glyphs answering two questions. The percentage plate says how much is
-        // left about one device; the mark says whether anything wants attention across
-        // all of them. The setting is the user choosing which question the notification
-        // area is for, and a plate with no number to put in it is not an answer, so a
-        // device without a reading falls back to the mark either way.
-        bool withPercentage = (_settings?.Current.ShowPercentageInTray ?? true)
-            && device?.BatteryPercent is not null;
-
-        _tray.Icon = withPercentage
-            ? TrayIconRenderer.Render(device!.BatteryPercent!.Value, device.IsCharging)
-            : TrayIconRenderer.Render(MarkState());
-
-        _tray.ToolTipText = Describe(device);
+        // The mark, always. A percentage in the notification area answers "how much is
+        // left" about exactly one device, and the application stopped being about one
+        // device — with eight attached, whichever number the icon showed would be the
+        // wrong one most of the time, and the setting that chose between them only moved
+        // the wrongness around. The mark answers the question that survives the change:
+        // whether anything wants attention.
+        _tray.Icon = TrayIconRenderer.Render(MarkState());
+        _tray.ToolTipText = Describe();
     }
 
     /// <summary>
@@ -365,18 +360,33 @@ public partial class App : Application, IDisposable
         lowBatteryThreshold: _settings?.Current.LowBatteryThreshold ?? 15);
 
     /// <summary>
-    /// One icon can carry one device. The tooltip names it, because with several
-    /// attached a bare percentage answers the wrong question.
+    /// What the icon can no longer say. The mark carries one state for the whole
+    /// machine, so the numbers move here: the devices that report a battery, most
+    /// nearly flat first, because that is the one worth reading before the rest.
+    ///
+    /// Four at most. A Windows tooltip is a small box that appears under a pointer, and
+    /// a list of eight lines in it is a list nobody reads.
     /// </summary>
-    private static string Describe(DeviceSnapshot? device) => device switch
+    private string Describe()
     {
-        null => "KVAZR — устройств не найдено",
-        { Availability: DeviceAvailability.Unreachable } =>
-            $"{device.Info.DisplayName} — не отвечает",
-        { BatteryPercent: { } percent } =>
-            $"{device.Info.DisplayName} — {percent}%{(device.IsCharging ? ", заряжается" : string.Empty)}",
-        _ => $"{device.Info.DisplayName} — подключено",
-    };
+        List<DeviceSnapshot> devices =
+            [.. (_registry?.Devices ?? []).Where(d => d.IsPresent && _hidden?.IsVisible(d) != false)];
+
+        if (devices.Count == 0) return "KVAZR — устройств не найдено";
+
+        List<string> lines =
+        [
+            .. devices
+                .Where(d => d.BatteryPercent is not null)
+                .OrderBy(d => d.BatteryPercent)
+                .Take(4)
+                .Select(d => $"{d.Info.DisplayName} — {d.BatteryPercent}%"),
+        ];
+
+        if (lines.Count == 0) return $"KVAZR — устройств: {devices.Count}";
+
+        return string.Join(Environment.NewLine, lines);
+    }
 
     private void ShowFlyout()
     {

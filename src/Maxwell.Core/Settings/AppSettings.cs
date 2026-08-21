@@ -1,22 +1,5 @@
 namespace Maxwell.Core.Settings;
 
-/// <summary>
-/// Whose battery the tray icon shows when several devices are attached.
-///
-/// Artboard 4c drew both answers and refused to pick; artboard 7a settles it by making it
-/// a choice, with the primary device as the default. The two are genuinely different
-/// promises: one number that stays put and can be learned, or one that is always the most
-/// urgent and therefore always moving.
-/// </summary>
-public enum TrayPercentSource
-{
-    /// <summary>The chosen device. Predictable — the user knows whose number that is.</summary>
-    Primary,
-
-    /// <summary>Whichever is closest to flat. The warning cannot be missed; the number jumps.</summary>
-    Lowest,
-}
-
 /// <summary>Which theme the window should follow.</summary>
 public enum AppTheme
 {
@@ -37,12 +20,6 @@ public sealed class AppSettings
     public bool RunAtLogin { get; set; }
 
     public bool StartMinimised { get; set; } = true;
-
-    /// <summary>Draw the battery percentage into the tray icon rather than a plain glyph.</summary>
-    public bool ShowPercentageInTray { get; set; } = true;
-
-    /// <summary>Whose battery the tray icon draws when several devices are attached.</summary>
-    public TrayPercentSource TrayPercentFrom { get; set; } = TrayPercentSource.Primary;
 
     /// <summary>
     /// Interface language as a culture name. Empty means follow the system. Applied
@@ -151,8 +128,6 @@ public sealed class AppSettings
         Theme = Theme,
         RunAtLogin = RunAtLogin,
         StartMinimised = StartMinimised,
-        ShowPercentageInTray = ShowPercentageInTray,
-        TrayPercentFrom = TrayPercentFrom,
         Language = Language,
         MinimiseOnClose = MinimiseOnClose,
         PollingSeconds = PollingSeconds,

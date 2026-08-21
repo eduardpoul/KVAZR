@@ -50,33 +50,6 @@
 
   <StackPanel Spacing="8" MaxWidth="820" HorizontalAlignment="Left">
 
-    <TextBlock Classes="sectionHeading" Text="ИКОНКА ТРЕЯ" />
-    <Border Classes="sectionCard">
-      <StackPanel>
-        <Border Classes="rule">
-          <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
-            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
-                        Margin="{DynamicResource PageRowGapRight}">
-              <TextBlock Classes="rowTitle" Text="Чей процент показывать" />
-              <TextBlock Classes="caption" Text="Основное — выбранное вручную устройство" />
-            </StackPanel>
-            <ComboBox Grid.Column="1" Width="{DynamicResource PageControlWidth}"
-                      ItemsSource="{Binding TraySources}"
-                      SelectedIndex="{Binding TraySourceIndex}" />
-          </Grid>
-        </Border>
-
-        <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
-          <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
-                      Margin="{DynamicResource PageRowGapRight}">
-            <TextBlock Classes="rowTitle" Text="Показывать процент цифрами" />
-            <TextBlock Classes="caption" Text="Иначе в трее только знак" />
-          </StackPanel>
-          <ToggleSwitch Grid.Column="1" IsChecked="{Binding ShowPercentage}" />
-        </Grid>
-      </StackPanel>
-    </Border>
-
     <TextBlock Classes="sectionHeading" Text="ВНЕШНИЙ ВИД" />
     <Border Classes="sectionCard">
       <StackPanel>

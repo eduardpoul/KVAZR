@@ -58,22 +58,6 @@ public sealed partial class SettingsViewModel : ObservableObject, IDisposable
 
     public string Title => "Параметры";
 
-    // ---------- tray icon ----------
-
-    public IReadOnlyList<string> TraySources { get; } = ["Основное устройство", "Самый низкий заряд"];
-
-    public int TraySourceIndex
-    {
-        get => _store.Current.TrayPercentFrom == TrayPercentSource.Lowest ? 1 : 0;
-        set => Write(s => s.TrayPercentFrom = value == 1 ? TrayPercentSource.Lowest : TrayPercentSource.Primary);
-    }
-
-    public bool ShowPercentage
-    {
-        get => _store.Current.ShowPercentageInTray;
-        set => Write(s => s.ShowPercentageInTray = value);
-    }
-
     // ---------- appearance ----------
 
     public int ThemeIndex

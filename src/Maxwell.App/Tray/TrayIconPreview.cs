@@ -30,15 +30,6 @@ internal static class TrayIconPreview
         ("ошибка связи", KvazrMarkState.LinkError),
     ];
 
-    private static readonly (string Label, int Percent, bool Charging)[] Cases =
-    [
-        ("обычное", 62, false),
-        ("низкий заряд", 9, false),
-        ("полный", 100, false),
-        ("зарядка", 62, true),
-        ("нет данных", -1, false),
-    ];
-
     /// <summary>Writes the grid to <paramref name="path"/>, magnified so pixels are visible.</summary>
     public static void Dump(string path, int magnify = 4)
     {
@@ -52,12 +43,11 @@ internal static class TrayIconPreview
 
         int width = labelWidth + (Sizes.Length * (cell + gutter)) + gutter;
 
-        // Two panels for the mark, two for the plate, one row of tiles, and a caption
-        // above each block.
-        int height = ((States.Length + Cases.Length) * rowHeight * 2)
+        // Two panels for the mark, one row of tiles, and a caption above each block.
+        int height = (States.Length * rowHeight * 2)
             + (KvazrAppIcon.Sizes.Length > 0 ? rowHeight * 2 : 0)
-            + (captionHeight * 6)
-            + 100;
+            + (captionHeight * 4)
+            + 80;
 
         var bitmap = new RenderTargetBitmap(new PixelSize(width, height), new Vector(96, 96));
 
@@ -68,11 +58,6 @@ internal static class TrayIconPreview
             foreach (TrayPanel panel in new[] { TrayPanel.Dark, TrayPanel.Light })
             {
                 y = MarkBlock(context, panel, width, y, cell, rowHeight, labelWidth, gutter, magnify, captionHeight);
-            }
-
-            foreach (TrayPanel panel in new[] { TrayPanel.Dark, TrayPanel.Light })
-            {
-                y = PlateBlock(context, panel, width, y, cell, rowHeight, labelWidth, gutter, magnify, captionHeight);
             }
 
             TileBlock(context, width, y, cell, rowHeight, labelWidth, gutter, magnify, captionHeight);
@@ -115,51 +100,6 @@ internal static class TrayIconPreview
             foreach (int size in Sizes)
             {
                 using Bitmap icon = TrayIconRenderer.DrawMark(state, size, panel);
-
-                double drawn = size * magnify;
-                double offset = (cell - drawn) / 2;
-
-                context.DrawImage(icon, new Rect(x + offset, rowY + offset, drawn, drawn));
-                x += cell + gutter;
-            }
-
-            rowY += rowHeight;
-        }
-
-        return y + blockHeight + 10;
-    }
-
-    private static int PlateBlock(
-        DrawingContext context,
-        TrayPanel panel,
-        int width,
-        int y,
-        int cell,
-        int rowHeight,
-        int labelWidth,
-        int gutter,
-        int magnify,
-        int captionHeight)
-    {
-        (Color background, Color ink) = Shades(panel);
-
-        int blockHeight = (Cases.Length * rowHeight) + captionHeight + 16;
-        context.DrawRectangle(new SolidColorBrush(background), null, new Rect(0, y, width, blockHeight));
-
-        Text(context, $"ПРОЦЕНТЫ · {(panel == TrayPanel.Dark ? "тёмная панель" : "светлая панель")}",
-            new Point(gutter, y + 8), ink, 13);
-
-        int rowY = y + captionHeight + 8;
-
-        foreach ((string label, int percent, bool charging) in Cases)
-        {
-            Text(context, label, new Point(gutter, rowY + (cell / 2.0) - 8), ink, 13);
-
-            int x = labelWidth;
-
-            foreach (int size in Sizes)
-            {
-                using Bitmap icon = TrayIconRenderer.Draw(percent, charging, size, panel);
 
                 double drawn = size * magnify;
                 double offset = (cell - drawn) / 2;
