@@ -78,16 +78,16 @@ public sealed class DeviceSessionTests
     }
 
     [Fact]
-    public async Task WithoutAControlChannel_TheDeviceIsVisibleAndItsControlsAreNot()
+    public async Task WhenTheDeviceDoesNotAnswer_ItIsVisibleAndItsControlsAreNot()
     {
         var fixture = new Fixture { ConnectFails = true };
         DeviceSession session = fixture.CreateSession();
 
         await session.MarkPresentAsync(fixture.Info, Ct);
 
-        // Present, readable in principle, driveable in no respect. This is an ordinary
-        // mode of use for a headset reachable only over its dongle, not a fault.
-        Assert.Equal(DeviceAvailability.MonitorOnly, session.Snapshot.Availability);
+        // Present, enumerated, silent. A headset switched off or out of range looks
+        // exactly like this, and it is an ordinary situation rather than a fault.
+        Assert.Equal(DeviceAvailability.Unreachable, session.Snapshot.Availability);
         Assert.False(session.Snapshot.CanControl);
     }
 

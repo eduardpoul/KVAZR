@@ -9,12 +9,17 @@ public enum ConnectionState
     NotFound,
 
     /// <summary>
-    /// Only the wireless dongle is present. It carries audio but answers no RACE
-    /// command, so the app can show the device and nothing else.
+    /// An interface is present but the headset does not answer. Usually a dongle
+    /// plugged in with the headset switched off or out of range; also what a device
+    /// held open by another process looks like.
+    ///
+    /// This used to mean "dongle connected, so control is impossible". That was
+    /// wrong — the dongle drives the headset perfectly well — and the distinction
+    /// that actually matters is whether anything answers, not which lead it came in on.
     /// </summary>
-    MonitorOnly,
+    Unreachable,
 
-    /// <summary>A cable is present: every feature is readable and writable.</summary>
+    /// <summary>The headset answers: every feature is readable and writable.</summary>
     Active,
 }
 
@@ -45,6 +50,13 @@ public sealed record DeviceState
 
     /// <summary>True when a dongle is present, whether or not a cable also is.</summary>
     public bool DonglePresent { get; init; }
+
+    /// <summary>
+    /// True when a cabled interface is present, whether or not a dongle also is.
+    /// Tracked separately from <see cref="CanControl"/>, which used to stand in for it
+    /// back when control implied a cable — it no longer does.
+    /// </summary>
+    public bool CablePresent { get; init; }
 
     /// <summary>Product string reported by the HID descriptor, when one is connected.</summary>
     public string? DeviceName { get; init; }
@@ -79,7 +91,11 @@ public sealed record DeviceState
 
     public bool HasBattery => BatteryPercent >= 0;
 
-    /// <summary>True when settings can be changed, not merely observed.</summary>
+    /// <summary>
+    /// True when settings can be changed, not merely observed. Deliberately says
+    /// nothing about the transport: reads and writes both go through the dongle as
+    /// readily as through the cable.
+    /// </summary>
     public bool CanControl => Connection == ConnectionState.Active;
 
     /// <summary>

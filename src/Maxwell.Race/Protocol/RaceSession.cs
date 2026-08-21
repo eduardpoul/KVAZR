@@ -11,7 +11,8 @@ public sealed class RaceSession : IDisposable
 {
     private const int PollIntervalMs = 10;
     private const int RetryDelayMs = 50;
-    private const int WriteSettleMs = 250;
+    private const int CableSettleMs = 250;
+    private const int DongleSettleMs = 600;
     private const int DefaultAttempts = 4;
     private const int DefaultWindowMs = 400;
 
@@ -219,6 +220,14 @@ public sealed class RaceSession : IDisposable
             value, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// How long to let a write land before reading it back. Over the dongle the value
+    /// has to cross the radio twice, and the cable's quarter second regularly expires
+    /// first — the write then reports failure while the setting has in fact changed,
+    /// which is worse than a plain failure because the UI and the device disagree.
+    /// </summary>
+    private int SettleMs => Descriptor.IsDongle ? DongleSettleMs : CableSettleMs;
+
     /// <summary>Write, settle, read back, repeat. The device drops writes silently, so verification is mandatory.</summary>
     private async Task<bool> WriteVerifiedAsync(
         byte[] body,
@@ -241,7 +250,7 @@ public sealed class RaceSession : IDisposable
                 _gate.Release();
             }
 
-            await Task.Delay(WriteSettleMs, cancellationToken).ConfigureAwait(false);
+            await Task.Delay(SettleMs, cancellationToken).ConfigureAwait(false);
             if (await readBack().ConfigureAwait(false) == expected) return true;
             await Task.Delay(RetryDelayMs * 3, cancellationToken).ConfigureAwait(false);
         }

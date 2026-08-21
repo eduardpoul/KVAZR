@@ -104,7 +104,11 @@ public enum RequirementKind
 {
     None,
 
-    /// <summary>Needs a channel that carries control, not merely audio.</summary>
+    /// <summary>
+    /// Needs the device to be answering. Not a statement about the lead: both the
+    /// cable and the dongle carry control, and either can be present while the headset
+    /// itself is switched off.
+    /// </summary>
     ControlChannel,
 
     /// <summary>Needs the detachable boom microphone to be attached.</summary>

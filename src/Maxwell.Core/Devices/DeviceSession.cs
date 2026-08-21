@@ -30,6 +30,14 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
     private IDeviceConnection? _connection;
     private DeviceInfo _info;
     private bool _present;
+
+    /// <summary>
+    /// Whether the device has answered anything. Opening an interface proves nothing:
+    /// a dongle whose headset is switched off or out of range enumerates exactly like
+    /// one with it awake, and swallows every request in silence. The only way to tell
+    /// them apart is to ask.
+    /// </summary>
+    private bool _answers;
     private DateTimeOffset? _updatedAt;
     private DateTimeOffset? _lastSeenAt;
     private bool _disposed;
@@ -62,9 +70,10 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
     // ---------- presence, driven by the registry ----------
 
     /// <summary>
-    /// The device is attached. Opens a connection if there is not one already; failing
-    /// to open is an ordinary outcome, not an error — a Maxwell reachable only over its
-    /// dongle has nothing to open and stays in monitor-only.
+    /// The device is attached. Opens a connection if there is not one already and then
+    /// asks the device something, because being open proves nothing about the hardware
+    /// being awake. Neither failure is an error — a headset that is switched off is an
+    /// ordinary situation, and it is asked again on the next sweep.
     /// </summary>
     public async Task MarkPresentAsync(DeviceInfo info, CancellationToken cancellationToken = default)
     {
@@ -88,6 +97,7 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
                     _connection = await _driver.ConnectAsync(info, cancellationToken).ConfigureAwait(false);
                     SeedCapabilities(_connection);
                     connected = true;
+                    _answers = false;
                 }
                 catch (IOException ex)
                 {
@@ -95,9 +105,20 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
                 }
             }
 
+            // A device that is not answering is asked again on every sweep. Without
+            // this a headset switched off once would stay marked unreachable until the
+            // application restarted.
+            bool probed = false;
+
+            if (_connection is not null && !_answers)
+            {
+                _answers = await AnswersAsync(_connection, cancellationToken).ConfigureAwait(false);
+                probed = true;
+            }
+
             // Discovery runs on a timer and mostly finds exactly what it found last
             // time. Announcing that is pure noise for everyone downstream.
-            if (wasPresent && !connected) return;
+            if (wasPresent && !connected && !probed) return;
 
             Publish();
         }
@@ -345,8 +366,44 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
 
     private DeviceAvailability Availability() =>
         !_present ? DeviceAvailability.Offline
-        : _connection is null ? DeviceAvailability.MonitorOnly
-        : DeviceAvailability.Active;
+        : _connection is not null && _answers ? DeviceAvailability.Active
+        : DeviceAvailability.Unreachable;
+
+    /// <summary>
+    /// Asks the device one question and sees whether anything comes back. The battery is
+    /// the natural probe — every device has one and it is the cheapest read — and the
+    /// answer is kept rather than thrown away, because over a radio link a full refresh
+    /// takes long enough that discarding it would leave the page blank meanwhile.
+    /// </summary>
+    private async Task<bool> AnswersAsync(IDeviceConnection connection, CancellationToken cancellationToken)
+    {
+        string? probe = connection.Capabilities.Any(c => c.Id == CapabilityIds.PowerBattery)
+            ? CapabilityIds.PowerBattery
+            : connection.Capabilities.FirstOrDefault(c => c.IsReadable)?.Id;
+
+        // Nothing readable to ask. Being open is the best evidence available.
+        if (probe is null) return true;
+
+        try
+        {
+            CapabilityValue value = await connection.ReadAsync(probe, cancellationToken).ConfigureAwait(false);
+            if (value.IsAbsent) return false;
+
+            if (_states.TryGetValue(probe, out CapabilityState? state))
+            {
+                _states[probe] = state with { Value = value };
+                _updatedAt = DateTimeOffset.Now;
+            }
+
+            return true;
+        }
+        catch (IOException ex)
+        {
+            _logger.DeviceReadFailed(ex, _info.Key);
+            DropConnection();
+            return false;
+        }
+    }
 
     private bool IsRequirementMet(Capability descriptor, DeviceAvailability availability) =>
         descriptor.Requirement switch
@@ -378,6 +435,7 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
     {
         _connection?.Dispose();
         _connection = null;
+        _answers = false;
     }
 
     public void Dispose()

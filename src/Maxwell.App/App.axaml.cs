@@ -211,8 +211,8 @@ public partial class App : Application, IDisposable
     private static string Describe(DeviceSnapshot? device) => device switch
     {
         null => "Устройств не найдено",
-        { Availability: DeviceAvailability.MonitorOnly } =>
-            $"{device.Info.DisplayName} — только мониторинг, для настройки нужен кабель",
+        { Availability: DeviceAvailability.Unreachable } =>
+            $"{device.Info.DisplayName} — не отвечает",
         { BatteryPercent: { } percent } =>
             $"{device.Info.DisplayName} — {percent}%{(device.IsCharging ? ", заряжается" : string.Empty)}",
         _ => $"{device.Info.DisplayName} — подключено",

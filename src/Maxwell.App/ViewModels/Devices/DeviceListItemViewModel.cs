@@ -39,7 +39,7 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     public string Status => Snapshot.Availability switch
     {
         DeviceAvailability.Active => Snapshot.Info.ControlTransport?.Label ?? "Подключено",
-        DeviceAvailability.MonitorOnly => "Только мониторинг",
+        DeviceAvailability.Unreachable => "Не отвечает",
         _ => Snapshot.LastSeenAt is { } seen ? $"последний раз — {seen:HH:mm}" : "Не подключено",
     };
 

@@ -14,13 +14,19 @@ public enum DeviceAvailability
     Offline,
 
     /// <summary>
-    /// Present, but no channel that answers commands. The Maxwell sits here whenever
-    /// only its dongle is connected: audio flows, every setting is unreachable. This
-    /// is an ordinary mode of use, not a fault, and must never be drawn as an error.
+    /// An interface is present but the device does not answer. A dongle with the
+    /// headset switched off or out of range enumerates exactly like one with it awake,
+    /// and swallows every request in silence; a device held open by another process
+    /// looks the same.
+    ///
+    /// This used to mean "only a dongle, so control is impossible". That was wrong —
+    /// the dongle drives the headset as well as the cable does — and the distinction
+    /// that matters is whether anything answers. Still an ordinary situation, never an
+    /// error to be drawn in red.
     /// </summary>
-    MonitorOnly,
+    Unreachable,
 
-    /// <summary>Present with a control channel. Everything the device offers works.</summary>
+    /// <summary>The device answers. Everything it offers works, over either lead.</summary>
     Active,
 }
 

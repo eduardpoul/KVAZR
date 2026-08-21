@@ -48,51 +48,73 @@ public sealed class DeviceService : IDeviceService, IDisposable
         {
             IReadOnlyList<MaxwellInterface> race = _enumerator.EnumerateRaceInterfaces();
             bool donglePresent = race.Any(i => i.IsDongle);
+            bool cablePresent = race.Any(i => !i.IsDongle);
 
-            // Control only works over a cable. The dongle enumerates and carries audio
-            // but answers no RACE command, so it can be seen and not driven.
-            MaxwellInterface? cable = race.FirstOrDefault(i => !i.IsDongle);
+            // Either lead carries control. The cable is preferred only for being the
+            // steadier and lower-latency link — not because the dongle cannot drive the
+            // headset, which it does, battery and settings alike.
+            MaxwellInterface? target = race.FirstOrDefault(i => !i.IsDongle)
+                                       ?? (race.Count > 0 ? race[0] : null);
 
-            if (cable is null)
+            if (target is null)
             {
                 CloseSession();
                 Publish(DeviceState.Empty with
                 {
-                    Connection = donglePresent ? ConnectionState.MonitorOnly : ConnectionState.NotFound,
-                    DonglePresent = donglePresent,
+                    Connection = ConnectionState.NotFound,
+                    DonglePresent = false,
+                    CablePresent = false,
                     UpdatedAt = DateTimeOffset.Now,
                 });
                 return;
             }
 
-            if (_session?.Descriptor.Path == cable.Path) return;
+            // A live session on the same interface still gets re-probed unless it is
+            // known to be answering; otherwise a headset that was switched off once
+            // would stay marked unreachable until the app restarted.
+            bool reuse = _session?.Descriptor.Path == target.Path;
+            if (reuse && State.Connection == ConnectionState.Active) return;
 
-            CloseSession();
+            if (!reuse)
+            {
+                CloseSession();
 
-            try
-            {
-                _session = new RaceSession(_factory.Open(cable));
-                _logger.OpenedDevice(cable.Transport, cable.Path);
-            }
-            catch (IOException ex)
-            {
-                // Another process — usually Audeze HQ — is holding the interface.
-                _logger.CouldNotOpenDevice(ex, cable.Path);
-                Publish(DeviceState.Empty with
+                try
                 {
-                    Connection = donglePresent ? ConnectionState.MonitorOnly : ConnectionState.NotFound,
-                    DonglePresent = donglePresent,
-                    UpdatedAt = DateTimeOffset.Now,
-                });
-                return;
+                    _session = new RaceSession(_factory.Open(target));
+                    _logger.OpenedDevice(target.Transport, target.Path);
+                }
+                catch (IOException ex)
+                {
+                    // Another process — usually Audeze HQ — is holding the interface.
+                    _logger.CouldNotOpenDevice(ex, target.Path);
+                    Publish(DeviceState.Empty with
+                    {
+                        Connection = ConnectionState.Unreachable,
+                        DonglePresent = donglePresent,
+                        CablePresent = cablePresent,
+                        UpdatedAt = DateTimeOffset.Now,
+                    });
+                    return;
+                }
             }
+
+            // Opening the interface proves nothing. A dongle whose headset is off or out
+            // of range enumerates exactly the same and accepts every request in silence,
+            // so the only way to tell the two apart is to ask it something. The reading
+            // is kept rather than discarded — over the dongle a full refresh takes long
+            // enough that throwing it away leaves the overview blank in the meantime.
+            int battery = await _session!.ReadBatteryAsync(cancellationToken).ConfigureAwait(false);
+            bool answers = battery >= 0;
 
             Publish(State with
             {
-                Connection = ConnectionState.Active,
-                ControlTransport = cable.Transport,
-                DeviceName = string.IsNullOrWhiteSpace(cable.ProductName) ? null : cable.ProductName,
+                Connection = answers ? ConnectionState.Active : ConnectionState.Unreachable,
+                ControlTransport = answers ? target.Transport : null,
+                BatteryPercent = answers ? battery : State.BatteryPercent,
+                DeviceName = string.IsNullOrWhiteSpace(target.ProductName) ? null : target.ProductName,
                 DonglePresent = donglePresent,
+                CablePresent = cablePresent,
                 UpdatedAt = DateTimeOffset.Now,
             });
         }

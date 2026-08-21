@@ -8,9 +8,12 @@ namespace Maxwell.Core.Drivers.Audeze;
 /// Finds Audeze Maxwell headsets and opens RACE channels to them.
 ///
 /// A cable and a dongle for the same headset are reported as <em>one</em> device with
-/// two transports, not two devices. That is how the hardware actually behaves — audio
-/// flows over the dongle while configuration answers only over the cable — and it is
-/// what the device page shows: both rows, no choice to make.
+/// two transports, not two devices, and the device page shows both rows with no choice
+/// to make.
+///
+/// Either lead carries control. The cable is preferred only because it is steadier and
+/// lower latency — not because the dongle cannot drive the headset, which it does,
+/// battery and settings alike.
 /// </summary>
 public sealed class AudezeRaceDriver : IDeviceDriver
 {
@@ -59,16 +62,19 @@ public sealed class AudezeRaceDriver : IDeviceDriver
         IReadOnlyList<MaxwellInterface> mine =
             [.. _enumerator.EnumerateRaceInterfaces().Where(i => VariantOf(i) == variant)];
 
-        // Control only works over a cable. The dongle enumerates and carries audio but
-        // answers no RACE command at all, so there is nothing to open — the caller keeps
-        // the device visible in monitor-only mode with whatever it last read.
-        MaxwellInterface? cable = mine.FirstOrDefault(i => !i.IsDongle);
-        if (cable is null)
+        // Whichever lead is there. Opening it proves nothing about the headset being
+        // awake — that question is settled by asking the device something, which the
+        // session does — but refusing to open a dongle at all was the bug that kept
+        // this application from ever driving the headset wirelessly.
+        MaxwellInterface? target = mine.FirstOrDefault(i => !i.IsDongle)
+                                   ?? (mine.Count > 0 ? mine[0] : null);
+
+        if (target is null)
         {
-            throw new IOException($"{device.DisplayName}: no control channel — only the dongle is present.");
+            throw new IOException($"{device.DisplayName}: no RACE interface present.");
         }
 
-        var session = new RaceSession(_factory.Open(cable));
+        var session = new RaceSession(_factory.Open(target));
         IDeviceConnection connection = new AudezeRaceConnection(session, TransportsOf(mine));
 
         return Task.FromResult(connection);
@@ -121,7 +127,10 @@ public sealed class AudezeRaceDriver : IDeviceDriver
                 Kind = i.IsDongle ? TransportKind.Dongle : TransportKind.UsbCable,
                 Label = i.IsDongle ? $"Донгл 0x{i.ProductId:X4}" : $"USB-C 0x{i.ProductId:X4}",
                 IsPresent = true,
-                CarriesControl = !i.IsDongle,
+
+                // Both. The dongle was marked audio-only on a premise that turned out
+                // to be measurement error, not protocol.
+                CarriesControl = true,
                 CarriesAudio = true,
             }),
     ];

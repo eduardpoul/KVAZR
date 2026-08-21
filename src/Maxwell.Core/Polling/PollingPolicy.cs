@@ -84,9 +84,9 @@ public static class PollingPolicy
 
         if (!subject.IsPresent) return PollPlan.Skip;
 
-        // A Maxwell reachable only over its dongle answers nothing at all. Polling it
-        // is not merely useless, it is a request that can never succeed, so the backoff
-        // would climb forever on a device that is working perfectly well.
+        // A device that is not answering is re-probed by discovery, which asks it one
+        // cheap question on every sweep. Polling it as well would climb the failure
+        // backoff forever while adding nothing.
         if (!subject.CanControl) return PollPlan.Skip;
 
         bool focused = attention == PollingAttention.Focused

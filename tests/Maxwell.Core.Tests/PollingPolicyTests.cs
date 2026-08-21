@@ -24,10 +24,11 @@ public sealed class PollingPolicyTests
     }
 
     [Fact]
-    public void MonitorOnlyDevice_IsNotPolled()
+    public void UnreachableDevice_IsNotPolled()
     {
-        // A Maxwell reachable only over its dongle answers nothing at all. Polling it
-        // would climb the failure backoff forever on hardware that is working fine.
+        // A device that is not answering is re-probed by discovery, not by the poller:
+        // polling it would climb the failure backoff forever while discovery is already
+        // asking it the one question that matters.
         PollPlan plan = Plan(Headset, present: true, canControl: false, PollingAttention.Focused, Headset);
 
         Assert.Equal(PollScope.None, plan.Scope);

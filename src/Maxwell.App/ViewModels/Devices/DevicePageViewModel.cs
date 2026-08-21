@@ -66,8 +66,8 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     /// </summary>
     public string? StateNotice => Snapshot.Availability switch
     {
-        DeviceAvailability.MonitorOnly =>
-            "Настройка доступна по кабелю. Сейчас подключён только донгл — заряд виден, управление недоступно",
+        DeviceAvailability.Unreachable =>
+            "Наушники не отвечают. Включите их или поднесите ближе — управление работает и по донглу, и по кабелю",
         DeviceAvailability.Offline =>
             "Устройство не подключено. Показаны последние известные значения",
         _ => null,
