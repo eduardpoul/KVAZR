@@ -41,6 +41,27 @@ public sealed class CapabilitySectionViewModel : IDisposable
     public bool HasItems => Items.Count > 0;
 
     /// <summary>
+    /// True when anything in the section can actually be reached right now. A headset on
+    /// its dongle has an Audio section whose every control is out of reach until a cable
+    /// goes in, and artboard 5b greys the whole section in the navigation rather than
+    /// letting somebody walk into a page of dead controls.
+    /// </summary>
+    public bool IsReachable => Items.Any(i => i.IsAvailable);
+
+    /// <summary>
+    /// Why the section is out of reach, short enough to sit in the navigation beside its
+    /// name. Empty when it is reachable. Taken from the capabilities themselves rather
+    /// than written per section: they already know what they need, and a second copy of
+    /// that knowledge would be a second thing to keep true.
+    /// </summary>
+    public string Reason =>
+        IsReachable
+            ? string.Empty
+            : Items.Where(i => !i.IsAvailable)
+                .Select(i => i.Descriptor.RequirementHint)
+                .FirstOrDefault(r => !string.IsNullOrEmpty(r)) ?? string.Empty;
+
+    /// <summary>
     /// True when the section holds something buried on purpose — a factory reset, a
     /// re-pairing. Such a section is collapsed behind an expander, because the design
     /// asks for these to be dug for rather than stumbled into.

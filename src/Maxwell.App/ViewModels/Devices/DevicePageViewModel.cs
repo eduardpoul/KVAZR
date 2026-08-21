@@ -49,6 +49,49 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<CapabilitySectionViewModel> Sections { get; } = [];
 
+    /// <summary>
+    /// The one section being looked at, or null for the whole device.
+    ///
+    /// Both are in the artboards and they are different screens: 5a is the device, with
+    /// its name as the heading and every section below it; 8a is one section, with the
+    /// section as the heading and the device demoted to a subtitle. Picking a section in
+    /// the navigation moves between them.
+    /// </summary>
+    private CapabilitySectionViewModel? _section;
+
+    public CapabilitySectionViewModel? Section
+    {
+        get => _section;
+        set
+        {
+            if (ReferenceEquals(_section, value)) return;
+
+            _section = value;
+
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(VisibleSections));
+            OnPropertyChanged(nameof(Heading));
+            OnPropertyChanged(nameof(Subheading));
+            OnPropertyChanged(nameof(IsWholeDevice));
+        }
+    }
+
+    /// <summary>What the page draws: one section, or all of them.</summary>
+    public IEnumerable<CapabilitySectionViewModel> VisibleSections =>
+        Section is { } one ? [one] : Sections;
+
+    public bool IsWholeDevice => Section is null;
+
+    /// <summary>The device on the whole-device page, the section's name on a section.</summary>
+    public string Heading => Section?.Title ?? Title;
+
+    /// <summary>
+    /// Under the heading. On a section this is where the device goes, because the reader
+    /// has to be able to tell which device's power section they are looking at when two
+    /// are attached.
+    /// </summary>
+    public string Subheading => Section is null ? string.Empty : Title;
+
     public string DeviceKey => _session.DeviceKey;
 
     public string Title => Snapshot.Info.DisplayName;
@@ -190,6 +233,8 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(Title));
         OnPropertyChanged(nameof(ImageKey));
         OnPropertyChanged(nameof(Battery));
+        OnPropertyChanged(nameof(Heading));
+        OnPropertyChanged(nameof(VisibleSections));
         OnPropertyChanged(nameof(LiveTransports));
         OnPropertyChanged(nameof(Firmware));
         OnPropertyChanged(nameof(HasFirmware));

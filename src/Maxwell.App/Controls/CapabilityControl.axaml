@@ -48,10 +48,20 @@
              afterwards does not give the value back. Tick snapping is deliberately off
              — the write rounds to an integer anyway, and snapping adds a second
              coercion that can move the value again behind the binding's back. -->
+        <!--
+          Hidden until there is a reading, and this matters more than it looks. A slider
+          has no way to show "no value": handed nothing it sits at its minimum, and a
+          volume slider at its minimum is the screen stating the volume is zero. The
+          headset asleep on its dongle is exactly when that happens, which is exactly
+          when somebody might believe it.
+        -->
         <Slider Minimum="{Binding Minimum}"
                 Maximum="{Binding Maximum}"
                 IsEnabled="{Binding CanEdit}"
+                IsVisible="{Binding HasValue}"
                 Value="{Binding Value}" />
+
+        <Border Height="32" IsVisible="{Binding !HasValue}" />
       </StackPanel>
     </DataTemplate>
 
@@ -117,10 +127,13 @@
                          Text="{Binding Label}" VerticalAlignment="Center" />
               <!-- Bounds before value, as everywhere: a Slider clamps to the range it
                    holds at that instant and widening it later does not undo the clamp. -->
+              <!-- Same as the single range: no reading, no thumb. A slider parked at
+                   its minimum is a claim, and it is the wrong one. -->
               <Slider Grid.Column="1"
                       Minimum="{Binding Minimum}"
                       Maximum="{Binding Maximum}"
                       IsEnabled="{Binding CanEdit}"
+                      IsVisible="{Binding HasValue}"
                       Value="{Binding Value}" />
               <TextBlock Grid.Column="2" Classes="caption"
                          TextAlignment="Right" TextWrapping="NoWrap"

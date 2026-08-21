@@ -5,6 +5,7 @@
         xmlns:devices="using:Maxwell.App.ViewModels.Devices"
         xmlns:views="using:Maxwell.App.Views.Pages"
         xmlns:controls="using:Maxwell.App.Controls"
+        xmlns:conv="using:Maxwell.App.Converters"
         x:Class="Maxwell.App.Views.MainWindow"
         x:DataType="vm:ShellViewModel"
         Title="KVAZR"
@@ -28,6 +29,10 @@
     <DataTemplate DataType="pages:CapabilityShowcaseViewModel"><views:CapabilityShowcaseView /></DataTemplate>
     <DataTemplate DataType="pages:IdentityViewModel"><views:IdentityView /></DataTemplate>
   </Window.DataTemplates>
+
+  <Window.Resources>
+    <conv:PresenceOpacityConverter x:Key="PresenceOpacity" />
+  </Window.Resources>
 
   <Window.Styles>
 
@@ -108,65 +113,53 @@
                    Text="{Binding SearchText}"
                    Margin="4,0,4,6" />
 
+          <!--
+            Two shapes, as the artboards have them. With no device chosen the pane is the
+            device list; with one chosen it becomes that device's sections, under a way
+            back. A rail carrying both at once would be a rail nobody can scan.
+          -->
           <Button Classes="navRoot" Command="{Binding ShowDashboardCommand}"
                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
-            <TextBlock Text="Все устройства" Margin="8,0" />
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="8,0">
+              <Path Width="11" Height="11" VerticalAlignment="Center"
+                    IsVisible="{Binding HasSelectedDevice}"
+                    Stroke="{DynamicResource TextSecondaryBrush}"
+                    StrokeThickness="1.6" StrokeLineCap="Round" StrokeJoin="Round"
+                    Stretch="Uniform" Data="M9.6 4 6 8l3.6 4" />
+              <TextBlock Text="Все устройства" VerticalAlignment="Center" />
+            </StackPanel>
           </Button>
 
-          <!--
-            Two groups rather than one heading, as artboard 1a has them. A device that is
-            not here right now still keeps its place in the pane; putting it under its own
-            heading is what stops it reading as a device that has gone wrong.
+          <!-- ===== device chosen: its sections ===== -->
 
-            The class glyph carries more here than anywhere else on the screen: at 260
-            pixels the names are trimmed, and the silhouette is what says at a glance
-            which of two half-visible names is the keyboard.
-          -->
-          <TextBlock Classes="groupHeader" Text="{Binding Dashboard.ConnectedHeading}"
-                     IsVisible="{Binding Dashboard.HasConnected}" />
+          <TextBlock Classes="groupHeader"
+                     IsVisible="{Binding HasSelectedDevice}"
+                     Text="{Binding SelectedDeviceHeading}" />
 
           <ListBox Classes="nav"
-                   ItemsSource="{Binding Dashboard.Connected}"
-                   SelectedItem="{Binding SelectedDevice}">
+                   IsVisible="{Binding HasSelectedDevice}"
+                   ItemsSource="{Binding DeviceSections}"
+                   SelectedItem="{Binding SelectedSection}">
             <ListBox.ItemTemplate>
-              <DataTemplate x:DataType="devices:DeviceListItemViewModel">
-                <Grid ColumnDefinitions="Auto,*,Auto" Margin="12,0">
-                  <Path Grid.Column="0" Width="15" Height="15" Margin="0,0,9,0"
-                        VerticalAlignment="Center"
-                        Data="{Binding Glyph}"
-                        Stroke="{DynamicResource TextSecondaryBrush}"
-                        StrokeThickness="1.4" StrokeLineCap="Round" StrokeJoin="Round"
-                        Stretch="Uniform" />
-                  <TextBlock Grid.Column="1" Text="{Binding ShortName}"
+              <DataTemplate x:DataType="devices:CapabilitySectionViewModel">
+                <Grid ColumnDefinitions="*,Auto" Margin="12,0"
+                      Opacity="{Binding IsReachable, Converter={StaticResource PresenceOpacity}}">
+                  <TextBlock Grid.Column="0" Text="{Binding Title}"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                  <TextBlock Grid.Column="2" Classes="caption" Text="{Binding Battery}"
-                             VerticalAlignment="Center" Margin="8,0,0,0" />
+
+                  <!-- Why it is out of reach, in the rail rather than only on the page:
+                       artboard 5b puts it here so nobody walks into a page of dead
+                       controls to find out. -->
+                  <TextBlock Grid.Column="1" Classes="caption" Margin="8,0,0,0"
+                             VerticalAlignment="Center"
+                             IsVisible="{Binding !IsReachable}"
+                             Text="{Binding Reason}" TextTrimming="CharacterEllipsis" />
                 </Grid>
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
 
-          <TextBlock Classes="groupHeader" Text="{Binding Dashboard.DisconnectedHeading}"
-                     IsVisible="{Binding Dashboard.HasDisconnected}" />
-
-          <ListBox Classes="nav" Opacity="0.55"
-                   ItemsSource="{Binding Dashboard.Disconnected}"
-                   SelectedItem="{Binding SelectedDevice}">
-            <ListBox.ItemTemplate>
-              <DataTemplate x:DataType="devices:DeviceListItemViewModel">
-                <Grid ColumnDefinitions="Auto,*,Auto" Margin="12,0">
-                  <Path Grid.Column="0" Width="15" Height="15" Margin="0,0,9,0"
-                        VerticalAlignment="Center"
-                        Data="{Binding Glyph}"
-                        Stroke="{DynamicResource TextSecondaryBrush}"
-                        StrokeThickness="1.4" StrokeLineCap="Round" StrokeJoin="Round"
-                        Stretch="Uniform" />
-                  <TextBlock Grid.Column="1" Text="{Binding ShortName}"
-                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                </Grid>
-              </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
+          <!-- ===== nothing chosen: the devices ===== -->
 
           <TextBlock Classes="groupHeader" Text="ПРИЛОЖЕНИЕ" />
 

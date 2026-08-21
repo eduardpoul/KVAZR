@@ -116,9 +116,44 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
 
     public bool HasDevices => Devices.Count > 0;
 
+    // ---------- what shape the navigation pane is in ----------
+
+    /// <summary>
+    /// True when a device is open, which turns the pane from a list of devices into that
+    /// device's sections. Both shapes are in the artboards and only one is ever on
+    /// screen: a rail carrying devices and sections at once is a rail nobody can scan.
+    /// </summary>
+    public bool HasSelectedDevice => CurrentPage is DevicePageViewModel;
+
+    public bool ShowsDeviceList => !HasSelectedDevice && Dashboard.HasConnected;
+
+    public bool ShowsDisconnected => !HasSelectedDevice && Dashboard.HasDisconnected;
+
+    public string SelectedDeviceHeading => (CurrentPage as DevicePageViewModel)?.Title.ToUpperInvariant() ?? string.Empty;
+
+    public IEnumerable<CapabilitySectionViewModel> DeviceSections =>
+        (CurrentPage as DevicePageViewModel)?.Sections ?? [];
+
+    /// <summary>
+    /// Which section the pane has highlighted. Setting it moves the page between the
+    /// whole device and one section — the same two screens artboards 5a and 8a draw.
+    /// </summary>
+    public CapabilitySectionViewModel? SelectedSection
+    {
+        get => (CurrentPage as DevicePageViewModel)?.Section;
+        set
+        {
+            if (CurrentPage is not DevicePageViewModel page) return;
+
+            page.Section = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HeaderTitle));
+        }
+    }
+
     public string HeaderTitle => CurrentPage switch
     {
-        DevicePageViewModel device => device.Title,
+        DevicePageViewModel device => device.Heading,
         DashboardViewModel => "Все устройства",
         _ => SelectedAppSection?.Title ?? string.Empty,
     };
@@ -231,6 +266,12 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         else _polling.SetAttention(PollingAttention.Idle);
 
         OnPropertyChanged(nameof(HeaderTitle));
+        OnPropertyChanged(nameof(HasSelectedDevice));
+        OnPropertyChanged(nameof(ShowsDeviceList));
+        OnPropertyChanged(nameof(ShowsDisconnected));
+        OnPropertyChanged(nameof(SelectedDeviceHeading));
+        OnPropertyChanged(nameof(DeviceSections));
+        OnPropertyChanged(nameof(SelectedSection));
     }
 
     private DevicePageViewModel? PageFor(string deviceKey)
