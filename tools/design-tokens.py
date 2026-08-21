@@ -140,6 +140,14 @@ def main() -> None:
     num("FlyoutBatterySize", px(find(fly, "font-size: 15px; font-weight: 600", "font-size")), "")
     num("FlyoutListHeight", px(find(fly, "overflow: hidden; position: relative", "height")),
         "Ровно пять строк; дальше список прокручивается, а панель не растёт")
+    num("FlyoutWidth", px(find(fly, "background: rgba(44,44,44,0.86)", "width")), "")
+    num("FlyoutRadius", px(find(fly, "background: rgba(44,44,44,0.86)", "border-radius")), "")
+    num("FlyoutHeaderPadding", pad(find(fly, "padding: 14px 16px 8px", "padding")), "")
+    num("FlyoutHeaderSize", px(find(fly, "font-weight: 600; color: #E8E8E8", "font-size")), "")
+    num("FlyoutFooterHeight", px(find(fly, "border-top: 1px solid rgba(255,255,255,0.08)", "height")), "")
+    num("FlyoutFooterPadding", pad(find(fly, "border-top: 1px solid rgba(255,255,255,0.08)", "padding")), "")
+    num("FlyoutFooterSize", px(find(fly, "border-top: 1px solid rgba(255,255,255,0.08)", "font-size")), "")
+    num("FlyoutListPadding", pad(find(fly, "padding: 0 10px", "padding")), "")
 
     lines = [
         "<!--",

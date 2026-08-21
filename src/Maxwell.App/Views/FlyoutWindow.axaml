@@ -19,6 +19,11 @@
         Foreground="{DynamicResource TextPrimaryBrush}">
 
   <!--
+    The width is the literal 360 rather than the FlyoutWidth token, and that is not an
+    oversight: a window is measured before its resources are attached, so a DynamicResource
+    there resolves to nothing and the panel opens with no size at all. Everything inside it
+    is on tokens, where the lookup happens after attachment.
+
     Turn 12. Every device is the same 56-pixel row and none of them starts open. The
     earlier arrangement gave one device a picture and controls at the top; the trouble
     with it was not how it looked but that the panel decided which device mattered, by a
@@ -36,6 +41,37 @@
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
+
+    <!--
+      Its own style rather than the navigation pane's. That class pins button heights to
+      36, and borrowing it silently held these rows twenty pixels short of the artboard —
+      which is the kind of thing that only shows when the render is put beside the design.
+    -->
+    <Style Selector="Button.deviceRowButton">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="{DynamicResource FlyoutRowRadiusCorner}" />
+      <Setter Property="Padding" Value="{DynamicResource FlyoutRowPadding}" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="Button.deviceRowButton:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}" />
+    </Style>
+
+    <Style Selector="Button.footerRow">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Height" Value="{DynamicResource FlyoutFooterHeight}" />
+      <Setter Property="Padding" Value="{DynamicResource FlyoutFooterPadding}" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="Button.footerRow:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}" />
+    </Style>
     <Style Selector="Border.deviceRow.open">
       <Setter Property="Background" Value="{DynamicResource LayerAltBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource StrokeDefaultBrush}" />
@@ -45,19 +81,37 @@
   <Border BorderBrush="{DynamicResource StrokeDefaultBrush}" BorderThickness="1" CornerRadius="8">
     <DockPanel>
 
-      <TextBlock DockPanel.Dock="Top" Classes="caption" Margin="16,14,16,6" Text="{Binding Heading}" />
+      <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto"
+            Margin="{DynamicResource FlyoutHeaderPadding}">
+        <TextBlock Grid.Column="0"
+                   FontSize="{DynamicResource FlyoutHeaderSize}" FontWeight="SemiBold"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
+                   Text="{Binding Heading}" />
+        <Path Grid.Column="1" Width="15" Height="15" VerticalAlignment="Center"
+              Stroke="{DynamicResource TextTertiaryBrush}"
+              StrokeThickness="1.3" StrokeLineCap="Round" StrokeJoin="Round"
+              Stretch="Uniform"
+              Data="M8 5.6a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8z M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3" />
+      </Grid>
 
       <!-- Pinned. Once the list reaches its ceiling the footer would scroll out of
            reach, and the way into the window is the one thing the panel must not hide. -->
-      <StackPanel DockPanel.Dock="Bottom" Margin="16,6,16,12" Spacing="6">
-        <Separator Classes="divider" Margin="0" />
-        <Button Classes="navRoot"
-                Command="{Binding OpenSettingsCommand}"
-                HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Left">
-          <TextBlock Text="Все настройки" Margin="8,0" />
+      <Border DockPanel.Dock="Bottom"
+              BorderBrush="{DynamicResource StrokeSubtleBrush}" BorderThickness="0,1,0,0">
+        <Button Classes="footerRow" Command="{Binding OpenSettingsCommand}">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                       FontSize="{DynamicResource FlyoutFooterSize}"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       Text="Все настройки" />
+            <Path Grid.Column="1" Width="11" Height="11" VerticalAlignment="Center"
+                  Stroke="{DynamicResource TextSecondaryBrush}"
+                  StrokeThickness="1.6" StrokeLineCap="Round" StrokeJoin="Round"
+                  Stretch="Uniform"
+                  Data="M6 3.6 10.4 8 6 12.4" />
+          </Grid>
         </Button>
-      </StackPanel>
+      </Border>
 
       <!--
         The heading above and the settings link below are on screen from the first frame:
@@ -118,7 +172,7 @@
                     VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Disabled"
                     IsVisible="{Binding Loading.ShowContent}">
-        <ItemsControl ItemsSource="{Binding Devices}" Margin="10,0">
+        <ItemsControl ItemsSource="{Binding Devices}" Margin="{DynamicResource FlyoutListPadding}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="devices:FlyoutRowViewModel">
 
@@ -131,13 +185,9 @@
                        anything a child asks for. This row is 56 because the artboard
                        says 56, and Metrics.axaml has that number from the design file
                        rather than from anyone's memory. -->
-                  <Button Classes="navRoot"
-                          Command="{Binding ToggleCommand}"
-                          HorizontalAlignment="Stretch"
-                          HorizontalContentAlignment="Stretch"
-                          Height="{DynamicResource FlyoutRowHeight}"
-                          Padding="{DynamicResource FlyoutRowPadding}">
-                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" VerticalAlignment="Stretch">
+                  <Button Classes="deviceRowButton" Command="{Binding ToggleCommand}">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto"
+                          Height="{DynamicResource FlyoutRowHeight}">
                       <Border Grid.Column="0"
                               Width="{DynamicResource FlyoutThumbSize}"
                               Height="{DynamicResource FlyoutThumbSize}"

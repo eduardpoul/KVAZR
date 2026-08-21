@@ -49,5 +49,14 @@
   <sys:Double x:Key="FlyoutBatterySize">15</sys:Double>
   <!-- Ровно пять строк; дальше список прокручивается, а панель не растёт -->
   <sys:Double x:Key="FlyoutListHeight">284</sys:Double>
+  <sys:Double x:Key="FlyoutWidth">360</sys:Double>
+  <sys:Double x:Key="FlyoutRadius">8</sys:Double>
+  <CornerRadius x:Key="FlyoutRadiusCorner">8</CornerRadius>
+  <Thickness x:Key="FlyoutHeaderPadding">16,14,16,8</Thickness>
+  <sys:Double x:Key="FlyoutHeaderSize">13</sys:Double>
+  <sys:Double x:Key="FlyoutFooterHeight">44</sys:Double>
+  <Thickness x:Key="FlyoutFooterPadding">16,0,16,0</Thickness>
+  <sys:Double x:Key="FlyoutFooterSize">12</sys:Double>
+  <Thickness x:Key="FlyoutListPadding">10,0,10,0</Thickness>
 
 </ResourceDictionary>
