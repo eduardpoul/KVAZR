@@ -31,6 +31,14 @@ internal static class Program
             return DumpIcons(args[at + 1]);
         }
 
+        // The same question one level up: whether a silhouette reads at the size a device
+        // row actually gives it, and whether it survives both themes. Also the only
+        // honest way to find out whether the bundled WebP files decode at all.
+        if (Array.IndexOf(args, "--dump-thumbs") is var thumbs and >= 0 && thumbs + 1 < args.Length)
+        {
+            return DumpThumbs(args[thumbs + 1]);
+        }
+
         IHost host = CreateHost(args);
         host.Start();
 
@@ -61,6 +69,15 @@ internal static class Program
     {
         AppBuilder.Configure<App>().UsePlatformDetect().SetupWithoutStarting();
         Tray.TrayIconPreview.Dump(path);
+
+        Console.WriteLine($"wrote {path}");
+        return 0;
+    }
+
+    private static int DumpThumbs(string path)
+    {
+        AppBuilder.Configure<App>().UsePlatformDetect().SetupWithoutStarting();
+        Imaging.DeviceImagePreview.Dump(path);
 
         Console.WriteLine($"wrote {path}");
         return 0;

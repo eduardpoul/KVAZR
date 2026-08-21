@@ -1,4 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Maxwell.App.Imaging;
 using Maxwell.Core.Devices;
 
 namespace Maxwell.App.ViewModels.Devices;
@@ -28,6 +31,15 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     public DeviceClass Class => Snapshot.Info.Class;
 
     public string? ImageKey => Snapshot.Info.ImageKey;
+
+    /// <summary>
+    /// The curated photograph for this model, or null when there is none — which is the
+    /// ordinary case. The tile falls back to <see cref="Glyph"/>, not to an empty box.
+    /// </summary>
+    public Bitmap? Photo => DeviceImages.Photo(Snapshot.Info.ImageKey);
+
+    /// <summary>The silhouette for this device's class. Every class has one.</summary>
+    public Geometry? Glyph => DeviceImages.Glyph(Snapshot.Info.Class);
 
     public bool IsPresent => Snapshot.IsPresent;
 

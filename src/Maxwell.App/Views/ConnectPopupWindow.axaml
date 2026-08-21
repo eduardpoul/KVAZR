@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctl="using:Maxwell.App.Controls"
         xmlns:conv="using:Maxwell.App.Converters"
         xmlns:devices="using:Maxwell.App.ViewModels.Devices"
         x:Class="Maxwell.App.Views.ConnectPopupWindow"
@@ -25,7 +26,6 @@
   -->
 
   <Window.Resources>
-    <conv:DeviceImageConverter x:Key="DeviceImage" />
   </Window.Resources>
 
   <Border BorderBrush="{DynamicResource StrokeDefaultBrush}" BorderThickness="1" CornerRadius="8">
@@ -37,8 +37,7 @@
               ClipToBounds="True"
               Margin="0,0,16,0"
               VerticalAlignment="Center">
-        <Image Source="{Binding ImageKey, Converter={StaticResource DeviceImage}}"
-               Stretch="UniformToFill" />
+        <ctl:DeviceThumb Photo="{Binding Photo}" Glyph="{Binding Glyph}" />
       </Border>
 
       <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
