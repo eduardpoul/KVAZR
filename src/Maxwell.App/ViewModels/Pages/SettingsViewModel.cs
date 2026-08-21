@@ -123,6 +123,14 @@ public sealed partial class SettingsViewModel : ObservableObject, IDisposable
 
     private static readonly int[] PollSeconds = [10, 30, 60, 300];
 
+    /// <summary>
+    /// The cadence as the dashboard's header says it — "Опрос каждые 30 с". Built from
+    /// the same list the setting itself offers, so the two can never drift apart and say
+    /// different things about the same number.
+    /// </summary>
+    public string PollCadence =>
+        "Опрос " + PollIntervals[Math.Clamp(PollIntervalIndex, 0, PollIntervals.Count - 1)].ToLowerInvariant();
+
     public int PollIntervalIndex
     {
         get

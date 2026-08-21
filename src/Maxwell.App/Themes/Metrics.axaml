@@ -38,6 +38,63 @@
   <sys:Double x:Key="DashGroupSize">12</sys:Double>
   <!-- Заголовок страницы -->
   <sys:Double x:Key="DashTitleSize">28</sys:Double>
+  <sys:Double x:Key="SettingsRowHeight">52</sys:Double>
+  <sys:Double x:Key="SettingsRowGap">16</sys:Double>
+  <Thickness x:Key="SettingsRowGapRight">0,0,16,0</Thickness>
+  <Thickness x:Key="SettingsRowPadding">16,0,16,0</Thickness>
+  <!-- Переключатель темы — один слитный контрол, а не три кнопки рядом -->
+  <sys:Double x:Key="SegmentHeight">30</sys:Double>
+  <sys:Double x:Key="SegmentRadius">4</sys:Double>
+  <CornerRadius x:Key="SegmentRadiusCorner">4</CornerRadius>
+  <sys:Double x:Key="SegmentSize">12</sys:Double>
+  <sys:Double x:Key="SegmentWideWidth">84</sys:Double>
+  <sys:Double x:Key="SegmentWidth">72</sys:Double>
+  <sys:Double x:Key="NoticeRadius">8</sys:Double>
+  <CornerRadius x:Key="NoticeRadiusCorner">8</CornerRadius>
+  <Thickness x:Key="NoticePadding">14,12,14,12</Thickness>
+  <sys:Double x:Key="NoticeGap">10</sys:Double>
+  <Thickness x:Key="NoticeGapRight">0,0,10,0</Thickness>
+  <sys:Double x:Key="NoticeDotSize">7</sys:Double>
+  <sys:Double x:Key="NoticeTextSize">13</sys:Double>
+  <sys:Double x:Key="ContentBackgroundRadius">8</sys:Double>
+  <CornerRadius x:Key="ContentBackgroundRadiusCorner">8</CornerRadius>
+  <!-- Скруглён только верхний левый угол — остальные три упираются в край окна -->
+  <CornerRadius x:Key="ContentTopLeftCorner">8,0,0,0</CornerRadius>
+  <Thickness x:Key="ContentPadding">28,24,28,24</Thickness>
+  <sys:Double x:Key="ContentGap">14</sys:Double>
+  <Thickness x:Key="ContentGapRight">0,0,14,0</Thickness>
+  <sys:Double x:Key="RailWidth">248</sys:Double>
+  <Thickness x:Key="RailPadding">8,0,8,12</Thickness>
+  <sys:Double x:Key="RailGap">2</sys:Double>
+  <Thickness x:Key="RailGapRight">0,0,2,0</Thickness>
+  <sys:Double x:Key="RailRowHeight">36</sys:Double>
+  <sys:Double x:Key="RailRowRadius">4</sys:Double>
+  <CornerRadius x:Key="RailRowRadiusCorner">4</CornerRadius>
+  <Thickness x:Key="RailRowPadding">12,0,12,0</Thickness>
+  <sys:Double x:Key="RailRowSize">14</sys:Double>
+  <!-- Корневая строка и «Параметры» — иконка крупнее, зазор шире -->
+  <sys:Double x:Key="RailRootGap">12</sys:Double>
+  <Thickness x:Key="RailRootGapRight">0,0,12,0</Thickness>
+  <!-- Строка устройства -->
+  <sys:Double x:Key="RailDeviceGap">10</sys:Double>
+  <Thickness x:Key="RailDeviceGapRight">0,0,10,0</Thickness>
+  <!-- Процент в панели — тише, чем имя -->
+  <sys:Double x:Key="RailBatterySize">12</sys:Double>
+  <sys:Double x:Key="RailGroupSize">11</sys:Double>
+  <Thickness x:Key="RailGroupPadding">12,12,12,4</Thickness>
+  <!-- Полоска текущего раздела -->
+  <sys:Double x:Key="RailMarkWidth">3</sys:Double>
+  <sys:Double x:Key="RailMarkHeight">16</sys:Double>
+  <sys:Double x:Key="RailMarkRadius">2</sys:Double>
+  <CornerRadius x:Key="RailMarkRadiusCorner">2</CornerRadius>
+  <sys:Double x:Key="RailSearchHeight">32</sys:Double>
+  <Thickness x:Key="RailSearchMargin">4,0,4,6</Thickness>
+  <Thickness x:Key="RailSearchPadding">10,0,10,0</Thickness>
+  <sys:Double x:Key="RailSearchGap">8</sys:Double>
+  <Thickness x:Key="RailSearchGapRight">0,0,8,0</Thickness>
+  <sys:Double x:Key="RailSearchSize">13</sys:Double>
+  <!-- Глиф строки, из <svg width> артборда 1a -->
+  <sys:Double x:Key="RailIconSize">16</sys:Double>
   <sys:Double x:Key="FlyoutRowHeight">56</sys:Double>
   <sys:Double x:Key="FlyoutRowGap">12</sys:Double>
   <Thickness x:Key="FlyoutRowGapRight">0,0,12,0</Thickness>

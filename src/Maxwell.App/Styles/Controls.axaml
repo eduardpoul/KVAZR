@@ -94,35 +94,59 @@
     picker. The design draws these as bordered tiles that fill with the accent tint
     when active, not as radio buttons.
   -->
+  <!--
+    One joined control with hairlines between the segments, as artboard 7a draws it —
+    not three buttons standing next to each other. The difference matters: three buttons
+    read as three separate things one could do, and this is one thing with three states.
+  -->
   <Style Selector="ListBox.segmented">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Background" Value="{DynamicResource LayerCardBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource StrokeDefaultBrush}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource SegmentRadiusCorner}" />
+    <Setter Property="ClipToBounds" Value="True" />
     <Setter Property="Padding" Value="0" />
+    <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="ItemsPanel">
       <ItemsPanelTemplate>
-        <StackPanel Orientation="Horizontal" Spacing="8" />
+        <StackPanel Orientation="Horizontal" />
       </ItemsPanelTemplate>
     </Setter>
   </Style>
 
   <Style Selector="ListBox.segmented ListBoxItem">
-    <Setter Property="MinWidth" Value="96" />
-    <Setter Property="Height" Value="32" />
-    <Setter Property="Padding" Value="14,0" />
+    <Setter Property="Width" Value="{DynamicResource SegmentWidth}" />
+    <Setter Property="Height" Value="{DynamicResource SegmentHeight}" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Margin" Value="0" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
-    <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="BorderBrush" Value="{DynamicResource StrokeDefaultBrush}" />
-    <Setter Property="Background" Value="{DynamicResource LayerCardBrush}" />
-    <Setter Property="FontSize" Value="{DynamicResource FontSizeSecondary}" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="BorderThickness" Value="1,0,0,0" />
+    <Setter Property="BorderBrush" Value="{DynamicResource StrokeSubtleBrush}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="FontSize" Value="{DynamicResource SegmentSize}" />
   </Style>
 
-  <Style Selector="ListBox.segmented ListBoxItem:selected">
-    <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}" />
-    <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
-    <Setter Property="Foreground" Value="{DynamicResource AccentPrimaryBrush}" />
-    <Setter Property="FontWeight" Value="SemiBold" />
+  <!-- The first segment has nothing to its left to be divided from. -->
+  <Style Selector="ListBox.segmented ListBoxItem:nth-child(1)">
+    <Setter Property="Width" Value="{DynamicResource SegmentWideWidth}" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <Style Selector="ListBox.segmented ListBoxItem:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}" />
+  </Style>
+
+  <Style Selector="ListBox.segmented ListBoxItem:selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentPrimaryBrush}" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource TextOnAccentBrush}" />
+  </Style>
+
+  <Style Selector="ListBox.segmented ListBoxItem:selected:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource TextOnAccentBrush}" />
   </Style>
 
   <!-- EQ preset tiles: same idea, wrapped and taller because they carry a subtitle. -->
@@ -318,13 +342,14 @@
     <Setter Property="FontWeight" Value="Normal" />
   </Style>
 
-  <!-- Root navigation entry, above the device groups. -->
+  <!-- Root navigation entry, above the device groups, and the pinned row below them. -->
   <Style Selector="Button.navRoot">
-    <Setter Property="Height" Value="36" />
+    <Setter Property="Height" Value="{DynamicResource RailRowHeight}" />
     <Setter Property="Padding" Value="0" />
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource RailRowRadiusCorner}" />
+    <Setter Property="FontSize" Value="{DynamicResource RailRowSize}" />
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
 
@@ -332,10 +357,38 @@
     <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}" />
   </Style>
 
+  <!-- The row for the screen already open. Held rather than hovered, so it survives the
+       pointer moving away — this is where the user is, not what they are pointing at. -->
+  <Style Selector="Button.navRoot.current /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource LayerSelectedBrush}" />
+  </Style>
+
+  <!--
+    A device in the pane. Deliberately not a ListBoxItem: the pane's two groups are two
+    lists, and with a bound SelectedItem on each they clear one another's highlight. It
+    is a button because it does one thing — open that device.
+  -->
+  <Style Selector="Button.railRow">
+    <Setter Property="Height" Value="{DynamicResource RailRowHeight}" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource RailRowRadiusCorner}" />
+    <Setter Property="FontSize" Value="{DynamicResource RailRowSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
+  <Style Selector="Button.railRow:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}" />
+  </Style>
+
   <Style Selector="TextBox.search">
-    <Setter Property="Height" Value="32" />
-    <Setter Property="FontSize" Value="{DynamicResource FontSizeSecondary}" />
-    <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
+    <Setter Property="Height" Value="{DynamicResource RailSearchHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource RailSearchPadding}" />
+    <Setter Property="FontSize" Value="{DynamicResource RailSearchSize}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource RailRowRadiusCorner}" />
   </Style>
 
   <!-- The button that does the irreversible thing. Marked, not hidden: the user chose

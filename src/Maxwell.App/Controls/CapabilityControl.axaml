@@ -337,8 +337,15 @@
 
     <!-- One line, and the most urgent thing wins. A stack of badges becomes wallpaper
          the user stops reading. -->
+    <!--
+      Kept inside the control's own column. At 320 it was wider than the column, so the
+      stack measured wider than the control and the line spilled left across the row it
+      belongs to, landing on the divider under the title beside it.
+    -->
     <TextBlock Classes="caption"
-               MaxWidth="320"
+               MaxWidth="{DynamicResource PageControlWidth}"
+               TextWrapping="Wrap" TextAlignment="Right"
+               HorizontalAlignment="Right"
                Text="{Binding Hint}"
                Foreground="{Binding HintTone, Converter={StaticResource HintTone}}"
                IsVisible="{Binding Hint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />

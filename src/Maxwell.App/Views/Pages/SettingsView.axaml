@@ -26,8 +26,8 @@
     </Style>
 
     <Style Selector="Grid.settingRow">
-      <Setter Property="MinHeight" Value="{DynamicResource PageRowHeight}" />
-      <Setter Property="Margin" Value="{DynamicResource PageRowPadding}" />
+      <Setter Property="MinHeight" Value="{DynamicResource SettingsRowHeight}" />
+      <Setter Property="Margin" Value="{DynamicResource SettingsRowPadding}" />
     </Style>
 
     <Style Selector="Border.rule">

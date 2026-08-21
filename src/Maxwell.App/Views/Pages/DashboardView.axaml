@@ -72,12 +72,6 @@
 
   <StackPanel Spacing="14">
 
-    <!-- Every reading below is a memory rather than a measurement — the devices are
-         asked on a timer — so the page says when it last asked. -->
-    <TextBlock Classes="caption" HorizontalAlignment="Right" Margin="0,0,0,-8"
-               IsVisible="{Binding HasFreshness}"
-               Text="{Binding Freshness}" />
-
     <!-- Still looking. Not the same thing as having looked and found none, which is why
          the two get different screens rather than one shared empty card. -->
     <StackPanel Spacing="10" IsVisible="{Binding Loading.ShowSkeleton}">

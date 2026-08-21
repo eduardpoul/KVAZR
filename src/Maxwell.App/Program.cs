@@ -99,6 +99,16 @@ internal static class Program
         // there steals the cursor from whoever is at the machine.
         App.OpenShowcaseOnStart = Array.IndexOf(args, "--showcase") >= 0;
 
+        // The application's own pages are now reached through the pane's pinned row and
+        // then the group it reveals — two clicks, both of them pointer work. Same reason
+        // as --open: a screenshot of the wrong page proves nothing.
+        if (Array.IndexOf(args, "--app") is var app and >= 0
+            && app + 1 < args.Length
+            && int.TryParse(args[app + 1], out int section))
+        {
+            App.OpenAppSectionOnStart = section;
+        }
+
         try
         {
             return BuildAvaloniaApp(host.Services).StartWithClassicDesktopLifetime(args);

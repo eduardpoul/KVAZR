@@ -72,7 +72,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             new AppSection(Identity.Title, Identity),
             new AppSection(about.Title, about),
         ];
-        Dashboard = new DashboardViewModel(this, Devices, Loading);
+        Dashboard = new DashboardViewModel(this, Devices, Loading, settings);
         CurrentPage = Dashboard;
 
         // Started before the registry is subscribed to, because the wait began when the
@@ -130,9 +130,26 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     /// </summary>
     public bool HasSelectedDevice => CurrentPage is DevicePageViewModel;
 
-    public bool ShowsDeviceList => !HasSelectedDevice && Dashboard.HasConnected;
+    /// <summary>
+    /// The third shape: the application's own pages. The artboards only ever show this
+    /// group while one of those pages is open — from the dashboard the way in is the
+    /// pinned row at the foot of the pane, not a list of settings competing with the
+    /// devices for the same eye.
+    /// </summary>
+    public bool ShowsAppSections => SelectedAppSection is not null;
 
-    public bool ShowsDisconnected => !HasSelectedDevice && Dashboard.HasDisconnected;
+    /// <summary>The dashboard, and therefore the search box and the device groups.</summary>
+    public bool IsDashboard => CurrentPage is DashboardViewModel;
+
+    /// <summary>
+    /// The pinned "Параметры" at the foot of the pane. Absent on the application's own
+    /// pages, where the same entry is already in the list above it.
+    /// </summary>
+    public bool ShowsSettingsShortcut => !ShowsAppSections;
+
+    public bool ShowsDeviceList => IsDashboard && Dashboard.HasConnected;
+
+    public bool ShowsDisconnected => IsDashboard && Dashboard.HasDisconnected;
 
     public string SelectedDeviceHeading => (CurrentPage as DevicePageViewModel)?.Title.ToUpperInvariant() ?? string.Empty;
 
@@ -156,6 +173,26 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// The line at the far end of the title row. Page-specific, because what is worth
+    /// saying next to a title differs: the dashboard's readings are all memories and
+    /// need a timestamp, and a settings page has nothing of the kind to admit.
+    /// </summary>
+    public string HeaderMeta => CurrentPage switch
+    {
+        DashboardViewModel dashboard => dashboard.Freshness,
+        _ => string.Empty,
+    };
+
+    public bool HasHeaderMeta => HeaderMeta.Length > 0;
+
+    /// <summary>
+    /// A device page names the device in its own hero, at four times this size and
+    /// beside its photograph. The artboards give that page no title row at all rather
+    /// than printing the same name twice.
+    /// </summary>
+    public bool HasHeaderTitle => CurrentPage is not DevicePageViewModel;
+
     public string HeaderTitle => CurrentPage switch
     {
         DevicePageViewModel device => device.Heading,
@@ -172,7 +209,30 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     /// </summary>
     public void SelectDeviceAt(int index)
     {
-        if (index >= 0 && index < Devices.Count) SelectedDevice = Devices[index];
+        if (index >= 0 && index < Devices.Count)
+        {
+            _pendingIndex = null;
+            SelectedDevice = Devices[index];
+            return;
+        }
+
+        // The first sweep has not landed yet, so there is nothing at that position to
+        // open. Held rather than dropped: the request arrives moments after start-up and
+        // the list arrives moments after that, and silently doing nothing produced
+        // screenshots of the dashboard captioned as a device page.
+        _pendingIndex = index;
+    }
+
+    private int? _pendingIndex;
+
+    /// <summary>
+    /// Opens one of the application's own pages by position. The pane no longer lists
+    /// them until one is open, so reaching them means two pointer clicks; this is the
+    /// same development door as <see cref="SelectDeviceAt"/>.
+    /// </summary>
+    public void SelectAppSectionAt(int index)
+    {
+        if (index >= 0 && index < AppSections.Count) SelectedAppSection = AppSections[index];
     }
 
     /// <summary>
@@ -218,6 +278,28 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             // A driver failing to enumerate is already logged by the registry, and the
             // list simply stays as it was. Nothing here to tell the user that the empty
             // screen is not already telling them.
+        }
+    }
+
+    /// <summary>
+    /// Opens a device from the pane. A command rather than a bound selection because the
+    /// two groups are two lists: with <c>SelectedItem</c> on both, clicking in one clears
+    /// the other's highlight and each fights the other for the same property.
+    /// </summary>
+    [RelayCommand]
+    private void SelectDeviceItem(DeviceListItemViewModel? device)
+    {
+        if (device is not null) SelectedDevice = device;
+    }
+
+    /// <summary>The foot of the pane. Named by page rather than by position, so
+    /// reordering the group cannot silently point it somewhere else.</summary>
+    [RelayCommand]
+    private void ShowSettings()
+    {
+        if (AppSections.FirstOrDefault(s => s.Page is SettingsViewModel) is { } section)
+        {
+            SelectedAppSection = section;
         }
     }
 
@@ -271,7 +353,13 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         else _polling.SetAttention(PollingAttention.Idle);
 
         OnPropertyChanged(nameof(HeaderTitle));
+        OnPropertyChanged(nameof(HasHeaderTitle));
+        OnPropertyChanged(nameof(HeaderMeta));
+        OnPropertyChanged(nameof(HasHeaderMeta));
         OnPropertyChanged(nameof(HasSelectedDevice));
+        OnPropertyChanged(nameof(IsDashboard));
+        OnPropertyChanged(nameof(ShowsAppSections));
+        OnPropertyChanged(nameof(ShowsSettingsShortcut));
         OnPropertyChanged(nameof(ShowsDeviceList));
         OnPropertyChanged(nameof(ShowsDisconnected));
         OnPropertyChanged(nameof(SelectedDeviceHeading));
@@ -331,8 +419,19 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
 
         Reorder(snapshots);
 
+        if (_pendingIndex is { } wanted) SelectDeviceAt(wanted);
+
         OnPropertyChanged(nameof(HasDevices));
         OnPropertyChanged(nameof(HeaderTitle));
+        OnPropertyChanged(nameof(HeaderMeta));
+        OnPropertyChanged(nameof(HasHeaderMeta));
+
+        // The pane's shape depends on the device list as well as on the page: at
+        // construction there are no devices yet, so a notification only when the page
+        // changes leaves the rail empty until something else happens to move it.
+        OnPropertyChanged(nameof(ShowsDeviceList));
+        OnPropertyChanged(nameof(ShowsDisconnected));
+        OnPropertyChanged(nameof(DeviceSections));
     }
 
     private void Reorder(List<DeviceSnapshot> order)

@@ -119,6 +119,64 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
 
     public bool HasFirmware => Firmware.Length > 0;
 
+    /// <summary>
+    /// Everything that was possible to read, for a device that offers nothing to change.
+    ///
+    /// Artboard 11c: a device connected at the Windows level that answers no known
+    /// request still gets a page, and the page says what little is known rather than
+    /// being blank. "Connected, and there is nothing here to configure" is something a
+    /// person can act on; an empty screen is something they file a bug about.
+    /// </summary>
+    public IReadOnlyList<DeviceFact> Facts
+    {
+        get
+        {
+            var facts = new List<DeviceFact>();
+
+            if (Address is { } address) facts.Add(new DeviceFact("Адрес", address));
+
+            facts.Add(new DeviceFact(
+                "Класс устройства",
+                Snapshot.Info.Class == DeviceClass.Unknown ? "не определён" : ClassName));
+
+            foreach (string id in Snapshot.Info.HardwareIds.Where(i => i.StartsWith("usb:", StringComparison.Ordinal)))
+            {
+                facts.Add(new DeviceFact("Идентификатор USB", id[4..].ToUpperInvariant()));
+            }
+
+            facts.Add(new DeviceFact(
+                "Запись в каталоге",
+                Snapshot.Info.ImageKey is { Length: > 0 } slug ? slug : "нет — показываем то, что знает система"));
+
+            return facts;
+        }
+    }
+
+    /// <summary>
+    /// True when the device declared nothing to change. The page then leads with what is
+    /// known rather than with an empty column of section headings.
+    /// </summary>
+    public bool HasNothingToChange => Sections.Count == 0;
+
+    private string? Address =>
+        Snapshot.Info.HardwareIds
+            .FirstOrDefault(i => i.StartsWith("bt:", StringComparison.Ordinal)) is { } bt
+            ? string.Join(':', Enumerable.Range(0, 6).Select(i => bt.Substring(3 + (i * 2), 2).ToUpperInvariant()))
+            : null;
+
+    private string ClassName => Snapshot.Info.Class switch
+    {
+        DeviceClass.Headset => "Гарнитура",
+        DeviceClass.Earbuds => "Наушники",
+        DeviceClass.Microphone => "Микрофон",
+        DeviceClass.Speaker => "Колонка",
+        DeviceClass.Mouse => "Мышь",
+        DeviceClass.Keyboard => "Клавиатура",
+        DeviceClass.Gamepad => "Геймпад",
+        DeviceClass.Receiver => "Приёмник",
+        _ => "не определён",
+    };
+
     public string? ImageKey => Snapshot.Info.ImageKey;
 
     /// <summary>
@@ -235,6 +293,12 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(Battery));
         OnPropertyChanged(nameof(Heading));
         OnPropertyChanged(nameof(VisibleSections));
+
+        // Capabilities arrive with the first answer, not with the object. Until they do,
+        // every device looks like one with nothing to change, and a page that never
+        // revisits that shows the "nothing to configure" card over a working headset.
+        OnPropertyChanged(nameof(Facts));
+        OnPropertyChanged(nameof(HasNothingToChange));
         OnPropertyChanged(nameof(LiveTransports));
         OnPropertyChanged(nameof(Firmware));
         OnPropertyChanged(nameof(HasFirmware));
@@ -256,3 +320,6 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         _byId.Clear();
     }
 }
+
+/// <summary>One line of "what we managed to read". Label on the left, value on the right.</summary>
+public sealed record DeviceFact(string Label, string Value);

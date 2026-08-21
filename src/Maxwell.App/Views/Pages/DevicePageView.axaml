@@ -4,6 +4,7 @@
              xmlns:cap="using:Maxwell.App.ViewModels.Capabilities"
              xmlns:controls="using:Maxwell.App.Controls"
              xmlns:devices="using:Maxwell.App.ViewModels.Devices"
+             xmlns:vm="using:Maxwell.App.ViewModels"
              xmlns:core="using:Maxwell.Core.Devices"
              xmlns:conv="using:Maxwell.App.Converters"
              x:Class="Maxwell.App.Views.Pages.DevicePageView"
@@ -129,6 +130,83 @@
         <TextBlock Classes="caption" HorizontalAlignment="Right" Text="{Binding Freshness}" />
       </StackPanel>
     </Grid>
+
+    <!--
+      Artboard 11c. A device connected at the Windows level that answers no known request
+      still gets a page, and the page says what little is known rather than being blank.
+      "Connected, and nothing here to configure" is something a person can act on; an
+      empty screen is something they file a bug about.
+    -->
+    <StackPanel Spacing="8" IsVisible="{Binding HasNothingToChange}">
+
+      <!-- Amber rather than red, and a statement rather than a warning: a device that
+           answers nothing is a fact about the device, not a mistake anybody made. -->
+      <Border Background="{DynamicResource NoticeFillBrush}"
+              BorderBrush="{DynamicResource NoticeStrokeBrush}"
+              BorderThickness="1"
+              CornerRadius="{DynamicResource NoticeRadiusCorner}"
+              Padding="{DynamicResource NoticePadding}">
+        <StackPanel Orientation="Horizontal" Spacing="{DynamicResource NoticeGap}">
+          <Ellipse Width="{DynamicResource NoticeDotSize}"
+                   Height="{DynamicResource NoticeDotSize}"
+                   VerticalAlignment="Top" Margin="0,6,0,0"
+                   Fill="{DynamicResource StatusUntestedBrush}" />
+          <TextBlock TextWrapping="Wrap" MaxWidth="620" LineHeight="19.5"
+                     FontSize="{DynamicResource NoticeTextSize}"
+                     Text="Устройство подключено на уровне Windows, но не отвечает ни на один известный запрос. Настраивать нечего — ниже всё, что удалось прочитать." />
+        </StackPanel>
+      </Border>
+
+      <TextBlock Classes="sectionHeading" Text="ЧТО УДАЛОСЬ ПРОЧИТАТЬ" />
+      <Border Classes="sectionCard">
+        <ItemsControl ItemsSource="{Binding Facts}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="devices:DeviceFact">
+              <Border Classes="sectionRow">
+                <Grid ColumnDefinitions="*,Auto" Margin="{DynamicResource PageRowPadding}"
+                      MinHeight="44">
+                  <TextBlock Grid.Column="0" FontSize="{DynamicResource PageRowTitleSize}"
+                             VerticalAlignment="Center"
+                             Margin="{DynamicResource PageRowGapRight}"
+                             Text="{Binding Label}" />
+                  <TextBlock Grid.Column="1" Classes="value" VerticalAlignment="Center"
+                             TextAlignment="Right" Text="{Binding Value}" />
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
+
+      <!--
+        The only two things left to do with a device that answers nothing, and the
+        artboard puts them on the page rather than only in the row's menu — this is the
+        screen somebody reaches when they are trying to work out what the thing even is.
+        Only unpairing is offered: a disconnect that leaves the pairing in place is not
+        something this application can ask Windows for.
+      -->
+      <StackPanel Spacing="8"
+                  IsVisible="{Binding $parent[Window].((vm:ShellViewModel)DataContext).SelectedDevice.CanForget,
+                                      FallbackValue=False}">
+        <TextBlock Classes="sectionHeading" Text="ДЕЙСТВИЯ" />
+        <Border Classes="sectionCard">
+          <Grid ColumnDefinitions="*,Auto" Margin="{DynamicResource PageRowPadding}"
+                MinHeight="{DynamicResource PageRowHeight}">
+            <StackPanel Grid.Column="0" VerticalAlignment="Center"
+                        Margin="{DynamicResource PageRowGapRight}">
+              <TextBlock FontSize="{DynamicResource PageRowTitleSize}" Text="Забыть устройство" />
+              <TextBlock Classes="caption" TextWrapping="Wrap"
+                         Text="Удаляет пару в системе. Понадобится — сопрягать заново" />
+            </StackPanel>
+
+            <Button Grid.Column="1" Classes="danger" VerticalAlignment="Center"
+                    Content="Забыть"
+                    Command="{Binding $parent[Window].((vm:ShellViewModel)DataContext).ForgetDeviceCommand}"
+                    CommandParameter="{Binding $parent[Window].((vm:ShellViewModel)DataContext).SelectedDevice}" />
+          </Grid>
+        </Border>
+      </StackPanel>
+    </StackPanel>
 
     <!-- Sections, generated -->
     <ItemsControl ItemsSource="{Binding VisibleSections}">

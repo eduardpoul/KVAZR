@@ -1,10 +1,12 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Collections.Specialized;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 
 using Maxwell.App.Infrastructure;
 using Maxwell.App.ViewModels.Devices;
+using Maxwell.App.ViewModels.Pages;
 
 namespace Maxwell.App.ViewModels;
 
@@ -19,10 +21,13 @@ namespace Maxwell.App.ViewModels;
 /// </summary>
 public sealed class DashboardViewModel : ObservableObject
 {
+    private readonly SettingsViewModel? _settings;
+
     internal DashboardViewModel(
         ShellViewModel shell,
         ObservableCollection<DeviceListItemViewModel> devices,
-        LoadingState loading)
+        LoadingState loading,
+        SettingsViewModel? settings = null)
     {
         ArgumentNullException.ThrowIfNull(shell);
         ArgumentNullException.ThrowIfNull(devices);
@@ -31,9 +36,23 @@ public sealed class DashboardViewModel : ObservableObject
         Shell = shell;
         Devices = devices;
         Loading = loading;
+        _settings = settings;
+
+        // The header quotes the cadence, so changing it has to change the header. Without
+        // this the page would keep claiming a rate it no longer polls at, which is worse
+        // than not saying the rate at all.
+        if (_settings is not null) _settings.PropertyChanged += OnSettingsChanged;
 
         Devices.CollectionChanged += OnDevicesChanged;
         Regroup();
+    }
+
+    private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(SettingsViewModel.PollIntervalIndex) or null)
+        {
+            OnPropertyChanged(nameof(Freshness));
+        }
     }
 
     /// <summary>
@@ -70,11 +89,22 @@ public sealed class DashboardViewModel : ObservableObject
     /// answer is the one quoted, since it is the most flattering thing the page can
     /// honestly say about its own freshness.
     /// </summary>
-    public string Freshness =>
-        Devices.Select(d => d.Snapshot.UpdatedAt).OfType<DateTimeOffset>().DefaultIfEmpty().Max() is
-            { } newest && newest != default
-            ? $"обновлено {newest:HH:mm}"
-            : string.Empty;
+    public string Freshness
+    {
+        get
+        {
+            DateTimeOffset newest =
+                Devices.Select(d => d.Snapshot.UpdatedAt).OfType<DateTimeOffset>().DefaultIfEmpty().Max();
+
+            if (newest == default) return string.Empty;
+
+            string stamp = $"обновлено {newest:HH:mm}";
+
+            // How often, then how long ago — the artboard's order, and the useful one:
+            // the cadence is what tells the reader whether the timestamp is stale.
+            return _settings is null ? stamp : $"{_settings.PollCadence} · {stamp}";
+        }
+    }
 
     public bool HasFreshness => Freshness.Length > 0;
 

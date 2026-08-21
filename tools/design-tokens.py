@@ -129,6 +129,72 @@ def main() -> None:
     num("DashTitleSize", px(find(dash, "font-size: 28px; font-weight: 600", "font-size")),
         "Заголовок страницы")
 
+    # ---- Settings, artboard 7a --------------------------------------------------------
+    # Shorter rows than a device page: nothing here has a slider or a photograph, and 64
+    # pixels for a label and a switch is a page that scrolls for no reason.
+    prefs = region(html, 'id="7a"', 14000)
+    num("SettingsRowHeight", px(find(prefs, "height: 52px; display: flex", "height")), "")
+    num("SettingsRowGap", px(find(prefs, "height: 52px; display: flex", "gap")), "")
+    num("SettingsRowPadding", pad(find(prefs, "height: 52px; display: flex", "padding")), "")
+    num("SegmentHeight", px(find(prefs, "height: 30px; border-radius: 4px", "height")),
+        "Переключатель темы — один слитный контрол, а не три кнопки рядом")
+    num("SegmentRadius", px(find(prefs, "height: 30px; border-radius: 4px", "border-radius")), "")
+    num("SegmentSize", px(find(prefs, "height: 30px; border-radius: 4px", "font-size")), "")
+    num("SegmentWideWidth", px(find(prefs, "width: 84px; background: #0F6CBD", "width")), "")
+    num("SegmentWidth", px(find(prefs, "width: 72px; display: flex", "width")), "")
+
+    # ---- Notice card, artboard 11c ----------------------------------------------------
+    # Says what the application does not know, rather than warning about anything: a
+    # device that answers nothing is a fact about the device, not a fault of the user's.
+    bare = region(html, 'id="11c"', 9000)
+    num("NoticeRadius", px(find(bare, "background: rgba(234,163,0,0.08)", "border-radius")), "")
+    num("NoticePadding", pad(find(bare, "background: rgba(234,163,0,0.08)", "padding")), "")
+    num("NoticeGap", px(find(bare, "background: rgba(234,163,0,0.08)", "gap")), "")
+    num("NoticeDotSize", px(find(bare, "width: 7px; height: 7px", "width")), "")
+    num("NoticeTextSize", px(find(bare, "line-height: 1.5", "font-size")), "")
+
+    # ---- Content pane, artboard 1a ----------------------------------------------------
+    # A raised surface rather than the window's own background, joined to the pane by one
+    # rounded corner. Without it the two halves of the window read as one flat field.
+    num("ContentBackgroundRadius",
+        px(find(dash, "border-top-left-radius: 8px", "border-top-left-radius")), "")
+    num("ContentTopLeftCorner",
+        px(find(dash, "border-top-left-radius: 8px", "border-top-left-radius")) + ",0,0,0",
+        "Скруглён только верхний левый угол — остальные три упираются в край окна")
+    num("ContentPadding", pad(find(dash, "border-top-left-radius: 8px", "padding")), "")
+    num("ContentGap", px(find(dash, "border-top-left-radius: 8px", "gap")), "")
+
+    # ---- Navigation pane, artboard 1a -------------------------------------------------
+    # Three shapes share one geometry: the devices, one device's sections, and the
+    # application's own pages. Every row in all three is the same 36 pixels.
+    num("RailWidth", px(find(dash, "width: 248px; flex: none", "width")), "")
+    num("RailPadding", pad(find(dash, "width: 248px; flex: none", "padding")), "")
+    num("RailGap", px(find(dash, "width: 248px; flex: none", "gap")), "")
+    num("RailRowHeight", px(find(dash, "border-radius: 4px; background: #EBEBEB", "height")), "")
+    num("RailRowRadius", px(find(dash, "border-radius: 4px; background: #EBEBEB", "border-radius")), "")
+    num("RailRowPadding", pad(find(dash, "border-radius: 4px; background: #EBEBEB", "padding")), "")
+    num("RailRowSize", px(find(dash, "border-radius: 4px; background: #EBEBEB", "font-size")), "")
+    num("RailRootGap", px(find(dash, "border-radius: 4px; background: #EBEBEB", "gap")),
+        "Корневая строка и «Параметры» — иконка крупнее, зазор шире")
+    num("RailDeviceGap",
+        px(find(dash, "border-radius: 4px; display: flex; align-items: center; gap: 10px", "gap")),
+        "Строка устройства")
+    num("RailBatterySize", px(find(dash, "font-size: 12px; color: #616161", "font-size")),
+        "Процент в панели — тише, чем имя")
+    num("RailGroupSize", px(find(dash, "letter-spacing: 0.04em", "font-size")), "")
+    num("RailGroupPadding", pad(find(dash, "letter-spacing: 0.04em", "padding")), "")
+    num("RailMarkWidth", px(find(dash, "width: 3px; height: 16px", "width")),
+        "Полоска текущего раздела")
+    num("RailMarkHeight", px(find(dash, "width: 3px; height: 16px", "height")), "")
+    num("RailMarkRadius", px(find(dash, "width: 3px; height: 16px", "border-radius")), "")
+    num("RailSearchHeight", px(find(dash, "height: 32px; margin: 0 4px 6px", "height")), "")
+    num("RailSearchMargin", pad(find(dash, "height: 32px; margin: 0 4px 6px", "margin")), "")
+    num("RailSearchPadding", pad(find(dash, "height: 32px; margin: 0 4px 6px", "padding")), "")
+    num("RailSearchGap", px(find(dash, "height: 32px; margin: 0 4px 6px", "gap")), "")
+    num("RailSearchSize", px(find(dash, "height: 32px; margin: 0 4px 6px", "font-size")), "")
+    # Another SVG width attribute rather than a CSS property, so this one is typed too.
+    num("RailIconSize", "16", "Глиф строки, из <svg width> артборда 1a")
+
     # ---- Tray panel, artboard 12a -----------------------------------------------------
     # Every device is the same row and none of them starts open.
     num("FlyoutRowHeight", px(find(fly, "height: 56px; display: flex", "height")), "")
@@ -204,6 +270,13 @@ def main() -> None:
     for name, value, note in tokens:
         if note:
             lines.append(f"  <!-- {note} -->")
+
+        # Named for what it is, because a partly-rounded corner cannot be assembled in
+        # XAML out of a number: the content pane rounds only where it does not meet the
+        # window frame, and that is four values or nothing.
+        if name.endswith("Corner"):
+            lines.append(f'  <CornerRadius x:Key="{name}">{value}</CornerRadius>')
+            continue
 
         if "," in value:
             lines.append(f'  <Thickness x:Key="{name}">{value}</Thickness>')

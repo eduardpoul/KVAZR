@@ -45,6 +45,8 @@
            disappears after the first accepted write; Irreversible is the triangle shown
            before a write that cannot be undone. -->
       <Color x:Key="StatusUntestedColor">#EAA300</Color>
+      <Color x:Key="NoticeFillColor">#14EAA300</Color>
+      <Color x:Key="NoticeStrokeColor">#4DEAA300</Color>
       <Color x:Key="StatusIrreversibleColor">#9D5D00</Color>
       <Color x:Key="StatusPendingColor">#8C0F6CBD</Color>
       <Color x:Key="StatusExternalRingColor">#380F6CBD</Color>
@@ -78,6 +80,8 @@
       <Color x:Key="SuccessColor">#6CCB5F</Color>
 
       <Color x:Key="StatusUntestedColor">#FFCB4D</Color>
+      <Color x:Key="NoticeFillColor">#1FFFCB4D</Color>
+      <Color x:Key="NoticeStrokeColor">#4DFFCB4D</Color>
       <Color x:Key="StatusIrreversibleColor">#E9A825</Color>
       <Color x:Key="StatusPendingColor">#8C479EF5</Color>
       <Color x:Key="StatusExternalRingColor">#38479EF5</Color>
@@ -113,6 +117,11 @@
   <SolidColorBrush x:Key="SuccessBrush" Color="{DynamicResource SuccessColor}" />
 
   <SolidColorBrush x:Key="StatusUntestedBrush" Color="{DynamicResource StatusUntestedColor}" />
+
+  <!-- The notice card of artboard 11c: the same amber as an untested capability, because
+       it says the same kind of thing — this is what we do not know yet. -->
+  <SolidColorBrush x:Key="NoticeFillBrush" Color="{DynamicResource NoticeFillColor}" />
+  <SolidColorBrush x:Key="NoticeStrokeBrush" Color="{DynamicResource NoticeStrokeColor}" />
   <SolidColorBrush x:Key="StatusIrreversibleBrush" Color="{DynamicResource StatusIrreversibleColor}" />
   <SolidColorBrush x:Key="StatusPendingBrush" Color="{DynamicResource StatusPendingColor}" />
   <SolidColorBrush x:Key="StatusExternalRingBrush" Color="{DynamicResource StatusExternalRingColor}" />

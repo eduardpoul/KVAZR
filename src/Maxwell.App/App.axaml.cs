@@ -36,6 +36,8 @@ public partial class App : Application, IDisposable
     internal static SplashForm? PinSplash { get; set; }
 
     /// <summary>Development affordance: open the identity sheet without a synthetic click.</summary>
+    internal static int? OpenAppSectionOnStart { get; set; }
+
     internal static bool OpenIdentityOnStart { get; set; }
 
     /// <summary>Development affordance: a window size as "1040x2000", so a long page fits one picture.</summary>
@@ -159,6 +161,12 @@ public partial class App : Application, IDisposable
             {
                 ShellViewModel shell = _services.GetRequiredService<ShellViewModel>();
                 Dispatcher.UIThread.Post(() => shell.SelectDeviceAt(index), DispatcherPriority.Background);
+            }
+
+            if (OpenAppSectionOnStart is { } section)
+            {
+                ShellViewModel shell = _services.GetRequiredService<ShellViewModel>();
+                Dispatcher.UIThread.Post(() => shell.SelectAppSectionAt(section), DispatcherPriority.Background);
             }
 
             if (OpenIdentityOnStart)
