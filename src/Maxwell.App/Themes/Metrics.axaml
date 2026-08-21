@@ -58,5 +58,15 @@
   <Thickness x:Key="FlyoutFooterPadding">16,0,16,0</Thickness>
   <sys:Double x:Key="FlyoutFooterSize">12</sys:Double>
   <Thickness x:Key="FlyoutListPadding">10,0,10,0</Thickness>
+  <sys:Double x:Key="EmptyTitleSize">32</sys:Double>
+  <sys:Double x:Key="EmptyBodySize">15</sys:Double>
+  <Thickness x:Key="EmptyCardPadding">18,18,18,18</Thickness>
+  <sys:Double x:Key="EmptyCardRadius">8</sys:Double>
+  <CornerRadius x:Key="EmptyCardRadiusCorner">8</CornerRadius>
+  <sys:Double x:Key="EmptyCardGap">14</sys:Double>
+  <sys:Double x:Key="EmptyCardTitleSize">14</sys:Double>
+  <sys:Double x:Key="EmptyCardBodySize">12</sys:Double>
+  <!-- Глиф класса на карточке, из <svg width> артборда 6c -->
+  <sys:Double x:Key="EmptyGlyphSize">34</sys:Double>
 
 </ResourceDictionary>

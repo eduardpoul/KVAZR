@@ -98,6 +98,7 @@ def main() -> None:
 
     dash = region(html, 'id="1a"')
     fly = region(html, 'id="12a"')
+    empty = region(html, 'id="6c"')
 
     tokens: list[tuple[str, str, str]] = []
 
@@ -148,6 +149,19 @@ def main() -> None:
     num("FlyoutFooterPadding", pad(find(fly, "border-top: 1px solid rgba(255,255,255,0.08)", "padding")), "")
     num("FlyoutFooterSize", px(find(fly, "border-top: 1px solid rgba(255,255,255,0.08)", "font-size")), "")
     num("FlyoutListPadding", pad(find(fly, "padding: 0 10px", "padding")), "")
+
+    # ---- First launch, artboard 6c ----------------------------------------------------
+    # Not an error screen. It is the only chance to say what the application is for.
+    num("EmptyTitleSize", px(find(empty, "font-size: 32px; font-weight: 600", "font-size")), "")
+    num("EmptyBodySize", px(find(empty, "line-height: 1.5", "font-size")), "")
+    num("EmptyCardPadding", pad(find(empty, "box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 18px", "padding")), "")
+    num("EmptyCardRadius", px(find(empty, "box-shadow: 0 2px 4px rgba(0,0,0,0.04); padding: 18px", "border-radius")), "")
+    num("EmptyCardGap", px(find(empty, "display: flex; gap: 14px", "gap")), "")
+    num("EmptyCardTitleSize", px(find(empty, "font-size: 14px; font-weight: 600", "font-size")), "")
+    num("EmptyCardBodySize", px(find(empty, "line-height: 1.45", "font-size")), "")
+    # An SVG width attribute rather than a CSS property, so it is written out here
+    # instead of being found. The comment is the honesty: this one number is typed.
+    num("EmptyGlyphSize", "34", "Глиф класса на карточке, из <svg width> артборда 6c")
 
     lines = [
         "<!--",

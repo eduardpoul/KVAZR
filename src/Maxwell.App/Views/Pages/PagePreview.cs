@@ -52,6 +52,11 @@ internal static class PagePreview
             string suffix = theme == ThemeVariant.Light ? "light" : "dark";
 
             Render($"{path}-matrix-{suffix}.png", theme, MatrixWidth, Showcase);
+
+            // The first-launch screen only appears when nothing is attached, which on a
+            // developer's machine is never. Rendering it on demand is the only way it
+            // gets looked at more than once.
+            Render($"{path}-welcome-{suffix}.png", theme, PageWidth, () => new WelcomeView());
             Render($"{path}-mouse-{suffix}.png", theme, PageWidth, () => Device(MockDeviceDriver.MouseKey));
             Render($"{path}-keyboard-{suffix}.png", theme, PageWidth, () => Device(MockDeviceDriver.KeyboardKey));
         }

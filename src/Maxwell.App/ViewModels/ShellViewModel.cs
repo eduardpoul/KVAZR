@@ -144,6 +144,30 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         if (AppSections.Count > 0) SelectedAppSection = AppSections[0];
     }
 
+    /// <summary>
+    /// Looks again, now, for the first-launch screen's button.
+    ///
+    /// Discovery already runs on a timer, so this changes nothing a few seconds of
+    /// waiting would not — and that is the point of having it. Somebody who has just
+    /// plugged a device in wants to do something rather than watch, and a button that
+    /// merely brings the next sweep forward is a better answer than a screen that asks
+    /// them to trust it.
+    /// </summary>
+    [RelayCommand]
+    private async Task RediscoverAsync()
+    {
+        try
+        {
+            await _registry.DiscoverAsync().ConfigureAwait(true);
+        }
+        catch (IOException)
+        {
+            // A driver failing to enumerate is already logged by the registry, and the
+            // list simply stays as it was. Nothing here to tell the user that the empty
+            // screen is not already telling them.
+        }
+    }
+
     [RelayCommand]
     private void ShowDashboard()
     {

@@ -340,6 +340,22 @@
 
   <!-- The button that does the irreversible thing. Marked, not hidden: the user chose
        to open this dialog, and hiding the consequence would be worse than naming it. -->
+  <!-- The one filled button. There is at most one per screen, because a second thing
+       shouting for the same attention means neither is the obvious next step. -->
+  <Style Selector="Button.accent">
+    <Setter Property="Height" Value="34" />
+    <Setter Property="Padding" Value="16,0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
+    <Setter Property="Background" Value="{DynamicResource AccentPrimaryBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource TextOnAccentBrush}" />
+  </Style>
+
   <Style Selector="Button.danger">
     <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}" />
