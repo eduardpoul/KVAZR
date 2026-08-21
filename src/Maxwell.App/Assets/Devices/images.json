@@ -1,0 +1,89 @@
+{
+  "$comment": [
+    "Where every device photo came from, and under what terms.",
+    "",
+    "This file is the reason the image set can grow past a dozen devices without",
+    "becoming a problem. A photo with no recorded origin cannot be checked later, and",
+    "at five hundred entries 'we found it somewhere' is not an answer anyone can act on.",
+    "",
+    "Two kinds of entry live here and they carry different obligations:",
+    "  vendor  - the manufacturer's own product shot. Used the way every companion app",
+    "            uses them. Not a licence grant; recorded so it can be replaced if asked.",
+    "  cc-by-sa - Creative Commons Attribution-ShareAlike. Attribution is mandatory and",
+    "            has to appear in the About page. Our cropped version is a derivative and",
+    "            carries the same licence, which is why 'derivative' is spelled out below.",
+    "",
+    "Every image here is 512x512 WebP, background keyed out, subject centred with a 6%",
+    "margin. That uniformity matters more than the individual pictures: a list where one",
+    "row is a studio render and the next is a snapshot on a desk reads worse than a list",
+    "of plain glyphs. A photo that cannot be brought to this standard does not go in -",
+    "the class silhouette is the better answer, not a worse one.",
+    "",
+    "Devices absent from this file on purpose: Apple AirPods Pro 2 and JBL Flip 6. Both",
+    "appear in the design; neither has a product shot we can stand behind, and both are",
+    "devices we only read from. They get their class silhouette, which is what the tail",
+    "of the catalogue will look like anyway."
+  ],
+
+  "version": 1,
+  "format": { "size": 512, "type": "image/webp", "background": "transparent" },
+
+  "images": {
+    "audeze-maxwell": {
+      "title": "Audeze Maxwell",
+      "class": "Headset",
+      "origin": "vendor",
+      "source": "Audeze product photography, via the design bundle (Design/design 2/assets/maxwell-3q.jpg)",
+      "derivative": "background keyed out, squared, resized to 512"
+    },
+    "logitech-g-pro-x-superlight-2": {
+      "title": "Logitech G PRO X SUPERLIGHT 2",
+      "class": "Mouse",
+      "origin": "vendor",
+      "source": "https://www.logitechclub.com/en/products/pro-x-superlight-2-無線電競滑鼠",
+      "file": "logitech-g-pro-x-superlight-2-gaming-mouse-black-side-view..jpg",
+      "derivative": "background keyed out, squared, resized to 512"
+    },
+    "hyperx-quadcast-s": {
+      "title": "HyperX QuadCast S",
+      "class": "Microphone",
+      "origin": "vendor",
+      "source": "https://hyperx.com/products/hyperx-quadcast-s-usb-microphone",
+      "file": "hyperx_quadcast_s_1_front.jpg",
+      "derivative": "background keyed out, squared, resized to 512"
+    },
+    "nuphy-air75-v2": {
+      "title": "NuPhy Air75 V2",
+      "class": "Keyboard",
+      "origin": "vendor",
+      "source": "https://nuphy.com.au/products/air75-v2-wireless-custom-mechanical-keyboard",
+      "derivative": "background keyed out, squared, resized to 512"
+    },
+    "nuphy-halo75-v2": {
+      "title": "NuPhy Halo75 V2",
+      "class": "Keyboard",
+      "origin": "vendor",
+      "source": "https://nuphy.com.au/products/nuphy-halo75-v2",
+      "derivative": "background keyed out, squared, resized to 512"
+    },
+    "flydigi-apex-5": {
+      "title": "Flydigi Apex 5",
+      "class": "Gamepad",
+      "origin": "vendor",
+      "source": "https://shops.flydigi.com/products/apex5",
+      "note": "The design names the Wuchang: Fallen Feathers limited edition. Same hardware, different shell art, so the catalogue keys both to the base model.",
+      "derivative": "background keyed out, squared, resized to 512"
+    }
+  },
+
+  "rejected": {
+    "apple-airpods-pro-2": {
+      "reason": "The only freely licensed photo found is a hand-held snapshot on a desk (Commons, CC BY-SA 4.0, by aconcagua). Wrong framing for a 56 px row; Apple's own images are not ours to take. Uses the earbuds silhouette.",
+      "considered": "https://commons.wikimedia.org/wiki/File:AirPods_Pro_2.jpg"
+    },
+    "jbl-flip-6": {
+      "reason": "jbl.com refuses automated requests on every regional host; Commons has Flip 3 and Flip 4 only. Uses the speaker silhouette.",
+      "considered": "https://www.jbl.com/FLIP-6-.html"
+    }
+  }
+}
