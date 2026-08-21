@@ -4,6 +4,7 @@
              xmlns:vm="using:Maxwell.App.ViewModels"
              xmlns:devices="using:Maxwell.App.ViewModels.Devices"
              xmlns:conv="using:Maxwell.App.Converters"
+             xmlns:controls="using:Maxwell.App.Controls"
              x:Class="Maxwell.App.Views.Pages.DashboardView"
              x:DataType="vm:DashboardViewModel">
 
@@ -19,9 +20,69 @@
 
   <StackPanel Spacing="12">
 
+    <!--
+      Four screens, not two. Still sweeping, gave up, found nothing, found something —
+      and the identity insists they look different, because "no devices" shown while the
+      first sweep is still running is simply wrong.
+
+      The card chrome and the section title above this view are NOT skeletons: they do
+      not depend on any device answering, so they are on screen from the first frame.
+    -->
+
+    <!-- Still sweeping. Three placeholder rows at exactly the height of a real card, so
+         nothing on the page moves when the devices land. -->
+    <StackPanel Spacing="8" IsVisible="{Binding Loading.ShowSkeleton}">
+      <Border Classes="card">
+        <Grid ColumnDefinitions="Auto,*,Auto" Margin="20" Height="52">
+          <controls:Skeleton Grid.Column="0" Width="52" Height="52" Radius="4" Margin="0,0,16,0" />
+          <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
+            <controls:Skeleton Width="196" Height="10" Phase="1" HorizontalAlignment="Left" />
+            <controls:Skeleton Width="118" Height="8" Phase="2" HorizontalAlignment="Left" />
+          </StackPanel>
+          <controls:Skeleton Grid.Column="2" Width="44" Height="12" Phase="3" VerticalAlignment="Center" />
+        </Grid>
+      </Border>
+      <Border Classes="card">
+        <Grid ColumnDefinitions="Auto,*,Auto" Margin="20" Height="52">
+          <controls:Skeleton Grid.Column="0" Width="52" Height="52" Radius="4" Phase="1" Margin="0,0,16,0" />
+          <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
+            <controls:Skeleton Width="150" Height="10" Phase="2" HorizontalAlignment="Left" />
+            <controls:Skeleton Width="96" Height="8" Phase="3" HorizontalAlignment="Left" />
+          </StackPanel>
+          <controls:Skeleton Grid.Column="2" Width="44" Height="12" Phase="4" VerticalAlignment="Center" />
+        </Grid>
+      </Border>
+      <Border Classes="card">
+        <Grid ColumnDefinitions="Auto,*,Auto" Margin="20" Height="52">
+          <controls:Skeleton Grid.Column="0" Width="52" Height="52" Radius="4" Phase="2" Margin="0,0,16,0" />
+          <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
+            <controls:Skeleton Width="172" Height="10" Phase="3" HorizontalAlignment="Left" />
+            <controls:Skeleton Width="86" Height="8" Phase="4" HorizontalAlignment="Left" />
+          </StackPanel>
+          <controls:Skeleton Grid.Column="2" Width="44" Height="12" Phase="5" VerticalAlignment="Center" />
+        </Grid>
+      </Border>
+    </StackPanel>
+
+    <!-- Gave up. Text, because a placeholder that pulses for ever is how a lost request
+         gets mistaken for a slow one. -->
+    <Border Classes="card" IsVisible="{Binding Loading.ShowError}">
+      <StackPanel Spacing="8" Margin="24">
+        <TextBlock Classes="sectionTitle" Text="Не удалось опросить устройства" />
+        <TextBlock Classes="secondary" MaxWidth="520"
+                   Text="Ответа нет уже десять секунд. Подключение проверяется дальше — список появится, как только что-нибудь отзовётся." />
+      </StackPanel>
+    </Border>
+
     <!-- Empty state, artboard 6c. Not an error — this is what a first launch looks
          like, and it should read as an introduction rather than a failure. -->
-    <Border Classes="card" IsVisible="{Binding IsEmpty}">
+    <Border Classes="card">
+      <Border.IsVisible>
+        <MultiBinding Converter="{x:Static BoolConverters.And}">
+          <Binding Path="IsEmpty" />
+          <Binding Path="Loading.ShowContent" />
+        </MultiBinding>
+      </Border.IsVisible>
       <StackPanel Spacing="8" Margin="24">
         <TextBlock Classes="sectionTitle" Text="Устройств пока нет" />
         <TextBlock Classes="secondary" MaxWidth="520"
@@ -29,7 +90,7 @@
       </StackPanel>
     </Border>
 
-    <ItemsControl ItemsSource="{Binding Devices}">
+    <ItemsControl ItemsSource="{Binding Devices}" IsVisible="{Binding Loading.ShowContent}">
       <ItemsControl.ItemTemplate>
         <DataTemplate x:DataType="devices:DeviceListItemViewModel">
           <Border Classes="card" Margin="0,0,0,8" Opacity="{Binding IsPresent, Converter={StaticResource PresenceOpacity}}">
@@ -62,10 +123,18 @@
                 <TextBlock Classes="caption" Text="{Binding Status}" />
               </StackPanel>
 
+              <!-- The row arrived; one number has not. A spinner here rather than a
+                   skeleton, because the row is real and only the value is missing. -->
+              <controls:KvazrMarkControl Grid.Column="2" Width="20" Height="20"
+                                         Motion="Fast" OrbitShade="Resting"
+                                         VerticalAlignment="Center"
+                                         IsVisible="{Binding IsBatteryPending}" />
+
               <TextBlock Grid.Column="2"
                          FontSize="{DynamicResource FontSizeSubtitle}"
                          FontWeight="SemiBold"
                          VerticalAlignment="Center"
+                         IsVisible="{Binding !IsBatteryPending}"
                          Text="{Binding Battery}" />
             </Grid>
           </Border>

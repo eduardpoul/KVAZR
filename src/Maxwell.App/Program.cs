@@ -39,6 +39,15 @@ internal static class Program
             return DumpThumbs(args[thumbs + 1]);
         }
 
+        // Regenerates src/Maxwell.App/Assets/kvazr.ico from the same geometry the rest
+        // of the application draws. Committed rather than generated during the build so
+        // that a build does not need a render surface, but generated rather than drawn
+        // by hand so the tile and the tray can never disagree.
+        if (Array.IndexOf(args, "--write-icon") is var ico and >= 0 && ico + 1 < args.Length)
+        {
+            return WriteIcon(args[ico + 1]);
+        }
+
         IHost host = CreateHost(args);
         host.Start();
 
@@ -46,6 +55,28 @@ internal static class Program
         // on it; --flyout presents it at startup.
         App.PresentFlyoutOnStart = Array.IndexOf(args, "--flyout") >= 0;
         App.PresentPopupOnStart = Array.IndexOf(args, "--popup") >= 0;
+
+        // The splash is gone within a second of the shell appearing, which is right for
+        // a user and useless for looking at it. These hold it up instead.
+        if (Array.IndexOf(args, "--splash") >= 0) App.PinSplash = SplashForm.Named;
+        if (Array.IndexOf(args, "--splash-mark") >= 0) App.PinSplash = SplashForm.MarkOnly;
+
+        App.OpenIdentityOnStart = Array.IndexOf(args, "--identity") >= 0;
+
+        // A page taller than the window can only be reviewed a third at a time, and
+        // scrolling it means driving the mouse, which takes the cursor away from
+        // whoever is sitting at the machine. Resizing the window costs nobody anything.
+        if (Array.IndexOf(args, "--size") is var size and >= 0 && size + 1 < args.Length)
+        {
+            App.WindowSizeOnStart = args[size + 1];
+        }
+
+        if (Array.IndexOf(args, "--scroll") is var scroll and >= 0
+            && scroll + 1 < args.Length
+            && double.TryParse(args[scroll + 1], System.Globalization.CultureInfo.InvariantCulture, out double offset))
+        {
+            App.ScrollOnStart = offset;
+        }
 
         if (Array.IndexOf(args, "--open") is var open and >= 0
             && open + 1 < args.Length
@@ -83,6 +114,15 @@ internal static class Program
         return 0;
     }
 
+    private static int WriteIcon(string path)
+    {
+        AppBuilder.Configure<App>().UsePlatformDetect().SetupWithoutStarting();
+        Branding.KvazrAppIcon.WriteIco(path, Branding.KvazrSurface.Dark);
+
+        Console.WriteLine($"wrote {path}");
+        return 0;
+    }
+
     private static IHost CreateHost(string[] args)
     {
         HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
@@ -106,6 +146,7 @@ internal static class Program
         builder.Services.AddSingleton<IConfirmationPrompt>(sp =>
             new ModalConfirmation(sp.GetRequiredService<MainWindow>));
 
+        builder.Services.AddSingleton<Infrastructure.FirstSweep>();
         builder.Services.AddSingleton<CapabilityShowcaseViewModel>();
         builder.Services.AddSingleton<Platform.HiddenDevices>();
         builder.Services.AddSingleton<ShellViewModel>();

@@ -82,7 +82,10 @@ public sealed class WindowsNotifier : INotifier, IDisposable
 
             WindowsNotificationManager manager = await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                var context = WindowsApplicationContext.FromCurrentProcess("Maxwell.App");
+                // The name on the toast and in the Action Center, so it is the product
+                // name and not the assembly's. Changing it re-registers the AUMID under
+                // the new display name; nothing that was already delivered is lost.
+                var context = WindowsApplicationContext.FromCurrentProcess("KVAZR");
                 return new WindowsNotificationManager(context);
             }).GetTask().ConfigureAwait(false);
 

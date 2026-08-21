@@ -13,6 +13,10 @@ public partial class ConfirmDialog : Window
 
     public ConfirmDialog()
     {
+        // There used to be a hand-written InitializeComponent() beside this call. The
+        // generated one takes an optional argument, so both compiled and the hand-written
+        // one won the call — leaving TitleText, Body and the buttons below null, and this
+        // dialog throwing the moment it was constructed for a real capability.
         InitializeComponent();
     }
 
@@ -61,5 +65,4 @@ public partial class ConfirmDialog : Window
         base.OnClosing(e);
     }
 
-    private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 }

@@ -19,6 +19,10 @@ namespace Maxwell.App.Platform.Windows;
 public sealed class WindowsAutostart : IAutostart
 {
     private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
+    // Not renamed with the rest of the product. This is the key the previous version
+    // wrote, and writing a new one would leave the old entry behind: two lines in the
+    // Startup tab, one of them launching a path that may no longer exist. The name is
+    // not shown to the user — Task Manager lists the executable's own description.
     private const string ValueName = "Maxwell.App";
     private const string MinimisedArgument = "--minimised";
 

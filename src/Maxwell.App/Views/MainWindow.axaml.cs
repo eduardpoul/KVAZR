@@ -12,6 +12,9 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
+        // Generated, and it takes an optional argument. A hand-written parameterless
+        // overload alongside it compiles, wins the call, and leaves every x:Name field
+        // null — which is exactly what used to happen here.
         InitializeComponent();
     }
 
@@ -24,7 +27,15 @@ public partial class MainWindow : Window
         _shell = shell;
     }
 
-    private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
+
+    /// <summary>
+    /// Development affordance, alongside --open and --identity. A page taller than the
+    /// screen can only be photographed a screenful at a time, and scrolling it any
+    /// other way means driving the mouse — which takes the cursor away from whoever is
+    /// sitting at the machine.
+    /// </summary>
+    internal void ScrollTo(double offset) =>
+        ContentPane.Offset = ContentPane.Offset.WithY(offset);
 
     protected override void OnOpened(EventArgs e)
     {

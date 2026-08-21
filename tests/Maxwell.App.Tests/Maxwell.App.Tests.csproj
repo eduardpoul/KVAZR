@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+
+  <!--
+    Covers the decisions in the shell, not its drawing: which colours a state resolves
+    to, which state a set of devices reduces to, when a placeholder is allowed to appear
+    and when it has to give up. Whether a 16-pixel glyph reads is answered by rendering
+    the grid and looking at it, and no assertion can stand in for that.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Maxwell.App\Maxwell.App.csproj" />
+  </ItemGroup>
+
+</Project>
