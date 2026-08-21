@@ -5,6 +5,7 @@ using Maxwell.Core.Abstractions;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Drivers.Audeze;
 using Maxwell.Core.Drivers.Mock;
+using Maxwell.Core.Drivers.System;
 using Maxwell.Core.Polling;
 using Maxwell.Core.Services;
 using Maxwell.Race.Abstractions;
@@ -76,6 +77,15 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ICapabilityLedger, SettingsCapabilityLedger>();
         services.AddSingleton<IDeviceDriver, AudezeRaceDriver>();
 
+        // Registered last of the real drivers, though order does not decide anything —
+        // the registry shadows on tier. It is here so that a machine with nothing this
+        // application understands still shows the user their devices rather than an
+        // empty list, which is indistinguishable from the application being broken.
+        if (services.Any(d => d.ServiceType == typeof(ISystemDeviceEnumerator)))
+        {
+            services.AddSingleton<IDeviceDriver, SystemDeviceDriver>();
+        }
+
         if (includeMockDevices)
         {
             services.AddSingleton<IDeviceDriver>(_ => new MockDeviceDriver(mockDeviceCount));
@@ -100,6 +110,8 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IHidEnumerator, WindowsHidEnumerator>();
         services.AddSingleton<IHidTransportFactory, WindowsHidTransportFactory>();
+        services.AddSingleton<IBluetoothMonitor, WindowsBluetoothMonitor>();
+        services.AddSingleton<ISystemDeviceEnumerator, WindowsSystemDeviceEnumerator>();
 
         return services;
     }

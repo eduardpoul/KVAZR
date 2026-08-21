@@ -35,6 +35,7 @@ public sealed class WindowsBluetoothMonitor : IBluetoothMonitor
     {
         bool present = false;
         int battery = -1;
+        string? address = null;
 
         foreach (string enumerator in Enumerators)
         {
@@ -56,6 +57,8 @@ public sealed class WindowsBluetoothMonitor : IBluetoothMonitor
 
                     if (battery < 0 && ReadByte(set, ref info, Native.DevPkeyBatteryLevel) is { } level)
                         battery = level;
+
+                    address ??= ReadString(set, ref info, Native.DevPkeyBluetoothAddress);
                 }
             }
             finally
@@ -64,7 +67,7 @@ public sealed class WindowsBluetoothMonitor : IBluetoothMonitor
             }
         }
 
-        return present ? new BluetoothStatus(true, battery) : BluetoothStatus.Absent;
+        return present ? new BluetoothStatus(true, battery, address) : BluetoothStatus.Absent;
     }
 
     private static string? ReadString(IntPtr set, ref Native.SpDevInfoData info, Native.DevPropKey key)
@@ -102,6 +105,10 @@ public sealed class WindowsBluetoothMonitor : IBluetoothMonitor
         /// <summary>DEVPKEY_Bluetooth_Battery — a single byte, 0..100.</summary>
         internal static readonly DevPropKey DevPkeyBatteryLevel =
             new(new Guid("104ea319-6ee2-4701-bd47-8ddbf425bbe5"), 2);
+
+        /// <summary>DEVPKEY_Bluetooth_DeviceAddress.</summary>
+        internal static readonly DevPropKey DevPkeyBluetoothAddress =
+            new(new Guid("2bd67d8b-8beb-48d5-87e0-6cda3428040a"), 1);
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct SpDevInfoData

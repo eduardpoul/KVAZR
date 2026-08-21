@@ -69,6 +69,12 @@ internal static partial class Log
     [LoggerMessage(EventId = 1305, Level = LogLevel.Warning, Message = "Discovery failed for driver {Driver}")]
     public static partial void DiscoveryFailed(this ILogger logger, Exception exception, string driver);
 
+    [LoggerMessage(
+        EventId = 1306,
+        Level = LogLevel.Debug,
+        Message = "{DeviceKey} from {Driver} shadowed by a driver that knows it better")]
+    public static partial void DeviceShadowed(this ILogger logger, string deviceKey, string driver);
+
     [LoggerMessage(EventId = 1100, Level = LogLevel.Information, Message = "Device polling started")]
     public static partial void PollingStarted(this ILogger logger);
 

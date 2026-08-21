@@ -9,7 +9,12 @@ namespace Maxwell.Race.Abstractions;
 /// </summary>
 /// <param name="Present">True when the headset is paired and connected over Bluetooth.</param>
 /// <param name="BatteryPercent">Level, or -1 when the system does not report one.</param>
-public readonly record struct BluetoothStatus(bool Present, int BatteryPercent)
+/// <param name="Address">
+/// The Bluetooth address, when one was found. Carried because it is the only thing that
+/// identifies this headset to the system driver, which finds the same hardware knowing
+/// nothing about it — with no identifier in common the two would list two headsets.
+/// </param>
+public readonly record struct BluetoothStatus(bool Present, int BatteryPercent, string? Address = null)
 {
     public static readonly BluetoothStatus Absent = new(false, -1);
 

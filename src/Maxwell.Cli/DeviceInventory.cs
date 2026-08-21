@@ -3,6 +3,7 @@ using Maxwell.Race.Abstractions;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Drivers.Audeze;
 using Maxwell.Core.Drivers.Mock;
+using Maxwell.Core.Drivers.System;
 using Maxwell.Core.Polling;
 using Maxwell.Race.Windows;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -31,7 +32,11 @@ internal static class DeviceInventory
             new AudezeRaceDriver(
                 new WindowsHidEnumerator(),
                 new WindowsHidTransportFactory(),
-                new Maxwell.Race.Windows.WindowsBluetoothMonitor()),
+                new WindowsBluetoothMonitor()),
+
+            // Everything else on the machine. Expected to be shadowed for the Audeze —
+            // that is the arrangement working, not a clash.
+            new SystemDeviceDriver(new WindowsSystemDeviceEnumerator()),
         ];
 
         if (includeMocks) drivers.Add(new MockDeviceDriver());

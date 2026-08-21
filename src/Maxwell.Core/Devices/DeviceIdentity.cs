@@ -7,10 +7,28 @@ namespace Maxwell.Core.Devices;
 /// </summary>
 public enum DeviceClass
 {
+    /// <summary>
+    /// Not a failure and not a placeholder. A device that says nothing about itself
+    /// still gets a row, a page and an icon — the design draws that case on purpose,
+    /// because it is what most of the world looks like before anyone teaches us about it.
+    /// </summary>
     Unknown,
+
     Headset,
+    Earbuds,
+    Microphone,
+    Speaker,
     Mouse,
     Keyboard,
+    Gamepad,
+
+    /// <summary>
+    /// A wireless receiver, shown as itself because at the system level that is all
+    /// there is to see. A Logitech receiver arrives as one container serving both a
+    /// keyboard and a mouse; only the vendor protocol can say what is actually paired to
+    /// it, so until a driver at that tier speaks up, "a receiver" is the honest answer.
+    /// </summary>
+    Receiver,
 }
 
 /// <summary>Which physical link a channel to the device runs over.</summary>
@@ -64,12 +82,36 @@ public sealed record DeviceInfo
 
     public DeviceClass Class { get; init; } = DeviceClass.Unknown;
 
-    /// <summary>Name of the bundled image asset, without a path or extension.</summary>
+    /// <summary>
+    /// Catalogue key for this model, as a slug like "audeze-maxwell" — not a file name.
+    /// It resolves in three steps: a curated picture shipped with the build, then the
+    /// silhouette for <see cref="Class"/>, then whatever the user picked themselves.
+    ///
+    /// Deliberately not the USB ids. Bluetooth devices have none, and a model that ships
+    /// under several product ids is still one model to the person holding it.
+    /// </summary>
     public string? ImageKey { get; init; }
+
+    /// <summary>
+    /// Everything that identifies this device to the operating system: "usb:3329:4b1e",
+    /// "bt:034275a08236", "container:{guid}".
+    ///
+    /// This exists so the same headset found twice does not appear twice. The system
+    /// driver finds every device on the machine and a vendor driver finds one of them
+    /// properly; without a way to tell that those two are the same object, the Maxwell
+    /// would sit in the list beside itself — once with sixteen capabilities and once
+    /// with a battery reading.
+    /// </summary>
+    public IReadOnlySet<string> HardwareIds { get; init; } = new HashSet<string>(StringComparer.Ordinal);
 
     public IReadOnlyList<TransportInfo> Transports { get; init; } = [];
 
-    public string DisplayName => $"{Vendor} {Model}";
+    /// <summary>
+    /// The maker is often unknown — Windows reports "(Standard system devices)" for most
+    /// peripherals and the system driver refuses to pass that on — so the model has to
+    /// stand alone rather than trailing an empty vendor and a stray space.
+    /// </summary>
+    public string DisplayName => string.IsNullOrWhiteSpace(Vendor) ? Model : $"{Vendor} {Model}";
 
     /// <summary>The channel that answers configuration commands, when one is present.</summary>
     public TransportInfo? ControlTransport =>

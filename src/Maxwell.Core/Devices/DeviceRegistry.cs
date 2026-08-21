@@ -87,6 +87,12 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
                 }
             }
 
+            foreach (string shadowed in Shadowed(found))
+            {
+                _logger.DeviceShadowed(shadowed, found[shadowed].Driver.DriverId);
+                found.Remove(shadowed);
+            }
+
             foreach ((string key, (DeviceInfo info, IDeviceDriver driver)) in found)
             {
                 DeviceSession session = GetOrCreate(key, info, driver);
@@ -108,6 +114,41 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
         {
             _gate.Release();
         }
+    }
+
+    /// <summary>
+    /// Keys of devices that another driver found and understands better.
+    ///
+    /// The system driver finds every peripheral on the machine, which is the point of
+    /// it, and that necessarily includes the ones a vendor driver already owns. Left
+    /// alone the Maxwell would appear twice — once with sixteen capabilities and once
+    /// with a battery reading — and the second row would look like a second headset.
+    ///
+    /// Overlap is decided on hardware ids rather than on names or models, because a name
+    /// is what the two drivers are least likely to agree on: one reads it from the USB
+    /// product string, the other has it written into a catalogue.
+    ///
+    /// Only strictly lower tiers are shadowed. Two drivers at the same tier claiming one
+    /// device is a real conflict rather than the expected overlap, and silently dropping
+    /// one of them would hide it.
+    /// </summary>
+    private static List<string> Shadowed(Dictionary<string, (DeviceInfo Info, IDeviceDriver Driver)> found)
+    {
+        var shadowed = new List<string>();
+
+        foreach ((string key, (DeviceInfo info, IDeviceDriver driver)) in found)
+        {
+            if (info.HardwareIds.Count == 0) continue;
+
+            bool covered = found.Any(other =>
+                !string.Equals(other.Key, key, StringComparison.Ordinal)
+                && other.Value.Driver.Tier > driver.Tier
+                && other.Value.Info.HardwareIds.Overlaps(info.HardwareIds));
+
+            if (covered) shadowed.Add(key);
+        }
+
+        return shadowed;
     }
 
     private DeviceSession GetOrCreate(string key, DeviceInfo info, IDeviceDriver driver)

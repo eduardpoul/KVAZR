@@ -1,6 +1,33 @@
 namespace Maxwell.Core.Devices;
 
 /// <summary>
+/// How much a driver knows about what it finds. Order matters: these are compared.
+/// </summary>
+public enum DriverTier
+{
+    /// <summary>
+    /// Whatever the operating system already knows, for every device on the machine.
+    /// No protocol, no vendor knowledge, no catalogue entry — a name, a class, a link
+    /// and sometimes a battery. Thin, but thin for everything equally, which is what
+    /// makes the long tail of devices tractable at all.
+    /// </summary>
+    System,
+
+    /// <summary>
+    /// A protocol shared by a whole class of hardware regardless of who made it — VIA
+    /// and QMK, HID++, XInput, USB Audio. One implementation covers hundreds of models,
+    /// which is why these are worth more than any single vendor integration.
+    /// </summary>
+    Class,
+
+    /// <summary>
+    /// One vendor's own protocol, reverse-engineered. Expensive per family and cheap per
+    /// model afterwards, provided the models stay data and only the protocol is code.
+    /// </summary>
+    Vendor,
+}
+
+/// <summary>
 /// Knows how to find and talk to one family of devices — Audeze over RACE, Logitech
 /// over HID++, a QMK keyboard over VIA.
 ///
@@ -14,6 +41,14 @@ public interface IDeviceDriver
 {
     /// <summary>Stable id used in <see cref="DeviceInfo.DriverId"/>, e.g. "audeze.race".</summary>
     string DriverId { get; }
+
+    /// <summary>
+    /// How much this driver knows. When two drivers find the same physical device — and
+    /// they will, because the system driver finds everything — the higher tier keeps it
+    /// and the lower one is dropped. That is what lets a driver that finds every device
+    /// coexist with one that understands a single family properly.
+    /// </summary>
+    DriverTier Tier => DriverTier.Vendor;
 
     /// <summary>
     /// Devices of this family currently attached. Cheap enough to call on a device-change

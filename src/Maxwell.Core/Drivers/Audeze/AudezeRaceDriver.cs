@@ -62,8 +62,8 @@ public sealed class AudezeRaceDriver : IDeviceDriver
             // Alone, it has to guess, and the Xbox edition is the common one — the guess
             // costs a label, not a capability.
             devices = devices.Count > 0
-                ? [.. devices.Select(WithBluetooth)]
-                : [Describe(MaxwellVariant.Xbox, []) with { Transports = [BluetoothTransport] }];
+                ? [.. devices.Select(d => WithBluetooth(d, bluetooth.Address))]
+                : [WithBluetooth(Describe(MaxwellVariant.Xbox, []), bluetooth.Address)];
         }
 
         return Task.FromResult<IReadOnlyList<DeviceInfo>>(devices);
@@ -142,7 +142,14 @@ public sealed class AudezeRaceDriver : IDeviceDriver
             Vendor = "Audeze",
             Model = variant == MaxwellVariant.PlayStation ? "Maxwell (PlayStation)" : "Maxwell",
             Class = DeviceClass.Headset,
-            ImageKey = variant == MaxwellVariant.PlayStation ? "maxwell-ps-3q" : "maxwell-3q",
+            ImageKey = "audeze-maxwell",
+
+            // Every lead this headset is currently reachable on, so the system driver's
+            // copy of the same hardware can be recognised and dropped.
+            HardwareIds = new HashSet<string>(
+                interfaces.Select(i => $"usb:{MaxwellInterface.VendorId:x4}:{i.ProductId:x4}"),
+                StringComparer.Ordinal),
+
             Transports = TransportsOf(interfaces),
         };
 
@@ -159,8 +166,23 @@ public sealed class AudezeRaceDriver : IDeviceDriver
         CarriesAudio = true,
     };
 
-    private static DeviceInfo WithBluetooth(DeviceInfo device) =>
-        device with { Transports = [.. device.Transports, BluetoothTransport] };
+    /// <summary>
+    /// Adds the Bluetooth channel, and the address with it. The address is what tells the
+    /// system driver — which finds this same headset knowing nothing about it — that the
+    /// two of them are talking about one device. Without it the Maxwell appears twice
+    /// while it is on Bluetooth: once with every setting, once with a battery reading.
+    /// </summary>
+    private static DeviceInfo WithBluetooth(DeviceInfo device, string? address) =>
+        device with
+        {
+            Transports = [.. device.Transports, BluetoothTransport],
+            HardwareIds = address is { Length: > 0 }
+                ? new HashSet<string>(device.HardwareIds, StringComparer.Ordinal)
+                {
+                    $"bt:{address.ToLowerInvariant()}",
+                }
+                : device.HardwareIds,
+        };
 
     private static IReadOnlyList<TransportInfo> TransportsOf(IReadOnlyList<MaxwellInterface> interfaces) =>
     [
