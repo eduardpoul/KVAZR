@@ -1,0 +1,53 @@
+<!--
+  Размеры, снятые с макета машинно. НЕ ПРАВИТЬ РУКАМИ.
+
+  Сгенерировано tools/design-tokens.py из Design/kvazr/Devices Hub.dc.html.
+  Каждое значение взято из конкретного элемента конкретного артборда, а не
+  перенесено на глаз: экраны, которые собирали переписыванием чисел, каждый раз
+  расходились с макетом в новом месте, и заметно это становилось только когда
+  готовый экран клали рядом с артбордом.
+
+  Поменялся дизайн — перезапустить скрипт, а не искать числа по разметке.
+-->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="using:System">
+
+  <!-- Строка устройства целиком, включая разделитель -->
+  <sys:Double x:Key="DashRowHeight">84</sys:Double>
+  <!-- Между плиткой и текстом -->
+  <sys:Double x:Key="DashRowGap">16</sys:Double>
+  <Thickness x:Key="DashRowPadding">16,0,16,0</Thickness>
+  <!-- Плитка изображения -->
+  <sys:Double x:Key="DashThumbSize">60</sys:Double>
+  <sys:Double x:Key="DashThumbRadius">6</sys:Double>
+  <CornerRadius x:Key="DashThumbRadiusCorner">6</CornerRadius>
+  <sys:Double x:Key="DashNameSize">15</sys:Double>
+  <!-- Между пилюлями под именем -->
+  <sys:Double x:Key="DashSubGap">6</sys:Double>
+  <!-- Пилюля класса устройства -->
+  <sys:Double x:Key="DashPillSize">11</sys:Double>
+  <sys:Double x:Key="DashPillRadius">4</sys:Double>
+  <CornerRadius x:Key="DashPillRadiusCorner">4</CornerRadius>
+  <Thickness x:Key="DashPillPadding">7,2,7,2</Thickness>
+  <!-- Пилюля транспорта — на пиксель уже, потому что у неё есть рамка -->
+  <Thickness x:Key="DashTransportPadding">7,1,7,1</Thickness>
+  <!-- Заголовок группы, ПОДКЛЮЧЕНЫ · 6 -->
+  <sys:Double x:Key="DashGroupSize">12</sys:Double>
+  <!-- Заголовок страницы -->
+  <sys:Double x:Key="DashTitleSize">28</sys:Double>
+  <sys:Double x:Key="FlyoutRowHeight">56</sys:Double>
+  <sys:Double x:Key="FlyoutRowGap">12</sys:Double>
+  <Thickness x:Key="FlyoutRowPadding">6,0,6,0</Thickness>
+  <sys:Double x:Key="FlyoutRowRadius">4</sys:Double>
+  <CornerRadius x:Key="FlyoutRowRadiusCorner">4</CornerRadius>
+  <sys:Double x:Key="FlyoutThumbSize">36</sys:Double>
+  <sys:Double x:Key="FlyoutThumbRadius">6</sys:Double>
+  <CornerRadius x:Key="FlyoutThumbRadiusCorner">6</CornerRadius>
+  <sys:Double x:Key="FlyoutNameSize">13</sys:Double>
+  <sys:Double x:Key="FlyoutSubSize">11</sys:Double>
+  <sys:Double x:Key="FlyoutBatterySize">15</sys:Double>
+  <!-- Ровно пять строк; дальше список прокручивается, а панель не растёт -->
+  <sys:Double x:Key="FlyoutListHeight">284</sys:Double>
+
+</ResourceDictionary>

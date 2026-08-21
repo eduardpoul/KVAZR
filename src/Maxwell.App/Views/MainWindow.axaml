@@ -110,19 +110,56 @@
             <TextBlock Text="Все устройства" Margin="8,0" />
           </Button>
 
-          <TextBlock Classes="groupHeader" Text="УСТРОЙСТВА"
-                     IsVisible="{Binding HasDevices}" />
+          <!--
+            Two groups rather than one heading, as artboard 1a has them. A device that is
+            not here right now still keeps its place in the pane; putting it under its own
+            heading is what stops it reading as a device that has gone wrong.
+
+            The class glyph carries more here than anywhere else on the screen: at 260
+            pixels the names are trimmed, and the silhouette is what says at a glance
+            which of two half-visible names is the keyboard.
+          -->
+          <TextBlock Classes="groupHeader" Text="{Binding Dashboard.ConnectedHeading}"
+                     IsVisible="{Binding Dashboard.HasConnected}" />
 
           <ListBox Classes="nav"
-                   ItemsSource="{Binding Devices}"
+                   ItemsSource="{Binding Dashboard.Connected}"
                    SelectedItem="{Binding SelectedDevice}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="devices:DeviceListItemViewModel">
-                <Grid ColumnDefinitions="*,Auto" Margin="12,0">
-                  <TextBlock Grid.Column="0" Text="{Binding DisplayName}"
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="12,0">
+                  <Path Grid.Column="0" Width="15" Height="15" Margin="0,0,9,0"
+                        VerticalAlignment="Center"
+                        Data="{Binding Glyph}"
+                        Stroke="{DynamicResource TextSecondaryBrush}"
+                        StrokeThickness="1.4" StrokeLineCap="Round" StrokeJoin="Round"
+                        Stretch="Uniform" />
+                  <TextBlock Grid.Column="1" Text="{Binding ShortName}"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                  <TextBlock Grid.Column="1" Classes="caption" Text="{Binding Battery}"
-                             VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="2" Classes="caption" Text="{Binding Battery}"
+                             VerticalAlignment="Center" Margin="8,0,0,0" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+          <TextBlock Classes="groupHeader" Text="{Binding Dashboard.DisconnectedHeading}"
+                     IsVisible="{Binding Dashboard.HasDisconnected}" />
+
+          <ListBox Classes="nav" Opacity="0.55"
+                   ItemsSource="{Binding Dashboard.Disconnected}"
+                   SelectedItem="{Binding SelectedDevice}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="devices:DeviceListItemViewModel">
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="12,0">
+                  <Path Grid.Column="0" Width="15" Height="15" Margin="0,0,9,0"
+                        VerticalAlignment="Center"
+                        Data="{Binding Glyph}"
+                        Stroke="{DynamicResource TextSecondaryBrush}"
+                        StrokeThickness="1.4" StrokeLineCap="Round" StrokeJoin="Round"
+                        Stretch="Uniform" />
+                  <TextBlock Grid.Column="1" Text="{Binding ShortName}"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 </Grid>
               </DataTemplate>
             </ListBox.ItemTemplate>

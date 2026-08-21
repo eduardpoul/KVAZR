@@ -43,6 +43,48 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
 
     public bool IsPresent => Snapshot.IsPresent;
 
+    /// <summary>
+    /// What kind of thing this is, as a person would say it. The design puts it in a
+    /// pill under the name rather than in the row's prose, because at a glance the class
+    /// is what separates two devices with similar names.
+    /// </summary>
+    public string Kind => Snapshot.Info.Class switch
+    {
+        DeviceClass.Headset => "Гарнитура",
+        DeviceClass.Earbuds => "Наушники",
+        DeviceClass.Microphone => "Микрофон",
+        DeviceClass.Speaker => "Колонка",
+        DeviceClass.Mouse => "Мышь",
+        DeviceClass.Keyboard => "Клавиатура",
+        DeviceClass.Gamepad => "Геймпад",
+        DeviceClass.Receiver => "Приёмник",
+        _ => "Устройство",
+    };
+
+    /// <summary>
+    /// Every channel the device is currently reachable on, each its own pill. A headset
+    /// on a cable and a dongle at once is the normal case rather than the exception, and
+    /// naming only one of them is how the page ends up claiming the wrong thing about
+    /// what it can do.
+    /// </summary>
+    public IReadOnlyList<string> Transports =>
+        [.. Snapshot.Info.Transports.Where(t => t.IsPresent).Select(t => t.Label)];
+
+    /// <summary>
+    /// The aside after the pills — what this link does or does not carry. Empty when
+    /// there is nothing to add, and then the row simply has no third element.
+    /// </summary>
+    public string Note => Snapshot.Availability switch
+    {
+        DeviceAvailability.Unreachable => "не отвечает",
+        DeviceAvailability.Offline =>
+            Snapshot.LastSeenAt is { } seen ? $"последний раз — {seen:HH:mm}" : "не подключено",
+        _ when Snapshot.Info.ControlTransport is null => "только чтение",
+        _ => string.Empty,
+    };
+
+    public bool HasNote => Note.Length > 0;
+
     public string Battery => Snapshot.BatteryPercent is { } percent ? $"{percent}%" : "—";
 
     /// <summary>
@@ -56,6 +98,36 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
         Snapshot.CanControl && Snapshot.Has(CapabilityIds.PowerBattery) && Snapshot.BatteryPercent is null;
 
     public bool IsCharging => Snapshot.IsCharging;
+
+    /// <summary>
+    /// The reading the gauge draws, or null when there is none. Deliberately not zero: a
+    /// gauge drawn empty claims the device is flat, which is a very different statement
+    /// from a device that does not report a level at all.
+    /// </summary>
+    public int? BatteryPercent => Snapshot.BatteryPercent;
+
+    /// <summary>
+    /// The name without the maker in front of it, for the navigation pane. The artboard
+    /// lists "Maxwell" and "QuadCast S" there and spells them out in full only in the
+    /// content: at 260 pixels the maker is the half of the name that gets trimmed away,
+    /// and it is also the half that distinguishes nothing — nobody owns two QuadCasts
+    /// from different companies.
+    /// </summary>
+    public string ShortName
+    {
+        get
+        {
+            string model = Snapshot.Info.Model;
+            string vendor = Snapshot.Info.Vendor;
+
+            if (vendor.Length > 0 && model.StartsWith(vendor, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return model[vendor.Length..].TrimStart();
+            }
+
+            return model;
+        }
+    }
 
     /// <summary>What the row says under the name. Never an error for a normal mode of use.</summary>
     public string Status => Snapshot.Availability switch
@@ -85,8 +157,14 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
         OnPropertyChanged(nameof(DisplayName));
         OnPropertyChanged(nameof(IsPresent));
         OnPropertyChanged(nameof(Battery));
+        OnPropertyChanged(nameof(BatteryPercent));
+        OnPropertyChanged(nameof(ShortName));
         OnPropertyChanged(nameof(IsBatteryPending));
         OnPropertyChanged(nameof(IsCharging));
         OnPropertyChanged(nameof(Status));
+        OnPropertyChanged(nameof(Kind));
+        OnPropertyChanged(nameof(Transports));
+        OnPropertyChanged(nameof(Note));
+        OnPropertyChanged(nameof(HasNote));
     }
 }

@@ -1,81 +1,119 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:ctl="using:Maxwell.App.Controls"
+             xmlns:ctl="using:Maxwell.App.Controls"
+             xmlns:controls="using:Maxwell.App.Controls"
              xmlns:vm="using:Maxwell.App.ViewModels"
              xmlns:devices="using:Maxwell.App.ViewModels.Devices"
-             xmlns:conv="using:Maxwell.App.Converters"
-             xmlns:controls="using:Maxwell.App.Controls"
              x:Class="Maxwell.App.Views.Pages.DashboardView"
              x:DataType="vm:DashboardViewModel">
 
   <!--
-    Artboard 1a. One row carries image, name, kind, transport, state and battery, and
-    nothing else: a list that tries to say everything about six devices says nothing
-    about any of them.
+    Artboard 1a. Every measurement here comes from Themes/Metrics.axaml, which is lifted
+    out of the design file by tools/design-tokens.py rather than typed in. Screens built
+    by reading numbers off the artboard and typing them came out wrong in a different
+    place each time, and it only showed once they were rendered and put side by side with
+    the design.
+
+    The list is one card with rows and dividers inside it, not a card per device. That is
+    what makes eight devices read as one list rather than as eight competing objects.
   -->
 
-  <UserControl.Resources>
-    <conv:PresenceOpacityConverter x:Key="PresenceOpacity" />
-  </UserControl.Resources>
+  <UserControl.Styles>
+    <Style Selector="Border.deviceList">
+      <Setter Property="Background" Value="{DynamicResource LayerCardBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource StrokeSubtleBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="{DynamicResource RadiusCard}" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
 
-  <StackPanel Spacing="12">
+    <!-- A hairline between rows, and none under the last one: the card's own edge is
+         already there, and a divider on top of it reads as a doubled line. -->
+    <Style Selector="Border.deviceRow">
+      <Setter Property="BorderBrush" Value="{DynamicResource StrokeSubtleBrush}" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+    <Style Selector="Border.deviceRow:nth-last-child(1)">
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
 
-    <!--
-      Four screens, not two. Still sweeping, gave up, found nothing, found something —
-      and the identity insists they look different, because "no devices" shown while the
-      first sweep is still running is simply wrong.
+    <Style Selector="Border.chip">
+      <Setter Property="CornerRadius" Value="{DynamicResource DashPillRadiusCorner}" />
+      <Setter Property="Padding" Value="{DynamicResource DashPillPadding}" />
+      <Setter Property="Background" Value="{DynamicResource LayerAltBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.chip > TextBlock">
+      <Setter Property="FontSize" Value="{DynamicResource DashPillSize}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
 
-      The card chrome and the section title above this view are NOT skeletons: they do
-      not depend on any device answering, so they are on screen from the first frame.
-    -->
+    <!-- The transport chip is the accented one, and a pixel tighter than the class chip
+         because it carries a border the other does not. -->
+    <Style Selector="Border.chip.transport">
+      <Setter Property="Padding" Value="{DynamicResource DashTransportPadding}" />
+      <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Border.chip.transport > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource AccentPrimaryBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
 
-    <!-- Still sweeping. Three placeholder rows at exactly the height of a real card, so
-         nothing on the page moves when the devices land. -->
-    <StackPanel Spacing="8" IsVisible="{Binding Loading.ShowSkeleton}">
-      <Border Classes="card">
-        <Grid ColumnDefinitions="Auto,*,Auto" Margin="20" Height="52">
-          <controls:Skeleton Grid.Column="0" Width="52" Height="52" Radius="4" Margin="0,0,16,0" />
-          <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
-            <controls:Skeleton Width="196" Height="10" Phase="1" HorizontalAlignment="Left" />
-            <controls:Skeleton Width="118" Height="8" Phase="2" HorizontalAlignment="Left" />
-          </StackPanel>
-          <controls:Skeleton Grid.Column="2" Width="44" Height="12" Phase="3" VerticalAlignment="Center" />
-        </Grid>
-      </Border>
-      <Border Classes="card">
-        <Grid ColumnDefinitions="Auto,*,Auto" Margin="20" Height="52">
-          <controls:Skeleton Grid.Column="0" Width="52" Height="52" Radius="4" Phase="1" Margin="0,0,16,0" />
-          <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
-            <controls:Skeleton Width="150" Height="10" Phase="2" HorizontalAlignment="Left" />
-            <controls:Skeleton Width="96" Height="8" Phase="3" HorizontalAlignment="Left" />
-          </StackPanel>
-          <controls:Skeleton Grid.Column="2" Width="44" Height="12" Phase="4" VerticalAlignment="Center" />
-        </Grid>
-      </Border>
-      <Border Classes="card">
-        <Grid ColumnDefinitions="Auto,*,Auto" Margin="20" Height="52">
-          <controls:Skeleton Grid.Column="0" Width="52" Height="52" Radius="4" Phase="2" Margin="0,0,16,0" />
-          <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
-            <controls:Skeleton Width="172" Height="10" Phase="3" HorizontalAlignment="Left" />
-            <controls:Skeleton Width="86" Height="8" Phase="4" HorizontalAlignment="Left" />
-          </StackPanel>
-          <controls:Skeleton Grid.Column="2" Width="44" Height="12" Phase="5" VerticalAlignment="Center" />
-        </Grid>
+    <Style Selector="TextBlock.groupHeading">
+      <Setter Property="FontSize" Value="{DynamicResource DashGroupSize}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Spacing="14">
+
+    <!-- Every reading below is a memory rather than a measurement — the devices are
+         asked on a timer — so the page says when it last asked. -->
+    <TextBlock Classes="caption" HorizontalAlignment="Right" Margin="0,0,0,-8"
+               IsVisible="{Binding HasFreshness}"
+               Text="{Binding Freshness}" />
+
+    <!-- Still looking. Not the same thing as having looked and found none, which is why
+         the two get different screens rather than one shared empty card. -->
+    <StackPanel Spacing="10" IsVisible="{Binding Loading.ShowSkeleton}">
+      <controls:Skeleton Width="150" Height="11" HorizontalAlignment="Left" />
+      <Border Classes="deviceList">
+        <StackPanel>
+          <Grid ColumnDefinitions="Auto,*,Auto" Height="{DynamicResource DashRowHeight}"
+                Margin="{DynamicResource DashRowPadding}">
+            <controls:Skeleton Grid.Column="0"
+                               Width="{DynamicResource DashThumbSize}"
+                               Height="{DynamicResource DashThumbSize}"
+                               Radius="{DynamicResource DashThumbRadius}"
+                               Margin="0,0,16,0" VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
+              <controls:Skeleton Width="180" Height="11" Phase="1" HorizontalAlignment="Left" />
+              <controls:Skeleton Width="120" Height="8" Phase="2" HorizontalAlignment="Left" />
+            </StackPanel>
+            <controls:Skeleton Grid.Column="2" Width="44" Height="14" Phase="3" VerticalAlignment="Center" />
+          </Grid>
+
+          <Grid ColumnDefinitions="Auto,*,Auto" Height="{DynamicResource DashRowHeight}"
+                Margin="{DynamicResource DashRowPadding}">
+            <controls:Skeleton Grid.Column="0"
+                               Width="{DynamicResource DashThumbSize}"
+                               Height="{DynamicResource DashThumbSize}"
+                               Radius="{DynamicResource DashThumbRadius}" Phase="2"
+                               Margin="0,0,16,0" VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
+              <controls:Skeleton Width="146" Height="11" Phase="3" HorizontalAlignment="Left" />
+              <controls:Skeleton Width="98" Height="8" Phase="4" HorizontalAlignment="Left" />
+            </StackPanel>
+            <controls:Skeleton Grid.Column="2" Width="44" Height="14" Phase="5" VerticalAlignment="Center" />
+          </Grid>
+        </StackPanel>
       </Border>
     </StackPanel>
 
-    <!-- Gave up. Text, because a placeholder that pulses for ever is how a lost request
-         gets mistaken for a slow one. -->
-    <Border Classes="card" IsVisible="{Binding Loading.ShowError}">
-      <StackPanel Spacing="8" Margin="24">
-        <TextBlock Classes="sectionTitle" Text="Не удалось опросить устройства" />
-        <TextBlock Classes="secondary" MaxWidth="520"
-                   Text="Ответа нет уже десять секунд. Подключение проверяется дальше — список появится, как только что-нибудь отзовётся." />
-      </StackPanel>
-    </Border>
-
-    <!-- Empty state, artboard 6c. Not an error — this is what a first launch looks
-         like, and it should read as an introduction rather than a failure. -->
+    <!-- Looked, found none. Artboard 6c: an introduction, not a failure. -->
     <Border Classes="card">
       <Border.IsVisible>
         <MultiBinding Converter="{x:Static BoolConverters.And}">
@@ -90,69 +128,178 @@
       </StackPanel>
     </Border>
 
-    <ItemsControl ItemsSource="{Binding Devices}" IsVisible="{Binding Loading.ShowContent}">
-      <ItemsControl.ItemTemplate>
-        <DataTemplate x:DataType="devices:DeviceListItemViewModel">
-          <Border Classes="card" Margin="0,0,0,8" Opacity="{Binding IsPresent, Converter={StaticResource PresenceOpacity}}">
+    <TextBlock Classes="secondary"
+               IsVisible="{Binding Loading.ShowError}"
+               Text="Опрос не отвечает. Проверьте, что устройство включено." />
 
-            <!--
-              Artboard 13a. Putting a device away is a right-click rather than a control
-              on the row: it happens once in the life of a device, and a permanent button
-              would sit beside the battery of every device forever for it.
-            -->
-            <Border.ContextMenu>
-              <ContextMenu>
-                <MenuItem Header="Скрыть устройство"
-                          Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).Shell.HideDeviceCommand}"
-                          CommandParameter="{Binding}" />
-              </ContextMenu>
-            </Border.ContextMenu>
+    <StackPanel Spacing="8" IsVisible="{Binding HasConnected}">
+      <TextBlock Classes="groupHeading" Text="{Binding ConnectedHeading}" />
+      <Border Classes="deviceList">
+        <ItemsControl ItemsSource="{Binding Connected}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="devices:DeviceListItemViewModel">
+              <Border Classes="deviceRow">
 
-            <Grid ColumnDefinitions="Auto,*,Auto" Margin="20">
+                <!--
+                  Artboard 13a. Putting a device away is a right-click rather than a
+                  control on the row: it happens once in the life of a device, and a
+                  permanent button would sit beside the battery of every device forever.
+                -->
+                <Border.ContextMenu>
+                  <ContextMenu>
+                    <MenuItem Header="Скрыть устройство"
+                              Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).Shell.HideDeviceCommand}"
+                              CommandParameter="{Binding}" />
+                  </ContextMenu>
+                </Border.ContextMenu>
 
-              <Border Grid.Column="0" Width="52" Height="52"
-                      Background="{DynamicResource LayerAltBrush}"
-                      CornerRadius="{DynamicResource RadiusSmall}"
-                      ClipToBounds="True"
-                      Margin="0,0,16,0">
-                <ctl:DeviceThumb Photo="{Binding Photo}" Glyph="{Binding Glyph}" />
+                <Grid ColumnDefinitions="Auto,*,Auto"
+                      Height="{DynamicResource DashRowHeight}"
+                      Margin="{DynamicResource DashRowPadding}">
+
+                  <Border Grid.Column="0"
+                          Width="{DynamicResource DashThumbSize}"
+                          Height="{DynamicResource DashThumbSize}"
+                          Background="{DynamicResource LayerAltBrush}"
+                          CornerRadius="{DynamicResource DashThumbRadiusCorner}"
+                          ClipToBounds="True"
+                          Margin="0,0,16,0"
+                          VerticalAlignment="Center">
+                    <ctl:DeviceThumb Photo="{Binding Photo}" Glyph="{Binding Glyph}" />
+                  </Border>
+
+                  <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
+                    <TextBlock FontSize="{DynamicResource DashNameSize}" FontWeight="SemiBold"
+                               Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="{DynamicResource DashSubGap}">
+                      <Border Classes="chip">
+                        <TextBlock Text="{Binding Kind}" />
+                      </Border>
+
+                      <ItemsControl ItemsSource="{Binding Transports}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="{DynamicResource DashSubGap}" />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="x:String">
+                            <Border Classes="chip transport">
+                              <TextBlock Text="{Binding}" />
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+
+                      <TextBlock Classes="caption" VerticalAlignment="Center"
+                                 IsVisible="{Binding HasNote}"
+                                 Text="{Binding Note}" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </StackPanel>
+
+                  <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
+                              VerticalAlignment="Center" HorizontalAlignment="Right">
+                    <controls:KvazrMarkControl Width="18" Height="18"
+                                               Motion="Fast" OrbitShade="Resting"
+                                               VerticalAlignment="Center"
+                                               IsVisible="{Binding IsBatteryPending}" />
+
+                    <controls:BatteryGauge Percent="{Binding BatteryPercent}"
+                                           VerticalAlignment="Center" />
+
+                    <TextBlock FontSize="{DynamicResource DashNameSize}"
+                               FontWeight="SemiBold"
+                               MinWidth="38"
+                               TextAlignment="Right"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding !IsBatteryPending}"
+                               Text="{Binding Battery}" />
+
+                    <!-- The chevron says the row opens. Without it a list of eight rows
+                         gives no sign that any of them leads anywhere. -->
+                    <Path Width="12" Height="12" VerticalAlignment="Center"
+                          Stroke="{DynamicResource TextTertiaryBrush}"
+                          StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round"
+                          Stretch="Uniform"
+                          Data="M6 3.6 10.4 8 6 12.4" />
+                  </StackPanel>
+                </Grid>
               </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
+    </StackPanel>
 
-              <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                <TextBlock Classes="cardTitle" Text="{Binding DisplayName}" />
-                <TextBlock Classes="caption" Text="{Binding Status}" />
-              </StackPanel>
+    <!-- Devices that are not here now: dimmed, under their own heading, and with the
+         time they were last seen instead of a battery. A percentage there would be a
+         claim about a device nobody has asked in hours. -->
+    <StackPanel Spacing="8" IsVisible="{Binding HasDisconnected}">
+      <TextBlock Classes="groupHeading" Text="{Binding DisconnectedHeading}" />
+      <Border Classes="deviceList" Opacity="0.55">
+        <ItemsControl ItemsSource="{Binding Disconnected}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="devices:DeviceListItemViewModel">
+              <Border Classes="deviceRow">
+                <Grid ColumnDefinitions="Auto,*,Auto"
+                      Height="{DynamicResource DashRowHeight}"
+                      Margin="{DynamicResource DashRowPadding}">
 
-              <!-- The row arrived; one number has not. A spinner here rather than a
-                   skeleton, because the row is real and only the value is missing. -->
-              <controls:KvazrMarkControl Grid.Column="2" Width="20" Height="20"
-                                         Motion="Fast" OrbitShade="Resting"
-                                         VerticalAlignment="Center"
-                                         IsVisible="{Binding IsBatteryPending}" />
+                  <Border Grid.Column="0"
+                          Width="{DynamicResource DashThumbSize}"
+                          Height="{DynamicResource DashThumbSize}"
+                          Background="{DynamicResource LayerAltBrush}"
+                          CornerRadius="{DynamicResource DashThumbRadiusCorner}"
+                          ClipToBounds="True"
+                          Margin="0,0,16,0"
+                          VerticalAlignment="Center">
+                    <ctl:DeviceThumb Photo="{Binding Photo}" Glyph="{Binding Glyph}" />
+                  </Border>
 
-              <TextBlock Grid.Column="2"
-                         FontSize="{DynamicResource FontSizeSubtitle}"
-                         FontWeight="SemiBold"
-                         VerticalAlignment="Center"
-                         IsVisible="{Binding !IsBatteryPending}"
-                         Text="{Binding Battery}" />
-            </Grid>
-          </Border>
-        </DataTemplate>
-      </ItemsControl.ItemTemplate>
-    </ItemsControl>
+                  <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
+                    <TextBlock FontSize="{DynamicResource DashNameSize}" FontWeight="SemiBold"
+                               Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" />
+                    <StackPanel Orientation="Horizontal" Spacing="{DynamicResource DashSubGap}">
+                      <Border Classes="chip">
+                        <TextBlock Text="{Binding Kind}" />
+                      </Border>
+                      <TextBlock Classes="caption" VerticalAlignment="Center" Text="{Binding Note}" />
+                    </StackPanel>
+                  </StackPanel>
+
+                  <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
+                              VerticalAlignment="Center" HorizontalAlignment="Right">
+                    <controls:BatteryGauge Percent="{Binding BatteryPercent}"
+                                           VerticalAlignment="Center" />
+                    <TextBlock FontSize="{DynamicResource DashNameSize}"
+                               FontWeight="SemiBold"
+                               MinWidth="38"
+                               TextAlignment="Right"
+                               VerticalAlignment="Center"
+                               Text="{Binding Battery}" />
+                    <Path Width="12" Height="12" VerticalAlignment="Center"
+                          Stroke="{DynamicResource TextTertiaryBrush}"
+                          StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round"
+                          Stretch="Uniform"
+                          Data="M6 3.6 10.4 8 6 12.4" />
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
+    </StackPanel>
 
     <!--
-      Hiding without a visible way back is a trap rather than a feature, so the count
-      and the way back live on the dashboard itself and not only in the settings screen
-      they will eventually also appear in. It is absent entirely when nothing is hidden.
+      Hiding without a visible way back is a trap rather than a feature, so the count and
+      the way back live on the dashboard until the settings screen carries them.
     -->
-    <StackPanel Orientation="Horizontal" Spacing="10"
-                IsVisible="{Binding Shell.HasHidden}">
+    <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding Shell.HasHidden}">
       <TextBlock Classes="caption" VerticalAlignment="Center"
                  Text="{Binding Shell.HiddenCount, StringFormat='Скрыто: {0}'}" />
-      <Button Content="Показать все"
-              Command="{Binding Shell.ShowHiddenCommand}" />
+      <Button Content="Показать все" Command="{Binding Shell.ShowHiddenCommand}" />
     </StackPanel>
 
   </StackPanel>

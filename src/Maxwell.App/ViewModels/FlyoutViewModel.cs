@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Maxwell.App.Infrastructure;
 using Maxwell.App.Platform;
-using Maxwell.App.ViewModels.Capabilities;
 using Maxwell.App.ViewModels.Devices;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Polling;
@@ -14,56 +13,37 @@ namespace Maxwell.App.ViewModels;
 /// <summary>
 /// The panel that drops out of the tray.
 ///
-/// The primary device is expanded with a few controls; everything else is one row. That
-/// split is the point: the flyout answers "what is my battery" in a glance and "nudge
-/// this one thing" in a click, and anything more belongs in the window.
+/// Every device is the same 56-pixel row — picture, name, link, battery — and none of
+/// them starts open. Turn 12 is a correction to the earlier arrangement, where one
+/// device sat at the top with a picture and controls while everything else was a bare
+/// row: the trouble was not how it looked but that the panel was choosing which device
+/// mattered, by a rule that is right about as often as it is wrong.
+///
+/// Opening one row closes the others. Not to save space, though it does: the panel
+/// answers two questions — "what is my battery" at a glance, and "nudge this one thing"
+/// in a click — and two open rows means neither is being answered.
 /// </summary>
 public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
 {
-    /// <summary>
-    /// What counts as worth a control here, most wanted first. Ordered by how often a
-    /// person actually reaches for it rather than by domain — ChatMix moves during a
-    /// game, an EQ preset moves weekly, a sidetone level almost never.
-    /// </summary>
-    private static readonly string[] QuickOrder =
-    [
-        CapabilityIds.MixChat,
-        CapabilityIds.AudioVolume,
-        CapabilityIds.AudioEqPreset,
-        CapabilityIds.MicNoiseReduction,
-        CapabilityIds.MicSidetone,
-        CapabilityIds.PointerDpi,
-        CapabilityIds.LightBrightness,
-        CapabilityIds.LightOn,
-    ];
-
-    private const int QuickCount = 3;
-
     private readonly IDeviceRegistry _registry;
     private readonly HiddenDevices _hidden;
-    private readonly PrimaryDevice _primary;
     private readonly IPollingCoordinator _polling;
 
-    private string? _quickDeviceKey;
     private bool _disposed;
 
     public FlyoutViewModel(
         IDeviceRegistry registry,
-        PrimaryDevice primary,
         IPollingCoordinator polling,
         HiddenDevices hidden,
         FirstSweep sweep)
     {
         ArgumentNullException.ThrowIfNull(registry);
-        ArgumentNullException.ThrowIfNull(primary);
         ArgumentNullException.ThrowIfNull(polling);
+        ArgumentNullException.ThrowIfNull(hidden);
         ArgumentNullException.ThrowIfNull(sweep);
 
         _registry = registry;
-        _primary = primary;
         _polling = polling;
-
-        ArgumentNullException.ThrowIfNull(hidden);
         _hidden = hidden;
 
         // Its own gate rather than the shell's: the panel can be opened before the
@@ -80,50 +60,38 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
     /// <summary>Raised when the user asks for the full window.</summary>
     public event EventHandler? SettingsRequested;
 
-    [ObservableProperty]
-    public partial DeviceListItemViewModel? Primary { get; private set; }
+    /// <summary>Raised with a device key when the user asks for that device's page.</summary>
+    public event EventHandler<string>? DeviceRequested;
 
-    /// <summary>Everything that is not the primary device, one row each.</summary>
-    public ObservableCollection<DeviceListItemViewModel> Others { get; } = [];
-
-    /// <summary>Two or three controls for the primary device. Never more.</summary>
-    public ObservableCollection<CapabilityViewModel> Quick { get; } = [];
+    /// <summary>Every visible device, in the order the registry gives them.</summary>
+    public ObservableCollection<FlyoutRowViewModel> Devices { get; } = [];
 
     /// <summary>Whether the first sweep has answered. Drives the placeholder rows.</summary>
     internal LoadingState Loading { get; } = new();
 
-    public bool HasOthers => Others.Count > 0;
+    public bool HasDevices => Devices.Count > 0;
 
-    public bool HasDevices => Primary is not null;
-
-    /// <summary>
-    /// The devices this panel may show. A heading that counts rows the list then
-    /// filters out is a number the user cannot reconcile with what is in front of them.
-    /// </summary>
-    private List<DeviceSnapshot> Visible => [.. _registry.Devices.Where(_hidden.IsVisible)];
-
-    public string Heading => Visible.Count switch
+    public string Heading => Devices.Count switch
     {
-        0 => "Устройства",
-        1 => "Устройства",
+        0 or 1 => "Устройства",
         int n => $"Устройства · {n}",
     };
 
     /// <summary>
     /// The flyout is open, so every device's battery is worth keeping fresh — but none
-    /// of their details are.
+    /// of their details are, until somebody opens a row.
     /// </summary>
-    public void Opened()
+    public void Opened() => _polling.SetAttention(PollingAttention.Glance);
+
+    public void Closed()
     {
-        _polling.SetAttention(PollingAttention.Glance);
+        _polling.SetAttention(PollingAttention.Idle);
 
-        // The quick controls need real values, and Glance only keeps batteries warm.
-        // Opening the panel is exactly when reading the rest of the primary device is
-        // worth its cost.
-        if (Primary is { } primary) _polling.RequestRefresh(primary.Key);
+        // Closing the panel closes whatever was open inside it. Otherwise a row keeps
+        // holding controls nobody can see, and the panel reopens in a state the user
+        // left minutes ago and has since forgotten about.
+        foreach (FlyoutRowViewModel row in Devices) row.Close();
     }
-
-    public void Closed() => _polling.SetAttention(PollingAttention.Idle);
 
     [RelayCommand]
     private void OpenSettings() => SettingsRequested?.Invoke(this, EventArgs.Empty);
@@ -136,80 +104,81 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
 
     private void Sync()
     {
-        DeviceSnapshot? primary = _primary.Snapshot;
+        List<DeviceSnapshot> visible = [.. _registry.Devices.Where(_hidden.IsVisible)];
 
-        if (primary is null)
+        foreach (DeviceSnapshot snapshot in visible)
         {
-            Primary = null;
-            ClearQuick();
-            Others.Clear();
+            FlyoutRowViewModel? existing = Devices.FirstOrDefault(d => d.Key == snapshot.Info.Key);
+
+            if (existing is not null)
+            {
+                existing.Update(snapshot);
+                continue;
+            }
+
+            var row = new FlyoutRowViewModel(snapshot, _registry);
+            row.Expanded += OnRowExpanded;
+            row.PageRequested += OnPageRequested;
+            Devices.Add(row);
         }
-        else
+
+        foreach (FlyoutRowViewModel gone in Devices.Where(d => visible.All(s => s.Info.Key != d.Key)).ToList())
         {
-            if (Primary?.Key == primary.Info.Key) Primary.Update(primary);
-            else Primary = new DeviceListItemViewModel(primary);
-
-            SyncQuick(primary);
-            SyncOthers(primary.Info.Key);
+            Retire(gone);
+            Devices.Remove(gone);
         }
 
-        OnPropertyChanged(nameof(HasOthers));
+        Reorder(visible);
+
         OnPropertyChanged(nameof(HasDevices));
         OnPropertyChanged(nameof(Heading));
     }
 
-    private void SyncOthers(string primaryKey)
+    /// <summary>
+    /// Moves rows into the registry's order in place rather than rebuilding the list, so
+    /// an open row does not shut every time a poll lands.
+    /// </summary>
+    private void Reorder(List<DeviceSnapshot> order)
     {
-        List<DeviceSnapshot> rest = [.. Visible.Where(d => d.Info.Key != primaryKey)];
-
-        foreach (DeviceSnapshot snapshot in rest)
+        for (int target = 0; target < order.Count; target++)
         {
-            DeviceListItemViewModel? existing = Others.FirstOrDefault(d => d.Key == snapshot.Info.Key);
-
-            if (existing is null) Others.Add(new DeviceListItemViewModel(snapshot));
-            else existing.Update(snapshot);
-        }
-
-        foreach (DeviceListItemViewModel gone in Others.Where(d => rest.All(s => s.Info.Key != d.Key)).ToList())
-        {
-            Others.Remove(gone);
+            int current = IndexOf(order[target].Info.Key);
+            if (current >= 0 && current != target) Devices.Move(current, target);
         }
     }
 
-    private void SyncQuick(DeviceSnapshot device)
+    private int IndexOf(string key)
     {
-        // Rebuilding these on every poll would fight the user mid-drag, so the controls
-        // are made once per device and fed readings after that.
-        if (_quickDeviceKey == device.Info.Key)
+        for (int i = 0; i < Devices.Count; i++)
         {
-            foreach (CapabilityViewModel vm in Quick)
-            {
-                if (device.Get(vm.Id) is { } state) vm.Apply(state);
-            }
-
-            return;
+            if (Devices[i].Key == key) return i;
         }
 
-        ClearQuick();
-        _quickDeviceKey = device.Info.Key;
-
-        IDeviceSession? session = _registry.Session(device.Info.Key);
-
-        foreach (string id in QuickOrder)
-        {
-            if (Quick.Count == QuickCount) break;
-            if (device.Get(id) is not { Descriptor.Access: not CapabilityAccess.Read } state) continue;
-
-            Quick.Add(CapabilityViewModelFactory.Create(state, session, HintDetail.Terse));
-        }
+        return -1;
     }
 
-    private void ClearQuick()
+    /// <summary>
+    /// One open row at a time, and the device just opened is the one worth reading in
+    /// full: the panel's usual cadence only keeps batteries warm, so the controls that
+    /// have this moment appeared would otherwise be showing values from minutes ago.
+    /// </summary>
+    private void OnRowExpanded(object? sender, FlyoutRowViewModel opened)
     {
-        foreach (CapabilityViewModel vm in Quick) vm.Dispose();
+        foreach (FlyoutRowViewModel row in Devices)
+        {
+            if (!ReferenceEquals(row, opened)) row.Close();
+        }
 
-        Quick.Clear();
-        _quickDeviceKey = null;
+        _polling.RequestRefresh(opened.Key);
+    }
+
+    private void OnPageRequested(object? sender, string key) => DeviceRequested?.Invoke(this, key);
+
+    private void Retire(FlyoutRowViewModel row)
+    {
+        row.Expanded -= OnRowExpanded;
+        row.PageRequested -= OnPageRequested;
+        row.Dispose();
     }
 
     public void Dispose()
@@ -220,6 +189,8 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
         _registry.DevicesChanged -= OnDevicesChanged;
         _hidden.Changed -= OnDevicesChanged;
         Loading.Dispose();
-        ClearQuick();
+
+        foreach (FlyoutRowViewModel row in Devices) Retire(row);
+        Devices.Clear();
     }
 }

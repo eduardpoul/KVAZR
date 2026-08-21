@@ -15,47 +15,6 @@ namespace Maxwell.App.ViewModels;
 /// <summary>One entry in the application group of the navigation pane.</summary>
 public sealed record AppSection(string Title, object Page);
 
-/// <summary>
-/// The "Все устройства" page. Shares the shell's list rather than copying it, so the
-/// dashboard and the navigation pane can never disagree about what is attached.
-/// </summary>
-public sealed class DashboardViewModel : ObservableObject
-{
-    internal DashboardViewModel(
-        ShellViewModel shell,
-        ObservableCollection<DeviceListItemViewModel> devices,
-        LoadingState loading)
-    {
-        ArgumentNullException.ThrowIfNull(shell);
-        ArgumentNullException.ThrowIfNull(devices);
-        ArgumentNullException.ThrowIfNull(loading);
-
-        Shell = shell;
-        Devices = devices;
-        Loading = loading;
-        Devices.CollectionChanged += (_, _) => OnPropertyChanged(nameof(IsEmpty));
-    }
-
-    /// <summary>
-    /// The shell, reachable from a row so that acting on a device does not need the
-    /// row to own a service. Hiding a device changes what several other surfaces show,
-    /// which makes it the shell's business rather than the row's.
-    /// </summary>
-    public ShellViewModel Shell { get; }
-
-    public ObservableCollection<DeviceListItemViewModel> Devices { get; }
-
-    /// <summary>
-    /// Whether the first sweep has answered yet. The dashboard has three different
-    /// nothings — still looking, looked and found none, and gave up — and the identity
-    /// gives each of them its own screen. Collapsing them into one empty card is what
-    /// makes a cold start look broken.
-    /// </summary>
-    internal LoadingState Loading { get; }
-
-    /// <summary>Drives the first-launch state, which is an introduction and not an error.</summary>
-    public bool IsEmpty => Devices.Count == 0;
-}
 
 /// <summary>
 /// The window: a list of devices, a page for whichever is selected, and the sections
@@ -161,6 +120,18 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     public void SelectDeviceAt(int index)
     {
         if (index >= 0 && index < Devices.Count) SelectedDevice = Devices[index];
+    }
+
+    /// <summary>
+    /// Opens a named device, for the tray panel's "открыть страницу устройства". By key
+    /// rather than by position: the two lists are ordered independently, and a device's
+    /// place in either of them moves whenever something else connects.
+    /// </summary>
+    public void SelectDevice(string deviceKey)
+    {
+        ArgumentNullException.ThrowIfNull(deviceKey);
+
+        if (Devices.FirstOrDefault(d => d.Key == deviceKey) is { } device) SelectedDevice = device;
     }
 
     /// <summary>

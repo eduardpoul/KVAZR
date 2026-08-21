@@ -114,8 +114,17 @@ public partial class App : Application, IDisposable
 
             _flyout = _services.GetRequiredService<FlyoutWindow>();
             _popup = _services.GetRequiredService<ConnectPopupWindow>();
-            _services.GetRequiredService<FlyoutViewModel>().SettingsRequested +=
-                (_, _) => Dispatcher.UIThread.Post(ShowWindow);
+            FlyoutViewModel flyout = _services.GetRequiredService<FlyoutViewModel>();
+            flyout.SettingsRequested += (_, _) => Dispatcher.UIThread.Post(ShowWindow);
+
+            // "Открыть страницу устройства" has to do both halves. Raising the window
+            // alone lands the user on whatever page was open last, which is the one
+            // thing they did not ask for.
+            flyout.DeviceRequested += (_, key) => Dispatcher.UIThread.Post(() =>
+            {
+                ShowWindow();
+                _services.GetRequiredService<ShellViewModel>().SelectDevice(key);
+            });
 
             BuildTray();
 

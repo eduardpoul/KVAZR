@@ -26,6 +26,7 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://Maxwell/Themes/Tokens.axaml" />
         <ResourceInclude Source="avares://Maxwell/Themes/DeviceGlyphs.axaml" />
+        <ResourceInclude Source="avares://Maxwell/Themes/Metrics.axaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>

@@ -3,13 +3,11 @@
         xmlns:ctl="using:Maxwell.App.Controls"
         xmlns:cap="using:Maxwell.App.ViewModels.Capabilities"
         xmlns:controls="using:Maxwell.App.Controls"
-        xmlns:conv="using:Maxwell.App.Converters"
         xmlns:devices="using:Maxwell.App.ViewModels.Devices"
         xmlns:vm="using:Maxwell.App.ViewModels"
         x:Class="Maxwell.App.Views.FlyoutWindow"
         x:DataType="vm:FlyoutViewModel"
         Width="360"
-        MaxHeight="600"
         SizeToContent="Height"
         SystemDecorations="None"
         ShowInTaskbar="False"
@@ -21,23 +19,37 @@
         Foreground="{DynamicResource TextPrimaryBrush}">
 
   <!--
-    Artboard 3a-3c. 360 wide, and the height is capped at 600 because six devices reach
-    it — past that the list scrolls rather than growing off the screen.
+    Turn 12. Every device is the same 56-pixel row and none of them starts open. The
+    earlier arrangement gave one device a picture and controls at the top; the trouble
+    with it was not how it looked but that the panel decided which device mattered, by a
+    rule that is right about as often as it is wrong.
 
-    The primary device gets a picture and two or three controls; every other device is
-    one row. Anything beyond a glance and a nudge belongs in the window.
+    The list is capped at five rows and scrolls past that, so opening a row does not make
+    the panel taller. A tray panel that grows down the screen as devices connect is one
+    that eventually cannot be dismissed by clicking beside it.
   -->
 
-  <Window.Resources>
-  </Window.Resources>
+  <Window.Styles>
+    <!-- The open row grows a surface of its own, so the controls inside read as
+         belonging to the device named above them rather than floating between rows. -->
+    <Style Selector="Border.deviceRow">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="Border.deviceRow.open">
+      <Setter Property="Background" Value="{DynamicResource LayerAltBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource StrokeDefaultBrush}" />
+    </Style>
+  </Window.Styles>
 
   <Border BorderBrush="{DynamicResource StrokeDefaultBrush}" BorderThickness="1" CornerRadius="8">
     <DockPanel>
 
-      <!-- Pinned. Once six devices push the list past the height ceiling the footer
-           would scroll out of reach, and the way into the window would be the one
-           thing the panel hides. -->
-      <StackPanel DockPanel.Dock="Bottom" Margin="16,0,16,12" Spacing="8">
+      <TextBlock DockPanel.Dock="Top" Classes="caption" Margin="16,14,16,6" Text="{Binding Heading}" />
+
+      <!-- Pinned. Once the list reaches its ceiling the footer would scroll out of
+           reach, and the way into the window is the one thing the panel must not hide. -->
+      <StackPanel DockPanel.Dock="Bottom" Margin="16,6,16,12" Spacing="6">
         <Separator Classes="divider" Margin="0" />
         <Button Classes="navRoot"
                 Command="{Binding OpenSettingsCommand}"
@@ -47,141 +59,169 @@
         </Button>
       </StackPanel>
 
-      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="16,16,16,8" Spacing="12">
-
-          <TextBlock Classes="caption" Text="{Binding Heading}" />
-
-          <!--
-            The heading above and the settings link below are on screen from the first
-            frame: neither depends on any device answering. Only the rows are unknown,
-            so only the rows get placeholders.
-          -->
-          <StackPanel Spacing="12" IsVisible="{Binding Loading.ShowSkeleton}">
-            <Grid ColumnDefinitions="Auto,*,Auto" Height="64">
-              <controls:Skeleton Grid.Column="0" Width="64" Height="64" Radius="4" Margin="0,0,14,0" />
-              <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
-                <controls:Skeleton Width="152" Height="10" Phase="1" HorizontalAlignment="Left" />
-                <controls:Skeleton Width="94" Height="7" Phase="2" HorizontalAlignment="Left" />
-              </StackPanel>
-              <controls:Skeleton Grid.Column="2" Width="42" Height="12" Phase="3" VerticalAlignment="Center" />
-            </Grid>
-
-            <Grid ColumnDefinitions="Auto,*,Auto" Height="56">
-              <controls:Skeleton Grid.Column="0" Width="34" Height="34" Radius="4" Phase="2"
-                                 Margin="0,0,12,0" VerticalAlignment="Center" />
-              <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
-                <controls:Skeleton Width="128" Height="9" Phase="3" HorizontalAlignment="Left" />
-                <controls:Skeleton Width="78" Height="7" Phase="4" HorizontalAlignment="Left" />
-              </StackPanel>
-              <controls:Skeleton Grid.Column="2" Width="36" Height="9" Phase="5" VerticalAlignment="Center" />
-            </Grid>
-
-            <Grid ColumnDefinitions="Auto,*,Auto" Height="56">
-              <controls:Skeleton Grid.Column="0" Width="34" Height="34" Radius="4" Phase="3"
-                                 Margin="0,0,12,0" VerticalAlignment="Center" />
-              <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
-                <controls:Skeleton Width="106" Height="9" Phase="4" HorizontalAlignment="Left" />
-                <controls:Skeleton Width="66" Height="7" Phase="5" HorizontalAlignment="Left" />
-              </StackPanel>
-              <controls:Skeleton Grid.Column="2" Width="36" Height="9" Phase="6" VerticalAlignment="Center" />
-            </Grid>
+      <!--
+        The heading above and the settings link below are on screen from the first frame:
+        neither waits on a device answering. Only the rows are unknown, so only the rows
+        get placeholders.
+      -->
+      <StackPanel DockPanel.Dock="Top" Margin="16,0" IsVisible="{Binding Loading.ShowSkeleton}">
+        <Grid ColumnDefinitions="Auto,*,Auto" Height="{DynamicResource FlyoutRowHeight}">
+          <controls:Skeleton Grid.Column="0" Width="{DynamicResource FlyoutThumbSize}" Height="{DynamicResource FlyoutThumbSize}" Radius="{DynamicResource FlyoutThumbRadius}"
+                             Margin="0,0,12,0" VerticalAlignment="Center" />
+          <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
+            <controls:Skeleton Width="132" Height="9" Phase="1" HorizontalAlignment="Left" />
+            <controls:Skeleton Width="84" Height="7" Phase="2" HorizontalAlignment="Left" />
           </StackPanel>
+          <controls:Skeleton Grid.Column="2" Width="36" Height="10" Phase="3" VerticalAlignment="Center" />
+        </Grid>
 
-          <!-- Ten seconds with no answer. Text, never a placeholder that never stops. -->
-          <TextBlock Classes="secondary"
-                     IsVisible="{Binding Loading.ShowError}"
-                     Text="Опрос не отвечает" />
+        <Grid ColumnDefinitions="Auto,*,Auto" Height="{DynamicResource FlyoutRowHeight}">
+          <controls:Skeleton Grid.Column="0" Width="{DynamicResource FlyoutThumbSize}" Height="{DynamicResource FlyoutThumbSize}" Radius="{DynamicResource FlyoutThumbRadius}" Phase="2"
+                             Margin="0,0,12,0" VerticalAlignment="Center" />
+          <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
+            <controls:Skeleton Width="112" Height="9" Phase="3" HorizontalAlignment="Left" />
+            <controls:Skeleton Width="70" Height="7" Phase="4" HorizontalAlignment="Left" />
+          </StackPanel>
+          <controls:Skeleton Grid.Column="2" Width="36" Height="10" Phase="5" VerticalAlignment="Center" />
+        </Grid>
 
-          <!-- Nothing attached. Short, because the tray is not the place to explain. -->
-          <TextBlock Classes="secondary" Text="Устройств не найдено">
-            <TextBlock.IsVisible>
-              <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <Binding Path="!HasDevices" />
-                <Binding Path="Loading.ShowContent" />
-              </MultiBinding>
-            </TextBlock.IsVisible>
-          </TextBlock>
+        <Grid ColumnDefinitions="Auto,*,Auto" Height="{DynamicResource FlyoutRowHeight}">
+          <controls:Skeleton Grid.Column="0" Width="{DynamicResource FlyoutThumbSize}" Height="{DynamicResource FlyoutThumbSize}" Radius="{DynamicResource FlyoutThumbRadius}" Phase="3"
+                             Margin="0,0,12,0" VerticalAlignment="Center" />
+          <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
+            <controls:Skeleton Width="96" Height="9" Phase="4" HorizontalAlignment="Left" />
+            <controls:Skeleton Width="62" Height="7" Phase="5" HorizontalAlignment="Left" />
+          </StackPanel>
+          <controls:Skeleton Grid.Column="2" Width="36" Height="10" Phase="6" VerticalAlignment="Center" />
+        </Grid>
+      </StackPanel>
 
-          <!-- Primary device -->
-          <Grid ColumnDefinitions="Auto,*,Auto" IsVisible="{Binding HasDevices}">
-            <Border Grid.Column="0" Width="64" Height="64"
-                    Background="{DynamicResource LayerAltBrush}"
-                    CornerRadius="{DynamicResource RadiusSmall}"
-                    ClipToBounds="True"
-                    Margin="0,0,14,0">
-              <ctl:DeviceThumb Photo="{Binding Primary.Photo}" Glyph="{Binding Primary.Glyph}" />
-            </Border>
+      <!-- Ten seconds with no answer. Text, never a placeholder that never stops. -->
+      <TextBlock DockPanel.Dock="Top" Classes="secondary" Margin="16,8,16,12"
+                 IsVisible="{Binding Loading.ShowError}"
+                 Text="Опрос не отвечает" />
 
-            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-              <TextBlock Classes="cardTitle" Text="{Binding Primary.DisplayName}"
-                         TextTrimming="CharacterEllipsis" />
-              <TextBlock Classes="caption" Text="{Binding Primary.Status}" />
-            </StackPanel>
+      <!-- Nothing attached. Short, because the tray is not the place to explain. -->
+      <TextBlock DockPanel.Dock="Top" Classes="secondary" Margin="16,8,16,12"
+                 Text="Устройств не найдено">
+        <TextBlock.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="!HasDevices" />
+            <Binding Path="Loading.ShowContent" />
+          </MultiBinding>
+        </TextBlock.IsVisible>
+      </TextBlock>
 
-            <controls:KvazrMarkControl Grid.Column="2" Width="20" Height="20"
-                                       Motion="Fast" OrbitShade="Resting"
-                                       VerticalAlignment="Center"
-                                       IsVisible="{Binding Primary.IsBatteryPending}" />
+      <!-- Five rows of 56 and the padding they sit in. Past that the list scrolls inside
+           the panel rather than the panel growing off the screen. -->
+      <ScrollViewer MaxHeight="{DynamicResource FlyoutListHeight}"
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled"
+                    IsVisible="{Binding Loading.ShowContent}">
+        <ItemsControl ItemsSource="{Binding Devices}" Margin="10,0">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="devices:FlyoutRowViewModel">
 
-            <TextBlock Grid.Column="2"
-                       FontSize="{DynamicResource FontSizeSubtitle}"
-                       FontWeight="SemiBold"
-                       VerticalAlignment="Center"
-                       IsVisible="{Binding !Primary.IsBatteryPending}"
-                       Text="{Binding Primary.Battery}" />
-          </Grid>
+              <Border Classes="deviceRow" Classes.open="{Binding IsOpen}"
+                      CornerRadius="{DynamicResource FlyoutThumbRadiusCorner}" BorderThickness="1" Margin="0,0,0,1">
+                <StackPanel>
 
-          <!-- Quick controls. Label and value on one line, the control under it: at
-               360 px a slider and a label do not share a row without one of them
-               becoming useless. -->
-          <ItemsControl ItemsSource="{Binding Quick}">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="cap:CapabilityViewModel">
-                <StackPanel Spacing="4" Margin="0,4">
-                  <TextBlock Classes="caption" Text="{Binding Title}" />
-                  <controls:CapabilityControl HorizontalAlignment="Stretch" />
-                </StackPanel>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
+                  <!-- Height on the button, not on the grid inside it: the shared
+                       navRoot style pins buttons to 36, and a setter there beats
+                       anything a child asks for. This row is 56 because the artboard
+                       says 56, and Metrics.axaml has that number from the design file
+                       rather than from anyone's memory. -->
+                  <Button Classes="navRoot"
+                          Command="{Binding ToggleCommand}"
+                          HorizontalAlignment="Stretch"
+                          HorizontalContentAlignment="Stretch"
+                          Height="{DynamicResource FlyoutRowHeight}"
+                          Padding="{DynamicResource FlyoutRowPadding}">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" VerticalAlignment="Stretch">
+                      <Border Grid.Column="0"
+                              Width="{DynamicResource FlyoutThumbSize}"
+                              Height="{DynamicResource FlyoutThumbSize}"
+                              Background="{DynamicResource LayerAltBrush}"
+                              CornerRadius="{DynamicResource FlyoutThumbRadiusCorner}"
+                              ClipToBounds="True"
+                              Margin="0,0,12,0"
+                              VerticalAlignment="Center">
+                        <ctl:DeviceThumb Photo="{Binding Device.Photo}" Glyph="{Binding Device.Glyph}" />
+                      </Border>
 
-          <Separator Classes="divider" IsVisible="{Binding HasOthers}" />
+                      <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                        <TextBlock FontSize="{DynamicResource FlyoutNameSize}" FontWeight="SemiBold"
+                                   Text="{Binding Device.DisplayName}"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Classes="caption" FontSize="{DynamicResource FlyoutSubSize}"
+                                   Text="{Binding Device.Status}"
+                                   TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
 
-          <!-- Every other device: 56 px, name and battery, nothing else. -->
-          <ItemsControl ItemsSource="{Binding Others}">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="devices:DeviceListItemViewModel">
-                <Grid ColumnDefinitions="Auto,*,Auto" Height="56">
-                  <Border Grid.Column="0" Width="34" Height="34"
-                          Background="{DynamicResource LayerAltBrush}"
-                          CornerRadius="{DynamicResource RadiusSmall}"
-                          ClipToBounds="True"
-                          Margin="0,0,12,0"
-                          VerticalAlignment="Center">
-                    <ctl:DeviceThumb Photo="{Binding Photo}" Glyph="{Binding Glyph}" />
-                  </Border>
+                      <controls:KvazrMarkControl Grid.Column="2" Width="18" Height="18"
+                                                 Motion="Fast" OrbitShade="Resting"
+                                                 VerticalAlignment="Center"
+                                                 IsVisible="{Binding Device.IsBatteryPending}" />
 
-                  <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Classes="caption" Text="{Binding Status}" />
+                      <TextBlock Grid.Column="2" FontSize="{DynamicResource FlyoutBatterySize}" FontWeight="SemiBold"
+                                 VerticalAlignment="Center"
+                                 IsVisible="{Binding !Device.IsBatteryPending}"
+                                 Text="{Binding Device.Battery}" />
+
+                      <Path Grid.Column="3" Width="10" Height="10" Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Stroke="{DynamicResource TextFillColorTertiaryBrush}"
+                            StrokeThickness="1.6" StrokeLineCap="Round" StrokeJoin="Round"
+                            Stretch="Uniform"
+                            IsVisible="{Binding !IsOpen}"
+                            Data="M3.6 6 8 10.4 12.4 6" />
+
+                      <Path Grid.Column="3" Width="10" Height="10" Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Stroke="{DynamicResource TextPrimaryBrush}"
+                            StrokeThickness="1.6" StrokeLineCap="Round" StrokeJoin="Round"
+                            Stretch="Uniform"
+                            IsVisible="{Binding IsOpen}"
+                            Data="M3.6 10.4 8 6l4.4 4.4" />
+                    </Grid>
+                  </Button>
+
+                  <!-- Indented to the name rather than to the edge: the controls belong
+                       to the device above them, and the picture column says so. -->
+                  <StackPanel IsVisible="{Binding IsOpen}" Margin="54,2,12,14" Spacing="12">
+
+                    <ItemsControl ItemsSource="{Binding Quick}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="cap:CapabilityViewModel">
+                          <StackPanel Spacing="5" Margin="0,0,0,2">
+                            <TextBlock Classes="caption" FontSize="12" Text="{Binding Title}" />
+                            <controls:CapabilityControl HorizontalAlignment="Stretch" />
+                          </StackPanel>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Said out loud rather than left blank. "Connected, and there is
+                         nothing here to set" is something a person can act on; an empty
+                         gap under an opened row reads as a fault. -->
+                    <TextBlock Classes="secondary" FontSize="12" TextWrapping="Wrap"
+                               IsVisible="{Binding HasNothing}"
+                               Text="Настраивать нечего: устройство отдаёт только то, что уже в строке." />
+
+                    <Button Classes="navRoot"
+                            Command="{Binding OpenPageCommand}"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            IsVisible="{Binding !HasNothing}">
+                      <TextBlock FontSize="12" Text="Открыть страницу устройства" Margin="8,0" />
+                    </Button>
                   </StackPanel>
 
-                  <controls:KvazrMarkControl Grid.Column="2" Width="20" Height="20"
-                                             Motion="Fast" OrbitShade="Resting"
-                                             VerticalAlignment="Center"
-                                             IsVisible="{Binding IsBatteryPending}" />
-
-                  <TextBlock Grid.Column="2" Classes="secondary"
-                             VerticalAlignment="Center"
-                             IsVisible="{Binding !IsBatteryPending}"
-                             Text="{Binding Battery}" />
-                </Grid>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-
-        </StackPanel>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </ScrollViewer>
 
     </DockPanel>
