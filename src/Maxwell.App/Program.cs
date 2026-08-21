@@ -170,6 +170,7 @@ internal static class Program
 
         builder.Services.AddSingleton<Infrastructure.FirstSweep>();
         builder.Services.AddSingleton<CapabilityShowcaseViewModel>();
+        builder.Services.AddSingleton<HotkeysViewModel>();
         builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<AboutViewModel>();
         builder.Services.AddSingleton<Platform.HiddenDevices>();

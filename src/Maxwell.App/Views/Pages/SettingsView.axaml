@@ -68,13 +68,21 @@
           </Grid>
         </Border>
 
+        <!--
+          Disabled with the reason beside it, which is the state the design system already
+          has for exactly this: the control exists, the reason it cannot be used is next
+          to it, and nothing pretends. The alternative was a dropdown that visibly moves
+          and changes nothing, and a switch that has moved but not taken effect is the one
+          thing this screen must never do.
+        -->
         <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
           <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
                       Margin="{DynamicResource PageRowGapRight}">
             <TextBlock Classes="rowTitle" Text="Язык" />
-            <TextBlock Classes="caption" Text="Перезапуск не нужен" />
+            <TextBlock Classes="caption" Text="Английский перевод ещё не сделан" />
           </StackPanel>
           <ComboBox Grid.Column="1" Width="{DynamicResource PageControlWidth}"
+                    IsEnabled="False"
                     ItemsSource="{Binding Languages}"
                     SelectedIndex="{Binding LanguageIndex}" />
         </Grid>

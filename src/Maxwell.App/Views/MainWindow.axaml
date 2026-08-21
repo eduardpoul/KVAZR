@@ -22,6 +22,7 @@
   <Window.DataTemplates>
     <DataTemplate DataType="vm:DashboardViewModel"><views:DashboardView /></DataTemplate>
     <DataTemplate DataType="devices:DevicePageViewModel"><views:DevicePageView /></DataTemplate>
+    <DataTemplate DataType="pages:HotkeysViewModel"><views:HotkeysView /></DataTemplate>
     <DataTemplate DataType="pages:SettingsViewModel"><views:SettingsView /></DataTemplate>
     <DataTemplate DataType="pages:AboutViewModel"><views:AboutView /></DataTemplate>
     <DataTemplate DataType="pages:CapabilityShowcaseViewModel"><views:CapabilityShowcaseView /></DataTemplate>

@@ -40,6 +40,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         HiddenDevices hidden,
         CapabilityShowcaseViewModel showcase,
         SettingsViewModel settings,
+        HotkeysViewModel hotkeys,
         AboutViewModel about,
         FirstSweep sweep)
     {
@@ -49,6 +50,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         ArgumentNullException.ThrowIfNull(hidden);
         ArgumentNullException.ThrowIfNull(showcase);
         ArgumentNullException.ThrowIfNull(settings);
+        ArgumentNullException.ThrowIfNull(hotkeys);
         ArgumentNullException.ThrowIfNull(about);
         ArgumentNullException.ThrowIfNull(sweep);
 
@@ -59,6 +61,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
 
         AppSections =
         [
+            new AppSection(hotkeys.Title, hotkeys),
             new AppSection(settings.Title, settings),
             new AppSection(showcase.Title, showcase),
             new AppSection(Identity.Title, Identity),

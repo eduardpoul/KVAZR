@@ -62,6 +62,7 @@ internal static class PagePreview
             Render($"{path}-welcome-{suffix}.png", theme, PageWidth, () => new WelcomeView());
             Render($"{path}-settings-{suffix}.png", theme, PageWidth, Settings);
             Render($"{path}-about-{suffix}.png", theme, PageWidth, About);
+            Render($"{path}-hotkeys-{suffix}.png", theme, PageWidth, Hotkeys);
             Render($"{path}-mouse-{suffix}.png", theme, PageWidth, () => Device(MockDeviceDriver.MouseKey));
             Render($"{path}-keyboard-{suffix}.png", theme, PageWidth, () => Device(MockDeviceDriver.KeyboardKey));
         }
@@ -112,6 +113,34 @@ internal static class PagePreview
         }
 
         public void Disable()
+        {
+        }
+    }
+
+    private static HotkeysView Hotkeys()
+    {
+        var store = new PreviewSettings();
+        using var registry = new DeviceRegistry(
+            [], new InMemoryCapabilityLedger(), NullLoggerFactory.Instance);
+
+        var coordinator = new HotkeyCoordinator(
+            new PreviewHotkeys(), new PrimaryDevice(registry, new HiddenDevices(store)), store);
+
+        return new HotkeysView { DataContext = new HotkeysViewModel(store, coordinator) };
+    }
+
+    /// <summary>Registers nothing. A render must not take shortcuts off the machine.</summary>
+    private sealed class PreviewHotkeys : IHotkeyService
+    {
+        public event EventHandler<string>? Triggered
+        {
+            add { }
+            remove { }
+        }
+
+        public IReadOnlyList<string> Apply(IReadOnlyList<HotkeyBinding> bindings) => [];
+
+        public void Dispose()
         {
         }
     }
