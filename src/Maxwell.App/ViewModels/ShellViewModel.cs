@@ -9,6 +9,7 @@ using Maxwell.App.ViewModels.Devices;
 using Maxwell.App.ViewModels.Pages;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Polling;
+using Maxwell.Race.Windows;
 
 namespace Maxwell.App.ViewModels;
 
@@ -29,6 +30,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     private readonly IPollingCoordinator _polling;
     private readonly IConfirmationPrompt _confirm;
     private readonly HiddenDevices _hidden;
+    private readonly PrimaryDevice _primary;
     private readonly Dictionary<string, DevicePageViewModel> _pages = new(StringComparer.Ordinal);
 
     private bool _disposed;
@@ -38,6 +40,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         IPollingCoordinator polling,
         IConfirmationPrompt confirm,
         HiddenDevices hidden,
+        PrimaryDevice primary,
         CapabilityShowcaseViewModel showcase,
         SettingsViewModel settings,
         HotkeysViewModel hotkeys,
@@ -48,6 +51,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         ArgumentNullException.ThrowIfNull(polling);
         ArgumentNullException.ThrowIfNull(confirm);
         ArgumentNullException.ThrowIfNull(hidden);
+        ArgumentNullException.ThrowIfNull(primary);
         ArgumentNullException.ThrowIfNull(showcase);
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(hotkeys);
@@ -58,6 +62,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         _polling = polling;
         _confirm = confirm;
         _hidden = hidden;
+        _primary = primary;
 
         AppSections =
         [
@@ -376,6 +381,69 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         await _hidden.HideAsync(device.Key, DateTimeOffset.Now).ConfigureAwait(true);
         OnPropertyChanged(nameof(HiddenCount));
         OnPropertyChanged(nameof(HasHidden));
+    }
+
+    /// <summary>Opens the device's own page, the first item of the row's menu.</summary>
+    [RelayCommand]
+    private void OpenDevice(DeviceListItemViewModel? device)
+    {
+        if (device is not null) SelectedDevice = device;
+    }
+
+    /// <summary>
+    /// Makes this the device the tray and the global shortcuts act on. Artboard 4c: the
+    /// user picks, rather than a rule picking and changing its mind when something else
+    /// connects.
+    /// </summary>
+    [RelayCommand]
+    private async Task ShowInTrayAsync(DeviceListItemViewModel? device)
+    {
+        if (device is null) return;
+
+        await _primary.ChooseAsync(device.Key).ConfigureAwait(true);
+        Sync();
+    }
+
+    /// <summary>
+    /// Unpairs the device in Windows, which is the one thing on this menu that cannot be
+    /// undone from here — the device has to be put back into pairing mode by hand. So it
+    /// asks first, and it is only offered where it means something: a cabled device has
+    /// no pairing to forget.
+    /// </summary>
+    [RelayCommand]
+    private async Task ForgetDeviceAsync(DeviceListItemViewModel? device)
+    {
+        if (device is null || !device.CanForget) return;
+
+        bool go = await _confirm.ConfirmAsync(new Capability
+        {
+            Id = "device.forget",
+            Domain = CapabilityDomain.Maintenance,
+            Primitive = CapabilityPrimitive.Action,
+            Title = $"Забыть {device.DisplayName}?",
+            Subtitle = "Пара в Windows будет удалена. Чтобы вернуть устройство, "
+                + "его придётся сопрягать заново, как в первый раз.",
+            Risk = CapabilityRisk.Confirm,
+            IsReversible = false,
+        }).ConfigureAwait(true);
+
+        if (!go) return;
+
+        // The address the device reported, not one derived from anything: an address
+        // assembled from the wrong place would unpair the wrong device, and there is no
+        // undo for that.
+        string? bluetooth = device.Snapshot.Info.HardwareIds
+            .FirstOrDefault(id => id.StartsWith("bt:", StringComparison.Ordinal));
+
+        if (OperatingSystem.IsWindows() && WindowsBluetoothPairing.Parse(bluetooth?[3..]) is { } address)
+        {
+            WindowsBluetoothPairing.Forget(address);
+        }
+
+        // Whether Windows removed it or not, the device goes off the list now. It will be
+        // gone from the next sweep either way, and leaving the row sitting there until
+        // then reads as the menu item having done nothing.
+        await _hidden.HideAsync(device.Key, DateTimeOffset.Now).ConfigureAwait(true);
     }
 
     /// <summary>

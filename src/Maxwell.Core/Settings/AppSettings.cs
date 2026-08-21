@@ -104,6 +104,16 @@ public sealed class AppSettings
         new(StringComparer.Ordinal);
 
     /// <summary>
+    /// The device the tray icon and the global shortcuts act on, chosen by hand.
+    ///
+    /// Artboard 4c settles what was a rule: "основное — выбранное вручную устройство".
+    /// A rule that picks the first controllable device is right about as often as it is
+    /// wrong, and it changes its mind when something else connects — which is the worst
+    /// property for the one device a shortcut acts on. Empty means fall back to the rule.
+    /// </summary>
+    public string PrimaryDeviceKey { get; set; } = string.Empty;
+
+    /// <summary>
     /// Devices the user has put away, and when. Hidden is not forgotten: the pairing in
     /// Windows is untouched and the device returns intact when it is unhidden. The date
     /// is kept because a list of hidden things with no dates is impossible to reason
@@ -125,6 +135,7 @@ public sealed class AppSettings
             p => p.Key, p => new List<string>(p.Value), StringComparer.Ordinal),
         HiddenDevices = new Dictionary<string, DateTimeOffset>(HiddenDevices, StringComparer.Ordinal),
         HideSilentDevices = HideSilentDevices,
+        PrimaryDeviceKey = PrimaryDeviceKey,
         Theme = Theme,
         RunAtLogin = RunAtLogin,
         StartMinimised = StartMinimised,

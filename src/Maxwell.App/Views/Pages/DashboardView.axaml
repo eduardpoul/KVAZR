@@ -149,8 +149,23 @@
                 -->
                 <Border.ContextMenu>
                   <ContextMenu>
+                    <MenuItem Header="Открыть страницу"
+                              Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).Shell.OpenDeviceCommand}"
+                              CommandParameter="{Binding}" />
+                    <MenuItem Header="Показывать в трее"
+                              Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).Shell.ShowInTrayCommand}"
+                              CommandParameter="{Binding}" />
+                    <Separator />
                     <MenuItem Header="Скрыть устройство"
                               Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).Shell.HideDeviceCommand}"
+                              CommandParameter="{Binding}" />
+
+                    <!-- Red, last, and only where a pairing exists. It is the one item
+                         here that cannot be undone from this menu. -->
+                    <MenuItem Header="Забыть в системе"
+                              Foreground="{DynamicResource DangerBrush}"
+                              IsVisible="{Binding CanForget}"
+                              Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).Shell.ForgetDeviceCommand}"
                               CommandParameter="{Binding}" />
                   </ContextMenu>
                 </Border.ContextMenu>

@@ -85,6 +85,14 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
 
     public bool HasNote => Note.Length > 0;
 
+    /// <summary>
+    /// Whether "забыть в системе" means anything for this device. A pairing is something
+    /// only a wireless link has; offering it for a device on a cable would be offering to
+    /// undo something that was never done.
+    /// </summary>
+    public bool CanForget =>
+        Snapshot.Info.Transports.Any(t => t.Kind is TransportKind.Bluetooth or TransportKind.Dongle);
+
     public string Battery => Snapshot.BatteryPercent is { } percent ? $"{percent}%" : "—";
 
     /// <summary>

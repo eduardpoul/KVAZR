@@ -7,6 +7,7 @@ using Maxwell.Core;
 using Maxwell.App.Platform;
 using Maxwell.Core.Abstractions;
 using Maxwell.Core.Polling;
+using Maxwell.Core.Devices;
 using Maxwell.Core.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -154,7 +155,10 @@ internal static class Program
 
         builder.Services.AddPlatform();
         builder.Services.AddSingleton<ISettingsStore, JsonSettingsStore>();
-        builder.Services.AddSingleton<PrimaryDevice>();
+        builder.Services.AddSingleton(sp => new PrimaryDevice(
+            sp.GetRequiredService<IDeviceRegistry>(),
+            sp.GetRequiredService<HiddenDevices>(),
+            sp.GetRequiredService<ISettingsStore>()));
         builder.Services.AddSingleton<HotkeyCoordinator>();
 
         // The stand-in mouse and keyboard are development scaffolding: ten of the
