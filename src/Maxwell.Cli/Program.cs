@@ -28,6 +28,12 @@ if (args.Contains("--devices"))
 // Tier zero on its own: everything the operating system knows with no driver involved.
 if (args.Contains("--system")) return SystemInventory.Run(args.Contains("--raw"));
 
+// Which class protocols this machine actually exposes. Asked before writing one.
+if (args.Contains("--hid")) return HidSurvey.Run(!args.Contains("--all"));
+
+// What is actually paired behind a Logitech receiver. Read-only.
+if (args.Contains("--hidpp")) return HidPlusPlusProbe.Run();
+
 var enumerator = new WindowsHidEnumerator();
 IReadOnlyList<MaxwellInterface> all = enumerator.Enumerate();
 

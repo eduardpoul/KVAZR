@@ -44,6 +44,14 @@ public sealed class LinuxHidEnumerator : IHidEnumerator
         return found;
     }
 
+
+    /// <summary>
+    /// Not implemented on this platform. The class protocols are Windows-only for now,
+    /// and an empty list means "found none" rather than "failed", which is the honest
+    /// answer here — there is no code to find them with.
+    /// </summary>
+    public IReadOnlyList<HidInterface> EnumerateAll() => [];
+
     public IReadOnlyList<MaxwellInterface> EnumerateRaceInterfaces() =>
         Enumerate().Where(i => i.UsagePage == MaxwellInterface.RaceUsagePage)
                    .OrderBy(i => i.IsDongle ? 0 : 1)

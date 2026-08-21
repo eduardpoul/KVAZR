@@ -14,6 +14,11 @@ internal sealed class UnsupportedHidEnumerator : IHidEnumerator
 {
     public IReadOnlyList<MaxwellInterface> Enumerate() => [];
 
+    /// <summary>No HID stack here at all, so nothing is found rather than something failing.</summary>
+
+    public IReadOnlyList<HidInterface> EnumerateAll() => [];
+
+
     public IReadOnlyList<MaxwellInterface> EnumerateRaceInterfaces() => [];
 }
 

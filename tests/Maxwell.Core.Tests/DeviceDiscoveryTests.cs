@@ -196,6 +196,11 @@ public sealed class DeviceDiscoveryTests
     {
         public IReadOnlyList<MaxwellInterface> Enumerate() => interfaces;
 
+        /// <summary>These tests are about the Audeze path; the class protocols have their own.</summary>
+
+        public IReadOnlyList<HidInterface> EnumerateAll() => [];
+
+
         public IReadOnlyList<MaxwellInterface> EnumerateRaceInterfaces() => interfaces;
     }
 

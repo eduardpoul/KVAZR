@@ -22,9 +22,33 @@ public interface IHidTransport : IDisposable
 }
 
 /// <summary>Discovers Maxwell HID interfaces present on the machine.</summary>
+/// <summary>
+/// One HID interface, whoever made it.
+///
+/// The usage page is what matters here rather than the vendor id: a keyboard speaking VIA
+/// answers on 0xFF60 whatever brand is printed on it, and that is the whole reason one
+/// implementation can serve hundreds of models.
+/// </summary>
+/// <param name="Path">What the host needs to reopen the device.</param>
+public sealed record HidInterface(
+    string Path,
+    ushort VendorId,
+    ushort ProductId,
+    ushort UsagePage,
+    ushort Usage,
+    int InputReportLength,
+    int OutputReportLength,
+    string ProductName);
+
 public interface IHidEnumerator
 {
     IReadOnlyList<MaxwellInterface> Enumerate();
+
+    /// <summary>
+    /// Every HID interface on the machine. Vendor-neutral, because the class protocols —
+    /// VIA, HID++ — are found by usage page rather than by who made the device.
+    /// </summary>
+    IReadOnlyList<HidInterface> EnumerateAll();
 
     /// <summary>RACE-capable interfaces only, dongles before cabled headsets.</summary>
     IReadOnlyList<MaxwellInterface> EnumerateRaceInterfaces();

@@ -111,6 +111,61 @@ public sealed class WindowsHidEnumerator : IHidEnumerator
         return found;
     }
 
+    public IReadOnlyList<HidInterface> EnumerateAll()
+    {
+        var found = new List<HidInterface>();
+
+        foreach (string path in EnumerateHidPaths())
+        {
+            // Query-only access, so a device another process is driving still answers.
+            IntPtr handle = HidNative.CreateFile(path, 0, HidNative.FileShareReadWrite,
+                IntPtr.Zero, HidNative.OpenExisting, 0, IntPtr.Zero);
+
+            if (handle == HidNative.InvalidHandle) continue;
+
+            try
+            {
+                var attributes = new HidNative.HiddAttributes { Size = Marshal.SizeOf<HidNative.HiddAttributes>() };
+                if (!HidNative.HidD_GetAttributes(handle, ref attributes)) continue;
+
+                ushort usagePage = 0, usage = 0;
+                int inputLength = 0, outputLength = 0;
+
+                if (HidNative.HidD_GetPreparsedData(handle, out IntPtr preparsed))
+                {
+                    var caps = new HidNative.HidpCaps();
+                    int status = HidNative.HidP_GetCaps(preparsed, ref caps);
+                    HidNative.HidD_FreePreparsedData(preparsed);
+
+                    // On failure the struct is untouched garbage, so only trust it on success.
+                    if (status == HidNative.HidpStatusSuccess)
+                    {
+                        usagePage = caps.UsagePage;
+                        usage = caps.Usage;
+                        inputLength = caps.InputReportByteLength;
+                        outputLength = caps.OutputReportByteLength;
+                    }
+                }
+
+                found.Add(new HidInterface(
+                    path,
+                    attributes.VendorId,
+                    attributes.ProductId,
+                    usagePage,
+                    usage,
+                    inputLength,
+                    outputLength,
+                    ReadProductString(handle)));
+            }
+            finally
+            {
+                HidNative.CloseHandle(handle);
+            }
+        }
+
+        return found;
+    }
+
     public IReadOnlyList<MaxwellInterface> EnumerateRaceInterfaces() =>
         Enumerate().Where(i => i.IsRaceInterface).OrderBy(i => i.IsDongle ? 0 : 1).ToList();
 
