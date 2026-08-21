@@ -1,0 +1,95 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:branding="using:Maxwell.App.Branding"
+        xmlns:controls="using:Maxwell.App.Controls"
+        x:Class="Maxwell.App.Views.SplashWindow"
+        Title="KVAZR"
+        Width="640" Height="400"
+        CanResize="False"
+        WindowDecorations="None"
+        WindowStartupLocation="CenterScreen"
+        ShowInTaskbar="False"
+        Topmost="True"
+        Background="#0B1420"
+        FontFamily="Segoe UI Variable Text, Segoe UI, sans-serif">
+
+  <!--
+    Section 06 of the identity. Two of the five splashes are built: the 640×400 dark
+    one with the name and the version, which is the primary, and the 400×400 mark-only
+    for a repeat launch. The three that are not built are the light variant and the two
+    compact sizes — one window switches between the two forms that this application
+    actually reaches, and a form nothing shows is a form that rots.
+
+    Always dark, including under a light system theme. A splash is on screen for under
+    a second and the mark is the point of it; the identity's light splash exists for
+    products whose window follows the system, and this one is a shaped, borderless
+    surface that would need its own corner and shadow treatment to survive on white.
+  -->
+
+  <Panel>
+
+    <!--
+      Mark only: a repeat launch, where the name has already been read once.
+
+      AllConnected rather than Searching, on both forms. Here the mark is the logo and
+      not a readout — the identity's splash draws the planet in the accent even though
+      the caption underneath says the application is looking — and a muted planet at
+      132 px reads as a fault rather than as work in progress. What says "searching" on
+      this screen is the rotation and the sentence, not the colour.
+    -->
+    <controls:KvazrMarkControl x:Name="MarkOnly"
+                               Width="132" Height="132"
+                               State="AllConnected"
+                               Surface="Dark"
+                               OrbitShade="Splash"
+                               Motion="Loading"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               IsVisible="False" />
+
+    <!-- The named form. -->
+    <Panel x:Name="Named">
+
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="30">
+        <controls:KvazrMarkControl Width="104" Height="104"
+                                   State="AllConnected"
+                                   Surface="Dark"
+                                   OrbitShade="Splash"
+                                   Motion="Loading"
+                                   HorizontalAlignment="Center" />
+
+        <StackPanel Spacing="10" HorizontalAlignment="Center">
+          <!-- 0.30 em of tracking at 34 px. Five letters need it or the word reads as
+               a stump; the identity states the figure and the padding compensates for
+               the trailing space the last letter still carries. -->
+          <TextBlock Text="KVAZR"
+                     FontSize="34" FontWeight="SemiBold"
+                     LetterSpacing="10.2" Padding="10.2,0,0,0"
+                     Foreground="#E8EEF5"
+                     HorizontalAlignment="Center" />
+          <TextBlock x:Name="Caption"
+                     Text="Поиск устройств"
+                     FontSize="12" LetterSpacing="0.48"
+                     Foreground="#6E8098"
+                     HorizontalAlignment="Center" />
+        </StackPanel>
+      </StackPanel>
+
+      <!--
+        The sweep. Indeterminate on purpose: at this point the application has no idea
+        how many devices it is about to find, and a bar that filled to a number it
+        invented would be the one dishonest thing on the screen.
+      -->
+      <Canvas Height="2" VerticalAlignment="Bottom" Background="#12FFFFFF" ClipToBounds="True">
+        <Border x:Name="Sweep" Width="192" Height="2" Background="#60CDFF" Canvas.Left="-76.8" />
+      </Canvas>
+
+      <TextBlock x:Name="Version"
+                 FontSize="11" Foreground="#4C6076"
+                 HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                 Margin="0,0,20,16" />
+    </Panel>
+
+  </Panel>
+
+</Window>

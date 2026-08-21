@@ -14,6 +14,17 @@
     <RootNamespace>Maxwell.App</RootNamespace>
     <AssemblyName>Maxwell</AssemblyName>
 
+    <!--
+      The name the user sees. Only this: the assembly, the namespaces and the project
+      keep their old names on purpose, because renaming them renames the process, the
+      settings folder and the autostart registry value, and the last of those would
+      leave every existing installation launching a name that no longer exists.
+    -->
+    <Product>KVAZR</Product>
+    <Company>KVAZR</Company>
+    <AssemblyTitle>KVAZR</AssemblyTitle>
+    <ApplicationIcon>Assets\kvazr.ico</ApplicationIcon>
+
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 
@@ -70,6 +81,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Maxwell.Core\Maxwell.Core.csproj" />
+  </ItemGroup>
+
+  <!-- The identity's colour table, the tray's state reduction and the skeleton timing
+       rules are all internal, and all worth testing. Widening them to public so a test
+       can reach them would put three implementation details on the assembly's surface. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Maxwell.App.Tests" />
   </ItemGroup>
 
   <!--

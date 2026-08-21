@@ -6,6 +6,7 @@
     <Project Path="src/Maxwell.Race/Maxwell.Race.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Maxwell.App.Tests/Maxwell.App.Tests.csproj" />
     <Project Path="tests/Maxwell.Core.Tests/Maxwell.Core.Tests.csproj" />
     <Project Path="tests/Maxwell.Race.Tests/Maxwell.Race.Tests.csproj" />
   </Folder>

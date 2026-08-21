@@ -34,4 +34,10 @@ internal static partial class Log
 
     [LoggerMessage(EventId = 2007, Level = LogLevel.Error, Message = "Tray icon could not be created")]
     public static partial void TrayFailed(this ILogger logger, Exception exception);
+
+    [LoggerMessage(EventId = 2008, Level = LogLevel.Warning, Message = "Splash screen could not be shown")]
+    public static partial void SplashFailed(this ILogger logger, Exception exception);
+
+    [LoggerMessage(EventId = 2009, Level = LogLevel.Warning, Message = "First discovery sweep failed")]
+    public static partial void FirstSweepFailed(this ILogger logger, Exception exception);
 }

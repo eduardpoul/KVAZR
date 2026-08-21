@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Maxwell.App.Branding;
 using Microsoft.Win32;
 
 namespace Maxwell.App.Tray;
@@ -15,11 +16,19 @@ public enum TrayPanel
 }
 
 /// <summary>
-/// Draws the tray icon at runtime with the battery percentage inside it.
+/// Draws the tray icon at runtime, in one of two forms.
 ///
-/// This is the point of the whole tray presence — a static glyph would make the user
-/// open a window to learn the one number they care about. Every rule below is from
-/// artboard 4a and exists because of the 16-pixel case:
+/// The KVAZR mark is the default and the identity: five states, one geometry, and a
+/// planet whose colour is the whole message. It answers "is anything wrong" at a
+/// glance and never needs reading.
+///
+/// The numeric plate below it stays because it answers a different question — "how
+/// much is left" — and a person who has turned <c>ShowPercentageInTray</c> on has said
+/// which of the two they want. Both are drawn here rather than in two files because
+/// they are alternatives for the same 16 pixels and have to be compared side by side.
+///
+/// Every rule in the plate is from artboard 4a and exists because of that 16-pixel
+/// case:
 ///
 /// <list type="bullet">
 ///   <item>No per-cent sign. Two digits is all that reads, and a third glyph costs both.</item>
@@ -43,8 +52,54 @@ internal static class TrayIconRenderer
         FontStyle.Normal,
         FontWeight.SemiBold);
 
+    /// <summary>
+    /// Rendered at 32 rather than 16 because Windows scales the notification-area icon
+    /// down for the panel it is on, and scaling a 32 down beats drawing a 16 up.
+    /// </summary>
+    private const int TraySize = 32;
+
     public static WindowIcon Render(int percent, bool charging) =>
-        new(Draw(percent, charging, 32, PanelOfSystem()));
+        new(Draw(percent, charging, TraySize, PanelOfSystem()));
+
+    /// <summary>The mark, in one of its five states. The default tray presence.</summary>
+    public static WindowIcon Render(KvazrMarkState state) =>
+        new(DrawMark(state, TraySize, PanelOfSystem()));
+
+    /// <summary>Renders one state at one size. Public so the whole grid can be dumped and looked at.</summary>
+    public static Bitmap DrawMark(KvazrMarkState state, int size, TrayPanel panel)
+    {
+        // The identity's floor. Below it the orbit is not an orbit and the gap — the
+        // one thing that makes this mark this mark — closes up into a smudge.
+        ArgumentOutOfRangeException.ThrowIfLessThan(size, KvazrMark.MinimumPixels);
+
+        var bitmap = new RenderTargetBitmap(new PixelSize(size, size), new Vector(96, 96));
+
+        using (DrawingContext context = bitmap.CreateDrawingContext())
+        {
+            double scale = size / KvazrMark.ViewBox;
+
+            using (context.PushTransform(Matrix.CreateScale(scale, scale)))
+            {
+                // A tray icon is a still frame. The states that turn on screen are drawn
+                // at rest here, and the identity leans on this: searching is legible from
+                // its muted planet alone, without the rotation.
+                KvazrMark.Draw(
+                    context,
+                    KvazrMark.Standalone,
+                    KvazrPalettes.For(state, Surface(panel)),
+                    pixel: KvazrMark.ViewBox / size);
+            }
+        }
+
+        return bitmap;
+    }
+
+    /// <summary>Which of the mark's two surfaces a taskbar of this shade is.</summary>
+    public static KvazrSurface Surface(TrayPanel panel) =>
+        panel == TrayPanel.Dark ? KvazrSurface.Dark : KvazrSurface.Light;
+
+    /// <summary>The taskbar shade the operating system is currently using.</summary>
+    public static TrayPanel Panel() => PanelOfSystem();
 
     /// <summary>Renders one variant. Public so the whole grid can be dumped and looked at.</summary>
     public static Bitmap Draw(int percent, bool charging, int size, TrayPanel panel)

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Maxwell.App.Infrastructure;
 using Maxwell.App.Platform;
 using Maxwell.App.ViewModels.Capabilities;
 using Maxwell.App.ViewModels.Devices;
@@ -45,15 +46,26 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
     private string? _quickDeviceKey;
     private bool _disposed;
 
-    public FlyoutViewModel(IDeviceRegistry registry, PrimaryDevice primary, IPollingCoordinator polling)
+    public FlyoutViewModel(
+        IDeviceRegistry registry,
+        PrimaryDevice primary,
+        IPollingCoordinator polling,
+        FirstSweep sweep)
     {
         ArgumentNullException.ThrowIfNull(registry);
         ArgumentNullException.ThrowIfNull(primary);
         ArgumentNullException.ThrowIfNull(polling);
+        ArgumentNullException.ThrowIfNull(sweep);
 
         _registry = registry;
         _primary = primary;
         _polling = polling;
+
+        // Its own gate rather than the shell's: the panel can be opened before the
+        // window has ever been built, and a gate that starts when the window is
+        // constructed would already have expired by then.
+        Loading.Begin();
+        sweep.WhenComplete(Loading.Resolve);
 
         _registry.DevicesChanged += OnDevicesChanged;
         Sync();
@@ -70,6 +82,9 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
 
     /// <summary>Two or three controls for the primary device. Never more.</summary>
     public ObservableCollection<CapabilityViewModel> Quick { get; } = [];
+
+    /// <summary>Whether the first sweep has answered. Drives the placeholder rows.</summary>
+    internal LoadingState Loading { get; } = new();
 
     public bool HasOthers => Others.Count > 0;
 
@@ -101,7 +116,11 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void OpenSettings() => SettingsRequested?.Invoke(this, EventArgs.Empty);
 
-    private void OnDevicesChanged(object? sender, EventArgs e) => Dispatcher.UIThread.Post(Sync);
+    private void OnDevicesChanged(object? sender, EventArgs e) => Dispatcher.UIThread.Post(() =>
+    {
+        Loading.Resolve();
+        Sync();
+    });
 
     private void Sync()
     {
@@ -187,6 +206,7 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
         _disposed = true;
 
         _registry.DevicesChanged -= OnDevicesChanged;
+        Loading.Dispose();
         ClearQuick();
     }
 }

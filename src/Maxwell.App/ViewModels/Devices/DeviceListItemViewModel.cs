@@ -33,6 +33,16 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
 
     public string Battery => Snapshot.BatteryPercent is { } percent ? $"{percent}%" : "—";
 
+    /// <summary>
+    /// The device says it has a battery and has not yet said what is in it. This is the
+    /// one place in a row where a loader is the honest answer: the row itself arrived,
+    /// so a skeleton over the whole thing would be a lie, and a dash would claim the
+    /// reading came back empty. A device with no battery at all — the QuadCast is the
+    /// first — never reaches this, because it never declares the capability.
+    /// </summary>
+    public bool IsBatteryPending =>
+        Snapshot.CanControl && Snapshot.Has(CapabilityIds.PowerBattery) && Snapshot.BatteryPercent is null;
+
     public bool IsCharging => Snapshot.IsCharging;
 
     /// <summary>What the row says under the name. Never an error for a normal mode of use.</summary>
@@ -52,6 +62,7 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
         OnPropertyChanged(nameof(DisplayName));
         OnPropertyChanged(nameof(IsPresent));
         OnPropertyChanged(nameof(Battery));
+        OnPropertyChanged(nameof(IsBatteryPending));
         OnPropertyChanged(nameof(IsCharging));
         OnPropertyChanged(nameof(Status));
     }

@@ -4,9 +4,11 @@
         xmlns:pages="using:Maxwell.App.ViewModels.Pages"
         xmlns:devices="using:Maxwell.App.ViewModels.Devices"
         xmlns:views="using:Maxwell.App.Views.Pages"
+        xmlns:controls="using:Maxwell.App.Controls"
         x:Class="Maxwell.App.Views.MainWindow"
         x:DataType="vm:ShellViewModel"
-        Title="Maxwell.App"
+        Title="KVAZR"
+        Icon="/Assets/kvazr.ico"
         Width="1040" Height="720"
         MinWidth="880" MinHeight="560"
         Background="{DynamicResource LayerBackgroundBrush}"
@@ -21,6 +23,7 @@
     <DataTemplate DataType="vm:DashboardViewModel"><views:DashboardView /></DataTemplate>
     <DataTemplate DataType="devices:DevicePageViewModel"><views:DevicePageView /></DataTemplate>
     <DataTemplate DataType="pages:CapabilityShowcaseViewModel"><views:CapabilityShowcaseView /></DataTemplate>
+    <DataTemplate DataType="pages:IdentityViewModel"><views:IdentityView /></DataTemplate>
   </Window.DataTemplates>
 
   <Window.Styles>
@@ -75,12 +78,13 @@
 
       <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12"
                   Margin="16,0,0,0" VerticalAlignment="Center">
-        <Border Width="18" Height="18" CornerRadius="{DynamicResource RadiusSmall}"
-                Background="{DynamicResource AccentPrimaryBrush}">
-          <TextBlock Text="M" FontSize="11" FontWeight="Bold" Foreground="White"
-                     HorizontalAlignment="Center" VerticalAlignment="Center" />
-        </Border>
-        <TextBlock Text="Maxwell.App" FontSize="{DynamicResource FontSizeSmall}"
+        <!-- The mark itself, not a letter in a box. It is 18 px here, above the
+             identity's 16-pixel floor, and it is the same drawing as the tray icon. -->
+        <controls:KvazrMarkControl x:Name="TitleMark" Width="18" Height="18"
+                                   State="AllConnected"
+                                   VerticalAlignment="Center" />
+        <TextBlock Text="KVAZR" FontSize="{DynamicResource FontSizeSmall}"
+                   LetterSpacing="1.3"
                    VerticalAlignment="Center" />
       </StackPanel>
 
@@ -140,7 +144,7 @@
       </ScrollViewer>
 
       <!-- Content -->
-      <ScrollViewer Grid.Column="1" Padding="12,0,24,24">
+      <ScrollViewer Grid.Column="1" x:Name="ContentPane" Padding="12,0,24,24">
         <StackPanel Spacing="16">
           <TextBlock Classes="sectionTitle" Text="{Binding HeaderTitle}" Margin="0,4,0,0" />
           <ContentControl Content="{Binding CurrentPage}" />

@@ -52,10 +52,56 @@
 
           <TextBlock Classes="caption" Text="{Binding Heading}" />
 
-          <!-- Nothing attached. Short, because the tray is not the place to explain. -->
+          <!--
+            The heading above and the settings link below are on screen from the first
+            frame: neither depends on any device answering. Only the rows are unknown,
+            so only the rows get placeholders.
+          -->
+          <StackPanel Spacing="12" IsVisible="{Binding Loading.ShowSkeleton}">
+            <Grid ColumnDefinitions="Auto,*,Auto" Height="64">
+              <controls:Skeleton Grid.Column="0" Width="64" Height="64" Radius="4" Margin="0,0,14,0" />
+              <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
+                <controls:Skeleton Width="152" Height="10" Phase="1" HorizontalAlignment="Left" />
+                <controls:Skeleton Width="94" Height="7" Phase="2" HorizontalAlignment="Left" />
+              </StackPanel>
+              <controls:Skeleton Grid.Column="2" Width="42" Height="12" Phase="3" VerticalAlignment="Center" />
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*,Auto" Height="56">
+              <controls:Skeleton Grid.Column="0" Width="34" Height="34" Radius="4" Phase="2"
+                                 Margin="0,0,12,0" VerticalAlignment="Center" />
+              <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
+                <controls:Skeleton Width="128" Height="9" Phase="3" HorizontalAlignment="Left" />
+                <controls:Skeleton Width="78" Height="7" Phase="4" HorizontalAlignment="Left" />
+              </StackPanel>
+              <controls:Skeleton Grid.Column="2" Width="36" Height="9" Phase="5" VerticalAlignment="Center" />
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*,Auto" Height="56">
+              <controls:Skeleton Grid.Column="0" Width="34" Height="34" Radius="4" Phase="3"
+                                 Margin="0,0,12,0" VerticalAlignment="Center" />
+              <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
+                <controls:Skeleton Width="106" Height="9" Phase="4" HorizontalAlignment="Left" />
+                <controls:Skeleton Width="66" Height="7" Phase="5" HorizontalAlignment="Left" />
+              </StackPanel>
+              <controls:Skeleton Grid.Column="2" Width="36" Height="9" Phase="6" VerticalAlignment="Center" />
+            </Grid>
+          </StackPanel>
+
+          <!-- Ten seconds with no answer. Text, never a placeholder that never stops. -->
           <TextBlock Classes="secondary"
-                     IsVisible="{Binding !HasDevices}"
-                     Text="Устройств не найдено" />
+                     IsVisible="{Binding Loading.ShowError}"
+                     Text="Опрос не отвечает" />
+
+          <!-- Nothing attached. Short, because the tray is not the place to explain. -->
+          <TextBlock Classes="secondary" Text="Устройств не найдено">
+            <TextBlock.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="!HasDevices" />
+                <Binding Path="Loading.ShowContent" />
+              </MultiBinding>
+            </TextBlock.IsVisible>
+          </TextBlock>
 
           <!-- Primary device -->
           <Grid ColumnDefinitions="Auto,*,Auto" IsVisible="{Binding HasDevices}">
@@ -74,10 +120,16 @@
               <TextBlock Classes="caption" Text="{Binding Primary.Status}" />
             </StackPanel>
 
+            <controls:KvazrMarkControl Grid.Column="2" Width="20" Height="20"
+                                       Motion="Fast" OrbitShade="Resting"
+                                       VerticalAlignment="Center"
+                                       IsVisible="{Binding Primary.IsBatteryPending}" />
+
             <TextBlock Grid.Column="2"
                        FontSize="{DynamicResource FontSizeSubtitle}"
                        FontWeight="SemiBold"
                        VerticalAlignment="Center"
+                       IsVisible="{Binding !Primary.IsBatteryPending}"
                        Text="{Binding Primary.Battery}" />
           </Grid>
 
@@ -117,8 +169,14 @@
                     <TextBlock Classes="caption" Text="{Binding Status}" />
                   </StackPanel>
 
+                  <controls:KvazrMarkControl Grid.Column="2" Width="20" Height="20"
+                                             Motion="Fast" OrbitShade="Resting"
+                                             VerticalAlignment="Center"
+                                             IsVisible="{Binding IsBatteryPending}" />
+
                   <TextBlock Grid.Column="2" Classes="secondary"
                              VerticalAlignment="Center"
+                             IsVisible="{Binding !IsBatteryPending}"
                              Text="{Binding Battery}" />
                 </Grid>
               </DataTemplate>

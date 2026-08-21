@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Maxwell.App.Infrastructure;
 using Maxwell.App.ViewModels.Capabilities;
 using Maxwell.App.ViewModels.Devices;
 using Maxwell.App.ViewModels.Pages;
@@ -19,15 +20,25 @@ public sealed record AppSection(string Title, object Page);
 /// </summary>
 public sealed class DashboardViewModel : ObservableObject
 {
-    public DashboardViewModel(ObservableCollection<DeviceListItemViewModel> devices)
+    internal DashboardViewModel(ObservableCollection<DeviceListItemViewModel> devices, LoadingState loading)
     {
         ArgumentNullException.ThrowIfNull(devices);
+        ArgumentNullException.ThrowIfNull(loading);
 
         Devices = devices;
+        Loading = loading;
         Devices.CollectionChanged += (_, _) => OnPropertyChanged(nameof(IsEmpty));
     }
 
     public ObservableCollection<DeviceListItemViewModel> Devices { get; }
+
+    /// <summary>
+    /// Whether the first sweep has answered yet. The dashboard has three different
+    /// nothings — still looking, looked and found none, and gave up — and the identity
+    /// gives each of them its own screen. Collapsing them into one empty card is what
+    /// makes a cold start look broken.
+    /// </summary>
+    internal LoadingState Loading { get; }
 
     /// <summary>Drives the first-launch state, which is an introduction and not an error.</summary>
     public bool IsEmpty => Devices.Count == 0;
@@ -53,20 +64,27 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         IDeviceRegistry registry,
         IPollingCoordinator polling,
         IConfirmationPrompt confirm,
-        CapabilityShowcaseViewModel showcase)
+        CapabilityShowcaseViewModel showcase,
+        FirstSweep sweep)
     {
         ArgumentNullException.ThrowIfNull(registry);
         ArgumentNullException.ThrowIfNull(polling);
         ArgumentNullException.ThrowIfNull(confirm);
         ArgumentNullException.ThrowIfNull(showcase);
+        ArgumentNullException.ThrowIfNull(sweep);
 
         _registry = registry;
         _polling = polling;
         _confirm = confirm;
 
-        AppSections = [new AppSection(showcase.Title, showcase)];
-        Dashboard = new DashboardViewModel(Devices);
+        AppSections = [new AppSection(showcase.Title, showcase), new AppSection(Identity.Title, Identity)];
+        Dashboard = new DashboardViewModel(Devices, Loading);
         CurrentPage = Dashboard;
+
+        // Started before the registry is subscribed to, because the wait began when the
+        // process did — not when this object got round to asking.
+        Loading.Begin();
+        sweep.WhenComplete(Loading.Resolve);
 
         _registry.DevicesChanged += OnDevicesChanged;
         Sync();
@@ -84,6 +102,16 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     public partial AppSection? SelectedAppSection { get; set; }
 
     public DashboardViewModel Dashboard { get; }
+
+    /// <summary>The identity sheet: every mark state, motion, loader and skeleton on one page.</summary>
+    internal IdentityViewModel Identity { get; } = new();
+
+    /// <summary>
+    /// The first-sweep gate. Owned here rather than by the dashboard because the flyout
+    /// and the dashboard are waiting for the same answer and must not disagree about
+    /// whether it has arrived.
+    /// </summary>
+    internal LoadingState Loading { get; } = new();
 
     [ObservableProperty]
     public partial object? CurrentPage { get; private set; }
@@ -182,7 +210,21 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
 
     // ---------- registry ----------
 
-    private void OnDevicesChanged(object? sender, EventArgs e) => Dispatcher.UIThread.Post(Sync);
+    private void OnDevicesChanged(object? sender, EventArgs e) => Dispatcher.UIThread.Post(() =>
+    {
+        // A device turning up is also an answer, and it may arrive before the sweep
+        // this shell is waiting on has returned. Resolve is idempotent.
+        Loading.Resolve();
+        Sync();
+    });
+
+    /// <summary>
+    /// Selects the identity sheet. Exists for the same reason as the other development
+    /// flags: it is a page of drawings, and the only way to review a drawing is to open
+    /// it.
+    /// </summary>
+    public void SelectIdentity() =>
+        SelectedAppSection = AppSections.FirstOrDefault(s => ReferenceEquals(s.Page, Identity));
 
     /// <summary>
     /// Reconciles the list in place rather than replacing it, so the selected row stays
@@ -240,6 +282,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         _disposed = true;
 
         _registry.DevicesChanged -= OnDevicesChanged;
+        Loading.Dispose();
 
         foreach (DevicePageViewModel page in _pages.Values) page.Dispose();
         _pages.Clear();

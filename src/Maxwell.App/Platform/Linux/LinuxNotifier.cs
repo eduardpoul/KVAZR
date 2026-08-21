@@ -44,7 +44,7 @@ public sealed class LinuxNotifier : INotifier
 
         // Passed as separate arguments rather than a command line, so a device name or
         // message can never be interpreted as shell syntax.
-        startInfo.ArgumentList.Add("--app-name=Maxwell.App");
+        startInfo.ArgumentList.Add("--app-name=KVAZR");
         startInfo.ArgumentList.Add("--expire-time=8000");
         startInfo.ArgumentList.Add(title);
         startInfo.ArgumentList.Add(message);
