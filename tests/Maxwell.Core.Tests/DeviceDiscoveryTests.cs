@@ -1,3 +1,4 @@
+using Maxwell.Core.Abstractions;
 using Maxwell.Core.Model;
 using Maxwell.Core.Services;
 using Maxwell.Race.Abstractions;
@@ -25,8 +26,10 @@ public sealed class DeviceDiscoveryTests
     private static MaxwellInterface Cable(string path = @"\\?\cable") =>
         new(path, 0x4B1E, MaxwellInterface.RaceUsagePage, 0x01, 62, 62, "Audeze Maxwell");
 
-    private static DeviceService Build(IHidEnumerator enumerator, IHidTransportFactory factory) =>
-        new(enumerator, factory, NullLogger<DeviceService>.Instance);
+    private static DeviceService Build(
+        IHidEnumerator enumerator, IHidTransportFactory factory, IBluetoothMonitor? bluetooth = null) =>
+        new(enumerator, factory, bluetooth ?? NullBluetoothMonitor.Instance,
+            NullLogger<DeviceService>.Instance);
 
     [Fact]
     public async Task NothingPluggedIn_IsNotFound()
@@ -120,7 +123,74 @@ public sealed class DeviceDiscoveryTests
         Assert.Equal(ConnectionState.Active, service.State.Connection);
     }
 
+    /// <summary>
+    /// Bluetooth carries audio and a battery level but advertises no control profile, so
+    /// the headset is plainly connected and completely unconfigurable. Reporting that as
+    /// "nothing found" to someone wearing them and hearing sound is the state this test
+    /// exists to prevent.
+    /// </summary>
+    [Fact]
+    public async Task BluetoothAlone_IsItsOwnState_WithABatteryButNoControl()
+    {
+        DeviceService service = Build(
+            new FakeEnumerator(), new FakeFactory(answers: false), new FakeBluetooth(present: true, battery: 99));
+
+        await service.DiscoverAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(ConnectionState.BluetoothOnly, service.State.Connection);
+        Assert.True(service.State.BluetoothPresent);
+        Assert.Equal(99, service.State.BatteryPercent);
+
+        // Audible, readable, and still not controllable.
+        Assert.False(service.State.CanControl);
+        Assert.Null(service.State.ControlTransport);
+    }
+
+    [Fact]
+    public async Task BluetoothWithNoBatteryReported_StillCountsAsConnected()
+    {
+        DeviceService service = Build(
+            new FakeEnumerator(), new FakeFactory(answers: false), new FakeBluetooth(present: true, battery: -1));
+
+        await service.DiscoverAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(ConnectionState.BluetoothOnly, service.State.Connection);
+        Assert.False(service.State.HasBattery);
+    }
+
+    /// <summary>A dongle that answers must win: it is the one that can actually do anything.</summary>
+    [Fact]
+    public async Task WithBluetoothAndAWorkingDongle_TheDongleTakesControl()
+    {
+        DeviceService service = Build(
+            new FakeEnumerator(Dongle()), new FakeFactory(answers: true), new FakeBluetooth(present: true, battery: 99));
+
+        await service.DiscoverAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(ConnectionState.Active, service.State.Connection);
+        Assert.True(service.State.CanControl);
+        Assert.True(service.State.BluetoothPresent);
+        Assert.Equal(MaxwellTransport.XboxDongle, service.State.ControlTransport);
+    }
+
+    [Fact]
+    public async Task WithNoBluetoothAndNoInterfaces_IsStillNotFound()
+    {
+        DeviceService service = Build(
+            new FakeEnumerator(), new FakeFactory(answers: false), new FakeBluetooth(present: false, battery: -1));
+
+        await service.DiscoverAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(ConnectionState.NotFound, service.State.Connection);
+        Assert.False(service.State.BluetoothPresent);
+    }
+
     // ---------- fakes ----------
+
+    private sealed class FakeBluetooth(bool present, int battery) : IBluetoothMonitor
+    {
+        public BluetoothStatus Query() => new(present, battery);
+    }
 
     private sealed class FakeEnumerator(params MaxwellInterface[] interfaces) : IHidEnumerator
     {

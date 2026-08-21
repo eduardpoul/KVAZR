@@ -64,13 +64,22 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     /// works, and never phrased as an error — a headset reachable only over its dongle
     /// is being used exactly as intended.
     /// </summary>
-    public string? StateNotice => Snapshot.Availability switch
+    public string? StateNotice => Snapshot switch
     {
+        // Answering, but over a link that carries no control. Over Bluetooth the Maxwell
+        // publishes no HID service at all, so the short list of capabilities is the
+        // truth about this link rather than something failing.
+        { Availability: DeviceAvailability.Active, Info.ControlTransport: null } =>
+            "Подключено по Bluetooth: доступен только заряд. Настройка работает через донгл или кабель",
+
+        _ => Snapshot.Availability switch
+        {
         DeviceAvailability.Unreachable =>
             "Наушники не отвечают. Включите их или поднесите ближе — управление работает и по донглу, и по кабелю",
         DeviceAvailability.Offline =>
             "Устройство не подключено. Показаны последние известные значения",
-        _ => null,
+            _ => null,
+        },
     };
 
     /// <summary>"обновлено 14:41", or when the device was last seen if it is gone.</summary>

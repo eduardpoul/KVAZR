@@ -19,6 +19,13 @@ public enum ConnectionState
     /// </summary>
     Unreachable,
 
+    /// <summary>
+    /// Paired over Bluetooth and nothing else. The link carries audio and reports a
+    /// battery level, but the Maxwell advertises no HID service over Bluetooth, so no
+    /// setting can be read or written until a dongle or cable is attached.
+    /// </summary>
+    BluetoothOnly,
+
     /// <summary>The headset answers: every feature is readable and writable.</summary>
     Active,
 }
@@ -57,6 +64,9 @@ public sealed record DeviceState
     /// back when control implied a cable — it no longer does.
     /// </summary>
     public bool CablePresent { get; init; }
+
+    /// <summary>True when the headset is connected over Bluetooth, alone or alongside.</summary>
+    public bool BluetoothPresent { get; init; }
 
     /// <summary>Product string reported by the HID descriptor, when one is connected.</summary>
     public string? DeviceName { get; init; }

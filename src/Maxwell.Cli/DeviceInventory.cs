@@ -1,4 +1,5 @@
 using Maxwell.Core.Abstractions;
+using Maxwell.Race.Abstractions;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Drivers.Audeze;
 using Maxwell.Core.Drivers.Mock;
@@ -22,8 +23,16 @@ internal static class DeviceInventory
         TimeSpan? watchFor = null,
         CancellationToken cancellationToken = default)
     {
+        // The Bluetooth monitor matters here: paired over Bluetooth alone the headset
+        // has no HID interface at all, and without this the harness would report no
+        // device to someone who is wearing it.
         List<IDeviceDriver> drivers =
-            [new AudezeRaceDriver(new WindowsHidEnumerator(), new WindowsHidTransportFactory())];
+        [
+            new AudezeRaceDriver(
+                new WindowsHidEnumerator(),
+                new WindowsHidTransportFactory(),
+                new Maxwell.Race.Windows.WindowsBluetoothMonitor()),
+        ];
 
         if (includeMocks) drivers.Add(new MockDeviceDriver());
 

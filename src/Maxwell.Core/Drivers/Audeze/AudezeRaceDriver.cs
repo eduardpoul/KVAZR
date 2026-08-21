@@ -1,3 +1,4 @@
+using Maxwell.Core.Abstractions;
 using Maxwell.Core.Devices;
 using Maxwell.Race.Abstractions;
 using Maxwell.Race.Protocol;
@@ -21,14 +22,19 @@ public sealed class AudezeRaceDriver : IDeviceDriver
 
     private readonly IHidEnumerator _enumerator;
     private readonly IHidTransportFactory _factory;
+    private readonly IBluetoothMonitor _bluetooth;
 
-    public AudezeRaceDriver(IHidEnumerator enumerator, IHidTransportFactory factory)
+    public AudezeRaceDriver(
+        IHidEnumerator enumerator,
+        IHidTransportFactory factory,
+        IBluetoothMonitor? bluetooth = null)
     {
         ArgumentNullException.ThrowIfNull(enumerator);
         ArgumentNullException.ThrowIfNull(factory);
 
         _enumerator = enumerator;
         _factory = factory;
+        _bluetooth = bluetooth ?? NullBluetoothMonitor.Instance;
     }
 
     public string DriverId => Id;
@@ -39,7 +45,7 @@ public sealed class AudezeRaceDriver : IDeviceDriver
 
         IReadOnlyList<MaxwellInterface> interfaces = _enumerator.EnumerateRaceInterfaces();
 
-        IReadOnlyList<DeviceInfo> devices =
+        List<DeviceInfo> devices =
         [
             .. interfaces
                 .GroupBy(VariantOf)
@@ -47,7 +53,20 @@ public sealed class AudezeRaceDriver : IDeviceDriver
                 .Select(g => Describe(g.Key, [.. g])),
         ];
 
-        return Task.FromResult(devices);
+        BluetoothStatus bluetooth = _bluetooth.Query();
+
+        if (bluetooth.Present)
+        {
+            // Bluetooth says nothing about which edition this is, so it joins an entry
+            // that a lead has already identified rather than starting one of its own.
+            // Alone, it has to guess, and the Xbox edition is the common one — the guess
+            // costs a label, not a capability.
+            devices = devices.Count > 0
+                ? [.. devices.Select(WithBluetooth)]
+                : [Describe(MaxwellVariant.Xbox, []) with { Transports = [BluetoothTransport] }];
+        }
+
+        return Task.FromResult<IReadOnlyList<DeviceInfo>>(devices);
     }
 
     public Task<IDeviceConnection> ConnectAsync(
@@ -71,6 +90,15 @@ public sealed class AudezeRaceDriver : IDeviceDriver
 
         if (target is null)
         {
+            // No lead, but the headset may still be on Bluetooth, where the battery is
+            // readable and nothing else is. Telling someone wearing the headset that no
+            // device was found is worse than telling them what this link can do.
+            if (_bluetooth.Query().Present)
+            {
+                return Task.FromResult<IDeviceConnection>(
+                    new AudezeBluetoothConnection(_bluetooth, [BluetoothTransport]));
+            }
+
             throw new IOException($"{device.DisplayName}: no RACE interface present.");
         }
 
@@ -117,6 +145,22 @@ public sealed class AudezeRaceDriver : IDeviceDriver
             ImageKey = variant == MaxwellVariant.PlayStation ? "maxwell-ps-3q" : "maxwell-3q",
             Transports = TransportsOf(interfaces),
         };
+
+    /// <summary>
+    /// Audio and a battery reading, no control. The Maxwell publishes no HID service
+    /// over Bluetooth, so this is a fact about the headset rather than a gap here.
+    /// </summary>
+    private static TransportInfo BluetoothTransport => new()
+    {
+        Kind = TransportKind.Bluetooth,
+        Label = "Bluetooth",
+        IsPresent = true,
+        CarriesControl = false,
+        CarriesAudio = true,
+    };
+
+    private static DeviceInfo WithBluetooth(DeviceInfo device) =>
+        device with { Transports = [.. device.Transports, BluetoothTransport] };
 
     private static IReadOnlyList<TransportInfo> TransportsOf(IReadOnlyList<MaxwellInterface> interfaces) =>
     [

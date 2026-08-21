@@ -1,3 +1,4 @@
+using Maxwell.Core.Abstractions;
 using Maxwell.Core.Model;
 using Maxwell.Race;
 using Maxwell.Race.Abstractions;
@@ -15,6 +16,7 @@ public sealed class DeviceService : IDeviceService, IDisposable
 {
     private readonly IHidEnumerator _enumerator;
     private readonly IHidTransportFactory _factory;
+    private readonly IBluetoothMonitor _bluetooth;
     private readonly ILogger<DeviceService> _logger;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
@@ -29,13 +31,24 @@ public sealed class DeviceService : IDeviceService, IDisposable
         IHidEnumerator enumerator,
         IHidTransportFactory factory,
         ILogger<DeviceService> logger)
+        : this(enumerator, factory, NullBluetoothMonitor.Instance, logger)
+    {
+    }
+
+    public DeviceService(
+        IHidEnumerator enumerator,
+        IHidTransportFactory factory,
+        IBluetoothMonitor bluetooth,
+        ILogger<DeviceService> logger)
     {
         ArgumentNullException.ThrowIfNull(enumerator);
         ArgumentNullException.ThrowIfNull(factory);
+        ArgumentNullException.ThrowIfNull(bluetooth);
         ArgumentNullException.ThrowIfNull(logger);
 
         _enumerator = enumerator;
         _factory = factory;
+        _bluetooth = bluetooth;
         _logger = logger;
     }
 
@@ -59,9 +72,20 @@ public sealed class DeviceService : IDeviceService, IDisposable
             if (target is null)
             {
                 CloseSession();
+
+                // No HID interface does not mean no headset. Over Bluetooth the Maxwell
+                // offers audio profiles only, so it is plainly connected and audibly
+                // working while every setting is out of reach — a state worth naming
+                // rather than reporting as "nothing found" to someone wearing them.
+                BluetoothStatus bluetooth = _bluetooth.Query();
+
                 Publish(DeviceState.Empty with
                 {
-                    Connection = ConnectionState.NotFound,
+                    Connection = bluetooth.Present
+                        ? ConnectionState.BluetoothOnly
+                        : ConnectionState.NotFound,
+                    BluetoothPresent = bluetooth.Present,
+                    BatteryPercent = bluetooth.HasBattery ? bluetooth.BatteryPercent : DeviceState.Unknown,
                     DonglePresent = false,
                     CablePresent = false,
                     UpdatedAt = DateTimeOffset.Now,
@@ -93,6 +117,7 @@ public sealed class DeviceService : IDeviceService, IDisposable
                         Connection = ConnectionState.Unreachable,
                         DonglePresent = donglePresent,
                         CablePresent = cablePresent,
+                        BluetoothPresent = _bluetooth.Query().Present,
                         UpdatedAt = DateTimeOffset.Now,
                     });
                     return;
@@ -115,6 +140,7 @@ public sealed class DeviceService : IDeviceService, IDisposable
                 DeviceName = string.IsNullOrWhiteSpace(target.ProductName) ? null : target.ProductName,
                 DonglePresent = donglePresent,
                 CablePresent = cablePresent,
+                BluetoothPresent = _bluetooth.Query().Present,
                 UpdatedAt = DateTimeOffset.Now,
             });
         }

@@ -31,6 +31,7 @@ internal static class PlatformServices
         services.AddSingleton<IHidTransportFactory, WindowsHidTransportFactory>();
         services.AddSingleton<IAutostart, WindowsAutostart>();
         services.AddSingleton<INotifier, WindowsNotifier>();
+        services.AddSingleton<IBluetoothMonitor, Maxwell.Race.Windows.WindowsBluetoothMonitor>();
         services.AddSingleton<IHotkeyService, WindowsHotkeys>();
 #else
         if (OperatingSystem.IsLinux())
@@ -39,6 +40,7 @@ internal static class PlatformServices
             services.AddSingleton<IHidTransportFactory, LinuxHidTransportFactory>();
             services.AddSingleton<IAutostart, LinuxAutostart>();
             services.AddSingleton<INotifier, LinuxNotifier>();
+            services.AddSingleton<IBluetoothMonitor>(NullBluetoothMonitor.Instance);
         }
         else
         {
@@ -49,6 +51,7 @@ internal static class PlatformServices
             services.AddSingleton<IHidTransportFactory, UnsupportedHidTransportFactory>();
             services.AddSingleton<IAutostart, UnsupportedAutostart>();
             services.AddSingleton<INotifier>(NullNotifier.Instance);
+            services.AddSingleton<IBluetoothMonitor>(NullBluetoothMonitor.Instance);
         }
 
         // Global shortcuts are Windows-only for now; elsewhere they are simply absent.
