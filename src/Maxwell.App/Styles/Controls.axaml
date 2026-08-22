@@ -121,11 +121,17 @@
     </Setter>
   </Style>
 
+  <!--
+    Sized by their labels, not by a fixed width. The widths in artboard 7a — 84 and 72 —
+    are what its three labels come to at this size plus this padding, and lifting the
+    numbers instead of the rule clipped any label longer than the theme names: the
+    microphone's "Выключено · Низкое · Высокое" lost half its last word.
+  -->
   <Style Selector="ListBox.segmented ListBoxItem">
-    <Setter Property="Width" Value="{DynamicResource SegmentWidth}" />
+    <Setter Property="MinWidth" Value="56" />
     <Setter Property="Height" Value="{DynamicResource SegmentHeight}" />
     <Setter Property="MinHeight" Value="0" />
-    <Setter Property="Padding" Value="0" />
+    <Setter Property="Padding" Value="12,0" />
     <Setter Property="Margin" Value="0" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -138,7 +144,6 @@
 
   <!-- The first segment has nothing to its left to be divided from. -->
   <Style Selector="ListBox.segmented ListBoxItem:nth-child(1)">
-    <Setter Property="Width" Value="{DynamicResource SegmentWideWidth}" />
     <Setter Property="BorderThickness" Value="0" />
   </Style>
 
@@ -393,7 +398,7 @@
 
   <Style Selector="TextBox.search">
     <Setter Property="Height" Value="{DynamicResource RailSearchHeight}" />
-    <Setter Property="Padding" Value="{DynamicResource RailSearchPadding}" />
+    <Setter Property="Padding" Value="0,0,10,0" />
     <Setter Property="FontSize" Value="{DynamicResource RailSearchSize}" />
     <Setter Property="CornerRadius" Value="{DynamicResource RailRowRadiusCorner}" />
   </Style>

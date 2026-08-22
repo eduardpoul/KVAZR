@@ -38,6 +38,13 @@ public enum HintKind
 public abstract partial class CapabilityViewModel : ObservableObject, IDisposable
 {
     /// <summary>
+    /// The device has this feature and we have no way to ask for it yet — the command is
+    /// not known, or the editor is not written. Different from unavailable, which means
+    /// the command exists and the current connection cannot carry it.
+    /// </summary>
+    public bool IsImplemented => State.Status != CapabilityStatus.Unavailable;
+
+    /// <summary>
     /// Whether this capability's control belongs in the row's right-hand column or across
     /// the whole width below its name.
     ///
@@ -148,9 +155,25 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     /// undone" next to it, which is not a caution but a puzzle. Artboard 2a says the same
     /// thing in its own words: against the indicator row it prints "не применяется".
     /// </summary>
-    public bool IsIrreversible => !Descriptor.IsReversible && Descriptor.IsWritable;
+    /// <summary>
+    /// The warning belongs to the act of writing, so it appears when a write is actually
+    /// possible. A headset asleep on its dongle was carrying a warning triangle and
+    /// "первая запись необратима" beside a slider that could do nothing at all — a
+    /// caution about an action nobody could take.
+    /// </summary>
+    public bool IsIrreversible => !Descriptor.IsReversible && Descriptor.IsWritable && CanEdit;
 
     public bool NeedsConfirmation => Descriptor.Risk != CapabilityRisk.Safe && Descriptor.IsWritable;
+
+    /// <summary>
+    /// The one line shown in place of the control when the capability cannot be reached —
+    /// the device is asleep, the boom is off, this channel does not carry settings.
+    ///
+    /// In place of, not beside: an unreachable slider was a dash, an amber dot and a
+    /// right-aligned explanation stacked on three lines, and a page of those reads as a
+    /// rendering fault. The reason is the only thing worth saying here.
+    /// </summary>
+    public string Unreachable => Descriptor.RequirementHint ?? "недоступно сейчас";
 
     /// <summary>True when the control may be operated at all.</summary>
     public bool CanEdit => State.CanWrite && Session is not null;
@@ -163,7 +186,10 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     {
         { WriteError: { } error } => error,
         _ when Detail == HintDetail.Terse => null,
-        { IsAvailable: false } => Descriptor.RequirementHint,
+
+        // Said in the frame itself, in place of the control. Repeating it here put the
+        // same sentence on the row twice.
+        { IsAvailable: false } => null,
         { IsWriting: true } => "Применяется…",
         { Status: CapabilityStatus.Unavailable } => "Функция есть, способа вызвать пока нет",
         { Status: CapabilityStatus.Untested } when Detail == HintDetail.Full =>
@@ -255,6 +281,7 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
         OnPropertyChanged(nameof(HasError));
         OnPropertyChanged(nameof(ChangedExternally));
         OnPropertyChanged(nameof(CanEdit));
+        OnPropertyChanged(nameof(IsIrreversible));
         OnPropertyChanged(nameof(Hint));
         OnPropertyChanged(nameof(HintTone));
     }

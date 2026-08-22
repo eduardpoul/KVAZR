@@ -149,11 +149,21 @@
 
     <DataTemplate DataType="cap:CurveCapabilityViewModel">
       <StackPanel HorizontalAlignment="Stretch" Spacing="3">
-        <TextBlock Classes="caption" HorizontalAlignment="Right" Text="{Binding Display}" />
-        <!-- Dimmed rather than blank when nothing has been read: the frame of an
-             equaliser still tells the reader what the control is, while a flat line
-             drawn at full strength would be a reading the device never gave. -->
+        <TextBlock Classes="caption" HorizontalAlignment="Right"
+                   IsVisible="{Binding IsImplemented}"
+                   Text="{Binding Display}" />
+        <!--
+          Dimmed rather than blank when nothing has been read: the frame of an equaliser
+          still tells the reader what the control is, while a flat line drawn at full
+          strength would be a reading the device never gave.
+
+          Gone entirely when there is no way to reach the capability at all. Dimming is
+          for a control that would work if the device were awake; an empty sixty-pixel
+          frame under two lines of explanation is not a dimmed control, it looks like a
+          part of the page that failed to draw.
+        -->
         <controls:CurvePlot Height="62"
+                            IsVisible="{Binding IsImplemented}"
                             Opacity="{Binding HasCurve, Converter={StaticResource ReadOpacity}}"
                             Points="{Binding Points}"
                             IsEditable="{Binding CanEdit}"
@@ -161,7 +171,7 @@
                             LineBrush="{DynamicResource AccentPrimaryBrush}"
                             AreaBrush="{DynamicResource AccentSubtleBrush}"
                             GridBrush="{DynamicResource StrokeDefaultBrush}" />
-        <TextBlock Classes="caption" Text="{Binding Scale}" />
+        <TextBlock Classes="caption" IsVisible="{Binding IsImplemented}" Text="{Binding Scale}" />
       </StackPanel>
     </DataTemplate>
 
@@ -347,13 +357,24 @@
     -->
     <Grid ColumnDefinitions="*,Auto,Auto" VerticalAlignment="Center">
 
-      <!-- Dimmed rather than hidden: the capability exists, the precondition does not.
-           Hiding it would make the device look like it lacks the feature. -->
+      <!--
+        Out of reach: one quiet line in place of the control, which is how artboard 5b
+        writes it — "от кабеля" where the slider would be. The row keeps its place so
+        the device does not look like it lacks the feature; what it does not keep is a
+        dead control with a dash, a dot and an explanation stacked on three lines.
+      -->
+      <TextBlock Grid.Column="0" Classes="caption"
+                 VerticalAlignment="Center" HorizontalAlignment="Right"
+                 TextWrapping="Wrap" MaxWidth="{DynamicResource PageControlWidth}"
+                 TextAlignment="Right"
+                 IsVisible="{Binding !IsAvailable}"
+                 Text="{Binding Unreachable}" />
+
       <Border Grid.Column="0" Classes="capControl"
+              IsVisible="{Binding IsAvailable}"
               Classes.error="{Binding HasError}"
               Classes.external="{Binding ChangedExternally}"
-              Classes.pending="{Binding IsWriting}"
-              Classes.blocked="{Binding !IsAvailable}">
+              Classes.pending="{Binding IsWriting}">
         <ContentControl Content="{Binding}" />
       </Border>
 
@@ -362,8 +383,14 @@
       <Ellipse Grid.Column="1" Width="7" Height="7" Margin="8,0,0,0"
                Fill="{DynamicResource StatusUntestedBrush}"
                VerticalAlignment="Center"
-               IsVisible="{Binding IsUntested}"
-               ToolTip.Tip="Ещё не проверено на живом устройстве" />
+               ToolTip.Tip="Ещё не проверено на живом устройстве">
+        <Ellipse.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="IsUntested" />
+            <Binding Path="IsAvailable" />
+          </MultiBinding>
+        </Ellipse.IsVisible>
+      </Ellipse>
 
       <!-- Warned before the write, never after. -->
       <Path Grid.Column="2" Width="14" Height="14" Margin="8,0,0,0"
