@@ -35,6 +35,8 @@ if (args.Contains("--hid")) return HidSurvey.Run(!args.Contains("--all"));
 if (args.Contains("--hidpp")) return HidPlusPlusProbe.Run();
 if (args.Contains("--xinput")) return XInputProbe.Run();
 if (args.Contains("--audio")) return AudioProbe.Run();
+if (args.Contains("--desk")) return DeskProbe.Run(args);
+if (args.Contains("--airpods")) return AirPodsProbe.Run();
 
 var enumerator = new WindowsHidEnumerator();
 IReadOnlyList<MaxwellInterface> all = enumerator.Enumerate();

@@ -96,6 +96,19 @@ public sealed class WindowsHidChannel : IDisposable
         }
     }
 
+    /// <summary>
+    /// Listens without writing anything first. For vendor-defined interfaces nothing is
+    /// known about: some dongles broadcast status unprompted, and reading is the one
+    /// operation guaranteed not to change a device you do not understand.
+    /// </summary>
+    public byte[]? Listen(TimeSpan timeout)
+    {
+        lock (_gate)
+        {
+            return Read(timeout);
+        }
+    }
+
     private byte[]? Read(TimeSpan timeout)
     {
         byte[] buffer = new byte[InputLength];
