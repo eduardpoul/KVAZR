@@ -193,14 +193,37 @@ internal static class DeskProbe
             Console.WriteLine($"    [{i,2}] 0x{id:X4}  {name}{hidden}{engineering}");
         }
 
-        // Safe reads on the two most designable features.
+        // Safe reads on the designable features. Raw bytes are printed alongside the
+        // parse wherever the layout is community-documented rather than official: a
+        // wrong guess should be checkable against the dump, not hidden behind it.
+        if (Feature(channel, device, 0x0003) is { } info)
+        {
+            byte[]? fw = Ask(channel, device, info, 0x01, 0x00);
+            if (fw is not null && !HidPlusPlus.IsError(fw))
+            {
+                string ascii = new([.. fw.Skip(5).Take(3).Select(b => (char)b)]);
+                Console.WriteLine($"  Прошивка (0x0003): {ascii}{fw[8]:X2}.{fw[9]:X2}_{(fw[10] << 8) | fw[11]:X4}");
+            }
+        }
+
         if (Feature(channel, device, 0x2201) is { } dpi)
         {
             byte[]? current = Ask(channel, device, dpi, 0x02, 0x00);
             if (current is not null && !HidPlusPlus.IsError(current))
             {
-                int value = (current[5] << 8) | current[6];
-                Console.WriteLine($"  DPI сейчас: {value}");
+                Console.WriteLine($"  DPI сейчас (0x2201): {(current[5] << 8) | current[6]}");
+            }
+        }
+
+        if (Feature(channel, device, 0x2202) is { } xdpi)
+        {
+            byte[]? current = Ask(channel, device, xdpi, 0x03, 0x00, 0x00);
+            if (current is not null && !HidPlusPlus.IsError(current))
+            {
+                int x = (current[5] << 8) | current[6];
+                int y = (current[9] << 8) | current[10];
+                Console.WriteLine($"  DPI сейчас (0x2202, X/Y): {x} / {y}");
+                Console.WriteLine($"    raw: {Hex(current)}");
             }
         }
 
@@ -209,10 +232,40 @@ internal static class DeskProbe
             byte[]? current = Ask(channel, device, rate, 0x01);
             if (current is not null && !HidPlusPlus.IsError(current))
             {
-                Console.WriteLine($"  Report rate: {1000 / Math.Max(1, (int)current[4])} Гц (делитель {current[4]})");
+                Console.WriteLine($"  Report rate (0x8060): {1000 / Math.Max(1, (int)current[4])} Гц");
+            }
+        }
+
+        if (Feature(channel, device, 0x8061) is { } xrate)
+        {
+            byte[]? supported = Ask(channel, device, xrate, 0x00, 0x00);
+            byte[]? current = Ask(channel, device, xrate, 0x02);
+
+            if (supported is not null && !HidPlusPlus.IsError(supported))
+            {
+                Console.WriteLine($"  Report rates (0x8061) поддержка: {Rates(supported[4])} (raw {supported[4]:X2})");
+            }
+
+            if (current is not null && !HidPlusPlus.IsError(current))
+            {
+                Console.WriteLine($"  Report rate (0x8061) сейчас: {RateOf(current[4])} (raw {Hex(current)})");
             }
         }
     }
+
+    /// <summary>0x8061 encodes rates as an enum: 0=125Гц … 5=4кГц, 6=8кГц.</summary>
+    private static string RateOf(byte value) => value switch
+    {
+        0 => "125 Гц", 1 => "250 Гц", 2 => "500 Гц", 3 => "1 кГц",
+        4 => "2 кГц", 5 => "4 кГц", 6 => "8 кГц",
+        _ => $"?{value}",
+    };
+
+    private static string Rates(byte bits) =>
+        string.Join(", ", Enumerable.Range(0, 7).Where(i => (bits & (1 << i)) != 0).Select(i => RateOf((byte)i)));
+
+    private static string Hex(byte[] bytes) =>
+        string.Join(' ', bytes.Take(14).Select(b => b.ToString("X2", CultureInfo.InvariantCulture)));
 
     /// <summary>The direct index first — the receiver register says which world this is.</summary>
     private static byte FindDevice(WindowsHidChannel channel)

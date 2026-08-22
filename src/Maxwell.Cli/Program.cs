@@ -37,6 +37,7 @@ if (args.Contains("--xinput")) return XInputProbe.Run();
 if (args.Contains("--audio")) return AudioProbe.Run();
 if (args.Contains("--desk")) return DeskProbe.Run(args);
 if (args.Contains("--airpods")) return AirPodsProbe.Run();
+if (args.Contains("--live")) return LiveProbe.Run();
 
 var enumerator = new WindowsHidEnumerator();
 IReadOnlyList<MaxwellInterface> all = enumerator.Enumerate();

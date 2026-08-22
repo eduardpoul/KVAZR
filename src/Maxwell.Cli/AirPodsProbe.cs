@@ -42,6 +42,20 @@ internal static class AirPodsProbe
                 string line = Decode(payload, args.RawSignalStrengthInDBm);
                 if (heard.Add(line)) Console.WriteLine(line);
             }
+
+            // The universal path, checked alongside the Apple one: GATT Battery Service
+            // (0x180F) as advertisement service data. Any vendor may broadcast it, and a
+            // device that does hands its percentage to a passive listener for free.
+            foreach (BluetoothLEAdvertisementDataSection section in args.Advertisement.DataSections)
+            {
+                if (section.DataType != 0x16) continue;
+
+                byte[] payload = section.Data.ToArray();
+                if (payload.Length < 3 || payload[0] != 0x0F || payload[1] != 0x18) continue;
+
+                string line = $"GATT Battery Service в рекламе: {payload[2]}%  rssi {args.RawSignalStrengthInDBm}";
+                if (heard.Add(line)) Console.WriteLine(line);
+            }
         };
 
         watcher.Start();
