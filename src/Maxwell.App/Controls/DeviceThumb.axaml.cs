@@ -19,8 +19,11 @@ public partial class DeviceThumb : UserControl
     public static readonly StyledProperty<Bitmap?> PhotoProperty =
         AvaloniaProperty.Register<DeviceThumb, Bitmap?>(nameof(Photo));
 
-    public static readonly StyledProperty<Geometry?> GlyphProperty =
-        AvaloniaProperty.Register<DeviceThumb, Geometry?>(nameof(Glyph));
+    public static readonly StyledProperty<string?> IconKeyProperty =
+        AvaloniaProperty.Register<DeviceThumb, string?>(nameof(IconKey));
+
+    public static readonly DirectProperty<DeviceThumb, IImage?> IconProperty =
+        AvaloniaProperty.RegisterDirect<DeviceThumb, IImage?>(nameof(Icon), t => t.Icon);
 
     /// <summary>
     /// How thick to draw the silhouette, and how much air to leave round it. Both follow
@@ -79,10 +82,32 @@ public partial class DeviceThumb : UserControl
         set => SetValue(PhotoProperty, value);
     }
 
-    /// <summary>The silhouette for the device's class. Always present.</summary>
-    public Geometry? Glyph
+    /// <summary>Which coloured Fluent icon stands in when there is no photograph.</summary>
+    public string? IconKey
     {
-        get => GetValue(GlyphProperty);
-        set => SetValue(GlyphProperty, value);
+        get => GetValue(IconKeyProperty);
+        set => SetValue(IconKeyProperty, value);
+    }
+
+    private IImage? _icon;
+
+    /// <summary>The drawing for <see cref="IconKey"/>, resolved from the generated
+    /// dictionary. The unknown plate covers a key that is not in the set.</summary>
+    public IImage? Icon => _icon;
+
+    static DeviceThumb() => IconKeyProperty.Changed.AddClassHandler<DeviceThumb>(
+        (thumb, _) => thumb.ResolveIcon());
+
+    private void ResolveIcon()
+    {
+        IImage? found = null;
+
+        if (Avalonia.Application.Current is { } app)
+        {
+            if (app.TryGetResource($"Fi.{IconKey}", null, out object? hit)) found = hit as IImage;
+            else if (app.TryGetResource("Fi.unknown", null, out object? fallback)) found = fallback as IImage;
+        }
+
+        SetAndRaise(IconProperty, ref _icon, found);
     }
 }

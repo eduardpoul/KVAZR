@@ -38,8 +38,8 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     /// </summary>
     public Bitmap? Photo => DeviceImages.Photo(Snapshot.Info.ImageKey);
 
-    /// <summary>The silhouette for this device's class. Every class has one.</summary>
-    public Geometry? Glyph => DeviceImages.Glyph(Snapshot.Info.Class);
+    /// <summary>Which coloured Fluent icon stands for this device without a photo.</summary>
+    public string IconKey => Web.DeviceIcon.KeyFor(Snapshot.Info);
 
     public bool IsPresent => Snapshot.IsPresent;
 
@@ -94,6 +94,13 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
         Snapshot.Info.Transports.Any(t => t.Kind is TransportKind.Bluetooth or TransportKind.Dongle);
 
     public string Battery => Snapshot.BatteryPercent is { } percent ? $"{percent}%" : "—";
+
+    /// <summary>
+    /// Whether there is a reading to print at all. A dash next to every device that
+    /// simply has no battery made the list look like a table of failures; nothing is
+    /// the right amount of ink for nothing.
+    /// </summary>
+    public bool HasBattery => Snapshot.BatteryPercent is not null;
 
     /// <summary>
     /// The device says it has a battery and has not yet said what is in it. This is the
@@ -173,6 +180,7 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
         OnPropertyChanged(nameof(DisplayName));
         OnPropertyChanged(nameof(IsPresent));
         OnPropertyChanged(nameof(Battery));
+        OnPropertyChanged(nameof(HasBattery));
         OnPropertyChanged(nameof(BatteryPercent));
         OnPropertyChanged(nameof(ShortName));
         OnPropertyChanged(nameof(IsBatteryPending));

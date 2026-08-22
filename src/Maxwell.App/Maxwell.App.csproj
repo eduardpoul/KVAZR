@@ -1,4 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <!--
+    The Razor SDK, because the UI is HTML now: the content pane is Razor components in
+    a WebView2, bound straight to the same view models the Avalonia views used. The SDK
+    change is what lets the components live in this project and bind directly — the
+    experiment phase proved the approach through an adapter layer, and the adapter was
+    the first thing to die on the way to production.
+
+    Avalonia remains the shell: the window, the tray, the flyout, the global hotkeys,
+    the toasts. None of that wants to be a web page, and all of it already works.
+  -->
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -29,6 +40,10 @@
     <!-- CA1822 wants constant view-model properties made static, but XAML bindings
          only resolve instance members, so following it would break the binding. -->
     <NoWarn>$(NoWarn);CA1822</NoWarn>
+
+    <!-- The WinForms analyzer wants DPI configured its way; Avalonia owns DPI in this
+         process and WinForms is a guest inside one HWND. -->
+    <NoWarn Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">$(NoWarn);WFO0003</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
@@ -66,11 +81,51 @@
     <PackageReference Include="FluentAvaloniaUI" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
+
+    <!-- Both targets compile the Razor components — that is what keeps the plain
+         net10.0 build honest about them — but only Windows carries the WebView host. -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
   </ItemGroup>
+
+  <!--
+    The web content pane is Windows-only for now: its host is the WinForms
+    BlazorWebView. The plain net10.0 build keeps compiling with the native views, which
+    is the cross-platform fallback until a WebKit host exists for it.
+  -->
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
 
   <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
     <PackageReference Include="DesktopNotifications" />
     <PackageReference Include="DesktopNotifications.Windows" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.WindowsForms" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView" GeneratePathProperty="true" />
+
+    <!-- The WinForms SDK injects its namespaces as global usings, and both collide
+         with Avalonia's (Application, Color, Point) across the whole project. The one
+         file that talks to WinForms names its types explicitly instead. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <!--
+    The framework script ships as a static web asset and resolves through a manifest at
+    runtime; with the Razor SDK on this project the manifest exists, but the published
+    layout is simpler to reason about with the script as a plain file — and the plain
+    file is what the experiment proved works. Carried explicitly.
+  -->
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
+    <None Include="$(PkgMicrosoft_AspNetCore_Components_WebView)/staticwebassets/blazor.webview.js"
+          Link="wwwroot/_framework/blazor.webview.js"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(PkgMicrosoft_AspNetCore_Components_WebView)/staticwebassets/blazor.modules.json"
+          Link="wwwroot/_framework/blazor.modules.json"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot/**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
@@ -79,12 +134,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Maxwell.Core\Maxwell.Core.csproj" />
-  </ItemGroup>
-
-  <!-- The web-rendering experiment. Windows-only, because its host is the WinForms
-       BlazorWebView; the plain net10.0 build must not even know it exists. -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows10.0.17763.0'">
-    <ProjectReference Include="..\Maxwell.Blazor\Maxwell.Blazor.csproj" />
   </ItemGroup>
 
   <!-- The identity's colour table, the tray's state reduction and the skeleton timing

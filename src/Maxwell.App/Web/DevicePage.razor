@@ -1,0 +1,131 @@
+@inherits ReactiveComponent
+
+@* A device, assembled from what it declares — artboards 5a and 8–11. There is no
+   per-model page: a headset, a mouse and a keyboard all lay out through the same rows,
+   which is what keeps them looking like one program. *@
+
+<div class="content">
+
+  <div class="hero">
+    <Thumb Info="Vm.Snapshot.Info" />
+    <div class="hero-text">
+      <div class="hero-name">@Vm.Heading</div>
+      @if (!Vm.IsWholeDevice)
+      {
+        <div class="caption">@Vm.Subheading</div>
+      }
+      <div class="hero-chips">
+        @foreach (TransportInfo transport in Vm.LiveTransports)
+        {
+          <span class="pill transport">@transport.Label</span>
+        }
+        @if (Vm.HasFirmware)
+        {
+          <span class="caption">@Vm.Firmware</span>
+        }
+      </div>
+      @if (!string.IsNullOrEmpty(Vm.StateNotice))
+      {
+        <div class="caption wrap">@Vm.StateNotice</div>
+      }
+    </div>
+    <div class="hero-batt">
+      <div class="hero-percent">@Vm.Battery</div>
+      <div class="caption">@Vm.Freshness</div>
+    </div>
+  </div>
+
+  @if (Vm.HasNothingToChange)
+  {
+    <div class="notice">
+      <span class="notice-dot"></span>
+      <span>Устройство подключено на уровне Windows, но не отвечает ни на один известный
+        запрос. Настраивать нечего — ниже всё, что удалось прочитать.</span>
+    </div>
+
+    <div class="group">
+      <div class="group-heading">ЧТО УДАЛОСЬ ПРОЧИТАТЬ</div>
+      <div class="card">
+        @foreach (DeviceFact fact in Vm.Facts)
+        {
+          <div class="fact-row">
+            <span>@fact.Label</span>
+            <span class="value">@fact.Value</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    @if (CanForget)
+    {
+      <div class="group">
+        <div class="group-heading">ДЕЙСТВИЯ</div>
+        <div class="card">
+          <div class="cap-row">
+            <div class="cap-text">
+              <div class="cap-title">Забыть устройство</div>
+              <div class="caption">Удаляет пару в системе. Понадобится — сопрягать заново</div>
+            </div>
+            <button class="danger-outline" @onclick="Forget">Забыть</button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+
+  @foreach (CapabilitySectionViewModel section in Vm.VisibleSections)
+  {
+    @if (section.IsSensitive)
+    {
+      <details class="adv">
+        <summary>@section.Title</summary>
+        <div class="card">
+          @foreach (CapabilityViewModel cap in section.Items)
+          {
+            <CapRow Vm="cap" />
+          }
+        </div>
+      </details>
+    }
+    else
+    {
+      <div class="group">
+        @if (Vm.IsWholeDevice)
+        {
+          <div class="group-heading">@section.Heading</div>
+        }
+        <div class="card">
+          @foreach (CapabilityViewModel cap in section.Items)
+          {
+            <CapRow Vm="cap" />
+          }
+        </div>
+      </div>
+    }
+  }
+</div>
+
+@code {
+  [Parameter, EditorRequired] public ShellViewModel Shell { get; set; } = default!;
+
+  [Parameter, EditorRequired] public DevicePageViewModel Vm { get; set; } = default!;
+
+  private DevicePageViewModel? _tracked;
+
+  protected override void OnParametersSet()
+  {
+    if (ReferenceEquals(_tracked, Vm)) return;
+
+    _tracked = Vm;
+    Track(Vm);
+    Track(Vm.Sections);
+  }
+
+  private bool CanForget =>
+      Vm.Snapshot.Info.Transports.Any(t => t.Kind is TransportKind.Bluetooth or TransportKind.Dongle);
+
+  private void Forget() => OnUi(() =>
+  {
+    if (Shell.SelectedDevice is { } device) Shell.ForgetDeviceCommand.Execute(device);
+  });
+}

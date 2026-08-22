@@ -5,6 +5,7 @@
         xmlns:devices="using:Maxwell.App.ViewModels.Devices"
         xmlns:views="using:Maxwell.App.Views.Pages"
         xmlns:controls="using:Maxwell.App.Controls"
+        xmlns:ctl="using:Maxwell.App.Controls"
         xmlns:conv="using:Maxwell.App.Converters"
         x:Class="Maxwell.App.Views.MainWindow"
         x:DataType="vm:ShellViewModel"
@@ -250,15 +251,13 @@
                         CommandParameter="{Binding}">
                   <Grid ColumnDefinitions="Auto,*,Auto"
                         Margin="{DynamicResource RailRowPadding}">
-                    <Path Grid.Column="0"
-                          Width="{DynamicResource RailIconSize}"
-                          Height="{DynamicResource RailIconSize}"
-                          Margin="{DynamicResource RailDeviceGapRight}"
-                          VerticalAlignment="Center"
-                          Data="{Binding Glyph}"
-                          Stroke="{DynamicResource TextSecondaryBrush}"
-                          StrokeThickness="1.3" StrokeLineCap="Round" StrokeJoin="Round"
-                          Stretch="Uniform" />
+                    <!-- 24, not the outline set's 16: these are the coloured Fluent
+                         drawings, and at sixteen pixels their detail turns to noise. -->
+                    <ctl:DeviceThumb Grid.Column="0"
+                                     Width="24" Height="24"
+                                     Margin="{DynamicResource RailDeviceGapRight}"
+                                     VerticalAlignment="Center"
+                                     IconKey="{Binding IconKey}" />
 
                     <TextBlock Grid.Column="1" Text="{Binding ShortName}"
                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
@@ -270,6 +269,7 @@
                                FontSize="{DynamicResource RailBatterySize}"
                                Foreground="{DynamicResource TextSecondaryBrush}"
                                VerticalAlignment="Center"
+                               IsVisible="{Binding HasBattery}"
                                Text="{Binding Battery}" />
                   </Grid>
                 </Button>
@@ -294,15 +294,13 @@
                         CommandParameter="{Binding}">
                   <Grid ColumnDefinitions="Auto,*"
                         Margin="{DynamicResource RailRowPadding}">
-                    <Path Grid.Column="0"
-                          Width="{DynamicResource RailIconSize}"
-                          Height="{DynamicResource RailIconSize}"
-                          Margin="{DynamicResource RailDeviceGapRight}"
-                          VerticalAlignment="Center"
-                          Data="{Binding Glyph}"
-                          Stroke="{DynamicResource TextSecondaryBrush}"
-                          StrokeThickness="1.3" StrokeLineCap="Round" StrokeJoin="Round"
-                          Stretch="Uniform" />
+                    <!-- 24, not the outline set's 16: these are the coloured Fluent
+                         drawings, and at sixteen pixels their detail turns to noise. -->
+                    <ctl:DeviceThumb Grid.Column="0"
+                                     Width="24" Height="24"
+                                     Margin="{DynamicResource RailDeviceGapRight}"
+                                     VerticalAlignment="Center"
+                                     IconKey="{Binding IconKey}" />
 
                     <!-- No percentage here, deliberately, and the artboard agrees: a
                          number beside a device that is not connected is a number from
@@ -370,6 +368,13 @@
               BorderBrush="{DynamicResource StrokeSubtleBrush}"
               BorderThickness="1,1,0,0"
               CornerRadius="{DynamicResource ContentTopLeftCorner}">
+        <Panel>
+
+        <!-- The web content pane: one WebView for the window's lifetime, created by the
+             code-behind on Windows. The native scroller below stays for the internal
+             pages and as the whole story where no WebView host exists. -->
+        <ContentControl x:Name="WebPane" IsVisible="False" />
+
         <ScrollViewer x:Name="ContentPane" Padding="{DynamicResource ContentPadding}">
           <StackPanel Spacing="{DynamicResource ContentGap}">
             <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding HasHeaderTitle}">
@@ -386,6 +391,8 @@
             <ContentControl Content="{Binding CurrentPage}" />
           </StackPanel>
         </ScrollViewer>
+
+        </Panel>
       </Border>
 
     </Grid>

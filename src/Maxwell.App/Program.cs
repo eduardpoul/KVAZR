@@ -112,9 +112,10 @@ internal static class Program
         // there steals the cursor from whoever is at the machine.
         App.OpenShowcaseOnStart = Array.IndexOf(args, "--showcase") >= 0;
 
-        // The web-rendering experiment: the sound section drawn by a WebView instead of
-        // by Avalonia, same view models behind it. Off unless asked for.
-        App.BlazorSoundOnStart = Array.IndexOf(args, "--blazor") >= 0;
+        // The content pane renders in a WebView by default on Windows; --native falls
+        // back to the Avalonia views, which is also what every capture pipeline that
+        // cannot see into a child HWND wants.
+        if (Array.IndexOf(args, "--native") >= 0) Web.WebUi.Enabled = false;
 
         if (Array.IndexOf(args, "--section") is var sec and >= 0
             && sec + 1 < args.Length

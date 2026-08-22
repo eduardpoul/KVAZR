@@ -1,0 +1,201 @@
+@inherits ReactiveComponent
+
+@* Artboard 1a, and 6c when nothing is attached. One card per group, 84px rows with
+   hairlines, the battery column fixed so the percentages line up, and the row's menu
+   on right-click exactly as 13a draws it. *@
+
+<div class="content">
+
+  <div class="titlebar">
+    <div class="title">Все устройства</div>
+    @if (Shell.HasHeaderMeta)
+    {
+      <div class="meta">@Shell.HeaderMeta</div>
+    }
+  </div>
+
+  @if (Vm.Loading.ShowSkeleton)
+  {
+    <div class="group">
+      <div class="skeleton-line" style="width:150px"></div>
+      <div class="card">
+        @for (int i = 0; i < 3; i++)
+        {
+          <div class="dash-row">
+            <div class="skeleton-thumb"></div>
+            <div class="grow">
+              <div class="skeleton-line" style="width:220px"></div>
+              <div class="skeleton-line" style="width:120px;margin-top:8px"></div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+  else if (Vm.IsEmpty)
+  {
+    <div class="welcome">
+      <div class="welcome-title">Подключите устройство</div>
+      <div class="welcome-text">
+        KVAZR показывает заряд в трее и настраивает беспроводную периферию разных
+        производителей — без вендорских комбайнов. Подключите гарнитуру кабелем или
+        донглом, мышь или клавиатуру — они появятся здесь сами.
+      </div>
+      <div class="welcome-cards">
+        <div class="welcome-card">
+          <div class="welcome-icon">@((MarkupString)FluentIcons.Svg("headset"))</div>
+          <div class="welcome-card-title">Гарнитуры</div>
+          <div class="welcome-card-text">Audeze Maxwell по USB-C и донглу. Заряд, звук, микрофон, ChatMix</div>
+        </div>
+        <div class="welcome-card">
+          <div class="welcome-icon">@((MarkupString)FluentIcons.Svg("mouse-gaming"))</div>
+          <div class="welcome-card-title">Мыши</div>
+          <div class="welcome-card-text">Logitech по донглу и Bluetooth. DPI, частота опроса, кнопки</div>
+        </div>
+        <div class="welcome-card">
+          <div class="welcome-icon">@((MarkupString)FluentIcons.Svg("keyboard-compact"))</div>
+          <div class="welcome-card-title">Клавиатуры</div>
+          <div class="welcome-card-text">NuPhy и совместимые с VIA. Слои, макросы, подсветка</div>
+        </div>
+      </div>
+      <div class="welcome-actions">
+        <button class="accent" @onclick="() => OnUi(() => Shell.RediscoverCommand.Execute(null))">Искать устройства</button>
+        <span class="caption">Приложение продолжит следить за подключениями в фоне</span>
+      </div>
+    </div>
+  }
+  else
+  {
+    @if (Vm.HasConnected)
+    {
+      <div class="group">
+        <div class="group-heading">@Vm.ConnectedHeading</div>
+        <div class="card">
+          @foreach (DeviceListItemViewModel device in Vm.Connected)
+          {
+            <div class="dash-row clickable"
+                 @onclick="() => Open(device)"
+                 @oncontextmenu="e => Menu(e, device)"
+                 @oncontextmenu:preventDefault>
+              <Thumb Info="device.Snapshot.Info" />
+              <div class="grow">
+                <div class="row-name">@device.DisplayName</div>
+                <div class="row-sub">
+                  <span class="pill">@device.Kind</span>
+                  @foreach (string transport in device.Transports)
+                  {
+                    <span class="pill transport">@transport</span>
+                  }
+                  @if (device.HasNote)
+                  {
+                    <span class="note">@device.Note</span>
+                  }
+                </div>
+              </div>
+              <div class="batt-block">
+                @if (device.IsBatteryPending)
+                {
+                  <span class="pending-dot" title="Читаем…"></span>
+                }
+                else if (device.BatteryPercent is not null)
+                {
+                  <Battery Percent="device.BatteryPercent" Charging="device.IsCharging" />
+                  <span class="batt-num">@device.Battery</span>
+                }
+              </div>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 16 16"><path d="M6 3.6 10.4 8 6 12.4" /></svg>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (Vm.HasDisconnected)
+    {
+      <div class="group">
+        <div class="group-heading">@Vm.DisconnectedHeading</div>
+        <div class="card dim">
+          @foreach (DeviceListItemViewModel device in Vm.Disconnected)
+          {
+            <div class="dash-row clickable"
+                 @onclick="() => Open(device)"
+                 @oncontextmenu="e => Menu(e, device)"
+                 @oncontextmenu:preventDefault>
+              <Thumb Info="device.Snapshot.Info" />
+              <div class="grow">
+                <div class="row-name">@device.DisplayName</div>
+                <div class="row-sub">
+                  <span class="pill">@device.Kind</span>
+                  <span class="note">@device.Note</span>
+                </div>
+              </div>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 16 16"><path d="M6 3.6 10.4 8 6 12.4" /></svg>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (Shell.HasHidden)
+    {
+      <div class="hidden-strip">
+        <span class="caption">Скрыто: @Shell.HiddenCount</span>
+        <button @onclick="() => OnUi(() => Shell.ShowHiddenCommand.Execute(null))">Показать все</button>
+      </div>
+    }
+  }
+
+  @* Artboard 13a: the row's own menu. Ours, not the browser's — the browser's offers
+     "Reload" to a person holding a mouse over their headset. *@
+  @if (_menuFor is { } target)
+  {
+    <div class="menu-backdrop" @onclick="CloseMenu" @oncontextmenu="CloseMenu" @oncontextmenu:preventDefault></div>
+    <div class="menu" style="left:@(_menuX)px;top:@(_menuY)px">
+      <button @onclick="() => { CloseMenu(); Open(target); }">Открыть страницу</button>
+      <button @onclick="() => Run(target, Shell.ShowInTrayCommand)">Показывать в трее</button>
+      <button @onclick="() => Run(target, Shell.HideDeviceCommand)">Скрыть устройство</button>
+      @if (target.CanForget)
+      {
+        <div class="menu-rule"></div>
+        <button class="danger" @onclick="() => Run(target, Shell.ForgetDeviceCommand)">Забыть в системе</button>
+      }
+    </div>
+  }
+</div>
+
+@code {
+  [Parameter, EditorRequired] public ShellViewModel Shell { get; set; } = default!;
+
+  [Parameter, EditorRequired] public DashboardViewModel Vm { get; set; } = default!;
+
+  private DeviceListItemViewModel? _menuFor;
+  private double _menuX;
+  private double _menuY;
+
+  protected override void OnInitialized()
+  {
+    Track(Vm);
+    Track(Vm.Loading);
+    Track(Vm.Connected);
+    Track(Vm.Disconnected);
+    Track(Shell);
+  }
+
+  private void Open(DeviceListItemViewModel device) =>
+      OnUi(() => Shell.OpenDeviceCommand.Execute(device));
+
+  private void Menu(MouseEventArgs e, DeviceListItemViewModel device)
+  {
+    _menuFor = device;
+    _menuX = e.ClientX;
+    _menuY = e.ClientY;
+  }
+
+  private void CloseMenu() => _menuFor = null;
+
+  private void Run(DeviceListItemViewModel device, System.Windows.Input.ICommand command)
+  {
+    CloseMenu();
+    OnUi(() => command.Execute(device));
+  }
+}

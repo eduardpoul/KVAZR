@@ -1,0 +1,97 @@
+@inherits ReactiveComponent
+@using Maxwell.Core.Settings
+
+@* The global shortcuts. Capture happens right here: while a row records, the button
+   holds focus and reads the next combination off the keyboard. A combination without a
+   modifier is refused — a global hook on a bare letter would eat that letter from every
+   application on the machine, which is not a thing to let somebody do by accident. *@
+
+<div class="content narrow">
+
+  <div class="titlebar"><div class="title">@Vm.Title</div></div>
+
+  <div class="caption wrap intro">
+    Сочетания работают, пока приложение запущено, в любом окне. Действия применяются к
+    основному устройству — тому же, чьё состояние показывает знак в трее.
+  </div>
+
+  <div class="group">
+    <div class="group-heading">ДЕЙСТВИЯ</div>
+    <div class="card">
+      @foreach (HotkeyRowViewModel row in Vm.Rows)
+      {
+        <div class="set-row">
+          <div class="cap-text">
+            <div class="cap-title">@row.Action.Title</div>
+            @if (row.HasProblem)
+            {
+              <div class="caption warn">@row.Problem</div>
+            }
+            else
+            {
+              <div class="caption">@row.Action.Description</div>
+            }
+          </div>
+
+          <button class="gesture @(row.IsRecording ? "recording" : "")"
+                  @onclick="() => { var r = row; OnUi(() => r.RecordCommand.Execute(null)); }"
+                  @onkeydown="e => Capture(e)"
+                  @onkeydown:preventDefault="row.IsRecording"
+                  @onfocusout="() => OnUi(Vm.Stop)">@row.Label</button>
+
+          @if (row.HasGesture)
+          {
+            <button class="icon-clear" title="Очистить"
+                    @onclick="() => { var r = row; OnUi(() => Vm.ClearCommand.Execute(r)); }">
+              <svg width="12" height="12" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></svg>
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+@code {
+  [Parameter, EditorRequired] public HotkeysViewModel Vm { get; set; } = default!;
+
+  protected override void OnInitialized()
+  {
+    Track(Vm);
+    Track(Vm.Rows);
+    foreach (HotkeyRowViewModel row in Vm.Rows) Track(row);
+  }
+
+  private void Capture(KeyboardEventArgs e)
+  {
+    if (!Vm.IsRecording) return;
+
+    if (e.Key is "Escape")
+    {
+      OnUi(Vm.Stop);
+      return;
+    }
+
+    var modifiers = HotkeyModifiers.None;
+    if (e.CtrlKey) modifiers |= HotkeyModifiers.Control;
+    if (e.AltKey) modifiers |= HotkeyModifiers.Alt;
+    if (e.ShiftKey) modifiers |= HotkeyModifiers.Shift;
+    if (e.MetaKey) modifiers |= HotkeyModifiers.Win;
+
+    if (modifiers == HotkeyModifiers.None) return;
+    if (e.Key is "Control" or "Alt" or "Shift" or "Meta") return;
+
+    // The DOM's "code" is layout-independent — KeyM stays KeyM on ЙЦУКЕН, which is what
+    // a global shortcut wants. Trimmed to the native names Avalonia produces.
+    string key = e.Code switch
+    {
+      var c when c.StartsWith("Key", StringComparison.Ordinal) => c[3..],
+      var c when c.StartsWith("Digit", StringComparison.Ordinal) => "D" + c[5..],
+      var c when c.StartsWith("Arrow", StringComparison.Ordinal) => c[5..],
+      "" => e.Key,
+      var c => c,
+    };
+
+    OnUi(() => Vm.Capture(HotkeyGesture.Format(modifiers, key)));
+  }
+}

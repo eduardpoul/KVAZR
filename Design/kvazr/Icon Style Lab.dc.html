@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<style>
+  body { margin: 0; font-family: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif; }
+</style>
+</helmet>
+
+<div style="width: 1240px; background: #F3F3F3; padding: 28px 32px 44px; box-sizing: border-box; color: #242424;">
+
+  <div style="font-size: 22px; font-weight: 600; margin-bottom: 4px;">20 стилей — геймпад Xbox и полноразмерные наушники</div>
+  <div style="font-size: 13px; color: #616161; margin-bottom: 24px;">Отличаются рисунком, детализацией, заливкой и подложкой. Назови номер — весь набор нарисую в нём.</div>
+
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+    <sc-for list="{{ variants }}" as="v" hint-placeholder-count="20">
+      <div style="background: #FFF; border: 1px solid rgba(0,0,0,0.07); border-radius: 8px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 12px;" style-hover="border-color: rgba(15,108,189,0.45)">
+        <div style="display: flex; align-items: baseline; gap: 8px;">
+          <div style="font-size: 15px; font-weight: 700; color: #0F6CBD; min-width: 20px;">{{ v.n }}</div>
+          <div style="font-size: 12px; line-height: 1.3; color: #242424;">{{ v.name }}</div>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 16px; padding: 14px 0 6px;">
+          <div style="display: flex; align-items: center;">{{ v.pad }}</div>
+          <div style="display: flex; align-items: center;">{{ v.hp }}</div>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 14px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px;">
+          <div style="display: flex; align-items: center;">{{ v.pad20 }}</div>
+          <div style="display: flex; align-items: center;">{{ v.hp20 }}</div>
+          <div style="font-size: 10px; color: #A0A0A0;">20 px</div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const E = React.createElement;
+
+const PAD_BODY = 'M12 9.4h8c4.3 0 7.2 2.9 8.1 7.2l1.4 6.9c.6 2.9-3 4.9-4.9 2.6l-3.4-4.1H12.8l-3.4 4.1c-1.9 2.3-5.5.3-4.9-2.6l1.4-6.9C6.8 12.3 9.7 9.4 12 9.4Z';
+const HP_BAND = 'M4.8 19v-4.6a11.2 11.2 0 0 1 22.4 0V19h-3.1v-4.6a8.1 8.1 0 0 0-16.2 0V19Z';
+
+const GEO = {
+  pad: {
+    g1: [['b','p',PAD_BODY],['k','c',11.4,16.4,3.1],['k','c',21.6,16.2,1.3],['k','c',24.4,19,1.3],['k','c',18.8,19,1.3],['k','c',21.6,21.8,1.3]],
+    g2: [['b','p',PAD_BODY],
+      ['k','c',11.4,16.4,3.1],['d','c',11.4,16.4,1.3],
+      ['k','p','M11.9 22.4h3.2M13.5 20.8v3.2'],
+      ['k','c',19.9,22,2.6],['d','c',19.9,22,1.1],
+      ['k','c',22.6,14.5,1.15],['k','c',25.2,17,1.15],['k','c',20,17,1.15],['k','c',22.6,19.5,1.15]],
+    g3: [['b','r',7.4,6,5.8,3.6,1.8],['b','r',18.8,6,5.8,3.6,1.8],['b','p',PAD_BODY],
+      ['k','c',11.4,16.4,3.1],['d','c',11.4,16.4,1.3],
+      ['k','p','M11.9 22.6h3.2M13.5 21v3.2'],
+      ['k','c',19.9,22.2,2.6],['d','c',19.9,22.2,1.1],
+      ['k','c',22.7,14.3,1.15],['k','c',25.3,16.8,1.15],['k','c',20.1,16.8,1.15],['k','c',22.7,19.3,1.15],
+      ['d','c',16,13,1.4],['k','c',13.6,15.2,0.7],['k','c',18.4,15.2,0.7],
+      ['d','p','M7.5 21.8l-1.5 1.9M9.1 22.9l-1.4 1.7'],['d','p','M24.5 21.8l1.5 1.9M22.9 22.9l1.4 1.7']]
+  },
+  hp: {
+    g1: [['b','p',HP_BAND],['b','r',3,18.4,6.3,10.8,2.8],['b','r',22.7,18.4,6.3,10.8,2.8]],
+    g2: [['b','p',HP_BAND],['b','r',3,18.4,6.3,10.8,2.8],['b','r',22.7,18.4,6.3,10.8,2.8],
+      ['k','r',4.9,20.5,2.5,6.6,1.25],['k','r',24.6,20.5,2.5,6.6,1.25]],
+    g3: [['b','p',HP_BAND],
+      ['b','r',4.8,15.2,2.8,4.6,1.2],['b','r',24.4,15.2,2.8,4.6,1.2],
+      ['b','r',3,18.4,6.3,10.8,2.8],['b','r',22.7,18.4,6.3,10.8,2.8],
+      ['k','r',4.9,20.5,2.5,6.6,1.25],['k','r',24.6,20.5,2.5,6.6,1.25],
+      ['k','p','M9.6 12.6a7.7 7.7 0 0 1 12.8 0'],
+      ['d','p','M6.2 29.2v.7c0 1.5 2.4 1 2.4 2.4']]
+  }
+};
+
+function shape(el, key, extra) {
+  const t = el[1];
+  const p = Object.assign({key: key}, extra);
+  if (t === 'r') return E('rect', Object.assign(p, {x: el[2], y: el[3], width: el[4], height: el[5], rx: el[6]}));
+  if (t === 'c') return E('circle', Object.assign(p, {cx: el[2], cy: el[3], r: el[4]}));
+  return E('path', Object.assign(p, {d: el[2]}));
+}
+
+const V = [
+  {n: 1, name: 'Тонкий контур, простая форма', geom: 'g1', paint: 'line', sw: [1.5, 1.3]},
+  {n: 2, name: 'Жирный контур, простая форма', geom: 'g1', paint: 'line', sw: [2.8, 2.4]},
+  {n: 3, name: 'Контур, средняя детализация', geom: 'g2', paint: 'line', sw: [1.9, 1.5]},
+  {n: 4, name: 'Контур, максимум деталей', geom: 'g3', paint: 'line', sw: [1.7, 1.3]},
+  {n: 5, name: 'Две толщины: корпус жирный, детали тонкие', geom: 'g3', paint: 'line', sw: [2.6, 1.2]},
+  {n: 6, name: 'Дуотон: заливка 16% + контур', geom: 'g2', paint: 'duo', sw: [1.9, 1.5], tint: 0.16},
+  {n: 7, name: 'Дуотон плотный: заливка 30%, детали белым', geom: 'g3', paint: 'duoKnock', sw: [1.8, 1.4], tint: 0.3},
+  {n: 8, name: 'Сплошной силуэт, вырезы фоном', geom: 'g2', paint: 'solid', sw: [0, 1.5]},
+  {n: 9, name: 'Сплошной силуэт, максимум деталей', geom: 'g3', paint: 'solid', sw: [0, 1.3]},
+  {n: 10, name: 'Синяя плитка, белая заливка', geom: 'g3', paint: 'solid', sw: [0, 1.3], box: {bg: '#0F6CBD', r: 12}, fg: '#FFF'},
+  {n: 11, name: 'Плитка со скруглением-сквиркл, градиент', geom: 'g3', paint: 'solid', sw: [0, 1.3], box: {bg: 'linear-gradient(150deg,#3C93E8,#0B4F91)', r: 18}, fg: '#FFF'},
+  {n: 12, name: 'Круглая подложка, контурная иконка', geom: 'g2', paint: 'line', sw: [1.9, 1.5], box: {bg: '#EDEDED', r: 99}, fg: '#3B3B3B'},
+  {n: 13, name: 'Светло-синяя плитка, синий контур', geom: 'g2', paint: 'line', sw: [1.9, 1.5], box: {bg: '#E8F1FA', r: 10, ring: 'rgba(15,108,189,0.25)'}, fg: '#0F6CBD'},
+  {n: 14, name: 'Тёмная плитка, светлая иконка', geom: 'g3', paint: 'line', sw: [1.8, 1.4], box: {bg: '#2B2B2B', r: 10}, fg: '#E6E6E6'},
+  {n: 15, name: 'Инверсия: заливка цветом на белой карточке', geom: 'g3', paint: 'solid', sw: [0, 1.3], box: {bg: '#FFF', r: 10, ring: 'rgba(0,0,0,0.12)', shadow: '0 1px 3px rgba(0,0,0,0.10)'}, fg: '#0F6CBD'},
+  {n: 16, name: 'Серый «рендер»: заливка + тёмные детали', geom: 'g3', paint: 'gray', sw: [1.4, 1.2]},
+  {n: 17, name: 'Серый рендер в плитке списка', geom: 'g3', paint: 'gray', sw: [1.4, 1.2], box: {bg: '#F2F2F2', r: 8}},
+  {n: 18, name: 'Стикер: белая иконка с тенью на цвете', geom: 'g2', paint: 'solid', sw: [0, 1.6], box: {bg: '#0F6CBD', r: 14, ring: '#FFF', ringW: 2.5, shadow: '0 3px 8px rgba(15,108,189,0.35)'}, fg: '#FFF'},
+  {n: 19, name: 'Контур + цветной акцент на деталях', geom: 'g3', paint: 'accent', sw: [1.9, 1.5]},
+  {n: 20, name: 'Органичная подложка, монолиния', geom: 'g2', paint: 'line', sw: [1.6, 1.3], box: {bg: '#DCEBF9', r: 0, blob: true}, fg: '#0B4F91'}
+];
+
+class Component extends DCLogic {
+  ico(kind, v, size) {
+    const shapes = GEO[kind][v.geom];
+    const k = 32 / size;
+    const bold = v.sw[0] * k, thin = v.sw[1] * k;
+    const boxBg = v.box ? v.box.bg : null;
+    const knockColor = v.paint === 'solid' ? (boxBg && !v.box.blob ? (v.box.bg.indexOf('gradient') >= 0 ? '#1B6BB5' : v.box.bg) : '#FFF') : null;
+    const els = [];
+    shapes.forEach((el, i) => {
+      const role = el[0];
+      const common = {strokeLinecap: 'round', strokeLinejoin: 'round'};
+      if (v.paint === 'solid') {
+        if (role === 'b') els.push(shape(el, i, Object.assign({fill: 'currentColor', stroke: 'none'}, common)));
+        else els.push(shape(el, i, Object.assign({fill: 'none', stroke: knockColor, strokeWidth: thin}, common)));
+      } else if (v.paint === 'gray') {
+        if (role === 'b') els.push(shape(el, i, Object.assign({fill: '#DFDFDF', stroke: '#8E8E8E', strokeWidth: bold}, common)));
+        else if (role === 'k') els.push(shape(el, i, Object.assign({fill: 'none', stroke: '#8E8E8E', strokeWidth: thin}, common)));
+        else els.push(shape(el, i, Object.assign({fill: 'none', stroke: '#4A4A4A', strokeWidth: thin}, common)));
+      } else if (v.paint === 'duo') {
+        if (role === 'b') els.push(shape(el, i, Object.assign({fill: 'currentColor', fillOpacity: v.tint, stroke: 'currentColor', strokeWidth: bold}, common)));
+        else els.push(shape(el, i, Object.assign({fill: 'none', stroke: 'currentColor', strokeWidth: thin}, common)));
+      } else if (v.paint === 'duoKnock') {
+        if (role === 'b') els.push(shape(el, i, Object.assign({fill: 'currentColor', fillOpacity: v.tint, stroke: 'currentColor', strokeWidth: bold}, common)));
+        else if (role === 'k') els.push(shape(el, i, Object.assign({fill: 'none', stroke: '#FFF', strokeWidth: thin + 0.3 * k}, common)));
+        else els.push(shape(el, i, Object.assign({fill: 'none', stroke: 'currentColor', strokeWidth: thin}, common)));
+      } else if (v.paint === 'accent') {
+        if (role === 'd') els.push(shape(el, i, Object.assign({fill: 'none', stroke: '#0F6CBD', strokeWidth: thin + 0.4 * k}, common)));
+        else els.push(shape(el, i, Object.assign({fill: 'none', stroke: 'currentColor', strokeWidth: role === 'b' ? bold : thin}, common)));
+      } else {
+        els.push(shape(el, i, Object.assign({fill: 'none', stroke: 'currentColor', strokeWidth: role === 'b' ? bold : thin}, common)));
+      }
+    });
+    return E('svg', {width: size, height: size, viewBox: '0 0 32 32', fill: 'none', style: {display: 'block', overflow: 'visible'}}, els);
+  }
+
+  slot(kind, v, size) {
+    const icon = this.ico(kind, v, size);
+    const color = v.fg || (v.paint === 'gray' ? '#4A4A4A' : '#242424');
+    if (!v.box) return E('div', {style: {color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', width: size + 20, height: size + 20}}, icon);
+    const boxSize = Math.round(size * 1.62);
+    const st = {
+      width: boxSize, height: boxSize, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: v.box.bg, color: color,
+      borderRadius: v.box.blob ? '46% 54% 52% 48% / 50% 44% 56% 50%' : v.box.r + 'px',
+      boxShadow: v.box.shadow || 'none',
+      border: v.box.ring ? (v.box.ringW || 1) + 'px solid ' + v.box.ring : 'none',
+      boxSizing: 'border-box'
+    };
+    return E('div', {style: st}, icon);
+  }
+
+  renderVals() {
+    return {
+      variants: V.map(v => ({
+        n: v.n, name: v.name,
+        pad: this.slot('pad', v, 44), hp: this.slot('hp', v, 44),
+        pad20: this.slot('pad', v, 20), hp20: this.slot('hp', v, 20)
+      }))
+    };
+  }
+}
+
+</script>
+</body>
+</html>

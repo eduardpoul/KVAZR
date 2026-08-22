@@ -41,9 +41,6 @@ public partial class App : Application, IDisposable
 
     internal static int? OpenAppSectionOnStart { get; set; }
 
-    /// <summary>The web-rendering experiment: swaps the sound section for a WebView.</summary>
-    internal static bool BlazorSoundOnStart { get; set; }
-
     internal static int? OpenSectionOnStart { get; set; }
 
     internal static bool OpenIdentityOnStart { get; set; }

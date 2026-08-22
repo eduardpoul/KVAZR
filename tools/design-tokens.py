@@ -358,9 +358,70 @@ def main() -> None:
     lines += ["", "</ResourceDictionary>", ""]
 
     OUT.write_text("\n".join(lines), encoding="utf-8")
+    write_css(tokens)
     print(f"wrote {OUT.relative_to(ROOT)} — {len(tokens)} tokens")
     for name, value, _ in tokens:
         print(f"   {name:<24} {value}")
+
+
+CSS_OUT = ROOT / "src" / "Maxwell.App" / "wwwroot" / "css" / "tokens.css"
+TOKENS_AXAML = ROOT / "src" / "Maxwell.App" / "Themes" / "Tokens.axaml"
+
+
+def kebab(name: str) -> str:
+    return re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "-", name).lower()
+
+
+def axaml_colours():
+    """The palette, straight out of the Avalonia theme file so the two stacks share it."""
+    text = io.open(TOKENS_AXAML, encoding="utf-8").read().replace('"', "'")
+    blocks = re.findall(
+        r"<ResourceDictionary x:Key='(Light|Dark)'>(.*?)</ResourceDictionary>", text, re.S)
+    out = {}
+    for kind, body in blocks:
+        out[kind] = dict(re.findall(r"x:Key='(\w+)Color'>(#[0-9A-Fa-f]+)<", body))
+    return out.get("Light", {}), out.get("Dark", {})
+
+
+def css_colour(argb: str) -> str:
+    """#AARRGGBB -> rgba(); #RRGGBB passes through. CSS has no #AARRGGBB."""
+    if len(argb) == 9:
+        a = int(argb[1:3], 16) / 255
+        r, g, b = (int(argb[i : i + 2], 16) for i in (3, 5, 7))
+        return f"rgba({r},{g},{b},{a:.3g})"
+    return argb
+
+
+def write_css(tokens) -> None:
+    light, dark = axaml_colours()
+
+    lines = [
+        "/*",
+        "  Токены, снятые с макета и с темы машинно. НЕ ПРАВИТЬ РУКАМИ.",
+        "  Сгенерировано tools/design-tokens.py: размеры — из Design/kvazr/Devices Hub.dc.html,",
+        "  палитра — из Themes/Tokens.axaml, чтобы веб и Avalonia не разошлись в цвете.",
+        "*/",
+        "",
+        ":root {",
+    ]
+
+    for name, value in light.items():
+        lines.append(f"  --{kebab(name)}: {css_colour(value)};")
+    lines.append("")
+    for name, value, _ in tokens:
+        if "," in value:
+            l, t, r, b = value.split(",")
+            lines.append(f"  --{kebab(name)}: {t}px {r}px {b}px {l}px;")
+        else:
+            lines.append(f"  --{kebab(name)}: {value}px;")
+    lines += ["}", "", ".dark {"]
+    for name, value in dark.items():
+        lines.append(f"  --{kebab(name)}: {css_colour(value)};")
+    lines += ["}", ""]
+
+    CSS_OUT.parent.mkdir(parents=True, exist_ok=True)
+    CSS_OUT.write_text("\n".join(lines), encoding="utf-8")
+    print(f"wrote {CSS_OUT.relative_to(ROOT)} — {len(light)}+{len(dark)} colours")
 
 
 if __name__ == "__main__":

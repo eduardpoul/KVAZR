@@ -1,0 +1,47 @@
+@* A Fluent dropdown. Its own popup rather than a native select, because the select's
+   list is drawn by the operating system: it ignores the page's palette entirely and
+   turns up as a bare grey system menu in the middle of a Fluent surface. This one is
+   the same rows, radius and shadow as the row menu, and it follows the theme. *@
+
+<div class="dd @(Disabled ? "disabled" : "")" style="@(Width is { } w ? $"width:{w}px" : null)">
+  <button class="dd-face" disabled="@Disabled" @onclick="() => _open = !_open">
+    <span class="dd-label @(SelectedIndex < 0 ? "empty" : "")">@(SelectedIndex >= 0 && SelectedIndex < Items.Count ? Items[SelectedIndex] : "—")</span>
+    <svg width="12" height="12" viewBox="0 0 16 16"><path d="M3.5 6 8 10.5 12.5 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></svg>
+  </button>
+
+  @if (_open)
+  {
+    <div class="dd-backdrop" @onclick="() => _open = false"></div>
+    <div class="dd-popup">
+      @for (int i = 0; i < Items.Count; i++)
+      {
+        int index = i;
+        <button class="dd-item @(index == SelectedIndex ? "sel" : "")"
+                @onclick="() => Choose(index)">
+          <span class="dd-mark"></span>
+          <span>@Items[index]</span>
+        </button>
+      }
+    </div>
+  }
+</div>
+
+@code {
+  [Parameter, EditorRequired] public IReadOnlyList<string> Items { get; set; } = [];
+
+  [Parameter] public int SelectedIndex { get; set; } = -1;
+
+  [Parameter] public EventCallback<int> SelectedIndexChanged { get; set; }
+
+  [Parameter] public bool Disabled { get; set; }
+
+  [Parameter] public int? Width { get; set; }
+
+  private bool _open;
+
+  private async Task Choose(int index)
+  {
+    _open = false;
+    await SelectedIndexChanged.InvokeAsync(index);
+  }
+}

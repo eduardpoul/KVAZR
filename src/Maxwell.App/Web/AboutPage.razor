@@ -1,0 +1,80 @@
+@inherits ReactiveComponent
+
+@* Artboard 7b: the mark, the version, the firmware of whatever is attached, the
+   credits — and the line at the foot saying this project is not connected to the
+   companies whose devices it names. *@
+
+<div class="content narrow">
+
+  <div class="titlebar"><div class="title">@Vm.Title</div></div>
+
+  <div class="about-hero">
+    <div class="about-mark">
+      <svg width="44" height="44" viewBox="0 0 48 48">
+        <circle cx="24" cy="24" r="9" fill="var(--accent-primary)" />
+        <path d="M24 4.5 A19.5 19.5 0 1 1 6.5 15" fill="none"
+              stroke="var(--accent-primary)" stroke-width="4.4" stroke-linecap="round" />
+      </svg>
+    </div>
+    <div>
+      <div class="about-name">@Vm.Name</div>
+      <div class="caption">@Vm.Version</div>
+    </div>
+  </div>
+
+  @if (Vm.HasFirmware)
+  {
+    <div class="group">
+      <div class="group-heading">ПРОШИВКИ УСТРОЙСТВ</div>
+      <div class="card">
+        @foreach (FirmwareRow row in Vm.Firmware)
+        {
+          <div class="set-row">
+            <div class="cap-title grow">@row.Device</div>
+            <span class="value">@row.Version</span>
+            @if (row.HasChecked)
+            {
+              <span class="caption">@row.Checked</span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <div class="group">
+    <div class="group-heading">ПРОЕКТ</div>
+    <div class="card">
+      <div class="set-row">
+        <div class="cap-text">
+          <div class="cap-title">Протокол устройств</div>
+          <div class="caption wrap">RACE для Audeze разобран самостоятельно. Совместимость с VIA и HID++ — по открытым описаниям протоколов</div>
+        </div>
+      </div>
+      <div class="set-row">
+        <div class="cap-text">
+          <div class="cap-title">Изображения устройств</div>
+          <div class="caption wrap">Продуктовые снимки производителей, приведённые к общему виду. Происхождение каждого записано в Assets/Devices/images.json</div>
+        </div>
+      </div>
+      <div class="set-row">
+        <div class="cap-text">
+          <div class="cap-title">Устройства без записи в каталоге</div>
+          <div class="caption wrap">Показываются тем, что о них знает система: имя, класс, подключение и заряд, если устройство его сообщает</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="caption wrap disclaimer">@Vm.Disclaimer</div>
+</div>
+
+@code {
+  [Parameter, EditorRequired] public AboutViewModel Vm { get; set; } = default!;
+
+  protected override void OnInitialized()
+  {
+    Track(Vm);
+    Track(Vm.Firmware);
+  }
+}

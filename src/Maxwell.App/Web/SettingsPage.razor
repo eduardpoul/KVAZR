@@ -1,0 +1,125 @@
+@inherits ReactiveComponent
+
+@* Artboard 7a, plus the hidden-devices section from 13b. No Apply and no Cancel: a
+   switch that has visibly moved but not taken effect is a lie the screen is telling. *@
+
+<div class="content narrow">
+
+  <div class="titlebar"><div class="title">@Vm.Title</div></div>
+
+  <div class="group">
+    <div class="group-heading">ВНЕШНИЙ ВИД</div>
+    <div class="card">
+      <div class="set-row">
+        <div class="cap-text">
+          <div class="cap-title">Тема</div>
+          <div class="caption">Системная следует за оформлением Windows</div>
+        </div>
+        <div class="segmented">
+          @foreach ((string label, int index) in new[] { ("Системная", 0), ("Светлая", 1), ("Тёмная", 2) })
+          {
+            <button class="@(Vm.ThemeIndex == index ? "sel" : "")"
+                    @onclick="() => OnUi(() => Vm.ThemeIndex = index)">@label</button>
+          }
+        </div>
+      </div>
+      <div class="set-row">
+        <div class="cap-text">
+          <div class="cap-title">Язык</div>
+          <div class="caption">Английский перевод ещё не сделан</div>
+        </div>
+        <Dropdown Items="@(new[] { "Русский" })" SelectedIndex="0" Disabled Width="188" />
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-heading">ЗАПУСК И ТРЕЙ</div>
+    <div class="card">
+      <div class="set-row">
+        <div class="cap-title grow">Запускать при входе в Windows</div>
+        <button class="switch @(Vm.RunAtLogin ? "on" : "")"
+                @onclick="() => OnUi(() => Vm.RunAtLogin = !Vm.RunAtLogin)"><span class="knob"></span></button>
+      </div>
+      <div class="set-row">
+        <div class="cap-title grow">Закрытие окна свёртывает в трей</div>
+        <button class="switch @(Vm.MinimiseOnClose ? "on" : "")"
+                @onclick="() => OnUi(() => Vm.MinimiseOnClose = !Vm.MinimiseOnClose)"><span class="knob"></span></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-heading">УВЕДОМЛЕНИЯ И ОПРОС</div>
+    <div class="card">
+      <div class="set-row">
+        <div class="cap-text">
+          <div class="cap-title">Порог низкого заряда</div>
+          <div class="caption">Уведомление показывается один раз на разряд</div>
+        </div>
+        <div class="range slider-fixed">
+          <input type="range" min="5" max="50" step="5" value="@Vm.LowBatteryThreshold"
+                 style="--fill:@(((Vm.LowBatteryThreshold - 5) * 100.0 / 45).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%"
+                 @oninput="e => OnUi(() => Vm.LowBatteryThreshold = int.Parse((string)e.Value!, System.Globalization.CultureInfo.InvariantCulture))" />
+          <span class="value slider-value">@Vm.LowBatteryLabel</span>
+        </div>
+      </div>
+      <div class="set-row">
+        <div class="cap-text">
+          <div class="cap-title">Попап при подключении</div>
+          <div class="caption">Короткая карточка у трея, когда устройство появилось</div>
+        </div>
+        <button class="switch @(Vm.ShowConnectPopup ? "on" : "")"
+                @onclick="() => OnUi(() => Vm.ShowConnectPopup = !Vm.ShowConnectPopup)"><span class="knob"></span></button>
+      </div>
+      <div class="set-row">
+        <div class="cap-text">
+          <div class="cap-title">Частота опроса устройств</div>
+          <div class="caption">Чаще — точнее заряд, выше расход батареи устройства</div>
+        </div>
+        <Dropdown Items="@Vm.PollIntervals" Width="160"
+                  SelectedIndex="@Vm.PollIntervalIndex"
+                  SelectedIndexChanged="i => OnUi(() => Vm.PollIntervalIndex = i)" />
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-heading">@Vm.HiddenHeading</div>
+    <div class="card">
+      <div class="set-row">
+        <div class="caption wrap grow">
+          Эти устройства не показываются на дашборде, в трее и в уведомлениях. Пары в
+          Windows не тронуты: вернёте в список — данные снова начнут читаться.
+        </div>
+      </div>
+      @if (Vm.HasHidden)
+      {
+        @foreach (HiddenDeviceViewModel hidden in Vm.Hidden)
+        {
+          <div class="set-row">
+            <div class="cap-text">
+              <div class="cap-title">@hidden.DisplayName</div>
+              <div class="caption">@hidden.Kind · @hidden.When</div>
+            </div>
+            <button class="outline" @onclick="() => { var h = hidden; OnUi(() => h.RestoreCommand.Execute(null)); }">Вернуть</button>
+          </div>
+        }
+      }
+      else
+      {
+        <div class="set-row"><div class="caption">Ничего не скрыто.</div></div>
+      }
+    </div>
+  </div>
+</div>
+
+@code {
+  [Parameter, EditorRequired] public SettingsViewModel Vm { get; set; } = default!;
+
+  protected override void OnInitialized()
+  {
+    Track(Vm);
+    Track(Vm.Hidden);
+  }
+}

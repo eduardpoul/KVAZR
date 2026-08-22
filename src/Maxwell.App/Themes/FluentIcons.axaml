@@ -1,0 +1,2964 @@
+<!--
+  Из Design/kvazr/Fluent Device Icons.dc.html — tools/fluent-icons.py.
+  НЕ ПРАВИТЬ РУКАМИ: перерисовали иконку в дизайне — перезапустить скрипт.
+-->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <DrawingImage x:Key="Fi.headphones">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#63C8FF"/>
+            <GradientStop Offset="1" Color="#1583D4"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M6 31.5V25a18 18 0 0 1 36 0v6.5h-6.5V25a11.5 11.5 0 0 0-23 0v6.5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#42FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M6 31.5V25A18 18 0 0 1 24 7v5.5A12.5 12.5 0 0 0 11.5 25v6.5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#2C93E4"/>
+            <GradientStop Offset="1" Color="#0A4F92"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="3.5,27,12,18" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#2C93E4"/>
+            <GradientStop Offset="1" Color="#0A4F92"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="32.5,27,12,18" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#80FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="7,30.5,5,11" RadiusX="2.5" RadiusY="2.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#80FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="36,30.5,5,11" RadiusX="2.5" RadiusY="2.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#38FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="5.5,29,2.6,12" RadiusX="1.3" RadiusY="1.3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.headphones-wired">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#63C8FF"/>
+            <GradientStop Offset="1" Color="#1583D4"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M6 29V22.5a18 18 0 0 1 36 0V29h-6.5v-6.5a11.5 11.5 0 0 0-23 0V29Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#2C93E4"/>
+            <GradientStop Offset="1" Color="#0A4F92"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="3.5,24.5,12,17" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#2C93E4"/>
+            <GradientStop Offset="1" Color="#0A4F92"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="32.5,24.5,12,17" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#80FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="7,28,5,10" RadiusX="2.5" RadiusY="2.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#80FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="36,28,5,10" RadiusX="2.5" RadiusY="2.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Pen>
+          <Pen Thickness="2.6" LineCap="Round" LineJoin="Round">
+            <Pen.Brush>
+              <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+                <GradientStop Offset="0" Color="#2C93E4"/>
+                <GradientStop Offset="1" Color="#0A4F92"/>
+              </LinearGradientBrush>
+            </Pen.Brush>
+          </Pen>
+        </GeometryDrawing.Pen>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M9 41.5v1.5c0 2.5 4 2 4 4.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.headset">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#63C8FF"/>
+            <GradientStop Offset="1" Color="#1583D4"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M6 29V22.5a18 18 0 0 1 36 0V29h-6.5v-6.5a11.5 11.5 0 0 0-23 0V29Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#42FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M6 29V22.5A18 18 0 0 1 24 4.5V10a12.5 12.5 0 0 0-12.5 12.5V29Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#2C93E4"/>
+            <GradientStop Offset="1" Color="#0A4F92"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="3.5,24.5,12,17" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#2C93E4"/>
+            <GradientStop Offset="1" Color="#0A4F92"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="32.5,24.5,12,17" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#80FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="7,28,5,10" RadiusX="2.5" RadiusY="2.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#80FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="36,28,5,10" RadiusX="2.5" RadiusY="2.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Pen>
+          <Pen Thickness="2.6" LineCap="Round" LineJoin="Round">
+            <Pen.Brush>
+              <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+                <GradientStop Offset="0" Color="#2C93E4"/>
+                <GradientStop Offset="1" Color="#0A4F92"/>
+              </LinearGradientBrush>
+            </Pen.Brush>
+          </Pen>
+        </GeometryDrawing.Pen>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M38.5 40.5v1.5a4.5 4.5 0 0 1-4.5 4.5h-3.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#4CC2FF"/>
+            <GradientStop Offset="1" Color="#0B5FA8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="18.5,43.5,10,4.6" RadiusX="2.3" RadiusY="2.3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.earbuds">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#BFD4E8"/>
+            <GradientStop Offset="1" Color="#63809E"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="13.5,15" RadiusX="7.2" RadiusY="7.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#BFD4E8"/>
+            <GradientStop Offset="1" Color="#63809E"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="9.9,19.5,7.2,21" RadiusX="3.6" RadiusY="3.6"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#4CC2FF"/>
+            <GradientStop Offset="1" Color="#0B5FA8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="13.5,15" RadiusX="3.1" RadiusY="3.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#99FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="11.2,22,2.2,14" RadiusX="1.1" RadiusY="1.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#BFD4E8"/>
+            <GradientStop Offset="1" Color="#63809E"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="34.5,15" RadiusX="7.2" RadiusY="7.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#BFD4E8"/>
+            <GradientStop Offset="1" Color="#63809E"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="30.9,19.5,7.2,21" RadiusX="3.6" RadiusY="3.6"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#4CC2FF"/>
+            <GradientStop Offset="1" Color="#0B5FA8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="34.5,15" RadiusX="3.1" RadiusY="3.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#99FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="32.2,22,2.2,14" RadiusX="1.1" RadiusY="1.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.earbuds-case">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#BFD4E8"/>
+            <GradientStop Offset="1" Color="#63809E"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="7,11,34,27" RadiusX="7" RadiusY="7"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#59FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="9.5,13.5,5,22" RadiusX="2.5" RadiusY="2.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#2E000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="7,20,34,1.8" RadiusX="0.9" RadiusY="0.9"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#2C93E4"/>
+            <GradientStop Offset="1" Color="#0A4F92"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="18,29" RadiusX="4.2" RadiusY="4.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#2C93E4"/>
+            <GradientStop Offset="1" Color="#0A4F92"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="30,29" RadiusX="4.2" RadiusY="4.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#BFFFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="24,16" RadiusX="1.9" RadiusY="1.9"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.earphones-wired">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Pen>
+          <Pen Thickness="2.2" LineCap="Round" LineJoin="Round">
+            <Pen.Brush>
+              <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+                <GradientStop Offset="0" Color="#5A6675"/>
+                <GradientStop Offset="1" Color="#2A313B"/>
+              </LinearGradientBrush>
+            </Pen.Brush>
+          </Pen>
+        </GeometryDrawing.Pen>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M15 27c0 6.5 9 5 9 11.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Pen>
+          <Pen Thickness="2.2" LineCap="Round" LineJoin="Round">
+            <Pen.Brush>
+              <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+                <GradientStop Offset="0" Color="#5A6675"/>
+                <GradientStop Offset="1" Color="#2A313B"/>
+              </LinearGradientBrush>
+            </Pen.Brush>
+          </Pen>
+        </GeometryDrawing.Pen>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M33 27c0 6.5-9 5-9 11.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Pen>
+          <Pen Thickness="2.6" LineCap="Round" LineJoin="Round">
+            <Pen.Brush>
+              <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+                <GradientStop Offset="0" Color="#5A6675"/>
+                <GradientStop Offset="1" Color="#2A313B"/>
+              </LinearGradientBrush>
+            </Pen.Brush>
+          </Pen>
+        </GeometryDrawing.Pen>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M24 38v7"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#BFD4E8"/>
+            <GradientStop Offset="1" Color="#63809E"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="11.9,16,6.2,12" RadiusX="3.1" RadiusY="3.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#BFD4E8"/>
+            <GradientStop Offset="1" Color="#63809E"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="15,15" RadiusX="6.2" RadiusY="6.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#99FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="15,15" RadiusX="2.6" RadiusY="2.6"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#BFD4E8"/>
+            <GradientStop Offset="1" Color="#63809E"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="29.9,16,6.2,12" RadiusX="3.1" RadiusY="3.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#BFD4E8"/>
+            <GradientStop Offset="1" Color="#63809E"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="33,15" RadiusX="6.2" RadiusY="6.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#99FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="33,15" RadiusX="2.6" RadiusY="2.6"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.neckband">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Pen>
+          <Pen Thickness="4.6" LineCap="Round" LineJoin="Round">
+            <Pen.Brush>
+              <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+                <GradientStop Offset="0" Color="#2C93E4"/>
+                <GradientStop Offset="1" Color="#0A4F92"/>
+              </LinearGradientBrush>
+            </Pen.Brush>
+          </Pen>
+        </GeometryDrawing.Pen>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M9 37v.5a4.5 4.5 0 0 0 4.5 4.5h21a4.5 4.5 0 0 0 4.5-4.5V37"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#63C8FF"/>
+            <GradientStop Offset="1" Color="#1583D4"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="6.2,17,5.6,20" RadiusX="2.8" RadiusY="2.8"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#63C8FF"/>
+            <GradientStop Offset="1" Color="#1583D4"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="9,16" RadiusX="6.6" RadiusY="6.6"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#99FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="9,16" RadiusX="2.7" RadiusY="2.7"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#63C8FF"/>
+            <GradientStop Offset="1" Color="#1583D4"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="36.2,17,5.6,20" RadiusX="2.8" RadiusY="2.8"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#63C8FF"/>
+            <GradientStop Offset="1" Color="#1583D4"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="39,16" RadiusX="6.6" RadiusY="6.6"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#99FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="39,16" RadiusX="2.7" RadiusY="2.7"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.speaker">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#3BD6C6"/>
+            <GradientStop Offset="1" Color="#0C6E9C"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="11,3.5,26,41" RadiusX="8" RadiusY="8"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#33FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="14.5,7,5,34" RadiusX="2.5" RadiusY="2.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#0B4E6E"/>
+            <GradientStop Offset="1" Color="#0A3348"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="24,29" RadiusX="8" RadiusY="8"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#59FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="24,29" RadiusX="3.2" RadiusY="3.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#0B4E6E"/>
+            <GradientStop Offset="1" Color="#0A3348"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="24,13.5" RadiusX="3.2" RadiusY="3.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#4CFFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="18,38.5,12,1.8" RadiusX="0.9" RadiusY="0.9"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.smart-speaker">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#3BD6C6"/>
+            <GradientStop Offset="1" Color="#0C6E9C"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M12 16c0-3.6 5.4-6.5 12-6.5s12 2.9 12 6.5v20c0 3.6-5.4 6.5-12 6.5S12 39.6 12 36Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#59FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="24,16" RadiusX="12" RadiusY="6.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#0B4E6E"/>
+            <GradientStop Offset="1" Color="#0A3348"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="24,16" RadiusX="6.5" RadiusY="3.4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#4CC2FF"/>
+            <GradientStop Offset="1" Color="#0B5FA8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="15,35,18,2.6" RadiusX="1.3" RadiusY="1.3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#2EFFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="14.5,13,3.6,24" RadiusX="1.8" RadiusY="1.8"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.soundbar">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#3BD6C6"/>
+            <GradientStop Offset="1" Color="#0C6E9C"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="3,17,42,14" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#2EFFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="5.5,19,37,3" RadiusX="1.5" RadiusY="1.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#0B4E6E"/>
+            <GradientStop Offset="1" Color="#0A3348"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="11,24.5" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#0B4E6E"/>
+            <GradientStop Offset="1" Color="#0A3348"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="37,24.5" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#66FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="20,24.5" RadiusX="1.4" RadiusY="1.4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#66FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="24,24.5" RadiusX="1.4" RadiusY="1.4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#66FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="28,24.5" RadiusX="1.4" RadiusY="1.4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.keyboard-full">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#6B4BB0"/>
+            <GradientStop Offset="1" Color="#3E2777"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="1,15,46,21" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#B08CE8"/>
+            <GradientStop Offset="1" Color="#7B5BC8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M6 15h36a5 5 0 0 1 5 5v11H1V20a5 5 0 0 1 5-5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="4.0,17.8,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="8.5,17.8,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="13.0,17.8,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="17.5,17.8,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="22.0,17.8,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="26.5,17.8,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="31.0,17.8,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="37.0,17.8,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="41.5,17.8,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="4.0,22.4,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="8.5,22.4,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="13.0,22.4,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="17.5,22.4,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="22.0,22.4,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="26.5,22.4,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="31.0,22.4,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="37.0,22.4,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="41.5,22.4,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="4,27,5,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="10.5,27,20,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="32,27,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="37,27,7.9,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.keyboard-tkl">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#6B4BB0"/>
+            <GradientStop Offset="1" Color="#3E2777"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="3,15,42,21" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#B08CE8"/>
+            <GradientStop Offset="1" Color="#7B5BC8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M8 15h32a5 5 0 0 1 5 5v11H3V20a5 5 0 0 1 5-5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="6.5,17.8,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="11.4,17.8,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="16.3,17.8,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="21.200000000000003,17.8,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="26.1,17.8,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="31.0,17.8,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="35.900000000000006,17.8,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="35.9,17.8,5.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="6.5,22.4,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="11.4,22.4,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="16.3,22.4,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="21.200000000000003,22.4,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="26.1,22.4,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="31.0,22.4,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="35.900000000000006,22.4,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="35.9,22.4,5.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="6.5,27,5.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="13.4,27,21.2,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="35.9,27,5.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.keyboard-compact">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#6B4BB0"/>
+            <GradientStop Offset="1" Color="#3E2777"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="7,15,34,21" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#B08CE8"/>
+            <GradientStop Offset="1" Color="#7B5BC8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M12 15h24a5 5 0 0 1 5 5v11H7V20a5 5 0 0 1 5-5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="10.0,17.8,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="14.9,17.8,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="19.8,17.8,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="24.700000000000003,17.8,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="29.6,17.8,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="34.5,17.8,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="10.0,22.4,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="14.9,22.4,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="19.8,22.4,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="24.700000000000003,22.4,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="29.6,22.4,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="34.5,22.4,3.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="10,27,4.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="15.6,27,14.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="31,27,4.6,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.keyboard-60">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#6B4BB0"/>
+            <GradientStop Offset="1" Color="#3E2777"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="10,16,28,19" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#B08CE8"/>
+            <GradientStop Offset="1" Color="#7B5BC8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M15 16h18a5 5 0 0 1 5 5v9H10v-9a5 5 0 0 1 5-5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="12.5,18.4,3.6,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="17.4,18.4,3.6,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="22.3,18.4,3.6,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="27.200000000000003,18.4,3.6,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="32.1,18.4,3.6,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="12.5,22.6,3.6,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="17.4,22.6,3.6,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="22.3,22.6,3.6,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="27.200000000000003,22.6,3.6,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="32.1,22.6,3.6,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="12.5,26.8,3.6,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="17.4,26.8,13.2,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="31.9,26.8,3.6,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.keyboard-split">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#6B4BB0"/>
+            <GradientStop Offset="1" Color="#3E2777"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="2,15,20,21" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#B08CE8"/>
+            <GradientStop Offset="1" Color="#7B5BC8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M7 15h10a5 5 0 0 1 5 5v11H2V20a5 5 0 0 1 5-5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#6B4BB0"/>
+            <GradientStop Offset="1" Color="#3E2777"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="26,15,20,21" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#B08CE8"/>
+            <GradientStop Offset="1" Color="#7B5BC8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M31 15h10a5 5 0 0 1 5 5v11H26V20a5 5 0 0 1 5-5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="4.5,18.2,3.4,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="9.0,18.2,3.4,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="13.5,18.2,3.4,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="18.0,18.2,3.4,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="4.5,22.6,3.4,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="9.0,22.6,3.4,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="13.5,22.6,3.4,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="18.0,22.6,3.4,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="28.5,18.2,3.4,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="33.0,18.2,3.4,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="37.5,18.2,3.4,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="42.0,18.2,3.4,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="28.5,22.6,3.4,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="33.0,22.6,3.4,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="37.5,22.6,3.4,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="42.0,22.6,3.4,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="4.5,26.8,13.1,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="28.5,26.8,13.1,3" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.numpad">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#6B4BB0"/>
+            <GradientStop Offset="1" Color="#3E2777"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="16,5,16,38" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#B08CE8"/>
+            <GradientStop Offset="1" Color="#7B5BC8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M21 5h6a5 5 0 0 1 5 5v23H16V10a5 5 0 0 1 5-5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="18.5,9.5,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="23.2,9.5,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="27.9,9.5,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="18.5,14.5,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="23.2,14.5,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="27.9,14.5,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="18.5,19.5,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="23.2,19.5,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="27.9,19.5,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="18.5,24.5,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="23.2,24.5,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="27.9,24.5,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="18.5,29.5,8.1,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="28.1,29.5,3.4,3.2" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.mouse">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#9A7AD8"/>
+            <GradientStop Offset="1" Color="#4A2E86"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M24 3.5c-8.2 0-13.8 6.4-13.8 14.7v13.6C10.2 40.1 15.8 46.5 24 46.5s13.8-6.4 13.8-14.7V18.2C37.8 9.9 32.2 3.5 24 3.5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#C4ADF0"/>
+            <GradientStop Offset="1" Color="#8A6BD0"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M24 3.5c-8.2 0-13.8 6.4-13.8 14.7V22h27.6v-3.8C37.8 9.9 32.2 3.5 24 3.5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#47000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="23,7.5,2,6" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#29000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="10.2,21.4,27.6,1.6" RadiusX="0.8" RadiusY="0.8"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.mouse-gaming">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#9A7AD8"/>
+            <GradientStop Offset="1" Color="#4A2E86"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M24 3.5c-8.2 0-13.8 6.4-13.8 14.7v13.6C10.2 40.1 15.8 46.5 24 46.5s13.8-6.4 13.8-14.7V18.2C37.8 9.9 32.2 3.5 24 3.5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#C4ADF0"/>
+            <GradientStop Offset="1" Color="#8A6BD0"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M24 3.5c-8.2 0-13.8 6.4-13.8 14.7V22h27.6v-3.8C37.8 9.9 32.2 3.5 24 3.5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#47000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="23,7.5,2,6" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#29000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="10.2,21.4,27.6,1.6" RadiusX="0.8" RadiusY="0.8"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#4C000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="11,25,3.2,5" RadiusX="1.6" RadiusY="1.6"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#4C000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="11,31.5,3.2,5" RadiusX="1.6" RadiusY="1.6"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#54D8F0"/>
+            <GradientStop Offset="1" Color="#0B93C4"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="20,38,8,2.4" RadiusX="1.2" RadiusY="1.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.mouse-ergo">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#9A7AD8"/>
+            <GradientStop Offset="1" Color="#4A2E86"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M29 3.5c-9.5 0-17 7.2-17 16.3V32c0 8 5.8 14.5 13.5 14.5S39 40 39 32V16.5C39 8.6 35.8 3.5 29 3.5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#C4ADF0"/>
+            <GradientStop Offset="1" Color="#8A6BD0"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M29 3.5c-6 0-11.4 2.9-14.4 7.4L27 20.5l12-4.2C38.6 8.6 35.4 3.5 29 3.5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#38000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="16.5,28" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#47000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="26.5,8,2,6" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.trackball">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#9A7AD8"/>
+            <GradientStop Offset="1" Color="#4A2E86"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M24 3.5c-8.2 0-13.8 6.4-13.8 14.7v13.6C10.2 40.1 15.8 46.5 24 46.5s13.8-6.4 13.8-14.7V18.2C37.8 9.9 32.2 3.5 24 3.5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#C4ADF0"/>
+            <GradientStop Offset="1" Color="#8A6BD0"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M24 3.5c-8.2 0-13.8 6.4-13.8 14.7V22h27.6v-3.8C37.8 9.9 32.2 3.5 24 3.5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#FFC44D"/>
+            <GradientStop Offset="1" Color="#E08600"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="17.5,15" RadiusX="6" RadiusY="6"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#73FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="15.8,13.2" RadiusX="2" RadiusY="2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#29000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="10.2,21.4,27.6,1.6" RadiusX="0.8" RadiusY="0.8"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.trackpad">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#6B4BB0"/>
+            <GradientStop Offset="1" Color="#3E2777"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="4,9,40,30" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#B08CE8"/>
+            <GradientStop Offset="1" Color="#7B5BC8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="7,12,34,24" RadiusX="2.5" RadiusY="2.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#33FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="9.5,14,4,20" RadiusX="2" RadiusY="2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.stylus">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#C4ADF0"/>
+            <GradientStop Offset="1" Color="#8A6BD0"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M13 39.5 15.5 31 34.5 12a4.6 4.6 0 0 1 6.5 6.5L22 37.5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M13 39.5 15.5 31l6.5 6.5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Pen>
+          <Pen Thickness="3" LineCap="Round" LineJoin="Round">
+            <Pen.Brush>
+              <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+                <GradientStop Offset="0" Color="#9A7AD8"/>
+                <GradientStop Offset="1" Color="#4A2E86"/>
+              </LinearGradientBrush>
+            </Pen.Brush>
+          </Pen>
+        </GeometryDrawing.Pen>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M30.5 16 37 22.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.graphics-tablet">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#6B4BB0"/>
+            <GradientStop Offset="1" Color="#3E2777"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="3,9,42,30" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#B08CE8"/>
+            <GradientStop Offset="1" Color="#7B5BC8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="12,12,30,24" RadiusX="2.5" RadiusY="2.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#80FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="7.5,15" RadiusX="2" RadiusY="2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#80FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="7.5,21" RadiusX="2" RadiusY="2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#80FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="7.5,27" RadiusX="2" RadiusY="2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#80FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="7.5,33" RadiusX="2" RadiusY="2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#D9FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M20 31l1.6-5 11.4-11.4a2.8 2.8 0 0 1 4 4L25.6 30Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.gamepad-xbox">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#7FDB6B"/>
+            <GradientStop Offset="1" Color="#0E7A2C"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M18 14h12c6.5 0 10.9 4.4 12.3 10.9l2.1 10.3c.9 4.4-4.5 7.4-7.4 3.9l-5.1-6.2H19.2l-5.1 6.2c-2.9 3.5-8.3.5-7.4-3.9l2.1-10.3C10.2 18.4 14.6 14 18 14Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#4CFFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M18 14h12c4.6 0 8.1 2.2 10.3 5.9-4.3-2.6-9.9-3.9-16.3-3.9s-12 1.3-16.3 3.9C9.9 16.2 13.4 14 18 14Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#FBFDFF"/>
+            <GradientStop Offset="1" Color="#D5E0EC"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="15.8,24" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#4C000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="15.8,24" RadiusX="2.2" RadiusY="2.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#E6FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="33,19.6" RadiusX="2.1" RadiusY="2.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#E6FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="37.2,23.8" RadiusX="2.1" RadiusY="2.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#E6FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="28.8,23.8" RadiusX="2.1" RadiusY="2.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#E6FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="33,28" RadiusX="2.1" RadiusY="2.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.gamepad-ps">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#8FB4FF"/>
+            <GradientStop Offset="1" Color="#2439B8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M17.4 13.5h13.2c6 0 9.4 3.6 11.2 9.9l3 10.5c1.5 5.2-3.9 8.4-7.2 4.8l-5.1-5.6H15.5l-5.1 5.6c-3.3 3.6-8.7.4-7.2-4.8l3-10.5c1.8-6.3 5.2-9.9 11.2-9.9Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#59FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="19,15.6,10,6.2" RadiusX="2" RadiusY="2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#E6FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M11.4 24.6h3v-3h3v3h3v3h-3v3h-3v-3h-3Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#E6FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M34.6 19.4l1.9 3.3h-3.8Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#E6FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="38.4,25.6" RadiusX="1.6" RadiusY="1.6"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#E6FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="29.4,24,3.2,3.2" RadiusX="0.7" RadiusY="0.7"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#E6FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M33.1 28.4l1.5 1.5 1.5-1.5 1.3 1.3-1.5 1.5 1.5 1.5-1.3 1.3-1.5-1.5-1.5 1.5-1.3-1.3 1.5-1.5-1.5-1.5Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.gamepad-switch">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M17.5 11h13c7 0 11.4 4.2 12.6 11.3l1.8 10.8c1 6-5.3 9.4-8.9 4.9l-4.6-5.7H16.6l-4.6 5.7c-3.6 4.5-9.9 1.1-8.9-4.9l1.8-10.8C6.1 15.2 10.5 11 17.5 11Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#38FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M17.5 11h13c5 0 8.7 2.2 10.8 6.2-4.6-2.5-10.4-3.7-17.3-3.7S11.3 14.7 6.7 17.2C8.8 13.2 12.5 11 17.5 11Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#A9B6C6"/>
+            <GradientStop Offset="1" Color="#5A6878"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="14.6,21.5" RadiusX="5.2" RadiusY="5.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="14.6,21.5" RadiusX="3.2" RadiusY="3.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#8DE8C0"/>
+            <GradientStop Offset="1" Color="#149E6A"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="34.4,17.6" RadiusX="2.1" RadiusY="2.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#FF7A66"/>
+            <GradientStop Offset="1" Color="#C42B1C"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="38.4,21.6" RadiusX="2.1" RadiusY="2.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#FFC44D"/>
+            <GradientStop Offset="1" Color="#E08600"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="30.4,21.6" RadiusX="2.1" RadiusY="2.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#54D8F0"/>
+            <GradientStop Offset="1" Color="#0B93C4"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="34.4,25.6" RadiusX="2.1" RadiusY="2.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#80FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="20.6,17.8" RadiusX="1.2" RadiusY="1.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#80FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="27.4,17.8" RadiusX="1.2" RadiusY="1.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.gamepad-generic">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#A9B6C6"/>
+            <GradientStop Offset="1" Color="#5A6878"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M18 14h12c6.5 0 10.9 4.4 12.3 10.9l2.1 10.3c.9 4.4-4.5 7.4-7.4 3.9l-5.1-6.2H19.2l-5.1 6.2c-2.9 3.5-8.3.5-7.4-3.9l2.1-10.3C10.2 18.4 14.6 14 18 14Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#47FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M18 14h12c4.6 0 8.1 2.2 10.3 5.9-4.3-2.6-9.9-3.9-16.3-3.9s-12 1.3-16.3 3.9C9.9 16.2 13.4 14 18 14Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#FBFDFF"/>
+            <GradientStop Offset="1" Color="#D5E0EC"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="15.8,24" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#4C000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="15.8,24" RadiusX="2.2" RadiusY="2.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#E6FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="33.4,20.6" RadiusX="2.3" RadiusY="2.3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#E6FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="33.4,27.4" RadiusX="2.3" RadiusY="2.3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.racing-wheel">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Pen>
+          <Pen Thickness="7" LineCap="Round" LineJoin="Round">
+            <Pen.Brush>
+              <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+                <GradientStop Offset="0" Color="#5A6675"/>
+                <GradientStop Offset="1" Color="#2A313B"/>
+              </LinearGradientBrush>
+            </Pen.Brush>
+          </Pen>
+        </GeometryDrawing.Pen>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M24 9a16 16 0 1 1 0 32 16 16 0 1 1 0-32"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Pen>
+          <Pen Thickness="7" LineCap="Round" LineJoin="Round">
+            <Pen.Brush>
+              <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+                <GradientStop Offset="0" Color="#FF7A66"/>
+                <GradientStop Offset="1" Color="#C42B1C"/>
+              </LinearGradientBrush>
+            </Pen.Brush>
+          </Pen>
+        </GeometryDrawing.Pen>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M18.4 10a16 16 0 0 1 11.2 0"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Pen>
+          <Pen Thickness="7" LineCap="Round" LineJoin="Round">
+            <Pen.Brush>
+              <SolidColorBrush Color="#38FFFFFF"/>
+            </Pen.Brush>
+          </Pen>
+        </GeometryDrawing.Pen>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M12.7 13.7A16 16 0 0 1 18.4 10"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="7,22.2,34,5.4" RadiusX="2.7" RadiusY="2.7"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="21.3,27,5.4,13" RadiusX="2.7" RadiusY="2.7"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#A9B6C6"/>
+            <GradientStop Offset="1" Color="#5A6878"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="24,25" RadiusX="6.6" RadiusY="6.6"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="24,25" RadiusX="3" RadiusY="3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#FF7A66"/>
+            <GradientStop Offset="1" Color="#C42B1C"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="13.5,25" RadiusX="1.7" RadiusY="1.7"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#FF7A66"/>
+            <GradientStop Offset="1" Color="#C42B1C"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="34.5,25" RadiusX="1.7" RadiusY="1.7"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.flight-stick">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M9 44h30l-4.5-11h-21Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#26FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="15,36,18,3" RadiusX="1.5" RadiusY="1.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#A9B6C6"/>
+            <GradientStop Offset="1" Color="#5A6878"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="21,17,6,17" RadiusX="3" RadiusY="3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#FFC44D"/>
+            <GradientStop Offset="1" Color="#E08600"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="24,13" RadiusX="8.5" RadiusY="8.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#66FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="20.6,10.5" RadiusX="2.6" RadiusY="2.6"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#40000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="22.5,17.5,3,4" RadiusX="1.5" RadiusY="1.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#FF7A66"/>
+            <GradientStop Offset="1" Color="#C42B1C"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="33.5,38" RadiusX="3.2" RadiusY="3.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.console">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="3,14,42,20" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#24FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="6,17,36,4" RadiusX="2" RadiusY="2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#59FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="8,26,18,2.4" RadiusX="1.2" RadiusY="1.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#54D8F0"/>
+            <GradientStop Offset="1" Color="#0B93C4"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="38,27" RadiusX="2.6" RadiusY="2.6"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="9,34,5,6" RadiusX="1.5" RadiusY="1.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="34,34,5,6" RadiusX="1.5" RadiusY="1.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.mic">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#E2E8EF"/>
+            <GradientStop Offset="1" Color="#96A5B5"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="24,13.5" RadiusX="9" RadiusY="9"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#33000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="24,13.5" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M17.5 19.5h13l-2.5 24a4.5 4.5 0 0 1-9 0Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#26FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="19.5,21.5,2.6,20" RadiusX="1.3" RadiusY="1.3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.mic-studio">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Pen>
+          <Pen Thickness="3.4" LineCap="Round" LineJoin="Round">
+            <Pen.Brush>
+              <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+                <GradientStop Offset="0" Color="#5A6675"/>
+                <GradientStop Offset="1" Color="#2A313B"/>
+              </LinearGradientBrush>
+            </Pen.Brush>
+          </Pen>
+        </GeometryDrawing.Pen>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M11 16.5v6.5a13 13 0 0 0 26 0v-6.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="22.6,35,2.8,5" RadiusX="1.4" RadiusY="1.4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M14 46h20l-4-6H18Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#3BD6C6"/>
+            <GradientStop Offset="1" Color="#0C6E9C"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="17,5,14,26" RadiusX="7" RadiusY="7"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#66FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="19.8,9.5,8.4,2.2" RadiusX="1.1" RadiusY="1.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#66FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="19.8,14,8.4,2.2" RadiusX="1.1" RadiusY="1.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#66FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="19.8,18.5,8.4,2.2" RadiusX="1.1" RadiusY="1.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#66FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="19.8,23,8.4,2.2" RadiusX="1.1" RadiusY="1.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#38FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="18.6,7.5,2.4,20" RadiusX="1.2" RadiusY="1.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.webcam">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="24,20" RadiusX="14" RadiusY="14"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5AC8FA"/>
+            <GradientStop Offset="1" Color="#2B6FE0"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="24,20" RadiusX="8.5" RadiusY="8.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#80FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="20.5,16.5" RadiusX="2.8" RadiusY="2.8"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M14 38h20l-3 6H17Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="10,43,28,3" RadiusX="1.5" RadiusY="1.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.dongle">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#E2E8EF"/>
+            <GradientStop Offset="1" Color="#96A5B5"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="18.5,4,11,11" RadiusX="2" RadiusY="2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#2E000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="20.8,6.6,6.4,1.8" RadiusX="0.9" RadiusY="0.9"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#2E000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="20.8,10,6.4,1.8" RadiusX="0.9" RadiusY="0.9"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#4CC2FF"/>
+            <GradientStop Offset="1" Color="#0B5FA8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="15,13.5,18,31" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#38FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="18,16.5,3.4,25" RadiusX="1.7" RadiusY="1.7"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#8CF07A"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="24,23" RadiusX="2.4" RadiusY="2.4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.receiver">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Pen>
+          <Pen Thickness="3" LineCap="Round" LineJoin="Round">
+            <Pen.Brush>
+              <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+                <GradientStop Offset="0" Color="#4CC2FF"/>
+                <GradientStop Offset="1" Color="#0B5FA8"/>
+              </LinearGradientBrush>
+            </Pen.Brush>
+          </Pen>
+        </GeometryDrawing.Pen>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M14 12a14 14 0 0 1 20 0"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Pen>
+          <Pen Thickness="3" LineCap="Round" LineJoin="Round">
+            <Pen.Brush>
+              <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+                <GradientStop Offset="0" Color="#4CC2FF"/>
+                <GradientStop Offset="1" Color="#0B5FA8"/>
+              </LinearGradientBrush>
+            </Pen.Brush>
+          </Pen>
+        </GeometryDrawing.Pen>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M19 18a7 7 0 0 1 10 0"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="17,22,14,22" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#2EFFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="19.5,24.5,2.8,17" RadiusX="1.4" RadiusY="1.4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#8CF07A"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="24,29" RadiusX="2.2" RadiusY="2.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.bluetooth">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#4CC2FF"/>
+            <GradientStop Offset="1" Color="#0B5FA8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="5,5,38,38" RadiusX="10" RadiusY="10"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Pen>
+          <Pen Thickness="3.4" LineCap="Round" LineJoin="Round">
+            <Pen.Brush>
+              <SolidColorBrush Color="white"/>
+            </Pen.Brush>
+          </Pen>
+        </GeometryDrawing.Pen>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M18 17 30 31l-6 6V11l6 6-12 14"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.dock">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="8,28,32,15" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#26FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="11,31,26,3" RadiusX="1.5" RadiusY="1.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#4CC2FF"/>
+            <GradientStop Offset="1" Color="#0B5FA8"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="18,6,12,24" RadiusX="3" RadiusY="3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#38FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="20,8.5,2.6,19" RadiusX="1.3" RadiusY="1.3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#E6FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M25.5 12.5 21 21h3.2l-1.4 5.5 5-8.5h-3.4Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.phone">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="13,3,22,42" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5AC8FA"/>
+            <GradientStop Offset="1" Color="#2B6FE0"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="15.5,6,17,36" RadiusX="3" RadiusY="3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#38FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="17.5,8,3,30" RadiusX="1.5" RadiusY="1.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#4C000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="21,4.6,6,1.6" RadiusX="0.8" RadiusY="0.8"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.tablet">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="7,5,34,38" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5AC8FA"/>
+            <GradientStop Offset="1" Color="#2B6FE0"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="10,8,28,32" RadiusX="2.5" RadiusY="2.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#33FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="12.5,10,4,28" RadiusX="2" RadiusY="2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.laptop">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="9,9,30,22" RadiusX="2.5" RadiusY="2.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5AC8FA"/>
+            <GradientStop Offset="1" Color="#2B6FE0"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="11.5,11.5,25,17" RadiusX="1.5" RadiusY="1.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#33FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="13.5,13,3.5,14" RadiusX="1.75" RadiusY="1.75"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#A9B6C6"/>
+            <GradientStop Offset="1" Color="#5A6878"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M3 33h42l-2.5 5.5a2 2 0 0 1-1.8 1.1H7.3a2 2 0 0 1-1.8-1.1Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.monitor">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="3,7,42,28" RadiusX="3" RadiusY="3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5AC8FA"/>
+            <GradientStop Offset="1" Color="#2B6FE0"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="5.5,9.5,37,21.5" RadiusX="1.5" RadiusY="1.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#33FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="8,11.5,5,17" RadiusX="2.5" RadiusY="2.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#A9B6C6"/>
+            <GradientStop Offset="1" Color="#5A6878"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="20,35,8,6" RadiusX="1" RadiusY="1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#A9B6C6"/>
+            <GradientStop Offset="1" Color="#5A6878"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="13,41,22,3.5" RadiusX="1.75" RadiusY="1.75"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.watch">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="17.5,3,13,9" RadiusX="3" RadiusY="3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="17.5,36,13,9" RadiusX="3" RadiusY="3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="13,11,22,26" RadiusX="7" RadiusY="7"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5AC8FA"/>
+            <GradientStop Offset="1" Color="#2B6FE0"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="15.5,13.5,17,21" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#38FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="17.5,15.5,3,16" RadiusX="1.5" RadiusY="1.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#A9B6C6"/>
+            <GradientStop Offset="1" Color="#5A6878"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="35,20,2.6,6" RadiusX="1.3" RadiusY="1.3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.band">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="19.5,2,9,12" RadiusX="3" RadiusY="3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="19.5,34,9,12" RadiusX="3" RadiusY="3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="16,12,16,24" RadiusX="6" RadiusY="6"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#8DE8C0"/>
+            <GradientStop Offset="1" Color="#149E6A"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="18.5,14.5,11,19" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#40FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="20,16.5,2.6,15" RadiusX="1.3" RadiusY="1.3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.vr">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5AC8FA"/>
+            <GradientStop Offset="1" Color="#2B6FE0"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M7 14h34a4 4 0 0 1 4 4v8a6 6 0 0 1-6 6h-4.6a4 4 0 0 1-3-1.4L28 27h-8l-3.4 3.6a4 4 0 0 1-3 1.4H9a6 6 0 0 1-6-6v-8a4 4 0 0 1 4-4Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#4C000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="14,21" RadiusX="5" RadiusY="4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#4C000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="34,21" RadiusX="5" RadiusY="4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#33FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="7,16.5,34,2.4" RadiusX="1.2" RadiusY="1.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="3,13,42,2.6" RadiusX="1.3" RadiusY="1.3"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.printer">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#E2E8EF"/>
+            <GradientStop Offset="1" Color="#96A5B5"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="13,4,22,12" RadiusX="2" RadiusY="2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#5A6675"/>
+            <GradientStop Offset="1" Color="#2A313B"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="6,16,36,17" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#2EFFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="9,19,10,3" RadiusX="1.5" RadiusY="1.5"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#8DE8C0"/>
+            <GradientStop Offset="1" Color="#149E6A"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="37,21" RadiusX="2.2" RadiusY="2.2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#E2E8EF"/>
+            <GradientStop Offset="1" Color="#96A5B5"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="12,29,24,15" RadiusX="2" RadiusY="2"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#24000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="15,32,18,2.2" RadiusX="1.1" RadiusY="1.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#24000000"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="15,36,18,2.2" RadiusX="1.1" RadiusY="1.1"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <DrawingImage x:Key="Fi.unknown">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF">
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,48,48"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="35%,100%">
+            <GradientStop Offset="0" Color="#A9B6C6"/>
+            <GradientStop Offset="1" Color="#5A6878"/>
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><RectangleGeometry Rect="4,4,40,40" RadiusX="10" RadiusY="10"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#29FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M4 14a10 10 0 0 1 10-10h20L4 34Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#F2FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><PathGeometry Figures="M18.6 19.4a5.4 5.4 0 1 1 8.2 4.6c-1.1.7-1.6 1.5-1.6 2.7v1.6h-4.3v-2c0-2.3 1-3.7 2.7-4.8.9-.6 1.3-1.2 1.3-2.1a2.3 2.3 0 0 0-4.6 0Z"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <SolidColorBrush Color="#F2FFFFFF"/>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Geometry><EllipseGeometry Center="23,33.6" RadiusX="2.7" RadiusY="2.7"/></GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingImage>
+
+</ResourceDictionary>

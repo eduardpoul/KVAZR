@@ -25,6 +25,52 @@ public partial class MainWindow : Window
 
         DataContext = shell;
         _shell = shell;
+
+        AttachWebPane(shell);
+    }
+
+    /// <summary>
+    /// Puts the web content pane in, once, for the lifetime of the window.
+    ///
+    /// One WebView rather than one per page: it takes a couple of seconds to boot, and
+    /// paying that on every click in the sidebar would make navigation feel broken. The
+    /// root component listens to the shell and swaps pages itself; this only decides
+    /// whether the web pane or the native scroller is the one on screen — the native
+    /// side keeps the internal drawings (identity, the capability matrix) and remains
+    /// the whole story under --native and off Windows.
+    /// </summary>
+    private void AttachWebPane(ShellViewModel shell)
+    {
+#if WINDOWS
+        if (!Web.WebUi.Enabled || !OperatingSystem.IsWindows()) return;
+
+        var host = new Web.PaneHost(shell);
+        WebPane.Content = host;
+
+        void Sync()
+        {
+            bool web = shell.CurrentPage
+                is ViewModels.DashboardViewModel
+                or ViewModels.Devices.DevicePageViewModel
+                or ViewModels.Pages.SettingsViewModel
+                or ViewModels.Pages.AboutViewModel
+                or ViewModels.Pages.HotkeysViewModel;
+
+            WebPane.IsVisible = web;
+            ContentPane.IsVisible = !web;
+        }
+
+        shell.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(ShellViewModel.CurrentPage)) Sync();
+        };
+
+        ActualThemeVariantChanged += (_, _) =>
+            Web.WebUi.Theme.IsDark = ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
+
+        Web.WebUi.Theme.IsDark = ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
+        Sync();
+#endif
     }
 
 

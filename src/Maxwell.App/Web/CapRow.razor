@@ -1,0 +1,314 @@
+@inherits ReactiveComponent
+@using System.Globalization
+
+@* One capability as a page row: name and explanation on the left, the control in a
+   fixed 260 column on the right — except the table-shaped capabilities, which take the
+   full width under their own name, exactly as artboards 9b and 9c give it to them.
+
+   The state rules mirror the native row one for one: out of reach is one quiet line in
+   place of the control; a slider is hidden until it has a reading; the amber dot marks
+   a command never confirmed on hardware and leaves for good after the first accepted
+   write; the warning triangle appears only while a write is actually possible. *@
+
+<div class="cap-row @(Wide ? "wide" : "")">
+  <div class="cap-text">
+    <div class="cap-title">@Vm.Title</div>
+    @if (!string.IsNullOrEmpty(Vm.Subtitle))
+    {
+      <div class="caption wrap">@Vm.Subtitle</div>
+    }
+  </div>
+
+  <div class="cap-control">
+    @if (!Vm.IsAvailable)
+    {
+      <div class="blocked">@Vm.Unreachable</div>
+    }
+    else
+    {
+      <div class="cap-line">
+        @switch (Vm)
+        {
+          case ReadoutCapabilityViewModel readout:
+            <span class="value">@readout.Display</span>
+            break;
+
+          case ToggleCapabilityViewModel toggle:
+            <button class="switch @(toggle.IsOn ? "on" : "")"
+                    disabled="@(!toggle.CanEdit)"
+                    @onclick="() => OnUi(() => toggle.IsOn = !toggle.IsOn)">
+              <span class="knob"></span>
+            </button>
+            break;
+
+          case RangeCapabilityViewModel range:
+            <div class="range">
+              <div class="reading">@range.Display</div>
+              @if (range.HasValue)
+              {
+                <input type="range" min="@Inv(range.Minimum)" max="@Inv(range.Maximum)" step="1"
+                       value="@Inv(range.Value)" disabled="@(!range.CanEdit)"
+                       style="--fill:@Fill(range.Value, range.Minimum, range.Maximum)%"
+                       @oninput="e => OnUi(() => range.Value = Parse(e))" />
+              }
+            </div>
+            break;
+
+          case ChoiceCapabilityViewModel { IsSegmented: true } segmented:
+            <div class="segmented">
+              @foreach (CapabilityChoice option in segmented.Options)
+              {
+                <button class="@(ReferenceEquals(segmented.Selected, option) ? "sel" : "")"
+                        disabled="@(!segmented.CanEdit)"
+                        @onclick="() => OnUi(() => segmented.Selected = option)">@option.Label</button>
+              }
+            </div>
+            break;
+
+          case ChoiceCapabilityViewModel choice:
+            <Dropdown Items="@([.. choice.Options.Select(o => o.Label)])"
+                      Disabled="@(!choice.CanEdit)"
+                      SelectedIndex="@(choice.Selected is { } sel ? IndexIn(choice.Options, sel) : -1)"
+                      SelectedIndexChanged="i => OnUi(() => choice.Selected = choice.Options.ElementAtOrDefault(i))" />
+            break;
+
+          case ActionCapabilityViewModel action:
+            <button class="outline @(action.NeedsConfirmation ? "risky" : "")"
+                    disabled="@(!action.CanEdit)"
+                    @onclick="() => OnUi(() => action.InvokeCommand.Execute(null))">
+              @if (action.NeedsConfirmation)
+              {
+                <svg width="12" height="12" viewBox="0 0 16 16"><path d="M8 2.6 14.4 13.4H1.6Z" fill="none" stroke="var(--danger)" stroke-width="1.5" /></svg>
+              }
+              @action.Label
+            </button>
+            break;
+
+          case RangeGroupCapabilityViewModel grouped:
+            <div class="range-group">
+              @foreach (GroupedRangeViewModel channel in grouped.Channels)
+              {
+                <div class="range-track">
+                  <span class="caption">@channel.Label</span>
+                  @if (channel.HasValue)
+                  {
+                    <input type="range" min="@Inv(channel.Minimum)" max="@Inv(channel.Maximum)" step="1"
+                           value="@Inv(channel.Value)" disabled="@(!channel.CanEdit)"
+                           style="--fill:@Fill(channel.Value, channel.Minimum, channel.Maximum)%"
+                           @oninput="e => { var c = channel; OnUi(() => c.Value = Parse(e)); }" />
+                  }
+                  <span class="reading">@channel.Display</span>
+                </div>
+              }
+            </div>
+            break;
+
+          case CurveCapabilityViewModel curve:
+            <div class="curve">
+              <div class="reading">@curve.Display</div>
+              @if (curve.HasCurve)
+              {
+                <svg class="plot" viewBox="0 0 100 30" preserveAspectRatio="none">
+                  <polyline points="@PlotPoints(curve.Points)" fill="none"
+                            stroke="var(--accent-primary)" stroke-width="1.2" />
+                  <polygon points="0,30 @PlotPoints(curve.Points) 100,30"
+                           fill="var(--accent-subtle)" stroke="none" />
+                </svg>
+                <div class="caption">@curve.Scale</div>
+              }
+            </div>
+            break;
+
+          case LightingCapabilityViewModel lighting:
+            <div class="zones">
+              @foreach (LightingZoneViewModel zone in lighting.Zones)
+              {
+                <div class="zone">
+                  <span class="caption">@zone.Label</span>
+                  <div class="swatches">
+                    @foreach (LightingSwatch swatch in zone.Palette)
+                    {
+                      <button class="swatch @(ReferenceEquals(zone.Selected, swatch) ? "sel" : "")"
+                              title="@swatch.Name"
+                              style="background:#@swatch.Packed.ToString("X6", CultureInfo.InvariantCulture)"
+                              disabled="@(!zone.CanEdit)"
+                              @onclick="() => { var z = zone; var s = swatch; OnUi(() => z.Selected = s); }"></button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+            break;
+
+          case SlotListCapabilityViewModel slots:
+            <div class="slots">
+              @foreach (CapabilitySlotViewModel slot in slots.Slots)
+              {
+                <div class="slot-row">
+                  <span class="slot-dot @(slot.IsActive ? "live" : "")"></span>
+                  <div class="grow">
+                    <div class="cap-title">@slot.Label</div>
+                    @if (!string.IsNullOrEmpty(slot.Hint))
+                    {
+                      <div class="caption wrap">@slot.Hint</div>
+                    }
+                  </div>
+                  @if (slot.IsActive)
+                  {
+                    <span class="pill transport">@slot.ActiveLabel</span>
+                  }
+                  else if (slot.ShowsButton)
+                  {
+                    <button class="outline" disabled="@(!slot.CanEdit)"
+                            @onclick="() => { var s = slot; OnUi(() => s.SelectCommand.Execute(null)); }">@slot.Verb</button>
+                  }
+                </div>
+              }
+            </div>
+            break;
+
+          case ButtonMapCapabilityViewModel map:
+            <div class="button-map">
+              @foreach (ButtonAssignmentViewModel button in map.Buttons)
+              {
+                <div class="map-row">
+                  <span class="caption map-label">@button.Label</span>
+                  @if (!string.IsNullOrEmpty(button.Hint))
+                  {
+                    <span class="caption accent">@button.Hint</span>
+                  }
+                  <div class="grow">
+                    <Dropdown Items="@([.. button.Actions.Select(a => a.Label)])"
+                              Disabled="@(!button.CanEdit)"
+                              SelectedIndex="@(button.Selected is { } chosen ? IndexIn(button.Actions, chosen) : -1)"
+                              SelectedIndexChanged="i => { var b = button; OnUi(() => b.Selected = b.Actions.ElementAtOrDefault(i)); }" />
+                  </div>
+                </div>
+              }
+            </div>
+            break;
+
+          case KeyMapCapabilityViewModel keymap:
+            <div class="keymap">
+              <div class="segmented">
+                @foreach (KeyLayer layer in keymap.Layers)
+                {
+                  <button class="@(ReferenceEquals(keymap.ActiveLayer, layer) ? "sel" : "")"
+                          @onclick="() => { var l = layer; OnUi(() => keymap.ActiveLayer = l); }">@layer.Label</button>
+                }
+              </div>
+              @if (keymap.HasLayout)
+              {
+                <div class="keys" style="grid-template-columns:repeat(@keymap.Columns, 1fr)">
+                  @foreach (KeyCapViewModel key in keymap.Keys)
+                  {
+                    <button class="keycap @(key.IsSelected ? "sel" : "") @(key.IsUnread ? "unread" : "")"
+                            title="@key.Position"
+                            @onclick="() => { var k = key; OnUi(() => keymap.SelectedKey = k); }">@key.Legend</button>
+                  }
+                </div>
+                @if (keymap.HasSelection)
+                {
+                  <Dropdown Items="@([.. keymap.Keycodes.Select(k => k.Label)])"
+                            Width="200"
+                            SelectedIndex="@(keymap.Assignment is { } a ? IndexIn(keymap.Keycodes, a) : -1)"
+                            SelectedIndexChanged="i => OnUi(() => keymap.Assignment = keymap.Keycodes.ElementAtOrDefault(i))" />
+                }
+              }
+              else
+              {
+                <div class="caption">Слой ещё не прочитан</div>
+              }
+            </div>
+            break;
+
+          default:
+            <span class="value">—</span>
+            break;
+        }
+
+        @if (Vm.IsUntested)
+        {
+          <span class="dot" title="Ещё не проверено на живом устройстве"></span>
+        }
+        @if (Vm.IsIrreversible)
+        {
+          <svg class="tri" width="14" height="14" viewBox="0 0 16 16" title="Эту запись нельзя отменить">
+            <path d="M8 2.6 14.4 13.4H1.6L8 2.6Z M8 6.4v3.2 M8 11.4h.01"
+                  fill="none" stroke="var(--status-irreversible, #B96A00)" stroke-width="1.5" />
+          </svg>
+        }
+      </div>
+
+      @if (!string.IsNullOrEmpty(Vm.Hint))
+      {
+        <div class="hint tone-@Vm.HintTone.ToString().ToLowerInvariant()">@Vm.Hint</div>
+      }
+    }
+  </div>
+</div>
+
+@code {
+  [Parameter, EditorRequired] public CapabilityViewModel Vm { get; set; } = default!;
+
+  private CapabilityViewModel? _tracked;
+
+  protected override void OnParametersSet()
+  {
+    if (ReferenceEquals(_tracked, Vm)) return;
+
+    _tracked = Vm;
+    Track(Vm);
+
+    switch (Vm)
+    {
+      case RangeGroupCapabilityViewModel grouped:
+        foreach (GroupedRangeViewModel channel in grouped.Channels) Track(channel);
+        break;
+      case LightingCapabilityViewModel lighting:
+        foreach (LightingZoneViewModel zone in lighting.Zones) Track(zone);
+        break;
+      case ButtonMapCapabilityViewModel map:
+        foreach (ButtonAssignmentViewModel button in map.Buttons) Track(button);
+        break;
+      case KeyMapCapabilityViewModel keymap:
+        foreach (KeyCapViewModel key in keymap.Keys) Track(key);
+        break;
+      case SlotListCapabilityViewModel slots:
+        foreach (CapabilitySlotViewModel slot in slots.Slots) Track(slot);
+        break;
+    }
+  }
+
+  private bool Wide => Vm.IsWide;
+
+  private static int IndexIn(IReadOnlyList<CapabilityChoice> options, CapabilityChoice item)
+  {
+    for (int i = 0; i < options.Count; i++)
+    {
+      if (ReferenceEquals(options[i], item)) return i;
+    }
+
+    return -1;
+  }
+
+  private static string Inv(double v) => v.ToString("0.###", CultureInfo.InvariantCulture);
+
+  private static double Parse(ChangeEventArgs e) =>
+      double.TryParse((string?)e.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out double v) ? v : 0;
+
+  private static string Fill(double value, double min, double max) =>
+      max > min ? ((value - min) / (max - min) * 100).ToString("0.#", CultureInfo.InvariantCulture) : "0";
+
+  private static string PlotPoints(IReadOnlyList<double> points)
+  {
+    if (points.Count == 0) return "";
+    if (points.Count == 1) return $"0,{Y(points[0])} 100,{Y(points[0])}";
+
+    return string.Join(" ", points.Select((p, i) =>
+        $"{(i * 100.0 / (points.Count - 1)).ToString("0.#", CultureInfo.InvariantCulture)},{Y(p)}"));
+  }
+
+  private static string Y(double fraction) =>
+      ((1 - Math.Clamp(fraction, 0, 1)) * 30).ToString("0.#", CultureInfo.InvariantCulture);
+}

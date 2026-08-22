@@ -186,7 +186,7 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     public Bitmap? Photo => DeviceImages.Photo(Snapshot.Info.ImageKey);
 
     /// <summary>The silhouette for this device's class. Every class has one.</summary>
-    public Geometry? Glyph => DeviceImages.Glyph(Snapshot.Info.Class);
+    public string IconKey => Web.DeviceIcon.KeyFor(Snapshot.Info);
 
     /// <summary>Battery as text. A dash, never a zero, when nothing has been read.</summary>
     public string Battery => Snapshot.BatteryPercent is { } percent ? $"{percent}%" : "—";

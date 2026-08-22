@@ -200,7 +200,7 @@
                               ClipToBounds="True"
                               Margin="0,0,12,0"
                               VerticalAlignment="Center">
-                        <ctl:DeviceThumb Photo="{Binding Device.Photo}" Glyph="{Binding Device.Glyph}" />
+                        <ctl:DeviceThumb Photo="{Binding Device.Photo}" IconKey="{Binding Device.IconKey}" />
                       </Border>
 
                       <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">

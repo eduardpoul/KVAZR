@@ -1,34 +1,40 @@
+#if WINDOWS
 using System.Runtime.Versioning;
 
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
+
+using Maxwell.App.ViewModels;
 
 using Microsoft.AspNetCore.Components.WebView.WindowsForms;
 using Microsoft.Extensions.DependencyInjection;
 
 using WinFormsControl = System.Windows.Forms.Control;
 
-namespace Maxwell.Blazor;
+namespace Maxwell.App.Web;
 
 /// <summary>
-/// The WinForms BlazorWebView, parented into the Avalonia window by its HWND.
+/// The WinForms BlazorWebView carrying the whole content pane, parented into the
+/// Avalonia window by its HWND.
 ///
-/// Avalonia positions the returned handle itself, and WinForms picks the resulting
-/// WM_WINDOWPOSCHANGED up as its own bounds, so no size plumbing is needed between the
-/// two — the one thing that is needed is forcing the handle to exist before it is
+/// One host for the lifetime of the window, not one per page: a WebView takes a couple
+/// of seconds to boot, and paying that on every navigation would make the sidebar feel
+/// broken. The root component listens to the shell and swaps pages itself.
+///
+/// Avalonia positions the returned handle; WinForms picks the move up as its own bounds;
+/// the only thing that has to happen here is forcing the handle to exist before it is
 /// handed over, because a WinForms control creates its window lazily.
 /// </summary>
 [SupportedOSPlatform("windows")]
-public sealed class BlazorSoundHost : NativeControlHost, IDisposable
+public sealed class PaneHost : NativeControlHost, IDisposable
 {
-    private readonly ISoundSectionSource _source;
+    private readonly ShellViewModel _shell;
     private BlazorWebView? _view;
 
-    public BlazorSoundHost(ISoundSectionSource source)
+    public PaneHost(ShellViewModel shell)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        _source = source;
+        ArgumentNullException.ThrowIfNull(shell);
+        _shell = shell;
     }
 
     protected override IPlatformHandle CreateNativeControlCore(IPlatformHandle parent)
@@ -39,17 +45,17 @@ public sealed class BlazorSoundHost : NativeControlHost, IDisposable
         _view = new BlazorWebView
         {
             // Absolute, because the WinForms host resolves a relative page against the
-            // process working directory, and this application is started from wherever.
+            // process working directory, and the app is started from wherever.
             HostPage = Path.Combine(AppContext.BaseDirectory, "wwwroot", "index.html"),
             Services = services.BuildServiceProvider(),
         };
 
         _view.RootComponents.Add(new RootComponent(
             "#app",
-            typeof(SoundSection),
-            new Dictionary<string, object?> { ["Source"] = _source }));
+            typeof(PaneRoot),
+            new Dictionary<string, object?> { ["Shell"] = _shell, ["Theme"] = WebUi.Theme }));
 
-        // Forces window creation; the property is the point, not the value.
+        // Forces window creation; the property read is the point, not the value.
         _ = ((WinFormsControl)_view).Handle;
 
         return new PlatformHandle(((WinFormsControl)_view).Handle, "HWND");
@@ -63,3 +69,4 @@ public sealed class BlazorSoundHost : NativeControlHost, IDisposable
         _view = null;
     }
 }
+#endif
