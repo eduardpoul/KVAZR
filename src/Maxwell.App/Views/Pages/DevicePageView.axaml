@@ -208,11 +208,16 @@
       </StackPanel>
     </StackPanel>
 
+    <!-- The web-rendering experiment (the "blazor" switch): the code-behind puts a
+         WebView here and hides the native list while the sound section is open.
+         Invisible otherwise, and entirely absent from the layout when it is. -->
+    <ContentControl x:Name="WebSlot" IsVisible="False" Height="560" />
+
     <!-- Sections, generated. Heading and card are one group eight pixels apart, and the
          groups stand sixteen from each other, which is the rhythm of every artboard that
          has sections on it. A margin under each group made the two gaps the same and the
          page stopped reading as headings-with-cards. -->
-    <ItemsControl ItemsSource="{Binding VisibleSections}">
+    <ItemsControl x:Name="NativeSections" ItemsSource="{Binding VisibleSections}">
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
           <StackPanel Spacing="{DynamicResource ContentGap}" />

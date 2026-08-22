@@ -213,6 +213,10 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         {
             _pendingIndex = null;
             SelectedDevice = Devices[index];
+
+            // The section, if the flag named one. After the device, because sections do
+            // not exist until the page does.
+            TryApplyPendingSection();
             return;
         }
 
@@ -224,6 +228,25 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     }
 
     private int? _pendingIndex;
+
+    /// <summary>Which section the development flag asked for, held until it exists.</summary>
+    public int? PendingSectionIndex { get; set; }
+
+    /// <summary>
+    /// Applies the held section once there is one to apply. Sections are built from
+    /// capabilities, and capabilities arrive with the device's first answer rather than
+    /// with the page — so this is retried from every sync until the list fills in.
+    /// </summary>
+    private void TryApplyPendingSection()
+    {
+        if (PendingSectionIndex is { } wanted
+            && CurrentPage is DevicePageViewModel page
+            && wanted >= 0 && wanted < page.Sections.Count)
+        {
+            SelectedSection = page.Sections[wanted];
+            PendingSectionIndex = null;
+        }
+    }
 
     /// <summary>
     /// Opens one of the application's own pages by position. The pane no longer lists
@@ -420,6 +443,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         Reorder(snapshots);
 
         if (_pendingIndex is { } wanted) SelectDeviceAt(wanted);
+        TryApplyPendingSection();
 
         OnPropertyChanged(nameof(HasDevices));
         OnPropertyChanged(nameof(HeaderTitle));

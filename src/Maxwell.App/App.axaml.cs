@@ -41,6 +41,11 @@ public partial class App : Application, IDisposable
 
     internal static int? OpenAppSectionOnStart { get; set; }
 
+    /// <summary>The web-rendering experiment: swaps the sound section for a WebView.</summary>
+    internal static bool BlazorSoundOnStart { get; set; }
+
+    internal static int? OpenSectionOnStart { get; set; }
+
     internal static bool OpenIdentityOnStart { get; set; }
 
     /// <summary>Development affordance: a window size as "1040x2000", so a long page fits one picture.</summary>
@@ -163,6 +168,7 @@ public partial class App : Application, IDisposable
             if (OpenDeviceOnStart is { } index)
             {
                 ShellViewModel shell = _services.GetRequiredService<ShellViewModel>();
+                shell.PendingSectionIndex = OpenSectionOnStart;
                 Dispatcher.UIThread.Post(() => shell.SelectDeviceAt(index), DispatcherPriority.Background);
             }
 

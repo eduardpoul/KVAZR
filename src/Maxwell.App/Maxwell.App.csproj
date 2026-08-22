@@ -81,6 +81,12 @@
     <ProjectReference Include="..\Maxwell.Core\Maxwell.Core.csproj" />
   </ItemGroup>
 
+  <!-- The web-rendering experiment. Windows-only, because its host is the WinForms
+       BlazorWebView; the plain net10.0 build must not even know it exists. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows10.0.17763.0'">
+    <ProjectReference Include="..\Maxwell.Blazor\Maxwell.Blazor.csproj" />
+  </ItemGroup>
+
   <!-- The identity's colour table, the tray's state reduction and the skeleton timing
        rules are all internal, and all worth testing. Widening them to public so a test
        can reach them would put three implementation details on the assembly's surface. -->

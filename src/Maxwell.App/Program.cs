@@ -112,6 +112,17 @@ internal static class Program
         // there steals the cursor from whoever is at the machine.
         App.OpenShowcaseOnStart = Array.IndexOf(args, "--showcase") >= 0;
 
+        // The web-rendering experiment: the sound section drawn by a WebView instead of
+        // by Avalonia, same view models behind it. Off unless asked for.
+        App.BlazorSoundOnStart = Array.IndexOf(args, "--blazor") >= 0;
+
+        if (Array.IndexOf(args, "--section") is var sec and >= 0
+            && sec + 1 < args.Length
+            && int.TryParse(args[sec + 1], out int sectionIndex))
+        {
+            App.OpenSectionOnStart = sectionIndex;
+        }
+
         // The application's own pages are now reached through the pane's pinned row and
         // then the group it reveals — two clicks, both of them pointer work. Same reason
         // as --open: a screenshot of the wrong page proves nothing.
