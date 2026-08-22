@@ -63,7 +63,6 @@ internal static class Program
         // A panel that only appears on a tray click cannot be looked at while working
         // on it; --flyout presents it at startup.
         App.PresentFlyoutOnStart = Array.IndexOf(args, "--flyout") >= 0;
-        App.PresentPopupOnStart = Array.IndexOf(args, "--popup") >= 0;
 
         // The splash is gone within a second of the shell appearing, which is right for
         // a user and useless for looking at it. These hold it up instead.
@@ -216,7 +215,6 @@ internal static class Program
         builder.Services.AddSingleton<ShellViewModel>();
         builder.Services.AddSingleton<FlyoutViewModel>();
         builder.Services.AddSingleton<FlyoutWindow>();
-        builder.Services.AddSingleton<ConnectPopupWindow>();
         builder.Services.AddSingleton<MainWindow>();
 
         return builder.Build();

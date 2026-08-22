@@ -41,22 +41,39 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
         _slot = slot;
     }
 
-    public IReadOnlyList<Capability> Capabilities { get; } = [BatteryCapability];
+    private static readonly Capability ChargingCapability = new()
+    {
+        Id = CapabilityIds.PowerCharging,
+        Domain = CapabilityDomain.Power,
+        Primitive = CapabilityPrimitive.Readout,
+        Title = "Зарядка",
+        Subtitle = "По HID++ — прямой флаг, не догадка",
+        Access = CapabilityAccess.Read,
+    };
+
+    public IReadOnlyList<Capability> Capabilities { get; } = [BatteryCapability, ChargingCapability];
 
     public IReadOnlyList<TransportInfo> Transports => _device.Transports;
 
     public Task<CapabilityValue> ReadAsync(string capabilityId, CancellationToken cancellationToken = default)
     {
-        if (capabilityId != CapabilityIds.PowerBattery) return Task.FromResult(CapabilityValue.Absent);
+        if (capabilityId is not (CapabilityIds.PowerBattery or CapabilityIds.PowerCharging))
+        {
+            return Task.FromResult(CapabilityValue.Absent);
+        }
 
         try
         {
             using var channel = new WindowsHidChannel(_path, _input, _output);
 
-            return Task.FromResult(
-                HidPlusPlusReader.Battery(channel, _slot) is { } percent
-                    ? CapabilityValue.Of(percent)
-                    : CapabilityValue.Absent);
+            if (HidPlusPlusReader.Battery(channel, _slot) is not { } charge)
+            {
+                return Task.FromResult(CapabilityValue.Absent);
+            }
+
+            return Task.FromResult(capabilityId == CapabilityIds.PowerBattery
+                ? CapabilityValue.Of(charge.Percent)
+                : CapabilityValue.Of(charge.IsCharging));
         }
         catch (IOException)
         {

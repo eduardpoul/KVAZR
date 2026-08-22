@@ -107,12 +107,6 @@ public sealed partial class SettingsViewModel : ObservableObject, IDisposable
 
     public string LowBatteryLabel => $"{LowBatteryThreshold}%";
 
-    public bool ShowConnectPopup
-    {
-        get => _store.Current.ShowConnectPopup;
-        set => Write(s => s.ShowConnectPopup = value);
-    }
-
     /// <summary>
     /// The intervals offered. Not a free number: the difference between 15 and 17 seconds
     /// is meaningless, and a text box invites somebody to type 1 and wonder later why the

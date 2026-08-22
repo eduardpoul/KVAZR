@@ -24,7 +24,6 @@ public partial class App : Application, IDisposable
     internal static bool PresentFlyoutOnStart { get; set; }
 
     /// <summary>Development affordance: show the connect announcement without a connect.</summary>
-    internal static bool PresentPopupOnStart { get; set; }
 
     /// <summary>Development affordance: open a device page without a synthetic click.</summary>
     internal static int? OpenDeviceOnStart { get; set; }
@@ -66,14 +65,12 @@ public partial class App : Application, IDisposable
     private TrayIcon? _tray;
     private MainWindow? _window;
     private FlyoutWindow? _flyout;
-    private ConnectPopupWindow? _popup;
     private IDeviceRegistry? _registry;
     private PrimaryDevice? _primary;
     private HiddenDevices? _hidden;
     private ISettingsStore? _settings;
     private HotkeyCoordinator? _hotkeys;
     private SplashWindow? _splash;
-    private DeviceAvailability? _lastAvailability;
     private bool _discovered;
     private bool _disposed;
 
@@ -119,14 +116,12 @@ public partial class App : Application, IDisposable
             // Seeded, not announced. Discovery runs before the tray subscribes, and a
             // device already attached at launch has not just connected — popping the
             // panel every time the app starts is not what "on connect" means.
-            _lastAvailability = _services.GetRequiredService<PrimaryDevice>().Snapshot?.Availability;
 
             _hotkeys = _services.GetRequiredService<HotkeyCoordinator>();
             _hotkeys.WindowRequested += (_, _) => Dispatcher.UIThread.Post(ShowWindow);
             _hotkeys.Apply();
 
             _flyout = _services.GetRequiredService<FlyoutWindow>();
-            _popup = _services.GetRequiredService<ConnectPopupWindow>();
             FlyoutViewModel flyout = _services.GetRequiredService<FlyoutViewModel>();
             flyout.SettingsRequested += (_, _) => Dispatcher.UIThread.Post(ShowWindow);
 
@@ -204,16 +199,6 @@ public partial class App : Application, IDisposable
             if (PresentFlyoutOnStart)
             {
                 Dispatcher.UIThread.Post(ShowFlyout, DispatcherPriority.Background);
-            }
-
-            if (PresentPopupOnStart)
-            {
-                Dispatcher.UIThread.Post(
-                    () =>
-                    {
-                        if (_primary?.Snapshot is { } device) _popup?.Present(device);
-                    },
-                    DispatcherPriority.Background);
             }
 
             desktop.Exit += (_, _) => Dispose();
@@ -337,18 +322,9 @@ public partial class App : Application, IDisposable
         {
             RefreshTray();
 
-            DeviceAvailability? now = _primary?.Snapshot?.Availability;
-
-            // Announce a connection once, on the transition — not on every poll.
-            bool becameUsable = _lastAvailability != now && now == DeviceAvailability.Active;
-            _lastAvailability = now;
-
-            if (becameUsable
-                && _settings?.Current.ShowConnectPopup == true
-                && _primary?.Snapshot is { } connected)
-            {
-                _popup?.Present(connected);
-            }
+            // The connect popup used to fire here, on the became-usable transition.
+            // Removed at the user's word — the tray menu is the announcement surface,
+            // and a window sliding out near the clock was one surface too many.
         });
 
     private void RefreshTray()

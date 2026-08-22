@@ -103,7 +103,7 @@ internal static class HidPlusPlusProbe
         {
             Console.WriteLine($"  slot {device}  {paired.Name}");
             Console.WriteLine(
-                $"            {paired.Type?.ToString() ?? "?"} · {(paired.BatteryPercent is { } b ? $"{b}%" : "заряд не отдаёт")}");
+                $"            {paired.Type?.ToString() ?? "?"} · {(paired.Battery is { } b ? $"{b.Percent}%{(b.IsCharging ? " ⚡" : "")}" : "заряд не отдаёт")}");
             return;
         }
 
@@ -129,7 +129,9 @@ internal static class HidPlusPlusProbe
         string version = $"HID++ {pong[4]}.{pong[5]}";
         string name = Name(channel, device) ?? "(без имени)";
         string type = Type(channel, device);
-        string battery = Battery(channel, device) ?? "заряд не отдаёт";
+        string battery = HidPlusPlusReader.Battery(channel, device) is { } charge
+            ? $"{charge.Percent}%{(charge.IsCharging ? " (заряжается)" : "")}"
+            : "заряд не отдаёт";
 
         Console.WriteLine($"  slot {device}  {name}");
         Console.WriteLine($"            {type} · {version} · {battery}");
@@ -176,30 +178,6 @@ internal static class HidPlusPlusProbe
         return reply[4] < Types.Length ? Types[reply[4]] : $"тип {reply[4]}";
     }
 
-    private static string? Battery(WindowsHidChannel channel, byte device)
-    {
-        // Two features mean the same thing to a person and neither is universal: the
-        // newer devices carry 0x1004 and the older ones 0x1000, so both are asked.
-        if (Index(channel, device, HidPlusPlus.FeatureUnifiedBattery) is { } unified)
-        {
-            byte[]? reply = Ask(channel, HidPlusPlus.Request(channel.OutputLength, device, unified, 0x01), device, unified, 0x01);
-            if (reply is not null && !HidPlusPlus.IsError(reply)) return $"{reply[4]}%";
-        }
-
-        if (Index(channel, device, HidPlusPlus.FeatureBatteryLevel) is { } level)
-        {
-            byte[]? reply = Ask(channel, HidPlusPlus.Request(channel.OutputLength, device, level, 0x00), device, level, 0x00);
-            if (reply is not null && !HidPlusPlus.IsError(reply)) return $"{reply[4]}%";
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Where a feature sits on this device, or null when the device does not have it.
-    /// Index zero back from the root means "no such feature", which is the answer for
-    /// most features on most devices and is not an error.
-    /// </summary>
     private static byte? Index(WindowsHidChannel channel, byte device, ushort feature)
     {
         byte[]? reply = Ask(

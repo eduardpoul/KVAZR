@@ -44,6 +44,7 @@ public sealed class AppSettings
     public int PollingSeconds { get; set; }
 
     /// <summary>Show a popup when the headset connects.</summary>
+    /// <summary>Dead since the popup was removed; kept so existing files deserialise.</summary>
     public bool ShowConnectPopup { get; set; } = true;
 
     public bool NotifyLowBattery { get; set; } = true;

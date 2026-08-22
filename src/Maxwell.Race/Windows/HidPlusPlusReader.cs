@@ -32,8 +32,17 @@ public static class HidPlusPlusReader
         Receiver = 7,
     }
 
+    /// <summary>A battery reading: how full, and whether power is flowing in.</summary>
+    public sealed record Charge(int Percent, bool IsCharging);
+
     /// <summary>A device that answered its slot: what it said about itself.</summary>
-    public sealed record Paired(byte Slot, string Name, Kind? Type, int? BatteryPercent);
+    public sealed record Paired(byte Slot, string Name, Kind? Type, Charge? Battery);
+
+    /// <summary>
+    /// The index a device answers on when it is plugged in directly rather than sitting
+    /// behind a receiver: the wired mouse is its own only device.
+    /// </summary>
+    public const byte DirectDevice = 0xFF;
 
     /// <summary>
     /// How many devices the receiver says are connected right now, read off its short
@@ -78,7 +87,7 @@ public static class HidPlusPlusReader
         return new Paired(slot, name, Type(channel, slot), Battery(channel, slot));
     }
 
-    public static int? Battery(WindowsHidChannel channel, byte device)
+    public static Charge? Battery(WindowsHidChannel channel, byte device)
     {
         ArgumentNullException.ThrowIfNull(channel);
 
@@ -87,13 +96,21 @@ public static class HidPlusPlusReader
         if (Index(channel, device, HidPlusPlus.FeatureUnifiedBattery) is { } unified)
         {
             byte[]? reply = Ask(channel, device, unified, 0x01);
-            if (reply is not null && !HidPlusPlus.IsError(reply)) return reply[4];
+
+            // p0 = state of charge %, p2 = status: 0 discharging, 1 charging, and the
+            // richer charging states (nearly full, full) still mean the cable is in.
+            if (reply is not null && !HidPlusPlus.IsError(reply))
+                return new Charge(reply[4], reply[6] is >= 1 and <= 3);
         }
 
         if (Index(channel, device, HidPlusPlus.FeatureBatteryLevel) is { } level)
         {
             byte[]? reply = Ask(channel, device, level, 0x00);
-            if (reply is not null && !HidPlusPlus.IsError(reply)) return reply[4];
+
+            // p0 = level %, p2 = status: 1 recharging, 2 charge in final stage,
+            // 3 charge complete — all three are "the cable is in".
+            if (reply is not null && !HidPlusPlus.IsError(reply))
+                return new Charge(reply[4], reply[6] is >= 1 and <= 3);
         }
 
         return null;

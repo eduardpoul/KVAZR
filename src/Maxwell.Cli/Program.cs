@@ -33,6 +33,7 @@ if (args.Contains("--hid")) return HidSurvey.Run(!args.Contains("--all"));
 
 // What is actually paired behind a Logitech receiver. Read-only.
 if (args.Contains("--hidpp")) return HidPlusPlusProbe.Run();
+if (args.Contains("--xinput")) return XInputProbe.Run();
 
 var enumerator = new WindowsHidEnumerator();
 IReadOnlyList<MaxwellInterface> all = enumerator.Enumerate();

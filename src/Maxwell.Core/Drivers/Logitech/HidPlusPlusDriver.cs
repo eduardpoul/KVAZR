@@ -81,9 +81,25 @@ public sealed class HidPlusPlusDriver : IDeviceDriver
                 using var channel = new WindowsHidChannel(
                     receiver.Path, receiver.InputReportLength, receiver.OutputReportLength);
 
+                // No receiver register means no receiver: this is a device wearing its
+                // own HID++ interface — the mouse on its charging cable. It answers on
+                // the direct index, and it answers on every slot index too, which is
+                // how asking it six slot questions minted six copies of one mouse.
+                if (expected is null)
+                {
+                    if (HidPlusPlusReader.Interrogate(channel, HidPlusPlusReader.DirectDevice) is { } direct)
+                    {
+                        devices.Add(Describe(receiver, direct));
+                    }
+
+                    continue;
+                }
+
+                int before = devices.Count;
+
                 for (byte slot = 1; slot <= 6; slot++)
                 {
-                    if (expected is { } want && devices.Count >= want) break;
+                    if (devices.Count - before >= expected) break;
                     if (HidPlusPlusReader.Interrogate(channel, slot) is not { } paired) continue;
 
                     devices.Add(Describe(receiver, paired));
@@ -104,8 +120,12 @@ public sealed class HidPlusPlusDriver : IDeviceDriver
     private DeviceInfo Describe(HidInterface receiver, HidPlusPlusReader.Paired paired)
     {
         // Keyed by receiver product and slot: a pairing survives replugs and reboots,
-        // and the key must too, because settings hang off it.
-        string key = $"hidpp:{receiver.ProductId:x4}:{paired.Slot}";
+        // and the key must too, because settings hang off it. A direct device — the
+        // mouse on its cable — is its own home and is keyed by its own product id.
+        bool direct = paired.Slot == HidPlusPlusReader.DirectDevice;
+        string key = direct
+            ? $"hidpp:{receiver.ProductId:x4}:direct"
+            : $"hidpp:{receiver.ProductId:x4}:{paired.Slot}";
 
         _homes[key] = (receiver.Path, receiver.InputReportLength, receiver.OutputReportLength, paired.Slot);
 
@@ -136,8 +156,8 @@ public sealed class HidPlusPlusDriver : IDeviceDriver
             [
                 new TransportInfo
                 {
-                    Kind = TransportKind.Dongle,
-                    Label = "USB-донгл",
+                    Kind = direct ? TransportKind.UsbCable : TransportKind.Dongle,
+                    Label = direct ? "USB" : "USB-донгл",
                     IsPresent = true,
                     CarriesControl = true,
                 },

@@ -145,16 +145,6 @@
             </Grid>
           </Border>
 
-          <Border Classes="rule">
-            <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
-              <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
-                          Margin="{DynamicResource PageRowGapRight}">
-                <TextBlock Classes="rowTitle" Text="Попап при подключении" />
-                <TextBlock Classes="caption" Text="Короткая карточка у трея, когда устройство появилось" />
-              </StackPanel>
-              <ToggleSwitch Grid.Column="1" IsChecked="{Binding ShowConnectPopup}" />
-            </Grid>
-          </Border>
 
           <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
             <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
