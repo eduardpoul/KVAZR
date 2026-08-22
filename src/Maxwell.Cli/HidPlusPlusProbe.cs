@@ -23,7 +23,15 @@ internal static class HidPlusPlusProbe
 
     private const ushort LongUsage = 0x02;
 
-    private static readonly TimeSpan Wait = TimeSpan.FromMilliseconds(400);
+    private static readonly TimeSpan Wait = TimeSpan.FromMilliseconds(600);
+
+    /// <summary>
+    /// The first ping to a sleeping device is also the thing that wakes it, and the
+    /// answer can take over a second to swim back — long enough that it used to land in
+    /// the next slot's window and be dismissed as "не подошёл". The wake gets patience;
+    /// everything after it is against an awake device and stays brisk.
+    /// </summary>
+    private static readonly TimeSpan WakeWait = TimeSpan.FromMilliseconds(1800);
 
     private static readonly string[] Types =
         ["клавиатура", "пульт", "числовой блок", "мышь", "тачпад", "трекбол", "презентер", "приёмник"];
@@ -91,7 +99,18 @@ internal static class HidPlusPlusProbe
 
     private static void Interrogate(WindowsHidChannel channel, byte device)
     {
-        byte[]? pong = Ask(channel, HidPlusPlus.Ping(channel.OutputLength, device), device, HidPlusPlus.RootIndex, 0x01);
+        if (HidPlusPlusReader.Interrogate(channel, device) is { } paired)
+        {
+            Console.WriteLine($"  slot {device}  {paired.Name}");
+            Console.WriteLine(
+                $"            {paired.Type?.ToString() ?? "?"} · {(paired.BatteryPercent is { } b ? $"{b}%" : "заряд не отдаёт")}");
+            return;
+        }
+
+        byte[]? pong = channel.Request(
+            HidPlusPlus.Ping(channel.OutputLength, device),
+            reply => HidPlusPlus.Answers(reply, device, HidPlusPlus.RootIndex, 0x01),
+            HidPlusPlusReader.Wait);
 
         if (pong is null || !HidPlusPlus.Pong(pong))
         {

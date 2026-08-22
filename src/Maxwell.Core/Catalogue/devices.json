@@ -92,13 +92,12 @@
     },
 
     {
-      "$note": "The product ids are unknown here, so this only matches over Bluetooth. Adding a guessed id would be worse than matching nothing: a wrong id claims a different device is this one.",
+      "$note": "PRO X 2 is what the mouse calls itself over HID++ — read off the live device, which is what retired the unverified flag.",
       "slug": "logitech-g-pro-x-superlight-2",
       "vendor": "Logitech",
       "model": "Logitech G Pro X Superlight 2",
       "class": "Mouse",
-      "names": ["G Pro X Superlight 2", "PRO X Superlight 2"],
-      "unverified": true
+      "names": ["G Pro X Superlight 2", "PRO X Superlight 2", "PRO X 2"]
     },
 
     {

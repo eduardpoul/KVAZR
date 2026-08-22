@@ -78,6 +78,13 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ICapabilityLedger, SettingsCapabilityLedger>();
         services.AddSingleton<IDeviceDriver, AudezeRaceDriver>();
 
+        // The class tier: whatever is paired to a Logitech receiver, by protocol rather
+        // than by model. Windows-only until its channel has another implementation.
+        if (OperatingSystem.IsWindows())
+        {
+            services.AddSingleton<IDeviceDriver, Drivers.Logitech.HidPlusPlusDriver>();
+        }
+
         // Registered last of the real drivers, though order does not decide anything —
         // the registry shadows on tier. It is here so that a machine with nothing this
         // application understands still shows the user their devices rather than an
