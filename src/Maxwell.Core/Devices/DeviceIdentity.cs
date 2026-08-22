@@ -122,6 +122,14 @@ public sealed record DeviceInfo
     public IReadOnlyList<TransportInfo> Transports { get; init; } = [];
 
     /// <summary>
+    /// True for hardware that exists but is nobody's device: virtual input nodes other
+    /// software installed, vendor service interfaces. Swept off the surfaces by default
+    /// under the same reversible switch as the silent devices — the flag records what
+    /// the catalogue knows, and the visibility rule is where the decision lives.
+    /// </summary>
+    public bool Auxiliary { get; init; }
+
+    /// <summary>
     /// The name as a person would write it, maker included exactly once.
     ///
     /// Two things make this less obvious than it looks. The maker is often unknown, since

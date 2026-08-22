@@ -66,13 +66,6 @@
     },
 
     {
-      "slug": "flydigi-cd2",
-      "vendor": "Flydigi",
-      "model": "Flydigi Charger Dock 2",
-      "usb": ["37d7:6001"]
-    },
-
-    {
       "$note": "In the design and not on this desk. Matched by Bluetooth name only, because Apple exposes no product id Windows can see.",
       "slug": "apple-airpods-pro-2",
       "vendor": "Apple",
@@ -89,6 +82,16 @@
       "class": "Speaker",
       "names": ["JBL Flip 6"],
       "unverified": true
+    },
+
+    {
+      "$note": "A software node G HUB installs to inject macro keystrokes. Honestly a keyboard as far as the bus is concerned, and still nothing anybody plugged in — hidden by default, reversibly, same switch as the silent devices.",
+      "slug": "logitech-ghub-virtual-keyboard",
+      "vendor": "Logitech",
+      "model": "Logitech G HUB (виртуальная клавиатура)",
+      "class": "Keyboard",
+      "usb": ["046d:c232"],
+      "hidden": true
     },
 
     {
@@ -124,8 +127,9 @@
       "vendor": "Flydigi",
       "model": "Flydigi APEX 5",
       "class": "Gamepad",
-      "usb": ["37d7:2501"],
+      "usb": ["37d7:2501", "37d7:6001"],
       "dongle": ["37d7:2501"],
+      "dock": ["37d7:6001"],
       "names": ["APEX 5", "Apex 5", "APEX5"],
       "unverified": true
     }

@@ -16,7 +16,8 @@ public sealed class DeviceVisibilityTests
         string key,
         string model,
         DeviceClass deviceClass = DeviceClass.Headset,
-        string? catalogued = null) =>
+        string? catalogued = null,
+        bool auxiliary = false) =>
         new()
         {
             Key = key,
@@ -25,6 +26,7 @@ public sealed class DeviceVisibilityTests
             Model = model,
             Class = deviceClass,
             ImageKey = catalogued,
+            Auxiliary = auxiliary,
         };
 
     private static HashSet<string> Hidden(params string[] keys) => new(keys, StringComparer.Ordinal);
@@ -70,6 +72,18 @@ public sealed class DeviceVisibilityTests
         // knowingly. The name being pronounceable is not the same as the device being
         // identifiable, and the earlier rule that trusted names left these on the list.
         Assert.True(DeviceVisibility.IsSilent(Device("x", "USB Controller", DeviceClass.Unknown)));
+    }
+
+    [Fact]
+    public void AnAuxiliaryDevice_HidesUnderTheSameSwitch_AndComesBackWithIt()
+    {
+        // The G HUB virtual keyboard: honestly a keyboard, catalogued, and still
+        // nothing anybody plugged in. The catalogue's hidden flag rides the silent
+        // switch rather than adding a second one — one lever, one place to look.
+        DeviceInfo ghost = Device("x", "G HUB", DeviceClass.Keyboard, "ghub", auxiliary: true);
+
+        Assert.True(DeviceVisibility.IsHidden(ghost, Hidden(), hideSilent: true));
+        Assert.False(DeviceVisibility.IsHidden(ghost, Hidden(), hideSilent: false));
     }
 
     [Fact]

@@ -32,7 +32,7 @@ public static class DeviceVisibility
 
         if (hidden.Contains(device.Key)) return true;
 
-        return hideSilent && IsSilent(device);
+        return hideSilent && (IsSilent(device) || device.Auxiliary);
     }
 
     /// <summary>

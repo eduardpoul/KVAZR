@@ -152,12 +152,28 @@ public sealed class DeviceCatalogueTests
     [Fact]
     public async Task TheMakerIsNotRepeated_WhenTheNameAlreadyCarriesIt()
     {
-        // "Flydigi Flydigi Charger Dock 2" is what happens without this, and it happened.
+        // "HyperX HyperX QuadCast S" is what happens without this, and it happened
+        // (originally with the Flydigi dock, which has since folded into its gamepad).
+        IReadOnlyList<DeviceInfo> devices = await Discover(
+            new DeviceCatalogue(),
+            Node(Guid.NewGuid(), "HyperX QuadCast S", 0x0951, 0x171D));
+
+        Assert.Equal("HyperX QuadCast S", Assert.Single(devices).DisplayName);
+    }
+
+    [Fact]
+    public async Task TheDockFoldsIntoTheDeviceItCharges()
+    {
+        // The user's model, stated twice: docks and receivers belong inside the device
+        // they serve. The dock's container matches the gamepad's entry, the row is the
+        // gamepad, and the dock survives as a chip rather than as hardware of its own.
         IReadOnlyList<DeviceInfo> devices = await Discover(
             new DeviceCatalogue(),
             Node(Guid.NewGuid(), "Flydigi CD2", 0x37D7, 0x6001));
 
-        Assert.Equal("Flydigi Charger Dock 2", Assert.Single(devices).DisplayName);
+        DeviceInfo device = Assert.Single(devices);
+        Assert.Equal("Flydigi APEX 5", device.DisplayName);
+        Assert.Contains(device.Transports, t => t.Label == "Док");
     }
 
     [Fact]

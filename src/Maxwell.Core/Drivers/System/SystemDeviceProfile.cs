@@ -146,34 +146,73 @@ internal static class SystemDeviceProfile
     public static IReadOnlyList<TransportInfo> Transports(
         IReadOnlyList<SystemDeviceNode> nodes,
         DeviceClass deviceClass,
-        bool viaDongle = false)
+        IReadOnlySet<string>? dongleUsb = null,
+        IReadOnlySet<string>? dockUsb = null)
     {
         var transports = new List<TransportInfo>();
+        bool audio = nodes.Any(n => n.ClassGuid == MediaClass || n.ClassGuid == AudioEndpointClass);
+
+        static string? UsbId(SystemDeviceNode node) =>
+            node is { VendorId: { } vid, ProductId: { } pid } ? $"{vid:x4}:{pid:x4}" : null;
+
+        // The USB nodes split by what the catalogue says the plug is: the model's own
+        // dongle, its dock, or a plain cable. One chip each — a gamepad whose dongle
+        // and charging dock are both in shows both, because both are really there.
+        List<SystemDeviceNode> usb = [.. nodes.Where(n => n.Link == SystemDeviceLink.Usb)];
+
+        bool viaDongle = dongleUsb is not null && usb.Any(n => UsbId(n) is { } id && dongleUsb.Contains(id));
+        bool viaDock = dockUsb is not null && usb.Any(n => UsbId(n) is { } id && dockUsb.Contains(id));
+        bool plainUsb = usb.Any(n => UsbId(n) is not { } id
+            || ((dongleUsb is null || !dongleUsb.Contains(id)) && (dockUsb is null || !dockUsb.Contains(id))));
+
+        if (viaDongle || (plainUsb && deviceClass == DeviceClass.Receiver))
+        {
+            transports.Add(new TransportInfo
+            {
+                Kind = TransportKind.Dongle,
+                Label = viaDongle ? "USB-донгл" : "Приёмник",
+                IsPresent = true,
+                CarriesControl = false,
+                CarriesAudio = audio,
+            });
+        }
+        else if (plainUsb)
+        {
+            transports.Add(new TransportInfo
+            {
+                Kind = TransportKind.UsbCable,
+                Label = "USB",
+                IsPresent = true,
+                CarriesControl = false,
+                CarriesAudio = audio,
+            });
+        }
+
+        if (viaDock)
+        {
+            transports.Add(new TransportInfo
+            {
+                Kind = TransportKind.UsbCable,
+                Label = "Док",
+                IsPresent = true,
+                CarriesControl = false,
+                CarriesAudio = false,
+            });
+        }
 
         foreach (SystemDeviceLink link in nodes.Select(n => n.Link).Distinct().OrderBy(l => l))
         {
-            bool audio = nodes.Any(n => n.ClassGuid == MediaClass || n.ClassGuid == AudioEndpointClass);
+            if (link == SystemDeviceLink.Usb) continue;
 
             transports.Add(new TransportInfo
             {
-                Kind = link switch
-                {
-                    SystemDeviceLink.Bluetooth or SystemDeviceLink.BluetoothLe => TransportKind.Bluetooth,
-                    SystemDeviceLink.Usb when viaDongle || deviceClass == DeviceClass.Receiver =>
-                        TransportKind.Dongle,
-                    SystemDeviceLink.Usb => TransportKind.UsbCable,
-                    _ => TransportKind.Unknown,
-                },
+                Kind = link is SystemDeviceLink.Bluetooth or SystemDeviceLink.BluetoothLe
+                    ? TransportKind.Bluetooth
+                    : TransportKind.Unknown,
                 Label = link switch
                 {
                     SystemDeviceLink.Bluetooth => "Bluetooth",
                     SystemDeviceLink.BluetoothLe => "Bluetooth LE",
-
-                    // The catalogue said this USB plug is the model's dongle — the
-                    // gamepad in the list is reached through it, not lying on a cable.
-                    SystemDeviceLink.Usb when viaDongle => "USB-донгл",
-                    SystemDeviceLink.Usb when deviceClass == DeviceClass.Receiver => "Приёмник",
-                    SystemDeviceLink.Usb => "USB",
                     _ => "Неизвестно",
                 },
                 IsPresent = true,

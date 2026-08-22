@@ -39,6 +39,22 @@ public sealed record CatalogueEntry
     public IReadOnlyList<string> DongleUsb { get; init; } = [];
 
     /// <summary>
+    /// Which usb ids are the model's dock or charging stand. Same idea as the dongle
+    /// list: the accessory's container folds into the device it belongs to, and the row
+    /// grows a "Док" chip instead of the accessory pretending to be hardware of its own.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonPropertyName("dock")]
+    public IReadOnlyList<string> DockUsb { get; init; } = [];
+
+    /// <summary>
+    /// Factory-hidden: real as far as the bus is concerned, noise as far as a person is.
+    /// The G HUB virtual keyboard is the archetype — a software node another program
+    /// installed, honestly classified, and still nothing anybody plugged in. Hidden by
+    /// the same reversible switch as the silent devices.
+    /// </summary>
+    public bool Hidden { get; init; }
+
+    /// <summary>
     /// Fragments of a Bluetooth name that identify this model, matched case-insensitively.
     /// A weaker key than a product id and the only one Bluetooth offers, which is why a
     /// fragment here has to be specific enough to be wrong rarely — "AirPods" is fine,

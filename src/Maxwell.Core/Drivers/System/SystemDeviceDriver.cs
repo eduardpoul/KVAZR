@@ -93,6 +93,13 @@ public sealed class SystemDeviceDriver : IDeviceDriver
                 ? entry.Class
                 : observed != DeviceClass.Unknown ? observed : entry?.Class ?? DeviceClass.Unknown;
 
+            HashSet<string>? dongleIds = entry is { DongleUsb.Count: > 0 }
+                ? new HashSet<string>(entry.DongleUsb, StringComparer.OrdinalIgnoreCase)
+                : null;
+            HashSet<string>? dockIds = entry is { DockUsb.Count: > 0 }
+                ? new HashSet<string>(entry.DockUsb, StringComparer.OrdinalIgnoreCase)
+                : null;
+
             devices.Add(new DeviceInfo
             {
                 // Still keyed on a container even when several were joined, because the
@@ -110,7 +117,8 @@ public sealed class SystemDeviceDriver : IDeviceDriver
                 Class = deviceClass,
                 ImageKey = entry?.Slug,
                 HardwareIds = ids,
-                Transports = SystemDeviceProfile.Transports(nodes, deviceClass, viaDongle),
+                Transports = SystemDeviceProfile.Transports(nodes, deviceClass, dongleIds, dockIds),
+                Auxiliary = entry?.Hidden ?? false,
             });
         }
 
