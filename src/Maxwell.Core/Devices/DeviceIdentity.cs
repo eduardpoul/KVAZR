@@ -53,6 +53,21 @@ public sealed record TransportInfo
     /// <summary>Shown verbatim in the UI, e.g. "USB-C 0x4B1E".</summary>
     public required string Label { get; init; }
 
+    /// <summary>
+    /// The same channel without its product id, e.g. "USB-C". The artboards use this in
+    /// every list and the full label only in a device's own hero: the id distinguishes
+    /// two ways into one device, which is a question the page it belongs to can raise
+    /// and a list of eight devices cannot.
+    /// </summary>
+    public string ShortLabel
+    {
+        get
+        {
+            int at = Label.IndexOf(" 0x", StringComparison.Ordinal);
+            return at > 0 ? Label[..at] : Label;
+        }
+    }
+
     public bool IsPresent { get; init; }
 
     /// <summary>True when settings can be read and written over this channel.</summary>

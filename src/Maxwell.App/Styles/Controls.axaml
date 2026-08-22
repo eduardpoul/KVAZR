@@ -31,9 +31,16 @@
     <Setter Property="Margin" Value="0,4" />
   </Style>
 
+  <!--
+    The page title. 28 from the artboard, not 20 from a hand-picked step on the type
+    scale: at 20 it read as a section heading rather than as the name of the screen, and
+    every page was eleven pixels short before its first card as a result.
+  -->
   <Style Selector="TextBlock.sectionTitle">
-    <Setter Property="FontSize" Value="{DynamicResource FontSizeSubtitle}" />
+    <Setter Property="FontSize" Value="{DynamicResource DashTitleSize}" />
     <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LetterSpacing" Value="-0.28" />
+    <Setter Property="LineHeight" Value="{DynamicResource PageTitleLine}" />
   </Style>
 
   <Style Selector="TextBlock.cardTitle">

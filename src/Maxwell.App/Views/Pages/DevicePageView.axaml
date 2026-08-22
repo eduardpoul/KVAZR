@@ -61,18 +61,18 @@
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
       <Setter Property="LetterSpacing" Value="0.24" />
-      <Setter Property="Margin" Value="0,4,0,0" />
+      <Setter Property="LineHeight" Value="{DynamicResource SectionHeadingLine}" />
     </Style>
   </UserControl.Styles>
 
-  <StackPanel Spacing="12">
+  <StackPanel Spacing="{DynamicResource ContentGap}">
 
     <!--
       Artboard 5a. The hero identifies the device and nothing else: the picture, the name,
       the channels it is actually on, its firmware, and the battery — which is the largest
       thing on the page because it is what people come for most often.
     -->
-    <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,4">
+    <Grid ColumnDefinitions="Auto,*,Auto">
 
       <Border Grid.Column="0"
               Width="{DynamicResource HeroThumbSize}"
@@ -80,7 +80,7 @@
               Background="{DynamicResource LayerAltBrush}"
               CornerRadius="{DynamicResource HeroThumbRadiusCorner}"
               ClipToBounds="True"
-              Margin="0,0,20,0"
+              Margin="{DynamicResource HeroGapRight}"
               VerticalAlignment="Center">
         <ctl:DeviceThumb Photo="{Binding Photo}" Glyph="{Binding Glyph}" />
       </Border>
@@ -124,7 +124,7 @@
 
       <StackPanel Grid.Column="2" Spacing="2" HorizontalAlignment="Right" VerticalAlignment="Center">
         <TextBlock FontSize="{DynamicResource HeroBatterySize}" FontWeight="SemiBold"
-                   LineHeight="46" LetterSpacing="-0.88"
+                   LineHeight="{DynamicResource HeroBatterySize}" LetterSpacing="-0.88"
                    HorizontalAlignment="Right"
                    Text="{Binding Battery}" />
         <TextBlock Classes="caption" HorizontalAlignment="Right" Text="{Binding Freshness}" />
@@ -208,11 +208,19 @@
       </StackPanel>
     </StackPanel>
 
-    <!-- Sections, generated -->
+    <!-- Sections, generated. Heading and card are one group eight pixels apart, and the
+         groups stand sixteen from each other, which is the rhythm of every artboard that
+         has sections on it. A margin under each group made the two gaps the same and the
+         page stopped reading as headings-with-cards. -->
     <ItemsControl ItemsSource="{Binding VisibleSections}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Spacing="{DynamicResource ContentGap}" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
       <ItemsControl.ItemTemplate>
         <DataTemplate x:DataType="devices:CapabilitySectionViewModel">
-          <StackPanel Spacing="6" Margin="0,0,0,12">
+          <StackPanel Spacing="8">
             <TextBlock Classes="sectionHeading" Text="{Binding Heading}">
               <TextBlock.IsVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">

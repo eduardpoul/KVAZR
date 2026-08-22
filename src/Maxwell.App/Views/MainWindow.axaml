@@ -70,9 +70,14 @@
       <Setter Property="Padding" Value="0" />
     </Style>
     <Style Selector="ListBox.nav ListBoxItem">
+      <!-- MinHeight, because the theme's own floor is taller than the artboard's row and
+           an explicit Height alone only shrank the highlight inside a box that stayed 40.
+           The margin is the pane's 2px gap, split across the boundary: a ListBox has no
+           spacing of its own and its rows would otherwise touch. -->
       <Setter Property="Height" Value="{DynamicResource RailRowHeight}" />
+      <Setter Property="MinHeight" Value="0" />
       <Setter Property="Padding" Value="0" />
-      <Setter Property="Margin" Value="0" />
+      <Setter Property="Margin" Value="0,1" />
       <Setter Property="FontSize" Value="{DynamicResource RailRowSize}" />
       <Setter Property="CornerRadius" Value="{DynamicResource RailRowRadiusCorner}" />
     </Style>
@@ -214,6 +219,11 @@
 
           <ItemsControl IsVisible="{Binding ShowsDeviceList}"
                         ItemsSource="{Binding Dashboard.Connected}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Spacing="{DynamicResource RailGap}" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="devices:DeviceListItemViewModel">
                 <Button Classes="railRow"
@@ -253,6 +263,11 @@
 
           <ItemsControl IsVisible="{Binding ShowsDisconnected}"
                         ItemsSource="{Binding Dashboard.Disconnected}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Spacing="{DynamicResource RailGap}" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="devices:DeviceListItemViewModel">
                 <Button Classes="railRow" Opacity="0.55"

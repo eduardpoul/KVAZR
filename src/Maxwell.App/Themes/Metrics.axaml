@@ -18,6 +18,7 @@
   <!-- Между плиткой и текстом -->
   <sys:Double x:Key="DashRowGap">16</sys:Double>
   <Thickness x:Key="DashRowGapRight">0,0,16,0</Thickness>
+  <Thickness x:Key="DashRowGapLeft">16,0,0,0</Thickness>
   <Thickness x:Key="DashRowPadding">16,0,16,0</Thickness>
   <!-- Плитка изображения -->
   <sys:Double x:Key="DashThumbSize">60</sys:Double>
@@ -27,6 +28,7 @@
   <!-- Между пилюлями под именем -->
   <sys:Double x:Key="DashSubGap">6</sys:Double>
   <Thickness x:Key="DashSubGapRight">0,0,6,0</Thickness>
+  <Thickness x:Key="DashSubGapLeft">6,0,0,0</Thickness>
   <!-- Пилюля класса устройства -->
   <sys:Double x:Key="DashPillSize">11</sys:Double>
   <sys:Double x:Key="DashPillRadius">4</sys:Double>
@@ -38,9 +40,19 @@
   <sys:Double x:Key="DashGroupSize">12</sys:Double>
   <!-- Заголовок страницы -->
   <sys:Double x:Key="DashTitleSize">28</sys:Double>
+  <!-- Колонка заряда: одинаковая на всех строках, иначе проценты не выстраиваются -->
+  <sys:Double x:Key="DashBatteryBlock">92</sys:Double>
+  <sys:Double x:Key="DashBatteryGap">8</sys:Double>
+  <Thickness x:Key="DashBatteryGapRight">0,0,8,0</Thickness>
+  <Thickness x:Key="DashBatteryGapLeft">8,0,0,0</Thickness>
+  <sys:Double x:Key="DashPercentWidth">42</sys:Double>
+  <sys:Double x:Key="DashPercentSize">15</sys:Double>
+  <!-- Приписка после пилюль -->
+  <sys:Double x:Key="DashNoteSize">12</sys:Double>
   <sys:Double x:Key="SettingsRowHeight">52</sys:Double>
   <sys:Double x:Key="SettingsRowGap">16</sys:Double>
   <Thickness x:Key="SettingsRowGapRight">0,0,16,0</Thickness>
+  <Thickness x:Key="SettingsRowGapLeft">16,0,0,0</Thickness>
   <Thickness x:Key="SettingsRowPadding">16,0,16,0</Thickness>
   <!-- Переключатель темы — один слитный контрол, а не три кнопки рядом -->
   <sys:Double x:Key="SegmentHeight">30</sys:Double>
@@ -49,24 +61,33 @@
   <sys:Double x:Key="SegmentSize">12</sys:Double>
   <sys:Double x:Key="SegmentWideWidth">84</sys:Double>
   <sys:Double x:Key="SegmentWidth">72</sys:Double>
+  <sys:Double x:Key="SettingsLanguageWidth">188</sys:Double>
+  <sys:Double x:Key="SettingsIntervalWidth">160</sys:Double>
+  <!-- Ползунок на странице приложения; страница устройства шире — там колонка 260 -->
+  <sys:Double x:Key="SettingsSliderWidth">240</sys:Double>
+  <sys:Double x:Key="SettingsValueWidth">44</sys:Double>
   <sys:Double x:Key="NoticeRadius">8</sys:Double>
   <CornerRadius x:Key="NoticeRadiusCorner">8</CornerRadius>
   <Thickness x:Key="NoticePadding">14,12,14,12</Thickness>
   <sys:Double x:Key="NoticeGap">10</sys:Double>
   <Thickness x:Key="NoticeGapRight">0,0,10,0</Thickness>
+  <Thickness x:Key="NoticeGapLeft">10,0,0,0</Thickness>
   <sys:Double x:Key="NoticeDotSize">7</sys:Double>
   <sys:Double x:Key="NoticeTextSize">13</sys:Double>
   <sys:Double x:Key="ContentBackgroundRadius">8</sys:Double>
   <CornerRadius x:Key="ContentBackgroundRadiusCorner">8</CornerRadius>
   <!-- Скруглён только верхний левый угол — остальные три упираются в край окна -->
   <CornerRadius x:Key="ContentTopLeftCorner">8,0,0,0</CornerRadius>
-  <Thickness x:Key="ContentPadding">28,24,28,24</Thickness>
-  <sys:Double x:Key="ContentGap">14</sys:Double>
-  <Thickness x:Key="ContentGapRight">0,0,14,0</Thickness>
-  <sys:Double x:Key="RailWidth">248</sys:Double>
+  <Thickness x:Key="ContentPadding">28,22,28,22</Thickness>
+  <sys:Double x:Key="ContentGap">16</sys:Double>
+  <Thickness x:Key="ContentGapRight">0,0,16,0</Thickness>
+  <Thickness x:Key="ContentGapLeft">16,0,0,0</Thickness>
+  <!-- Вместе с внутренними отступами: в макете это content-box, 248 + 8 + 8 -->
+  <sys:Double x:Key="RailWidth">264</sys:Double>
   <Thickness x:Key="RailPadding">8,0,8,12</Thickness>
   <sys:Double x:Key="RailGap">2</sys:Double>
   <Thickness x:Key="RailGapRight">0,0,2,0</Thickness>
+  <Thickness x:Key="RailGapLeft">2,0,0,0</Thickness>
   <sys:Double x:Key="RailRowHeight">36</sys:Double>
   <sys:Double x:Key="RailRowRadius">4</sys:Double>
   <CornerRadius x:Key="RailRowRadiusCorner">4</CornerRadius>
@@ -75,9 +96,11 @@
   <!-- Корневая строка и «Параметры» — иконка крупнее, зазор шире -->
   <sys:Double x:Key="RailRootGap">12</sys:Double>
   <Thickness x:Key="RailRootGapRight">0,0,12,0</Thickness>
+  <Thickness x:Key="RailRootGapLeft">12,0,0,0</Thickness>
   <!-- Строка устройства -->
   <sys:Double x:Key="RailDeviceGap">10</sys:Double>
   <Thickness x:Key="RailDeviceGapRight">0,0,10,0</Thickness>
+  <Thickness x:Key="RailDeviceGapLeft">10,0,0,0</Thickness>
   <!-- Процент в панели — тише, чем имя -->
   <sys:Double x:Key="RailBatterySize">12</sys:Double>
   <sys:Double x:Key="RailGroupSize">11</sys:Double>
@@ -92,12 +115,14 @@
   <Thickness x:Key="RailSearchPadding">10,0,10,0</Thickness>
   <sys:Double x:Key="RailSearchGap">8</sys:Double>
   <Thickness x:Key="RailSearchGapRight">0,0,8,0</Thickness>
+  <Thickness x:Key="RailSearchGapLeft">8,0,0,0</Thickness>
   <sys:Double x:Key="RailSearchSize">13</sys:Double>
   <!-- Глиф строки, из <svg width> артборда 1a -->
   <sys:Double x:Key="RailIconSize">16</sys:Double>
   <sys:Double x:Key="FlyoutRowHeight">56</sys:Double>
   <sys:Double x:Key="FlyoutRowGap">12</sys:Double>
   <Thickness x:Key="FlyoutRowGapRight">0,0,12,0</Thickness>
+  <Thickness x:Key="FlyoutRowGapLeft">12,0,0,0</Thickness>
   <Thickness x:Key="FlyoutRowPadding">6,0,6,0</Thickness>
   <sys:Double x:Key="FlyoutRowRadius">4</sys:Double>
   <CornerRadius x:Key="FlyoutRowRadiusCorner">4</CornerRadius>
@@ -125,13 +150,19 @@
   <CornerRadius x:Key="EmptyCardRadiusCorner">8</CornerRadius>
   <sys:Double x:Key="EmptyCardGap">14</sys:Double>
   <Thickness x:Key="EmptyCardGapRight">0,0,14,0</Thickness>
+  <Thickness x:Key="EmptyCardGapLeft">14,0,0,0</Thickness>
   <sys:Double x:Key="EmptyCardTitleSize">14</sys:Double>
   <sys:Double x:Key="EmptyCardBodySize">12</sys:Double>
   <!-- Глиф класса на карточке, из <svg width> артборда 6c -->
   <sys:Double x:Key="EmptyGlyphSize">34</sys:Double>
+  <!-- Строка заголовка страницы, 28 px -->
+  <sys:Double x:Key="PageTitleLine">37</sys:Double>
+  <!-- Строка заголовка раздела, 12 px -->
+  <sys:Double x:Key="SectionHeadingLine">18</sys:Double>
   <Thickness x:Key="PagePadding">28,22,28,22</Thickness>
   <sys:Double x:Key="HeroGap">20</sys:Double>
   <Thickness x:Key="HeroGapRight">0,0,20,0</Thickness>
+  <Thickness x:Key="HeroGapLeft">20,0,0,0</Thickness>
   <sys:Double x:Key="HeroThumbSize">96</sys:Double>
   <sys:Double x:Key="HeroThumbRadius">8</sys:Double>
   <CornerRadius x:Key="HeroThumbRadiusCorner">8</CornerRadius>
@@ -143,6 +174,7 @@
   <Thickness x:Key="PageRowPadding">16,0,16,0</Thickness>
   <sys:Double x:Key="PageRowGap">16</sys:Double>
   <Thickness x:Key="PageRowGapRight">0,0,16,0</Thickness>
+  <Thickness x:Key="PageRowGapLeft">16,0,0,0</Thickness>
   <sys:Double x:Key="PageRowTitleSize">14</sys:Double>
   <!-- Колонка контрола: одинаковая на всех строках, иначе значения не выстраиваются -->
   <sys:Double x:Key="PageControlWidth">260</sys:Double>

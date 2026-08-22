@@ -68,7 +68,7 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     /// what it can do.
     /// </summary>
     public IReadOnlyList<string> Transports =>
-        [.. Snapshot.Info.Transports.Where(t => t.IsPresent).Select(t => t.Label)];
+        [.. Snapshot.Info.Transports.Where(t => t.IsPresent).Select(t => t.ShortLabel)];
 
     /// <summary>
     /// The aside after the pills — what this link does or does not carry. Empty when
@@ -137,10 +137,18 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
         }
     }
 
-    /// <summary>What the row says under the name. Never an error for a normal mode of use.</summary>
+    /// <summary>
+    /// What the row says under the name in the tray panel. Never an error for a normal
+    /// mode of use.
+    ///
+    /// Channel first, then whatever else is worth saying about it, joined the way the
+    /// artboard joins them: "USB-C · звук по донглу". The channel alone left the panel
+    /// repeating what the icon already showed, and the note alone left it unclear which
+    /// of two links the note was about.
+    /// </summary>
     public string Status => Snapshot.Availability switch
     {
-        DeviceAvailability.Active => Link,
+        DeviceAvailability.Active => HasNote ? $"{Link} · {Note}" : Link,
         DeviceAvailability.Unreachable => "Не отвечает",
         _ => Snapshot.LastSeenAt is { } seen ? $"последний раз — {seen:HH:mm}" : "Не подключено",
     };
@@ -152,8 +160,8 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     /// "Подключено" told the user nothing they could not already see from the row.
     /// </summary>
     private string Link =>
-        Snapshot.Info.ControlTransport?.Label
-        ?? Snapshot.Info.Transports.FirstOrDefault(t => t.IsPresent)?.Label
+        Snapshot.Info.ControlTransport?.ShortLabel
+        ?? Snapshot.Info.Transports.FirstOrDefault(t => t.IsPresent)?.ShortLabel
         ?? "Подключено";
 
     public void Update(DeviceSnapshot snapshot)

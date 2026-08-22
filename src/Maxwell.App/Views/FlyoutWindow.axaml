@@ -176,8 +176,12 @@
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="devices:FlyoutRowViewModel">
 
+              <!-- No border and no gap while closed: both are laid out, and the three
+                   pixels they added put every row below the first out of step with the
+                   artboard by more the further down the list it was. -->
               <Border Classes="deviceRow" Classes.open="{Binding IsOpen}"
-                      CornerRadius="{DynamicResource FlyoutThumbRadiusCorner}" BorderThickness="1" Margin="0,0,0,1">
+                      CornerRadius="{DynamicResource FlyoutThumbRadiusCorner}"
+                      BorderThickness="0">
                 <StackPanel>
 
                   <!-- Height on the button, not on the grid inside it: the shared

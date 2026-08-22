@@ -75,6 +75,25 @@ def px(value: str) -> str:
     return m.group(1).rstrip(".0") or "0" if "." in m.group(1) else m.group(1)
 
 
+def box(fragment: str, marker: str) -> str:
+    """
+    The width the browser actually drew, not the number in the `width` declaration.
+
+    The design file has no `box-sizing: border-box`, so an element with `width: 248px`
+    and `padding: 0 8px` occupies 264. Lifting the declaration alone made the navigation
+    pane sixteen pixels narrower than the artboard everywhere it was used, which is
+    exactly the class of mistake this script exists to prevent — so the box model is
+    done here rather than left to whoever reads the token.
+    """
+    width = float(px(find(fragment, marker, "width")))
+    parts = [p.strip() for p in find(fragment, marker, "padding").split()]
+    horizontal = parts[1] if len(parts) > 1 else parts[0]
+    side = 0.0 if horizontal == "0" else float(px(horizontal))
+
+    total = width + (side * 2)
+    return str(int(total)) if total == int(total) else str(total)
+
+
 def pad(value: str) -> str:
     """CSS `0 16px` -> Avalonia `16,0`. CSS is top/right/bottom/left; Avalonia is l,t,r,b."""
     parts = [p.strip() for p in value.split()]
@@ -128,6 +147,14 @@ def main() -> None:
         "Заголовок группы, ПОДКЛЮЧЕНЫ · 6")
     num("DashTitleSize", px(find(dash, "font-size: 28px; font-weight: 600", "font-size")),
         "Заголовок страницы")
+    num("DashBatteryBlock", px(find(dash, "flex: none; width: 92px", "width")),
+        "Колонка заряда: одинаковая на всех строках, иначе проценты не выстраиваются")
+    num("DashBatteryGap", px(find(dash, "flex: none; width: 92px", "gap")), "")
+    num("DashPercentWidth", px(find(dash, "font-size: 15px; font-weight: 600; width: 42px", "width")), "")
+    num("DashPercentSize",
+        px(find(dash, "font-size: 15px; font-weight: 600; width: 42px", "font-size")), "")
+    num("DashNoteSize", px(find(dash, "font-size: 12px; color: #616161; white-space: nowrap", "font-size")),
+        "Приписка после пилюль")
 
     # ---- Settings, artboard 7a --------------------------------------------------------
     # Shorter rows than a device page: nothing here has a slider or a photograph, and 64
@@ -142,6 +169,14 @@ def main() -> None:
     num("SegmentSize", px(find(prefs, "height: 30px; border-radius: 4px", "font-size")), "")
     num("SegmentWideWidth", px(find(prefs, "width: 84px; background: #0F6CBD", "width")), "")
     num("SegmentWidth", px(find(prefs, "width: 72px; display: flex", "width")), "")
+    # The artboard picks a width per dropdown — 168 for the language, 140 for the poll
+    # interval — rather than lining them up in a column the way a device page does. Both
+    # are content-box, so the padding is added back in.
+    num("SettingsLanguageWidth", box(prefs, "flex: none; height: 30px; width: 168px"), "")
+    num("SettingsIntervalWidth", box(prefs, "flex: none; height: 30px; width: 140px"), "")
+    num("SettingsSliderWidth", px(find(prefs, "flex: none; width: 240px", "width")),
+        "Ползунок на странице приложения; страница устройства шире — там колонка 260")
+    num("SettingsValueWidth", px(find(prefs, "width: 44px; font-size: 14px", "width")), "")
 
     # ---- Notice card, artboard 11c ----------------------------------------------------
     # Says what the application does not know, rather than warning about anything: a
@@ -153,7 +188,7 @@ def main() -> None:
     num("NoticeDotSize", px(find(bare, "width: 7px; height: 7px", "width")), "")
     num("NoticeTextSize", px(find(bare, "line-height: 1.5", "font-size")), "")
 
-    # ---- Content pane, artboard 1a ----------------------------------------------------
+    # ---- Content pane, artboard 5a ----------------------------------------------------
     # A raised surface rather than the window's own background, joined to the pane by one
     # rounded corner. Without it the two halves of the window read as one flat field.
     num("ContentBackgroundRadius",
@@ -161,13 +196,16 @@ def main() -> None:
     num("ContentTopLeftCorner",
         px(find(dash, "border-top-left-radius: 8px", "border-top-left-radius")) + ",0,0,0",
         "Скруглён только верхний левый угол — остальные три упираются в край окна")
-    num("ContentPadding", pad(find(dash, "border-top-left-radius: 8px", "padding")), "")
-    num("ContentGap", px(find(dash, "border-top-left-radius: 8px", "gap")), "")
+    # Taken from 5a rather than 1a: the dashboard is the one screen that uses 24/14 and
+    # every other screen uses 22/16, and the pane is one control for all of them.
+    num("ContentPadding", pad(find(page, "border-top-left-radius: 8px", "padding")), "")
+    num("ContentGap", px(find(page, "border-top-left-radius: 8px", "gap")), "")
 
     # ---- Navigation pane, artboard 1a -------------------------------------------------
     # Three shapes share one geometry: the devices, one device's sections, and the
     # application's own pages. Every row in all three is the same 36 pixels.
-    num("RailWidth", px(find(dash, "width: 248px; flex: none", "width")), "")
+    num("RailWidth", box(dash, "width: 248px; flex: none"),
+        "Вместе с внутренними отступами: в макете это content-box, 248 + 8 + 8")
     num("RailPadding", pad(find(dash, "width: 248px; flex: none", "padding")), "")
     num("RailGap", px(find(dash, "width: 248px; flex: none", "gap")), "")
     num("RailRowHeight", px(find(dash, "border-radius: 4px; background: #EBEBEB", "height")), "")
@@ -229,6 +267,15 @@ def main() -> None:
     # An SVG width attribute rather than a CSS property, so it is written out here
     # instead of being found. The comment is the honesty: this one number is typed.
     num("EmptyGlyphSize", "34", "Глиф класса на карточке, из <svg width> артборда 6c")
+
+    # ---- Line boxes -------------------------------------------------------------------
+    # Not in the design file at all: it never sets line-height, so these are the browser's
+    # `normal` for this font at these sizes, measured off the rendered artboards — the
+    # distance from the hero's bottom edge to the first card, minus the gaps around the
+    # heading, on 5a and 1a. Avalonia's own default for Segoe UI Variable is three pixels
+    # taller, which pushed every card down the page by that much on every screen.
+    num("PageTitleLine", "37", "Строка заголовка страницы, 28 px")
+    num("SectionHeadingLine", "18", "Строка заголовка раздела, 12 px")
 
     # ---- Device page, artboard 5a ------------------------------------------------------
     # The page is a hero and then sections; the hero is where the device is identified and
@@ -295,6 +342,7 @@ def main() -> None:
         # out of a resource — "0,0,{DynamicResource X},0" is a parse error, not a binding.
         if name.endswith("Gap"):
             lines.append(f'  <Thickness x:Key="{name}Right">0,0,{value},0</Thickness>')
+            lines.append(f'  <Thickness x:Key="{name}Left">{value},0,0,0</Thickness>')
 
     lines += ["", "</ResourceDictionary>", ""]
 
