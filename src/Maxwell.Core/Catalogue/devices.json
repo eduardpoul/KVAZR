@@ -85,6 +85,17 @@
     },
 
     {
+      "$note": "Prepared ahead of the hardware: the pad is on its way to this desk, the protocol is community-documented (Maxwell.Race SwitchPro + tests), and unverified comes off the day it answers. Over USB it needs the 0x80 handshake before it speaks; over Bluetooth it just talks.",
+      "slug": "nintendo-switch-pro",
+      "vendor": "Nintendo",
+      "model": "Switch Pro Controller",
+      "class": "Gamepad",
+      "usb": ["057e:2009"],
+      "names": ["Pro Controller"],
+      "unverified": true
+    },
+
+    {
       "$note": "A software node G HUB installs to inject macro keystrokes. Honestly a keyboard as far as the bus is concerned, and still nothing anybody plugged in — hidden by default, reversibly, same switch as the silent devices.",
       "slug": "logitech-ghub-virtual-keyboard",
       "vendor": "Logitech",
