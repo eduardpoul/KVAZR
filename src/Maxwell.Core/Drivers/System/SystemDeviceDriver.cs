@@ -82,11 +82,16 @@ public sealed class SystemDeviceDriver : IDeviceDriver
 
             DeviceClass observed = SystemDeviceProfile.Classify(nodes);
 
-            // The entry is a guess and the device is a fact. Where the hardware has said
-            // what it is, that wins — an entry claiming "headset" over a device reporting
-            // a keyboard is an entry that is wrong about this machine, and believing it
-            // would put the wrong sections on the page.
-            DeviceClass deviceClass = observed != DeviceClass.Unknown ? observed : entry?.Class ?? DeviceClass.Unknown;
+            bool viaDongle = entry is not null && entry.DongleUsb.Any(d => ids.Contains($"usb:{d}"));
+
+            // The entry is a guess and the device is a fact — except through a dongle.
+            // A dongle's descriptors describe the dongle: the NuPhy receiver presents
+            // keyboard, mouse and consumer collections whatever is paired to it, so the
+            // observation is an artefact of emulation, and the entry that named this id
+            // a dongle is the only thing that knows what stands behind it.
+            DeviceClass deviceClass = viaDongle && entry!.Class != DeviceClass.Unknown
+                ? entry.Class
+                : observed != DeviceClass.Unknown ? observed : entry?.Class ?? DeviceClass.Unknown;
 
             devices.Add(new DeviceInfo
             {
@@ -105,10 +110,7 @@ public sealed class SystemDeviceDriver : IDeviceDriver
                 Class = deviceClass,
                 ImageKey = entry?.Slug,
                 HardwareIds = ids,
-                Transports = SystemDeviceProfile.Transports(
-                    nodes,
-                    deviceClass,
-                    entry is not null && entry.DongleUsb.Any(d => ids.Contains($"usb:{d}"))),
+                Transports = SystemDeviceProfile.Transports(nodes, deviceClass, viaDongle),
             });
         }
 

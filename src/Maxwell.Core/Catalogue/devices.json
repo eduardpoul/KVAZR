@@ -46,12 +46,14 @@
     },
 
     {
-      "$note": "The dongle, not the keyboard behind it. Which board is paired to it is a question only the VIA protocol can answer, and until that driver exists calling this a keyboard would be naming a device that is not there.",
-      "slug": "nuphy-air96-v2-dongle",
+      "$note": "The 2.4G dongle is sold with exactly one board and named after it, which is what justifies showing the keyboard rather than the receiver. Battery and the VIA usage page are not exposed through it (checked on this desk: only keyboard/mouse/consumer collections plus a vendor-defined MI_02, where NuPhy's own protocol would be spoken); the honest battery paths are Bluetooth pairing or the cable.",
+      "slug": "nuphy-air96-v2",
       "vendor": "NuPhy",
-      "model": "NuPhy Air96 V2 Dongle",
-      "class": "Receiver",
-      "usb": ["19f5:3247"]
+      "model": "NuPhy Air96 V2",
+      "class": "Keyboard",
+      "usb": ["19f5:3247"],
+      "dongle": ["19f5:3247"],
+      "names": ["Air96 V2", "Air96"]
     },
 
     {
