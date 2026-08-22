@@ -30,6 +30,15 @@ public sealed record CatalogueEntry
     public IReadOnlyList<string> Usb { get; init; } = [];
 
     /// <summary>
+    /// Which of the usb ids are the model's own dongle. A dongle container carries the
+    /// whole device in the list — "the gamepad, reached through its dongle" — and this
+    /// is the only place that knowledge can come from: on the bus a dongle and a cabled
+    /// device look identical.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonPropertyName("dongle")]
+    public IReadOnlyList<string> DongleUsb { get; init; } = [];
+
+    /// <summary>
     /// Fragments of a Bluetooth name that identify this model, matched case-insensitively.
     /// A weaker key than a product id and the only one Bluetooth offers, which is why a
     /// fragment here has to be specific enough to be wrong rarely — "AirPods" is fine,

@@ -12,7 +12,11 @@ namespace Maxwell.Core.Tests;
 /// </summary>
 public sealed class DeviceVisibilityTests
 {
-    private static DeviceInfo Device(string key, string model, DeviceClass deviceClass = DeviceClass.Headset) =>
+    private static DeviceInfo Device(
+        string key,
+        string model,
+        DeviceClass deviceClass = DeviceClass.Headset,
+        string? catalogued = null) =>
         new()
         {
             Key = key,
@@ -20,6 +24,7 @@ public sealed class DeviceVisibilityTests
             Vendor = string.Empty,
             Model = model,
             Class = deviceClass,
+            ImageKey = catalogued,
         };
 
     private static HashSet<string> Hidden(params string[] keys) => new(keys, StringComparer.Ordinal);
@@ -48,11 +53,23 @@ public sealed class DeviceVisibilityTests
     }
 
     [Fact]
-    public void ADeviceWithARealName_IsNotSilent_EvenWithNoClass()
+    public void ACataloguedDevice_IsNotSilent_EvenWithNoClass()
     {
-        // Flydigi's charging dock classifies as nothing at all, and it is still a thing
-        // the user owns and recognises. Only an anonymous address counts as silent.
-        Assert.False(DeviceVisibility.IsSilent(Device("x", "Flydigi CD2", DeviceClass.Unknown)));
+        // Flydigi's charging dock classifies as nothing at all, and it stays on the
+        // list because a person put it in the catalogue — that entry is the statement
+        // "this thing is real and wanted", and it is the only statement that can be:
+        // nothing readable at this tier separates the dock from bus noise.
+        Assert.False(DeviceVisibility.IsSilent(
+            Device("x", "Flydigi CD2", DeviceClass.Unknown, catalogued: "flydigi-cd2")));
+    }
+
+    [Fact]
+    public void AnUncataloguedUnknown_IsSilent_WhateverItsNameSays()
+    {
+        // "USB Controller", "Устройство ввода USB" — named, and still nothing a user owns
+        // knowingly. The name being pronounceable is not the same as the device being
+        // identifiable, and the earlier rule that trusted names left these on the list.
+        Assert.True(DeviceVisibility.IsSilent(Device("x", "USB Controller", DeviceClass.Unknown)));
     }
 
     [Fact]

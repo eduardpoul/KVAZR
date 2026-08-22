@@ -105,7 +105,10 @@ public sealed class SystemDeviceDriver : IDeviceDriver
                 Class = deviceClass,
                 ImageKey = entry?.Slug,
                 HardwareIds = ids,
-                Transports = SystemDeviceProfile.Transports(nodes, deviceClass),
+                Transports = SystemDeviceProfile.Transports(
+                    nodes,
+                    deviceClass,
+                    entry is not null && entry.DongleUsb.Any(d => ids.Contains($"usb:{d}"))),
             });
         }
 

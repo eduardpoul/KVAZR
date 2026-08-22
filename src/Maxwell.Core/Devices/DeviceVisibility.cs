@@ -43,7 +43,16 @@ public static class DeviceVisibility
     {
         ArgumentNullException.ThrowIfNull(device);
 
-        return device.Class == DeviceClass.Unknown && LooksLikeAnAddress(device.Model);
+        if (device.Class != DeviceClass.Unknown) return false;
+
+        // A catalogue entry is a person having said "this thing is real and wanted" —
+        // the charging dock stays on the list even though no protocol speaks to it.
+        // Without one, an unknown-class device that reports nothing readable is bus
+        // noise as far as the user is concerned: "USB Controller", "Устройство
+        // ввода USB", an address for a name. Reversible in one click, as before.
+        if (device.ImageKey is null) return true;
+
+        return LooksLikeAnAddress(device.Model);
     }
 
     /// <summary>

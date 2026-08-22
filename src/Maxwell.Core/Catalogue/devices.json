@@ -118,11 +118,14 @@
     },
 
     {
+      "$note": "The dongle presents XInput plus an emulated keyboard and mouse; the container is the gamepad reached through it, and 2501 being listed as the dongle is what puts the honest transport label on the row. Whether the pad itself is switched on is not visible at this tier — the vendor-defined HID collections are where a future driver would ask.",
       "slug": "flydigi-apex-5",
       "vendor": "Flydigi",
-      "model": "Flydigi Apex 5",
+      "model": "Flydigi APEX 5",
       "class": "Gamepad",
-      "names": ["APEX 5", "Apex 5"],
+      "usb": ["37d7:2501"],
+      "dongle": ["37d7:2501"],
+      "names": ["APEX 5", "Apex 5", "APEX5"],
       "unverified": true
     }
   ]

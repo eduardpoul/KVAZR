@@ -101,6 +101,19 @@ internal static class SystemDeviceProfile
             return DeviceClass.Unknown;
         }
 
+        // Gamepad evidence first, and this order is a lesson from a real device. The
+        // Flydigi dongle emulates a keyboard and a mouse alongside its XInput function,
+        // so the keyboard-plus-mouse rule below called a gamepad a receiver. An XInput
+        // marker cannot be emulation of something else: IG_ in an instance id and the
+        // Xna setup classes exist only for controllers.
+        if (nodes.Any(n =>
+                n.ClassGuid == XnaComposite
+                || n.ClassGuid == XboxPeripheral
+                || n.InstanceId.Contains("IG_", StringComparison.OrdinalIgnoreCase)))
+        {
+            return DeviceClass.Gamepad;
+        }
+
         bool mouse = nodes.Any(n => n.ClassGuid == MouseClass);
         bool keyboard = nodes.Any(n => n.ClassGuid == KeyboardClass);
 
@@ -109,9 +122,6 @@ internal static class SystemDeviceProfile
         if (mouse && keyboard) return DeviceClass.Receiver;
         if (mouse) return DeviceClass.Mouse;
         if (keyboard) return DeviceClass.Keyboard;
-
-        if (nodes.Any(n => n.ClassGuid == XnaComposite || n.ClassGuid == XboxPeripheral))
-            return DeviceClass.Gamepad;
 
         return DeviceClass.Unknown;
     }
@@ -135,7 +145,8 @@ internal static class SystemDeviceProfile
 
     public static IReadOnlyList<TransportInfo> Transports(
         IReadOnlyList<SystemDeviceNode> nodes,
-        DeviceClass deviceClass)
+        DeviceClass deviceClass,
+        bool viaDongle = false)
     {
         var transports = new List<TransportInfo>();
 
@@ -148,7 +159,8 @@ internal static class SystemDeviceProfile
                 Kind = link switch
                 {
                     SystemDeviceLink.Bluetooth or SystemDeviceLink.BluetoothLe => TransportKind.Bluetooth,
-                    SystemDeviceLink.Usb when deviceClass == DeviceClass.Receiver => TransportKind.Dongle,
+                    SystemDeviceLink.Usb when viaDongle || deviceClass == DeviceClass.Receiver =>
+                        TransportKind.Dongle,
                     SystemDeviceLink.Usb => TransportKind.UsbCable,
                     _ => TransportKind.Unknown,
                 },
@@ -156,6 +168,10 @@ internal static class SystemDeviceProfile
                 {
                     SystemDeviceLink.Bluetooth => "Bluetooth",
                     SystemDeviceLink.BluetoothLe => "Bluetooth LE",
+
+                    // The catalogue said this USB plug is the model's dongle — the
+                    // gamepad in the list is reached through it, not lying on a cable.
+                    SystemDeviceLink.Usb when viaDongle => "USB-донгл",
                     SystemDeviceLink.Usb when deviceClass == DeviceClass.Receiver => "Приёмник",
                     SystemDeviceLink.Usb => "USB",
                     _ => "Неизвестно",

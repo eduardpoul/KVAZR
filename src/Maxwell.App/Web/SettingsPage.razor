@@ -93,6 +93,14 @@
           Windows не тронуты: вернёте в список — данные снова начнут читаться.
         </div>
       </div>
+      <div class="set-row">
+        <div class="cap-text">
+          <div class="cap-title">Скрывать непонятные устройства</div>
+          <div class="caption">Без класса и без данных — обычно служебные узлы, а не техника</div>
+        </div>
+        <button class="switch @(Vm.HideSilentDevices ? "on" : "")"
+                @onclick="() => OnUi(() => Vm.HideSilentDevices = !Vm.HideSilentDevices)"><span class="knob"></span></button>
+      </div>
       @if (Vm.HasHidden)
       {
         @foreach (HiddenDeviceViewModel hidden in Vm.Hidden)
