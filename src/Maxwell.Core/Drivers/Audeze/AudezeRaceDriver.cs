@@ -191,7 +191,10 @@ public sealed class AudezeRaceDriver : IDeviceDriver
             .Select(i => new TransportInfo
             {
                 Kind = i.IsDongle ? TransportKind.Dongle : TransportKind.UsbCable,
-                Label = i.IsDongle ? $"Донгл 0x{i.ProductId:X4}" : $"USB-C 0x{i.ProductId:X4}",
+                // Named for a person, not for a bus analyser: the product id said
+                // nothing a user could act on, and it is still on the facts card for
+                // whoever does want it.
+                Label = i.IsDongle ? "USB-донгл" : "USB-C",
                 IsPresent = true,
 
                 // Both. The dongle was marked audio-only on a premise that turned out

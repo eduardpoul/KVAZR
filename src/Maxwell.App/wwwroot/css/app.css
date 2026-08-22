@@ -687,7 +687,18 @@ details.adv summary {
   list-style: none;
 }
 
-details.adv summary::after { content: "⌄"; margin-left: auto; color: var(--text-tertiary); }
+/* A drawn chevron. The text glyphs (⌄ ⌃) sit on the font's own baseline and looked
+   broken next to everything else this page draws itself. */
+details.adv summary::after {
+  content: "";
+  margin-left: auto;
+  width: 8px; height: 8px;
+  border-right: 1.5px solid var(--text-tertiary);
+  border-bottom: 1.5px solid var(--text-tertiary);
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.12s ease;
+}
+
 details.adv[open] summary { border-radius: 8px 8px 0 0; }
-details.adv[open] summary::after { content: "⌃"; }
+details.adv[open] summary::after { transform: rotate(225deg) translateY(-2px); }
 details.adv .card { border-radius: 0 0 8px 8px; border-top: none; }

@@ -105,7 +105,11 @@ public partial class App : Application, IDisposable
             _settings = _services.GetRequiredService<ISettingsStore>();
             _settings.LoadAsync().GetAwaiter().GetResult();
             _settings.Changed += OnSettingsChanged;
+            // The development flag wins the first paint so captures are deterministic,
+            // and then expires: left standing it outranked the settings toggle for the
+            // whole session, which read as "the dark theme does not work".
             ApplyTheme(ThemeOnStart ?? _settings.Current.Theme);
+            ThemeOnStart = null;
 
             _registry = _services.GetRequiredService<IDeviceRegistry>();
             _primary = _services.GetRequiredService<PrimaryDevice>();
@@ -316,7 +320,7 @@ public partial class App : Application, IDisposable
     private void OnSettingsChanged(object? sender, AppSettings settings) =>
         Dispatcher.UIThread.Post(() =>
         {
-            ApplyTheme(ThemeOnStart ?? settings.Theme);
+            ApplyTheme(settings.Theme);
             RefreshTray();
         });
 

@@ -82,9 +82,9 @@
                 <div class="row-name">@device.DisplayName</div>
                 <div class="row-sub">
                   <span class="pill">@device.Kind</span>
-                  @foreach (string transport in device.Transports)
+                  @foreach (TransportPill transport in device.Transports)
                   {
-                    <span class="pill transport">@transport</span>
+                    <span class="pill @(transport.IsLive ? "transport" : "")">@transport.Label</span>
                   }
                   @if (device.HasNote)
                   {

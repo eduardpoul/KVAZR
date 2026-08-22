@@ -67,8 +67,10 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     /// naming only one of them is how the page ends up claiming the wrong thing about
     /// what it can do.
     /// </summary>
-    public IReadOnlyList<string> Transports =>
-        [.. Snapshot.Info.Transports.Where(t => t.IsPresent).Select(t => t.ShortLabel)];
+    public IReadOnlyList<TransportPill> Transports =>
+        [.. Snapshot.Info.Transports
+            .Where(t => t.IsPresent)
+            .Select(t => new TransportPill(t.ShortLabel, TransportActivity.IsLive(Snapshot.Info, t)))];
 
     /// <summary>
     /// The aside after the pills — what this link does or does not carry. Empty when
@@ -79,7 +81,10 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
         DeviceAvailability.Unreachable => "не отвечает",
         DeviceAvailability.Offline =>
             Snapshot.LastSeenAt is { } seen ? $"последний раз — {seen:HH:mm}" : "не подключено",
-        _ when Snapshot.Info.ControlTransport is null => "только чтение",
+
+        // Deliberately not "только чтение" any more: on this machine that was most of the
+        // list, and a label most rows carry stops being information. What a device
+        // cannot do is the page's business, said where the missing control would be.
         _ => string.Empty,
     };
 

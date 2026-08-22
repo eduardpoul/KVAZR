@@ -196,9 +196,9 @@
                           </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
-                          <DataTemplate x:DataType="x:String">
-                            <Border Classes="chip transport">
-                              <TextBlock Text="{Binding}" />
+                          <DataTemplate x:DataType="devices:TransportPill">
+                            <Border Classes="chip" Classes.transport="{Binding IsLive}">
+                              <TextBlock Text="{Binding Label}" />
                             </Border>
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>
