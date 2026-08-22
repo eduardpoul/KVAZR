@@ -66,6 +66,13 @@
   <!-- Ползунок на странице приложения; страница устройства шире — там колонка 260 -->
   <sys:Double x:Key="SettingsSliderWidth">240</sys:Double>
   <sys:Double x:Key="SettingsValueWidth">44</sys:Double>
+  <sys:Double x:Key="SlotRowHeight">68</sys:Double>
+  <sys:Double x:Key="SlotRowGap">16</sys:Double>
+  <Thickness x:Key="SlotRowGapRight">0,0,16,0</Thickness>
+  <Thickness x:Key="SlotRowGapLeft">16,0,0,0</Thickness>
+  <sys:Double x:Key="SlotDotSize">8</sys:Double>
+  <!-- Заголовок раздела на странице одного раздела — мельче, чем на странице устройства -->
+  <sys:Double x:Key="SlotTitleSize">24</sys:Double>
   <sys:Double x:Key="NoticeRadius">8</sys:Double>
   <CornerRadius x:Key="NoticeRadiusCorner">8</CornerRadius>
   <Thickness x:Key="NoticePadding">14,12,14,12</Thickness>

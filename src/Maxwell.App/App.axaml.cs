@@ -36,6 +36,9 @@ public partial class App : Application, IDisposable
     internal static SplashForm? PinSplash { get; set; }
 
     /// <summary>Development affordance: open the identity sheet without a synthetic click.</summary>
+    /// <summary>Forces a theme for the session, for putting a render beside a light artboard.</summary>
+    internal static AppTheme? ThemeOnStart { get; set; }
+
     internal static int? OpenAppSectionOnStart { get; set; }
 
     internal static bool OpenIdentityOnStart { get; set; }
@@ -100,7 +103,7 @@ public partial class App : Application, IDisposable
             _settings = _services.GetRequiredService<ISettingsStore>();
             _settings.LoadAsync().GetAwaiter().GetResult();
             _settings.Changed += OnSettingsChanged;
-            ApplyTheme(_settings.Current.Theme);
+            ApplyTheme(ThemeOnStart ?? _settings.Current.Theme);
 
             _registry = _services.GetRequiredService<IDeviceRegistry>();
             _primary = _services.GetRequiredService<PrimaryDevice>();
@@ -310,7 +313,7 @@ public partial class App : Application, IDisposable
     private void OnSettingsChanged(object? sender, AppSettings settings) =>
         Dispatcher.UIThread.Post(() =>
         {
-            ApplyTheme(settings.Theme);
+            ApplyTheme(ThemeOnStart ?? settings.Theme);
             RefreshTray();
         });
 

@@ -37,6 +37,40 @@ public enum HintKind
 /// </summary>
 public abstract partial class CapabilityViewModel : ObservableObject, IDisposable
 {
+    /// <summary>
+    /// Whether this capability's control belongs in the row's right-hand column or across
+    /// the whole width below its name.
+    ///
+    /// A switch, a slider and a dropdown are all the same shape and lining them up in one
+    /// column is what makes a page of them read as a list. A host list, a button map, a
+    /// key map, a response curve and a set of colour zones are not that shape: each is a
+    /// small table, and squeezing one into 260 pixels does not make it tidy, it makes it
+    /// unreadable and then clips what is left off the edge of the card. Artboards 9b and
+    /// 9c give every one of them the full width.
+    /// </summary>
+    public bool IsWide => Descriptor.Primitive
+        is CapabilityPrimitive.HostSlots
+        or CapabilityPrimitive.ProfileSet
+        or CapabilityPrimitive.ButtonMap
+        or CapabilityPrimitive.KeyMap
+        or CapabilityPrimitive.Curve
+        or CapabilityPrimitive.Lighting;
+
+    /// <summary>
+    /// A number with its unit. No space before a percent sign and a space before every
+    /// other unit — that is the typographic rule in both languages this ships in, and
+    /// "64 %" in a column of readings is the kind of thing that makes a page look
+    /// machine-generated.
+    /// </summary>
+    public static string WithUnit(double value, string? unit) => WithUnit($"{value:0}", unit);
+
+    public static string WithUnit(string value, string? unit) => unit switch
+    {
+        null or "" => value,
+        "%" => value + "%",
+        _ => $"{value} {unit}",
+    };
+
     private static readonly TimeSpan WriteDelay = TimeSpan.FromMilliseconds(350);
 
     private readonly Debouncer _debouncer = new(WriteDelay);

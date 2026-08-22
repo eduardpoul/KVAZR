@@ -11,12 +11,28 @@
         Title="KVAZR"
         Icon="/Assets/kvazr.ico"
         Width="1040" Height="720"
-        MinWidth="880" MinHeight="560"
+        MinWidth="900" MinHeight="600"
+        MaxWidth="1400" MaxHeight="1000"
         Background="{DynamicResource LayerBackgroundBrush}"
         FontFamily="Segoe UI Variable Text, Segoe UI, sans-serif"
         FontSize="{DynamicResource FontSizeBody}"
         Foreground="{DynamicResource TextPrimaryBrush}"
         WindowDecorations="BorderOnly">
+
+  <!--
+    The window is bounded at both ends, and both ends are arithmetic rather than taste.
+
+    The floor is what the widest row needs: 264 for the pane, 28 of pane padding on each
+    side, 16 of row padding on each side, the 260 control column, the 16 between it and
+    the label, and enough left for a title and its explanation to sit on two lines rather
+    than four. Below that the page stops being a list of settings and becomes a column of
+    wrapped fragments.
+
+    The ceiling is there because nothing on these screens grows to use the room. The rows
+    are a fixed height and the control column a fixed width, so a maximised window on a
+    wide monitor is the same page with a metre of empty card to the right of every
+    switch.
+  -->
 
   <!-- Three templates for the whole application. There is no per-model page: a device
        page is assembled from what the device declares, whatever vendor made it. -->

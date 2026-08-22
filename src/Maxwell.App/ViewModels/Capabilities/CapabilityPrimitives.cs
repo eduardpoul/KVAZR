@@ -18,7 +18,7 @@ public sealed partial class ReadoutCapabilityViewModel : CapabilityViewModel
 
     private static string Format(CapabilityState state) => state.Value switch
     {
-        NumberValue n => state.Range?.Unit is { } unit ? $"{n.Value} {unit}" : n.Value.ToString(),
+        NumberValue n => WithUnit(n.Value.ToString(), state.Range?.Unit),
         FlagValue f => f.Value ? "да" : "нет",
         TextValue t => t.Value,
         ChoiceValue c => state.Descriptor.Choices.FirstOrDefault(o => o.Index == c.Index)?.Label ?? $"#{c.Index}",
@@ -87,7 +87,7 @@ public sealed partial class RangeCapabilityViewModel : CapabilityViewModel
     /// would invite the reader to think 134 is somehow the goal.
     /// </summary>
     public string Display => HasValue
-        ? Unit is { } unit ? $"{Value:0} {unit}"
+        ? Unit is { } unit ? WithUnit(Value, unit)
         : Minimum <= 0 ? $"{Value:0} / {Maximum:0}"
         : $"{Value:0}"
         : "—";

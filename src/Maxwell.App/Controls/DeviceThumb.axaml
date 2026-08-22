@@ -28,12 +28,12 @@
 
     <Path Data="{Binding $parent[ctl:DeviceThumb].Glyph}"
           IsVisible="{Binding $parent[ctl:DeviceThumb].Photo, Converter={x:Static ObjectConverters.IsNull}}"
-          Stroke="{DynamicResource TextFillColorSecondaryBrush}"
-          StrokeThickness="1.6"
+          Stroke="{DynamicResource TextSecondaryBrush}"
+          StrokeThickness="{Binding $parent[ctl:DeviceThumb].GlyphStroke}"
           StrokeLineCap="Round"
           StrokeJoin="Round"
           Stretch="Uniform"
-          Margin="3"
+          Margin="{Binding $parent[ctl:DeviceThumb].GlyphMargin}"
           HorizontalAlignment="Center"
           VerticalAlignment="Center" />
   </Panel>

@@ -178,6 +178,17 @@ def main() -> None:
         "Ползунок на странице приложения; страница устройства шире — там колонка 260")
     num("SettingsValueWidth", px(find(prefs, "width: 44px; font-size: 14px", "width")), "")
 
+    # ---- Slot lists, artboard 9b ------------------------------------------------------
+    # Hosts and profiles are tables rather than controls: a status dot, what the slot is,
+    # what is in it, and the one verb that applies. Squeezed into a control column they
+    # become unreadable, so they get their own rows at their own height.
+    link = region(html, 'id="9b"', 9000)
+    num("SlotRowHeight", px(find(link, "height: 68px; display: flex", "height")), "")
+    num("SlotRowGap", px(find(link, "height: 68px; display: flex", "gap")), "")
+    num("SlotDotSize", px(find(link, "width: 8px; height: 8px", "width")), "")
+    num("SlotTitleSize", px(find(link, "font-size: 24px; font-weight: 600", "font-size")),
+        "Заголовок раздела на странице одного раздела — мельче, чем на странице устройства")
+
     # ---- Notice card, artboard 11c ----------------------------------------------------
     # Says what the application does not know, rather than warning about anything: a
     # device that answers nothing is a fact about the device, not a fault of the user's.

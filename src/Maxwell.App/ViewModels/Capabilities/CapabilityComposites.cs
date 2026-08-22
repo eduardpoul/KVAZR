@@ -176,7 +176,7 @@ public sealed partial class GroupedRangeViewModel : ObservableObject
     public partial bool CanEdit { get; private set; }
 
     public string Display => HasValue
-        ? Unit is { } unit ? $"{Value:0} {unit}" : $"{Value:0}"
+        ? Unit is { } unit ? CapabilityViewModel.WithUnit(Value, unit) : $"{Value:0}"
         : "—";
 
     internal void Pull(CapabilityValue value, bool canEdit)

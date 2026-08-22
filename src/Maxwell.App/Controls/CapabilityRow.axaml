@@ -18,13 +18,21 @@
     width, a row of sliders and a row of switches start at different places and the eye
     has to find the column again on every line.
 
-    MinHeight rather than Height: the artboard's 64 is what a one- or two-line row comes
-    to, but a KeyMap or a colour picker is taller and clipping it to look tidy would be
-    tidiness at the cost of the thing being usable.
-  -->
-  <Grid ColumnDefinitions="*,Auto" MinHeight="{DynamicResource PageRowHeight}">
+    Except where the control is not that shape. A host list, a button map, a key map, a
+    curve and a set of colour zones are each a small table, and 260 pixels does not make
+    one tidy — it makes it unreadable and then clips the rest off the edge of the card.
+    Those get the full width under their own name, which is how artboards 9b and 9c draw
+    them.
 
-    <StackPanel Grid.Column="0" Spacing="2"
+    MinHeight rather than Height: the artboard's 64 is what a one- or two-line row comes
+    to, and anything taller is taller.
+  -->
+  <!-- The first row takes the slack, so a one-line row's content sits in the middle of
+       its 64 pixels rather than at the top of them with the rest left empty below. -->
+  <Grid ColumnDefinitions="*,Auto" RowDefinitions="*,Auto"
+        MinHeight="{DynamicResource PageRowHeight}">
+
+    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2"
                 VerticalAlignment="Center"
                 Margin="{DynamicResource PageRowGapRight}">
       <TextBlock FontSize="{DynamicResource PageRowTitleSize}" Text="{Binding Title}" />
@@ -34,10 +42,16 @@
                  IsVisible="{Binding Subtitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
     </StackPanel>
 
-    <controls:CapabilityControl Grid.Column="1"
+    <controls:CapabilityControl Grid.Row="0" Grid.Column="1"
+                                IsVisible="{Binding !IsWide}"
                                 Width="{DynamicResource PageControlWidth}"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center" />
+
+    <controls:CapabilityControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                IsVisible="{Binding IsWide}"
+                                HorizontalAlignment="Stretch"
+                                Margin="0,10,0,4" />
   </Grid>
 
 </UserControl>

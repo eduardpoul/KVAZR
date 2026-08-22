@@ -72,6 +72,19 @@ internal static class Program
 
         App.OpenIdentityOnStart = Array.IndexOf(args, "--identity") >= 0;
 
+        // The artboards are drawn light and the machine this is developed on runs dark,
+        // so without this every comparison was made across two different themes — which
+        // is how a page can look "close enough" while being wrong about its geometry.
+        if (Array.IndexOf(args, "--theme") is var theme and >= 0 && theme + 1 < args.Length)
+        {
+            App.ThemeOnStart = args[theme + 1] switch
+            {
+                "light" => AppTheme.Light,
+                "dark" => AppTheme.Dark,
+                _ => AppTheme.System,
+            };
+        }
+
         // A page taller than the window can only be reviewed a third at a time, and
         // scrolling it means driving the mouse, which takes the cursor away from
         // whoever is sitting at the machine. Resizing the window costs nobody anything.
