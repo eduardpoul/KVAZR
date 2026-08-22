@@ -4,7 +4,6 @@ using System.Runtime.Versioning;
 using Maxwell.Core.Abstractions;
 using Maxwell.Core.Catalogue;
 using Maxwell.Core.Devices;
-using Maxwell.Core.Drivers.Audeze;
 using Maxwell.Core.Drivers.Mock;
 using Maxwell.Core.Drivers.System;
 using Maxwell.Core.Polling;
@@ -62,9 +61,11 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddDeviceRegistry(
         this IServiceCollection services,
         bool includeMockDevices = false,
-        int mockDeviceCount = 2)
+        int mockDeviceCount = 2,
+        params IDriverModule[] modules)
     {
         ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(modules);
 
         // Two owners of the same hardware is the one failure this layer exists to
         // prevent, and it does not announce itself: the device answers the wrong
@@ -76,14 +77,12 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddSingleton<ICapabilityLedger, SettingsCapabilityLedger>();
-        services.AddSingleton<IDeviceDriver, AudezeRaceDriver>();
 
-        // The class tier: whatever is paired to a Logitech receiver, by protocol rather
-        // than by model. Windows-only until its channel has another implementation.
-        if (OperatingSystem.IsWindows())
-        {
-            services.AddSingleton<IDeviceDriver, Drivers.Logitech.HidPlusPlusDriver>();
-        }
+        // The device families come in as modules — one per class protocol or per deep
+        // device — so the core never names a driver and adding a family is adding an
+        // assembly folder and one argument here, nothing else. Order does not matter:
+        // the registry shadows on tier and merges on hardware id regardless.
+        foreach (IDriverModule module in modules) module.Register(services);
 
         // Registered last of the real drivers, though order does not decide anything —
         // the registry shadows on tier. It is here so that a machine with nothing this

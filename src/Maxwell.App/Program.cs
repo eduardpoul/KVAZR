@@ -201,7 +201,14 @@ internal static class Program
         // --mock-crowd fills the list out so the crowded cases can be looked at; the
         // panel's height ceiling is specified at six devices and two will not reach it.
         int mocks = Array.IndexOf(args, "--mock-crowd") >= 0 ? 5 : 2;
-        builder.Services.AddDeviceRegistry(includeMockDevices: true, mockDeviceCount: mocks);
+        // The device families this build understands, listed once. A new class protocol
+        // or a new deep device is one more module here and its folder under Drivers — the
+        // core and the other modules do not move. See docs/ARCHITECTURE.md.
+        builder.Services.AddDeviceRegistry(
+            includeMockDevices: true,
+            mockDeviceCount: mocks,
+            new Maxwell.Core.Drivers.Audeze.AudezeModule(),
+            new Maxwell.Core.Drivers.Logitech.LogitechModule());
 
         builder.Services.AddSingleton<IConfirmationPrompt>(sp =>
             new ModalConfirmation(sp.GetRequiredService<MainWindow>));

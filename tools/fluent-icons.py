@@ -19,7 +19,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DESIGN = ROOT / "Design" / "kvazr" / "Fluent Device Icons.dc.html"
-OUT = ROOT / "src" / "Maxwell.App" / "Web" / "FluentIcons.g.cs"
+OUT = ROOT / "src" / "Maxwell.App" / "Web" / "Infrastructure" / "FluentIcons.g.cs"
 
 html = io.open(DESIGN, encoding="utf-8").read()
 
