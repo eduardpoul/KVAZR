@@ -15,6 +15,7 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
     private const string WriteRefused = "Устройство не приняло значение. Вернули прежнее";
 
     private readonly IDeviceDriver _driver;
+    private readonly IReadOnlyList<ICapabilityContributor> _contributors;
     private readonly ICapabilityLedger _ledger;
     private readonly ILogger<DeviceSession> _logger;
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -26,6 +27,22 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
     /// back changed is an external change only if we were not the one who changed it.
     /// </summary>
     private readonly HashSet<string> _writtenSinceRefresh = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Contributors that attached to this device, in the order they were asked.
+    ///
+    /// Kept apart from the owning connection because they come and go independently of
+    /// it: an audio endpoint disappears when the headset sleeps while the vendor
+    /// protocol carries on answering over its dongle.
+    /// </summary>
+    private readonly List<Attachment> _attachments = [];
+
+    /// <summary>
+    /// Which channel answers for which capability. Rebuilt on every seed, in channel
+    /// order with the owning connection first, which is what makes the owner win when
+    /// two sources declare the same id.
+    /// </summary>
+    private readonly Dictionary<string, IDeviceConnection> _owner = new(StringComparer.Ordinal);
 
     private IDeviceConnection? _connection;
     private DeviceInfo _info;
@@ -46,7 +63,8 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
         DeviceInfo info,
         IDeviceDriver driver,
         ICapabilityLedger ledger,
-        ILogger<DeviceSession> logger)
+        ILogger<DeviceSession> logger,
+        IReadOnlyList<ICapabilityContributor>? contributors = null)
     {
         ArgumentNullException.ThrowIfNull(info);
         ArgumentNullException.ThrowIfNull(driver);
@@ -57,6 +75,7 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
         _driver = driver;
         _ledger = ledger;
         _logger = logger;
+        _contributors = contributors ?? [];
 
         Snapshot = Compose();
     }
@@ -84,6 +103,23 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
         {
             bool wasPresent = _present;
 
+            // The channel moved. A connection is bound to one path — a dongle's or a
+            // cable's — and when the headset is unplugged from the cable and picked up by
+            // its dongle, the old handle does not fail loudly: it simply stops answering.
+            // Nothing threw, so nothing dropped the connection, and the application went
+            // on questioning a path that was no longer there until something finally
+            // raised an IO error. That was the minute between pulling a cable and the
+            // application noticing.
+            if (_connection is not null && MovedChannel(_info, info))
+            {
+                _logger.DeviceChannelChanged(info.Key);
+
+                // Contributors go with it. The lead changed, and what a contributor knows
+                // is tied to the same lead: the audio endpoint the dongle presented is not
+                // the one that appears on the cable.
+                DropAll();
+            }
+
             _info = info;
             _present = true;
             _lastSeenAt = DateTimeOffset.Now;
@@ -95,7 +131,7 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
                 try
                 {
                     _connection = await _driver.ConnectAsync(info, cancellationToken).ConfigureAwait(false);
-                    SeedCapabilities(_connection);
+                    Listen(_connection);
                     connected = true;
                     _answers = false;
                 }
@@ -105,14 +141,20 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
                 }
             }
 
+            connected |= await AttachAsync(info, cancellationToken).ConfigureAwait(false);
+
+            // Seeded once both are in, so that the owning connection is first in the
+            // channel order and keeps any capability a contributor also declares.
+            if (connected) SeedCapabilities();
+
             // A device that is not answering is asked again on every sweep. Without
             // this a headset switched off once would stay marked unreachable until the
             // application restarted.
             bool probed = false;
 
-            if (_connection is not null && !_answers)
+            if (HasChannel && !_answers)
             {
-                _answers = await AnswersAsync(_connection, cancellationToken).ConfigureAwait(false);
+                _answers = await AnswersAsync(cancellationToken).ConfigureAwait(false);
                 probed = true;
             }
 
@@ -129,6 +171,21 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
     }
 
     /// <summary>
+    /// Whether the device is reachable by a different set of channels than before.
+    ///
+    /// Compared by kind and presence rather than by label: a label carries a product id
+    /// that can differ between two ways into the same device, and comparing those would
+    /// rebuild the connection on every sweep.
+    /// </summary>
+    private static bool MovedChannel(DeviceInfo before, DeviceInfo after)
+    {
+        static HashSet<TransportKind> Live(DeviceInfo info) =>
+            [.. info.Transports.Where(t => t.IsPresent).Select(t => t.Kind)];
+
+        return !Live(before).SetEquals(Live(after));
+    }
+
+    /// <summary>
     /// The device is gone. Values are kept rather than zeroed — the list shows the last
     /// reading with the time it was taken, which is honest, where a row of zeroes is not.
     /// </summary>
@@ -137,13 +194,49 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            DropConnection();
+            DropAll();
             _present = false;
             Publish();
         }
         finally
         {
             _gate.Release();
+        }
+    }
+
+    /// <summary>
+    /// How many user actions are waiting for the channel.
+    ///
+    /// One device is one conversation, so a write still waits for whatever reading is in
+    /// flight — but it should not wait for the twenty after that. A sweep runs for ten
+    /// seconds or more when several capabilities are answering slowly, and pressing a
+    /// button behind one was indistinguishable from a hang. The sweep checks this between
+    /// readings and stands aside; what it skipped comes round on the next tick, which
+    /// costs nothing anybody can see.
+    /// </summary>
+    private int _waiting;
+
+    /// <summary>
+    /// Re-reads what a touch of the device's own controls could have changed.
+    ///
+    /// The point of listening at all: the wearer turns the wheel and the panel follows at
+    /// once, instead of whenever the next sweep comes round. Only the readings the driver
+    /// names are asked for — the event says something was touched, not what it now is, and
+    /// re-reading everything would take five seconds and throw the benefit away.
+    /// </summary>
+    private async void OnActivity(object? sender, IReadOnlyList<string> capabilityIds)
+    {
+        try
+        {
+            await RefreshAsync(capabilityIds).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            // The session is closing; there is nothing left to refresh.
+        }
+        catch (Exception ex)
+        {
+            _logger.DeviceReadFailed(ex, _info.Key);
         }
     }
 
@@ -161,52 +254,75 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            IDeviceConnection? connection = _connection;
-            if (connection is null) return;
+            if (!HasChannel) return;
 
             bool changed = false;
 
-            try
+            foreach (string id in capabilityIds)
             {
-                foreach (string id in capabilityIds)
+                // Somebody is waiting to change something. The rest of the sweep can
+                // wait; they cannot.
+                if (Volatile.Read(ref _waiting) > 0) break;
+
+                if (!_states.TryGetValue(id, out CapabilityState? state)) continue;
+                if (!state.Descriptor.IsReadable) continue;
+                if (!_owner.TryGetValue(id, out IDeviceConnection? source)) continue;
+
+                CapabilityValue value;
+
+                try
                 {
-                    if (!_states.TryGetValue(id, out CapabilityState? state)) continue;
-                    if (!state.Descriptor.IsReadable) continue;
-
-                    CapabilityValue value = await connection.ReadAsync(id, cancellationToken).ConfigureAwait(false);
-
-                    // A refusal to answer is not a reason to overwrite a good reading with
-                    // nothing; a boom mic that is merely unplugged should not blank the
-                    // level the user saw a second ago.
-                    if (value.IsAbsent && !state.Value.IsAbsent) continue;
-
-                    bool moved = value != state.Value;
-
-                    _states[id] = state with
-                    {
-                        Value = value,
-
-                        // A first reading is not a change. Without this the very first
-                        // poll flags every volatile capability as "moved on the device",
-                        // which is both wrong and the sort of wrong that teaches people
-                        // to ignore the marker.
-                        ChangedExternally = moved
-                            && !state.Value.IsAbsent
-                            && state.Descriptor.IsVolatile
-                            && !_writtenSinceRefresh.Contains(id),
-                    };
-
-                    changed |= moved;
+                    value = await source.ReadAsync(id, cancellationToken).ConfigureAwait(false);
                 }
-            }
-            catch (IOException ex)
-            {
-                // The handle is finished. Keep the values, drop the channel, let the
-                // registry reconnect on the next discovery pass.
-                _logger.DeviceReadFailed(ex, _info.Key);
-                DropConnection();
-                Publish();
-                return;
+                catch (IOException ex)
+                {
+                    // That handle is finished. The others are not, and the difference now
+                    // matters: with one channel per device, a failure meant the device was
+                    // gone and dropping everything said the same thing. It does not any
+                    // more — a microphone whose volume endpoint vanished still has a
+                    // battery, and abandoning the sweep would lose it too.
+                    _logger.DeviceReadFailed(ex, _info.Key);
+                    Drop(source);
+                    Publish();
+                    continue;
+                }
+
+                // A refusal to answer is not a reason to overwrite a good reading with
+                // nothing; a boom mic that is merely unplugged should not blank the
+                // level the user saw a second ago.
+                if (value.IsAbsent && !state.Value.IsAbsent) continue;
+
+                bool moved = value != state.Value;
+
+                _states[id] = state with
+                {
+                    Value = value,
+
+                    // A first reading is not a change. Without this the very first
+                    // poll flags every volatile capability as "moved on the device",
+                    // which is both wrong and the sort of wrong that teaches people
+                    // to ignore the marker.
+                    ChangedExternally = moved
+                        && !state.Value.IsAbsent
+                        && state.Descriptor.IsVolatile
+                        && !_writtenSinceRefresh.Contains(id),
+                };
+
+                changed |= moved;
+
+                // Published as it lands, not held until the sweep is done.
+                //
+                // One device is read one capability at a time — a single handle and a
+                // request-and-reply protocol, so its own reads cannot overlap — and
+                // holding every answer back until the last one arrived left the panel
+                // empty for as long as the slowest capability took, then filled it in
+                // all at once. Publishing per reading costs one snapshot compose, and
+                // only when something actually moved.
+                if (moved)
+                {
+                    _updatedAt = DateTimeOffset.Now;
+                    Publish();
+                }
             }
 
             _writtenSinceRefresh.Clear();
@@ -235,13 +351,25 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
         ArgumentNullException.ThrowIfNull(capabilityId);
         ArgumentNullException.ThrowIfNull(value);
 
-        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        Interlocked.Increment(ref _waiting);
         try
         {
-            IDeviceConnection? connection = _connection;
-            if (connection is null) return false;
+            await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _waiting);
+        }
+
+        try
+        {
             if (!_states.TryGetValue(capabilityId, out CapabilityState? state)) return false;
             if (!state.CanWrite) return false;
+
+            // Whoever declared the id takes the write. Sending everything to the owning
+            // connection would hand a contributor's row to a driver that has never heard
+            // of it, and the refusal would be reported against the wrong device.
+            if (!_owner.TryGetValue(capabilityId, out IDeviceConnection? source)) return false;
 
             CapabilityValue previous = state.Value;
 
@@ -251,12 +379,12 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
             bool accepted;
             try
             {
-                accepted = await connection.WriteAsync(capabilityId, value, cancellationToken).ConfigureAwait(false);
+                accepted = await source.WriteAsync(capabilityId, value, cancellationToken).ConfigureAwait(false);
             }
             catch (IOException ex)
             {
                 _logger.DeviceWriteFailed(ex, _info.Key, capabilityId);
-                DropConnection();
+                Drop(source);
                 Restore(capabilityId, previous);
                 Publish();
                 return false;
@@ -308,32 +436,101 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
 
     // ---------- snapshot assembly ----------
 
-    private void SeedCapabilities(IDeviceConnection connection)
+    /// <summary>
+    /// Rebuilds the capability set and the routing table from every open channel.
+    ///
+    /// Channel order decides ownership, and the owning connection is first, so a
+    /// capability two sources both declare belongs to the driver that understands the
+    /// device rather than to whichever contributor happened to attach first.
+    /// </summary>
+    private void SeedCapabilities()
     {
         var seeded = new Dictionary<string, CapabilityState>(StringComparer.Ordinal);
+        _owner.Clear();
 
-        foreach (Capability descriptor in connection.Capabilities)
+        foreach (IDeviceConnection channel in Channels())
         {
-            // Values survive a reconnect. The device has not changed just because the
-            // cable was reseated, and blanking the page would be a worse lie than a
-            // reading that is a few seconds old.
-            _states.TryGetValue(descriptor.Id, out CapabilityState? existing);
-
-            seeded[descriptor.Id] = new CapabilityState
+            foreach (Capability descriptor in channel.Capabilities)
             {
-                Descriptor = descriptor,
-                Value = existing?.Value ?? CapabilityValue.Absent,
-                Range = descriptor.Range,
-                Status = _ledger.IsConfirmed(_info.Key, descriptor.Id)
-                    ? CapabilityStatus.Verified
-                    : descriptor.DeclaredStatus,
-            };
+                // Two sources claiming one id is a mistake somewhere rather than a merge
+                // to be guessed at — their values would fight each other on every poll.
+                // The owner keeps it and the collision is logged where it can be fixed.
+                if (!_owner.TryAdd(descriptor.Id, channel))
+                {
+                    _logger.CapabilityClaimedTwice(_info.Key, descriptor.Id);
+                    continue;
+                }
+
+                // Values survive a reconnect. The device has not changed just because the
+                // cable was reseated, and blanking the page would be a worse lie than a
+                // reading that is a few seconds old.
+                _states.TryGetValue(descriptor.Id, out CapabilityState? existing);
+
+                seeded[descriptor.Id] = new CapabilityState
+                {
+                    Descriptor = descriptor,
+                    Value = existing?.Value ?? CapabilityValue.Absent,
+                    Range = descriptor.Range,
+                    Status = _ledger.IsConfirmed(_info.Key, descriptor.Id)
+                        ? CapabilityStatus.Verified
+                        : descriptor.DeclaredStatus,
+                };
+            }
         }
 
         _states.Clear();
         foreach ((string id, CapabilityState state) in seeded) _states[id] = state;
 
-        _info = _info with { Transports = connection.Transports };
+        // Transports belong to whoever owns the device. A contributor knows one thing
+        // about it and has no business describing how it is attached.
+        if (_connection is not null) _info = _info with { Transports = _connection.Transports };
+    }
+
+    /// <summary>
+    /// Offers the device to every contributor that is not already attached, and says
+    /// whether any of them took it.
+    ///
+    /// Asked again on each sweep by design: a contributor's subject can arrive later than
+    /// the device. A headset dongle enumerates the moment it is plugged in, while its
+    /// audio endpoints appear only when the headset itself wakes — asking once, at
+    /// discovery, would mean the volume rows never showed up at all.
+    /// </summary>
+    private async Task<bool> AttachAsync(DeviceInfo info, CancellationToken cancellationToken)
+    {
+        bool attached = false;
+
+        foreach (ICapabilityContributor contributor in _contributors)
+        {
+            if (_attachments.Any(a => string.Equals(a.Id, contributor.ContributorId, StringComparison.Ordinal)))
+            {
+                continue;
+            }
+
+            IDeviceConnection? extra;
+
+            try
+            {
+                extra = await contributor.AttachAsync(info, cancellationToken).ConfigureAwait(false);
+            }
+            catch (IOException ex)
+            {
+                // It recognised the device and could not open it — another process holds
+                // the endpoint, or it went away mid-sweep. Never fatal: the device keeps
+                // everything its owning driver gives it and we ask again next time.
+                _logger.ContributorFailed(ex, info.Key, contributor.ContributorId);
+                continue;
+            }
+
+            if (extra is null) continue;
+
+            _attachments.Add(new Attachment(contributor.ContributorId, extra));
+            Listen(extra);
+            attached = true;
+
+            _logger.ContributorAttached(info.Key, contributor.ContributorId, extra.Capabilities.Count);
+        }
+
+        return attached;
     }
 
     private void Publish()
@@ -366,27 +563,44 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
 
     private DeviceAvailability Availability() =>
         !_present ? DeviceAvailability.Offline
-        : _connection is not null && _answers ? DeviceAvailability.Active
+        : HasChannel && _answers ? DeviceAvailability.Active
         : DeviceAvailability.Unreachable;
+
+    /// <summary>Whether anything is open at all: the owning connection, or a contributor.</summary>
+    private bool HasChannel => _connection is not null || _attachments.Count > 0;
+
+    /// <summary>Every open channel, the owning connection first.</summary>
+    private IEnumerable<IDeviceConnection> Channels()
+    {
+        if (_connection is not null) yield return _connection;
+
+        foreach (Attachment attachment in _attachments) yield return attachment.Connection;
+    }
 
     /// <summary>
     /// Asks the device one question and sees whether anything comes back. The battery is
     /// the natural probe — every device has one and it is the cheapest read — and the
     /// answer is kept rather than thrown away, because over a radio link a full refresh
     /// takes long enough that discarding it would leave the page blank meanwhile.
+    ///
+    /// The probe may land on a contributor, and that is correct: a device whose only
+    /// reader is the HID battery usage is answering, and calling it unreachable because
+    /// its owning driver has nothing to ask would be a lie about working hardware.
     /// </summary>
-    private async Task<bool> AnswersAsync(IDeviceConnection connection, CancellationToken cancellationToken)
+    private async Task<bool> AnswersAsync(CancellationToken cancellationToken)
     {
-        string? probe = connection.Capabilities.Any(c => c.Id == CapabilityIds.PowerBattery)
+        string? probe = _owner.ContainsKey(CapabilityIds.PowerBattery)
             ? CapabilityIds.PowerBattery
-            : connection.Capabilities.FirstOrDefault(c => c.IsReadable)?.Id;
+            : _states.Values.FirstOrDefault(s => s.Descriptor.IsReadable && _owner.ContainsKey(s.Id))?.Id;
 
         // Nothing readable to ask. Being open is the best evidence available.
         if (probe is null) return true;
 
+        IDeviceConnection source = _owner[probe];
+
         try
         {
-            CapabilityValue value = await connection.ReadAsync(probe, cancellationToken).ConfigureAwait(false);
+            CapabilityValue value = await source.ReadAsync(probe, cancellationToken).ConfigureAwait(false);
             if (value.IsAbsent) return false;
 
             if (_states.TryGetValue(probe, out CapabilityState? state))
@@ -400,7 +614,7 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
         catch (IOException ex)
         {
             _logger.DeviceReadFailed(ex, _info.Key);
-            DropConnection();
+            Drop(source);
             return false;
         }
     }
@@ -431,9 +645,60 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
             : range;
     }
 
-    private void DropConnection()
+    /// <summary>Subscribes to a channel that can announce changes instead of waiting to be asked.</summary>
+    private void Listen(IDeviceConnection channel)
     {
-        _connection?.Dispose();
+        // Not every source can say when something moved; those that can save the panel
+        // from trailing the device by a polling interval.
+        if (channel is IDeviceNotifier notifier) notifier.Activity += OnActivity;
+    }
+
+    private void Detach(IDeviceConnection channel)
+    {
+        if (channel is IDeviceNotifier notifier) notifier.Activity -= OnActivity;
+
+        channel.Dispose();
+    }
+
+    /// <summary>
+    /// Closes one channel and unroutes what it owned, leaving the rest of the device
+    /// working.
+    ///
+    /// Readings stay behind on purpose. A row whose source went away keeps its last
+    /// value, exactly as the whole device does when it goes offline; deleting the row
+    /// instead would make a momentary handle failure look like hardware that lost a
+    /// feature, and the row would reappear a sweep later as if nothing had happened.
+    /// </summary>
+    private void Drop(IDeviceConnection channel)
+    {
+        foreach (string id in _owner.Where(p => ReferenceEquals(p.Value, channel)).Select(p => p.Key).ToList())
+        {
+            _owner.Remove(id);
+        }
+
+        if (ReferenceEquals(channel, _connection))
+        {
+            Detach(channel);
+            _connection = null;
+            _answers = false;
+            return;
+        }
+
+        int index = _attachments.FindIndex(a => ReferenceEquals(a.Connection, channel));
+        if (index < 0) return;
+
+        Detach(channel);
+        _attachments.RemoveAt(index);
+    }
+
+    private void DropAll()
+    {
+        if (_connection is not null) Detach(_connection);
+
+        foreach (Attachment attachment in _attachments) Detach(attachment.Connection);
+
+        _attachments.Clear();
+        _owner.Clear();
         _connection = null;
         _answers = false;
     }
@@ -443,7 +708,10 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
         if (_disposed) return;
         _disposed = true;
 
-        DropConnection();
+        DropAll();
         _gate.Dispose();
     }
+
+    /// <summary>One contributor and the channel it opened.</summary>
+    private sealed record Attachment(string Id, IDeviceConnection Connection);
 }

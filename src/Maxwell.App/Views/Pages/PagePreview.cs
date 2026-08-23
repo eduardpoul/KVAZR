@@ -9,8 +9,11 @@ using Maxwell.App.Platform;
 using Maxwell.Core.Abstractions;
 using Maxwell.Core.Settings;
 using Maxwell.App.ViewModels.Pages;
+using Maxwell.App.Infrastructure;
+using Maxwell.App.ViewModels;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Drivers.Mock;
+using Maxwell.Core.Polling;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Maxwell.App.Views.Pages;
@@ -43,6 +46,9 @@ internal static class PagePreview
     /// <summary>About what the content pane holds in a comfortably sized window.</summary>
     private const double PageWidth = 900;
 
+    /// <summary>The tray panel's own width, which the design fixes at 360.</summary>
+    private const double FlyoutWidth = 360;
+
     /// <summary>
     /// Writes one file per page per theme. Separate files rather than one tall image
     /// because each has to be looked at on its own: a control legible in one theme and
@@ -65,6 +71,12 @@ internal static class PagePreview
             Render($"{path}-hotkeys-{suffix}.png", theme, PageWidth, Hotkeys);
             Render($"{path}-mouse-{suffix}.png", theme, PageWidth, () => Device(MockDeviceDriver.MouseKey));
             Render($"{path}-keyboard-{suffix}.png", theme, PageWidth, () => Device(MockDeviceDriver.KeyboardKey));
+
+            // The tray panel appears on a click and vanishes on a click elsewhere, which
+            // is exactly the wrong shape for looking at it while working on it. Rendered
+            // at its own 360 rather than the page width, because its whole layout is an
+            // argument about what fits in that width.
+            Render($"{path}-flyout-{suffix}.png", theme, FlyoutWidth, Flyout, pad: 0);
         }
     }
 
@@ -177,9 +189,91 @@ internal static class PagePreview
         return new DevicePageView { DataContext = new DevicePageViewModel(session) };
     }
 
-    private static void Render(string path, ThemeVariant theme, double width, Func<Control> build)
+    /// <summary>
+    /// The tray panel over the same mock devices the pages use, with its first row opened
+    /// so both states are in the one picture — a closed row is four numbers and an opened
+    /// one is the whole argument about what fits in 360 pixels.
+    ///
+    /// The window is built and its content lifted out: the panel's layout is in its
+    /// content, and a Window cannot be rendered offscreen the way a control can.
+    /// </summary>
+    private static Control Flyout()
     {
-        var content = new Border { Padding = new Thickness(24), Child = build() };
+        var store = new PreviewSettings();
+        var registry = new DeviceRegistry(
+            [new MockDeviceDriver()], new InMemoryCapabilityLedger(), NullLoggerFactory.Instance);
+
+        registry.DiscoverAsync().GetAwaiter().GetResult();
+
+        // Discovery finds the devices; it does not read them. Without this every control
+        // in an opened row draws its "no reading yet" face — a dash and an amber dot —
+        // and the picture would be of an empty panel rather than of a working one.
+        foreach (DeviceSnapshot snapshot in registry.Devices)
+        {
+            registry.Session(snapshot.Info.Key)?.RefreshAllAsync().GetAwaiter().GetResult();
+        }
+
+        var sweep = new FirstSweep(registry, NullLoggerFactory.Instance);
+        sweep.Begin();
+
+        var vm = new FlyoutViewModel(registry, new PreviewPolling(), new HiddenDevices(store), sweep);
+
+        // The panel spends its first moments showing placeholders on purpose, and both
+        // the sweep and the gate that ends that spell finish on the dispatcher — which an
+        // offscreen render never pumps by itself. Without this the picture is always of
+        // the skeletons: a real state, but not the one worth looking at.
+        for (int i = 0; i < 600 && !vm.Loading.ShowContent; i++)
+        {
+            Dispatcher.UIThread.RunJobs();
+            Thread.Sleep(5);
+        }
+
+        // Opened here rather than left closed: the expanded row is where the controls,
+        // the readings and the link live, and a render of closed rows alone would show
+        // none of them.
+        if (vm.Devices.FirstOrDefault() is { } first) first.ToggleCommand.Execute(null);
+
+        var window = new FlyoutWindow { DataContext = vm };
+        var content = (Control)window.Content!;
+
+        // Detached before it is handed on: a control may only have one parent, and the
+        // window it was built in is thrown away here.
+        window.Content = null;
+
+        // The data context came from the window and left with it. Without this every
+        // binding resolves against nothing, IsVisible falls back to true, and the picture
+        // shows the skeletons, the error line and the empty-list line all at once — which
+        // is what the first attempt at this render produced.
+        content.DataContext = vm;
+
+        return content;
+    }
+
+    /// <summary>Polling that records nothing. A render must not start timers.</summary>
+    private sealed class PreviewPolling : IPollingCoordinator
+    {
+        public PollingAttention Attention => PollingAttention.Idle;
+
+        public string? FocusedDeviceKey => null;
+
+        public void SetAttention(PollingAttention attention, string? focusedDeviceKey = null)
+        {
+        }
+
+        public void RequestRefresh(string deviceKey, bool full = true)
+        {
+        }
+    }
+
+    private static void Render(
+        string path, ThemeVariant theme, double width, Func<Control> build, double pad = 24)
+    {
+        // The breathing space is for pages, which are drawn as a slab of content with no
+        // edge of their own. A panel that is exactly 360 wide must be rendered at 360:
+        // padding here silently squeezes it, and then every offset measured off the
+        // picture is wrong by the padding — which is how a correctly laid out flyout came
+        // to look like it was indented by 14 pixels.
+        var content = new Border { Padding = new Thickness(pad), Child = build() };
 
         // The scroller is what makes the page lay out at its natural height: it hands its
         // content unbounded space in the scrolling direction, so the content is measured

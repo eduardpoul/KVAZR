@@ -1,7 +1,11 @@
+using System.Runtime.Versioning;
+
 using Maxwell.Core.Devices;
+using Maxwell.Core.Model;
 using Maxwell.Race;
 using Maxwell.Race.Abstractions;
 using Maxwell.Race.Protocol;
+using Maxwell.Race.Windows;
 
 namespace Maxwell.Core.Drivers.Audeze;
 
@@ -13,13 +17,28 @@ namespace Maxwell.Core.Drivers.Audeze;
 /// thin is deliberate — the capability model is currently derived from one device, and
 /// a second real driver will almost certainly show up something it got wrong.
 /// </summary>
-internal sealed class AudezeRaceConnection : IDeviceConnection
+[SupportedOSPlatform("windows")]
+internal sealed class AudezeRaceConnection : IDeviceConnection, IDeviceNotifier
 {
     private readonly RaceSession _session;
     private readonly IReadOnlyList<TransportInfo> _transports;
 
+    /// <summary>
+    /// How far the level has to climb before it counts as charging. The reading moves by
+    /// one on its own, so one is noise and two is news.
+    /// </summary>
+    private const int RiseMeansCharging = 2;
+
+    /// <summary>
+    /// How long a charging claim survives without another rise confirming it. Long enough
+    /// to cover the slow last percent of a nearly full battery, short enough that pulling
+    /// the cable is noticed while the person is still looking at the panel.
+    /// </summary>
+    private static readonly TimeSpan ChargingHolds = TimeSpan.FromMinutes(6);
+
     private int _lastBattery = -1;
     private bool _charging;
+    private DateTimeOffset _chargingSeenAt;
     private string? _firmware;
     private int _sidetoneMax = -1;
 
@@ -31,14 +50,54 @@ internal sealed class AudezeRaceConnection : IDeviceConnection
 
     private bool _disposed;
 
-    public AudezeRaceConnection(RaceSession session, IReadOnlyList<TransportInfo> transports)
+    private readonly MaxwellControlWatcher? _controls;
+
+    /// <summary>
+    /// Readings a touch of the headset's own controls can have moved.
+    ///
+    /// Deliberately short. The event says a wheel turned, not what the volume now is, so
+    /// this is the list worth asking about — not an excuse to re-read everything, which
+    /// would cost five seconds and undo the point of hearing about it early.
+    /// </summary>
+    private static readonly string[] MuteReadings = [CapabilityIds.MicMute];
+
+    public event EventHandler<IReadOnlyList<string>>? Activity;
+
+    public AudezeRaceConnection(
+        RaceSession session,
+        IReadOnlyList<TransportInfo> transports,
+        MaxwellControlWatcher? controls = null)
     {
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(transports);
 
         _session = session;
         _transports = transports;
+        _controls = controls;
+
+        if (_controls is not null) _controls.Activity += OnControlTouched;
     }
+
+    /// <summary>
+    /// The wheel and the mute button are ordinary HID and report themselves at once; the
+    /// settings behind them are not and have to be asked for. So the touch is the trigger
+    /// and the read is the answer — which is still immediate, rather than up to a polling
+    /// interval later.
+    /// </summary>
+    private void OnControlTouched(object? sender, MaxwellControlEvent touched)
+    {
+        // The volume wheel is deliberately ignored.
+        //
+        // It reports itself the instant it turns, which looked like exactly the signal
+        // this was built for — but it drives the host's volume, not the amplifier gain
+        // inside the headset. Nothing we read has changed, so acting on it spent a round
+        // trip to re-read a number that had not moved.
+        if (!touched.IsMute) return;
+
+        Activity?.Invoke(this, MuteReadings);
+    }
+
+
 
     public IReadOnlyList<Capability> Capabilities => MaxwellCapabilities.All;
 
@@ -58,6 +117,7 @@ internal sealed class AudezeRaceConnection : IDeviceConnection
             CapabilityIds.PowerBattery => await ReadBatteryAsync(cancellationToken).ConfigureAwait(false),
             CapabilityIds.PowerCharging => _lastBattery < 0 ? CapabilityValue.Absent : CapabilityValue.Of(_charging),
             CapabilityIds.DeviceFirmware => await ReadFirmwareAsync(cancellationToken).ConfigureAwait(false),
+            CapabilityIds.DeviceEdition => Edition(),
 
             CapabilityIds.AudioVolume => await ScalarAsync(MaxwellFeatures.AmpGain, cancellationToken).ConfigureAwait(false),
             CapabilityIds.AudioGainLeft => await ScalarAsync(MaxwellFeatures.LeftGain, cancellationToken).ConfigureAwait(false),
@@ -65,6 +125,7 @@ internal sealed class AudezeRaceConnection : IDeviceConnection
             CapabilityIds.AudioBalance => await ScalarAsync(MaxwellFeatures.EarcupBalance, cancellationToken).ConfigureAwait(false),
             CapabilityIds.AudioVoicePrompts => await ScalarAsync(MaxwellFeatures.VpLevel, cancellationToken).ConfigureAwait(false),
             CapabilityIds.AudioEqPreset => await ChoiceAsync(MaxwellFeatures.PeqIndex, cancellationToken).ConfigureAwait(false),
+            CapabilityIds.AudioEqGraphic => await ReadEqCurveAsync(cancellationToken).ConfigureAwait(false),
 
             CapabilityIds.MicMute => await ReadMicMuteAsync(cancellationToken).ConfigureAwait(false),
             CapabilityIds.MicLevel => await ScalarAsync(MaxwellFeatures.MicLevel, cancellationToken).ConfigureAwait(false),
@@ -73,25 +134,82 @@ internal sealed class AudezeRaceConnection : IDeviceConnection
             CapabilityIds.MicSidetoneMax => await ReadSidetoneMaxAsync(cancellationToken).ConfigureAwait(false),
             CapabilityIds.MicSidetone => await ReadFlag2CAsync(MaxwellFeatures.SidetoneState, cancellationToken).ConfigureAwait(false),
 
-            CapabilityIds.PowerAutoOff => await Scalar2CAsync(MaxwellFeatures.AutoPowerOff, cancellationToken).ConfigureAwait(false),
+            CapabilityIds.PowerAutoOff => AutoOffChoice(
+                await _session.ReadAutoPowerOffAsync(cancellationToken).ConfigureAwait(false)),
             CapabilityIds.MixChat => await ReadChatMixAsync(cancellationToken).ConfigureAwait(false),
 
-            // Write-only or unreachable: head tracking has no reader, the EQ band editor
-            // has no command at all, and the two destructive actions are not values.
+            // Not values: the factory reset is an action, and nothing else here reads.
             _ => CapabilityValue.Absent,
         };
     }
+
+    /// <summary>
+    /// The timeouts offered, in seconds, in the order the choice list declares them.
+    /// Real seconds rather than an invented ladder: the headset stores a sixteen-bit
+    /// count, so these are the values it is actually given.
+    /// </summary>
+    internal static readonly int[] AutoOffSeconds = [0, 60, 300, 600, 900, 1200, 1800, 2700, 3600];
+
+    /// <summary>
+    /// Turns the headset's seconds into the option that matches it. A timeout set by some
+    /// other application to a value not on this list reads as absent rather than being
+    /// rounded to a neighbour — showing "30 минут" for a device holding 25 would be a
+    /// quiet lie, and the next write would make it true.
+    /// </summary>
+    private static CapabilityValue AutoOffChoice(int seconds)
+    {
+        if (seconds < 0) return CapabilityValue.Absent;
+
+        int index = Array.IndexOf(AutoOffSeconds, seconds);
+        return index < 0 ? CapabilityValue.Absent : CapabilityValue.Choice(index);
+    }
+
+    /// <summary>
+    /// Xbox or PlayStation, straight from the USB product id — the two editions carry
+    /// different ones on both the dongle and the cable, so this costs no request at all.
+    /// A limited or anniversary edition is a paint job and shares its id with the ordinary
+    /// one, so it is not claimed here.
+    /// </summary>
+    private CapabilityValue Edition() => _session.Descriptor.Transport switch
+    {
+        MaxwellTransport.XboxDongle or MaxwellTransport.XboxUsbC => CapabilityValue.Of("Xbox"),
+        MaxwellTransport.PlayStationDongle or MaxwellTransport.PlayStationUsbC =>
+            CapabilityValue.Of("PlayStation"),
+        _ => CapabilityValue.Absent,
+    };
 
     private async Task<CapabilityValue> ReadBatteryAsync(CancellationToken cancellationToken)
     {
         int battery = await _session.ReadBatteryAsync(cancellationToken).ConfigureAwait(false);
         if (battery < 0) return CapabilityValue.Absent;
 
-        // No charging flag has been identified in the protocol, so it is inferred from
-        // the trend. One rising sample is enough while a cable is the only control path
-        // we have — the cable is also what charges the headset.
-        if (_lastBattery >= 0 && battery > _lastBattery) _charging = true;
-        else if (_lastBattery >= 0 && battery < _lastBattery) _charging = false;
+        // No charging flag has been found in the protocol, so it is inferred from the
+        // trend — and the first version of that inference was wrong in both directions.
+        //
+        // The reading jitters: sitting on a dongle with no cable in it, the headset
+        // reports 92, then 93, then 93 again. A single rising sample was enough to claim
+        // charging, so noise switched it on; and it was only ever switched off by a fall,
+        // which at 93% does not come for hours. The bolt stayed lit long after the cable
+        // was out, which is exactly what was reported.
+        //
+        // So: a rise has to be bigger than the jitter to mean anything, and a claim that
+        // nothing has confirmed for a while expires on its own.
+        if (_lastBattery >= 0)
+        {
+            if (battery >= _lastBattery + RiseMeansCharging)
+            {
+                _charging = true;
+                _chargingSeenAt = DateTimeOffset.UtcNow;
+            }
+            else if (battery < _lastBattery)
+            {
+                _charging = false;
+            }
+            else if (_charging && DateTimeOffset.UtcNow - _chargingSeenAt > ChargingHolds)
+            {
+                _charging = false;
+            }
+        }
 
         _lastBattery = battery;
         return CapabilityValue.Of(battery);
@@ -135,6 +253,98 @@ internal sealed class AudezeRaceConnection : IDeviceConnection
     {
         int raw = await _session.ReadChatMixAsync(cancellationToken).ConfigureAwait(false);
         return raw < 0 ? CapabilityValue.Absent : CapabilityValue.Of(raw);
+    }
+
+    /// <summary>
+    /// The bands of whichever user slot is selected, or absent.
+    ///
+    /// Only a user slot has bands. On a factory preset the honest answer is that there is
+    /// no curve to show rather than a flat one — the six built-in presets are shaped
+    /// curves themselves, and drawing them as ten zeroes would be a lie the wearer could
+    /// hear.
+    /// </summary>
+    /// <summary>The curve last applied to the running filter, and the preset it was applied over.</summary>
+    private int[]? _appliedCurve;
+    private int _appliedForPreset = -1;
+
+    private async Task<CapabilityValue> ReadEqCurveAsync(CancellationToken cancellationToken)
+    {
+        int preset = await _session.ReadValueAsync(MaxwellFeatures.PeqIndex, cancellationToken)
+            .ConfigureAwait(false);
+
+        // What the headset is playing, when that is something we put there.
+        //
+        // A curve is applied to the running filter and stored nowhere, so reading the slot
+        // back reports whatever was saved before the edit — which is not what is coming out
+        // of the drivers. Left that way the first poll after a drag overwrites the wearer's
+        // own curve with the old one, and the plot springs back a second after they let go.
+        //
+        // Held only for as long as it is true: switching preset replaces the filter, and
+        // the answer goes back to the device's.
+        if (_appliedCurve is { } applied && preset == _appliedForPreset)
+        {
+            return CapabilityValue.Vector([.. applied.Select(CapabilityValue.Of)]);
+        }
+
+        _appliedCurve = null;
+
+        int slot = RaceCommands.EqSlotOfPreset(preset);
+        if (slot < 0)
+        {
+            // A factory preset keeps no bands on the device — but we know its curve, read
+            // out of Audeze HQ's own table. Drawing it is the truth about what is playing;
+            // an empty plot would only be the truth about where the numbers came from.
+            return EqPresets.ByIndex(preset)?.Curve is { } factory
+                ? CapabilityValue.Vector([.. factory.Select(CapabilityValue.Of)])
+                : CapabilityValue.Absent;
+        }
+
+        MaxwellEqReply? reply = await _session.ReadEqBandsAsync((byte)slot, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (reply?.Bands is not { } curve) return CapabilityValue.Absent;
+
+        return CapabilityValue.Vector(
+            [.. curve.Bands.Select(band => CapabilityValue.Of((int)decimal.Round(band.Gain)))]);
+    }
+
+    /// <summary>
+    /// Applies a curve to the running filter.
+    ///
+    /// Live only: this is what the wearer hears while a slider moves, and it survives
+    /// until the headset is power-cycled or its preset changes. Nothing is written to
+    /// non-volatile memory, so a curve applied here is not a preset and does not pretend
+    /// to be one.
+    /// </summary>
+    private async Task<bool> WriteEqCurveAsync(CapabilityValue value, CancellationToken cancellationToken)
+    {
+        if (!AirohaPeqBridge.Available) return false;
+
+        IReadOnlyList<CapabilityValue> bands = value.AsVector();
+        if (bands.Count != AirohaPeqBridge.Bands.Length) return false;
+
+        var gains = new int[bands.Count];
+        for (int i = 0; i < bands.Count; i++)
+        {
+            // A band nobody has answered for is not a zero. Refusing the whole write is
+            // the only safe reading: filling the gap with flat would quietly undo whatever
+            // is actually set on the device.
+            if (bands[i] is not NumberValue number) return false;
+            gains[i] = Math.Clamp(number.Value, -12, 12);
+        }
+
+        EqApplyResult result = await _session
+            .ApplyEqCoefficientsAsync(AirohaPeqBridge.Blob(gains), cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!result.Accepted) return false;
+
+        _appliedCurve = gains;
+        _appliedForPreset = await _session
+            .ReadValueAsync(MaxwellFeatures.PeqIndex, cancellationToken)
+            .ConfigureAwait(false);
+
+        return true;
     }
 
     private async Task<CapabilityValue> ScalarAsync(byte sub, CancellationToken cancellationToken)
@@ -193,8 +403,12 @@ internal sealed class AudezeRaceConnection : IDeviceConnection
                     .ConfigureAwait(false);
 
             case CapabilityIds.AudioVoicePrompts:
-                return await WriteScalarAsync(MaxwellFeatures.VpLevel, value, 0, 255, cancellationToken)
+                return await WriteScalarAsync(
+                        MaxwellFeatures.VpLevel, value, 0, MaxwellFeatures.VpLevelMax, cancellationToken)
                     .ConfigureAwait(false);
+
+            case CapabilityIds.AudioEqGraphic:
+                return await WriteEqCurveAsync(value, cancellationToken).ConfigureAwait(false);
 
             case CapabilityIds.AudioEqPreset:
                 return await WriteScalarAsync(MaxwellFeatures.PeqIndex, value, 0, 9, cancellationToken)
@@ -207,6 +421,16 @@ internal sealed class AudezeRaceConnection : IDeviceConnection
             case CapabilityIds.MicNoiseReduction:
                 return await WriteScalarAsync(MaxwellFeatures.NoiseReduction, value, 0, 2, cancellationToken)
                     .ConfigureAwait(false);
+
+            case CapabilityIds.PowerAutoOff:
+            {
+                if (value is not ChoiceValue choice) return false;
+                if (choice.Index < 0 || choice.Index >= AutoOffSeconds.Length) return false;
+
+                return await _session
+                    .WriteAutoPowerOffAsync(AutoOffSeconds[choice.Index], cancellationToken)
+                    .ConfigureAwait(false);
+            }
 
             case CapabilityIds.MicSidetoneLevel:
                 return await WriteSidetoneLevelAsync(value, cancellationToken).ConfigureAwait(false);
@@ -306,6 +530,12 @@ internal sealed class AudezeRaceConnection : IDeviceConnection
     {
         if (_disposed) return;
         _disposed = true;
+
+        if (_controls is not null)
+        {
+            _controls.Activity -= OnControlTouched;
+            _controls.Dispose();
+        }
 
         _session.Dispose();
     }

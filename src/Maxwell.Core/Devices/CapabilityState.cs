@@ -60,10 +60,19 @@ public sealed record CapabilityState
 
     public string Id => Descriptor.Id;
 
-    /// <summary>True when the user may operate the control at all.</summary>
+    /// <summary>
+    /// True when the user may operate the control at all.
+    ///
+    /// Deliberately says nothing about a write already running. Every write to one device
+    /// is serialised behind the session's gate, so a second one queues rather than
+    /// collides, and refusing it here cost more than it bought: the control greyed out for
+    /// the half-second the headset took to answer — a strobe under any hand that moves two
+    /// sliders in a row — and an edit made during that half-second was dropped without a
+    /// word. The session's own check runs inside the gate, by which point the previous
+    /// write has already finished, so it never depended on this term either.
+    /// </summary>
     public bool CanWrite =>
         Descriptor.IsWritable
         && IsAvailable
-        && Status != CapabilityStatus.Unavailable
-        && !IsWriting;
+        && Status != CapabilityStatus.Unavailable;
 }

@@ -1,4 +1,5 @@
 using Maxwell.Core.Abstractions;
+using Maxwell.Core.Devices;
 using Maxwell.Race.Abstractions;
 using Maxwell.Race.Linux;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,6 +40,16 @@ internal static class PlatformServices
         // it is platform code; the registry picks it up if it is present and does
         // without it on platforms where it is not.
         services.AddSingleton<ISystemDeviceEnumerator, Maxwell.Race.Windows.WindowsSystemDeviceEnumerator>();
+
+        // Core Audio: volume, mute and level for every audio device on the machine.
+        // A platform service rather than something inside a driver, because three
+        // categories at once — headsets, microphones, speakers — draw their baseline
+        // page from it, and none of them owns it.
+        services.AddSingleton<IAudioEndpoints, Maxwell.Race.Windows.WindowsAudioEndpoints>();
+
+        // Being told the moment a device arrives beats asking every few seconds whether
+        // one has. The sweep stays as the safety net; this is what makes it feel instant.
+        services.AddSingleton<IDeviceChangeWatcher, Maxwell.Race.Windows.WindowsDeviceChangeWatcher>();
 #else
         if (OperatingSystem.IsLinux())
         {
@@ -47,6 +58,7 @@ internal static class PlatformServices
             services.AddSingleton<IAutostart, LinuxAutostart>();
             services.AddSingleton<INotifier, LinuxNotifier>();
             services.AddSingleton<IBluetoothMonitor>(NullBluetoothMonitor.Instance);
+            services.AddSingleton<IDeviceChangeWatcher>(NullDeviceChangeWatcher.Instance);
         }
         else
         {
@@ -58,6 +70,7 @@ internal static class PlatformServices
             services.AddSingleton<IAutostart, UnsupportedAutostart>();
             services.AddSingleton<INotifier>(NullNotifier.Instance);
             services.AddSingleton<IBluetoothMonitor>(NullBluetoothMonitor.Instance);
+            services.AddSingleton<IDeviceChangeWatcher>(NullDeviceChangeWatcher.Instance);
         }
 
         // Global shortcuts are Windows-only for now; elsewhere they are simply absent.

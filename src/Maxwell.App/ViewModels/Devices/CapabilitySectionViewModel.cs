@@ -74,7 +74,10 @@ public sealed class CapabilitySectionViewModel : IDisposable
     /// </summary>
     public static string TitleOf(CapabilityDomain domain) => domain switch
     {
-        CapabilityDomain.Power => "Питание",
+        // "Общее" rather than "Питание": the charge is drawn in the hero, so what is left
+        // here is the device's own particulars — which edition it is, its firmware, when
+        // it switches itself off.
+        CapabilityDomain.Power => "Общее",
         CapabilityDomain.Link => "Связь",
         CapabilityDomain.Audio => "Звук",
         CapabilityDomain.Microphone => "Микрофон",
@@ -84,7 +87,7 @@ public sealed class CapabilitySectionViewModel : IDisposable
         CapabilityDomain.Keys => "Клавиши",
         CapabilityDomain.Light => "Подсветка",
         CapabilityDomain.Profiles => "Профили",
-        CapabilityDomain.Maintenance => "Дополнительно",
+        CapabilityDomain.Maintenance => "Питание и обслуживание",
         _ => domain.ToString(),
     };
 

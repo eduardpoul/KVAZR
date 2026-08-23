@@ -78,10 +78,34 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
     };
 
     /// <summary>
-    /// The flyout is open, so every device's battery is worth keeping fresh — but none
-    /// of their details are, until somebody opens a row.
+    /// The flyout is open, so every device's battery is worth keeping fresh — and this is
+    /// the moment to read each device once in full.
+    ///
+    /// In the tray only the battery is ever polled, deliberately: keeping every
+    /// capability of every device hot means constant HID traffic, contention with the
+    /// vendors' own software and radios woken on devices running off a cell. The cost of
+    /// that policy landed on the first row anybody opened — it had never been read, so it
+    /// came up with names and no values and filled in a second later, which reads as a
+    /// broken panel rather than as a considered trade.
+    ///
+    /// One full read per device per session settles it. The values are kept in the
+    /// snapshot afterwards — kilobytes, never evicted — so every later opening draws
+    /// immediately from memory and the refresh merely corrects it.
     /// </summary>
-    public void Opened() => _polling.SetAttention(PollingAttention.Glance);
+    public void Opened()
+    {
+        _polling.SetAttention(PollingAttention.Glance);
+
+        foreach (FlyoutRowViewModel row in Devices)
+        {
+            if (!_warmed.Add(row.Key)) continue;
+
+            _polling.RequestRefresh(row.Key);
+        }
+    }
+
+    /// <summary>Devices read in full at least once, so the warming happens only once each.</summary>
+    private readonly HashSet<string> _warmed = new(StringComparer.Ordinal);
 
     public void Closed()
     {

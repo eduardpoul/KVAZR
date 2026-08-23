@@ -108,6 +108,21 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     public bool HasBattery => Snapshot.BatteryPercent is not null;
 
     /// <summary>
+    /// The tray row's three power states, per Turn 12: a percentage for a device that
+    /// reports one, the words "от кабеля" for one that runs off the wire, and a dash for
+    /// one that ought to report and does not. Three separate readings rather than one
+    /// string because they are not the same size or colour — the number carries the row,
+    /// the other two step back out of the way.
+    /// </summary>
+    public bool ShowsBatteryPercent => Mode == BatteryDisplay.Charge && !IsBatteryPending;
+
+    public bool ShowsMains => Mode == BatteryDisplay.Mains && !IsBatteryPending;
+
+    public bool ShowsNoReading => Mode == BatteryDisplay.Absent && !IsBatteryPending;
+
+    private BatteryDisplay Mode => BatteryReadout.Mode(Snapshot);
+
+    /// <summary>
     /// The device says it has a battery and has not yet said what is in it. This is the
     /// one place in a row where a loader is the honest answer: the row itself arrived,
     /// so a skeleton over the whole thing would be a lie, and a dash would claim the
@@ -187,6 +202,9 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
         OnPropertyChanged(nameof(Battery));
         OnPropertyChanged(nameof(HasBattery));
         OnPropertyChanged(nameof(BatteryPercent));
+        OnPropertyChanged(nameof(ShowsBatteryPercent));
+        OnPropertyChanged(nameof(ShowsMains));
+        OnPropertyChanged(nameof(ShowsNoReading));
         OnPropertyChanged(nameof(ShortName));
         OnPropertyChanged(nameof(IsBatteryPending));
         OnPropertyChanged(nameof(IsCharging));

@@ -14,6 +14,25 @@ namespace Maxwell.App.Controls;
 /// </summary>
 public partial class CapabilityControl : UserControl
 {
+    /// <summary>
+    /// Whether the control prints its own reading above the slider.
+    ///
+    /// True on a device page, where the capability's name sits in a column of its own and
+    /// the reading belongs to the control. False in the tray panel, which prints the
+    /// reading opposite the name instead and cannot afford the second line — the list is
+    /// capped at 284 pixels and an opened row has to fit inside it. A property rather
+    /// than a style class because the element lives inside a DataTemplate, where a
+    /// descendant selector declared by the host window does not reach it.
+    /// </summary>
+    public static readonly StyledProperty<bool> ShowReadingProperty =
+        AvaloniaProperty.Register<CapabilityControl, bool>(nameof(ShowReading), defaultValue: true);
+
+    public bool ShowReading
+    {
+        get => GetValue(ShowReadingProperty);
+        set => SetValue(ShowReadingProperty, value);
+    }
+
     public CapabilityControl()
     {
         InitializeComponent();

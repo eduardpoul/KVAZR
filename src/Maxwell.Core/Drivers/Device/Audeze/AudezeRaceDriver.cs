@@ -1,7 +1,10 @@
 using Maxwell.Core.Abstractions;
+using System.Runtime.Versioning;
+
 using Maxwell.Core.Devices;
 using Maxwell.Race.Abstractions;
 using Maxwell.Race.Protocol;
+using Maxwell.Race.Windows;
 
 namespace Maxwell.Core.Drivers.Audeze;
 
@@ -69,6 +72,9 @@ public sealed class AudezeRaceDriver : IDeviceDriver
         return Task.FromResult<IReadOnlyList<DeviceInfo>>(devices);
     }
 
+    // Opens Windows HID handles, including the control interfaces the wearer's own wheel
+    // and mute button report on.
+    [SupportedOSPlatform("windows")]
     public Task<IDeviceConnection> ConnectAsync(
         DeviceInfo device,
         CancellationToken cancellationToken = default)
@@ -103,7 +109,13 @@ public sealed class AudezeRaceDriver : IDeviceDriver
         }
 
         var session = new RaceSession(_factory.Open(target));
-        IDeviceConnection connection = new AudezeRaceConnection(session, TransportsOf(mine));
+
+        // The controls under the wearer's fingers speak for themselves; the settings behind
+        // them do not. Watching the first is what stops the panel trailing the second by a
+        // polling interval. Optional: if the interfaces cannot be opened the device still
+        // works exactly as before, only slower to notice a wheel.
+        var controls = new MaxwellControlWatcher(mine);
+        IDeviceConnection connection = new AudezeRaceConnection(session, TransportsOf(mine), controls);
 
         return Task.FromResult(connection);
     }

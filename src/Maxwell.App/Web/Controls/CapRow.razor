@@ -11,9 +11,15 @@
    a command never confirmed on hardware and leaves for good after the first accepted
    write; the warning triangle appears only while a write is actually possible. *@
 
-<div class="cap-row @(Wide ? "wide" : "")">
+<div class="cap-row @(Wide ? "wide" : "") @(Joined ? "joined" : "")">
   <div class="cap-text">
-    <div class="cap-title">@Vm.Title</div>
+    <div class="cap-title-row">
+      <span class="cap-title">@Vm.Title</span>
+      @if (Vm.Badge is { } badge)
+      {
+        <span class="badge @BadgeClass(badge.Kind)">@badge.Text</span>
+      }
+    </div>
     @if (!string.IsNullOrEmpty(Vm.Subtitle))
     {
       <div class="caption wrap">@Vm.Subtitle</div>
@@ -43,14 +49,38 @@
             break;
 
           case RangeCapabilityViewModel range:
-            <div class="range">
+            <div class="range @(range.CanMute ? "with-icon" : "") @(range.IsMuted ? "muted" : "")">
+              @if (range.CanMute)
+              {
+                @* The protocol has no mute, so this writes the floor and keeps the level
+                   to come back to. Crossed out while silent, and the track goes quiet
+                   with it — still showing where it will return to. *@
+                <button class="slider-icon" disabled="@(!range.CanEdit)"
+                        title="@(range.IsMuted ? "Включить звук" : "Заглушить")"
+                        @onclick="() => OnUi(() => range.ToggleMuteCommand.Execute(null))">
+                  @if (range.IsMuted)
+                  {
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M8.4 3 5.2 6H2.6v4h2.6l3.2 3Z" /><path d="M11 6 14 9.4M14 6l-3 3.4" /></svg>
+                  }
+                  else
+                  {
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M8.4 3 5.2 6H2.6v4h2.6l3.2 3Z" /><path d="M11 6.2c1.1 1 1.1 2.6 0 3.6" /><path d="M12.9 4.6c2 1.9 2 4.9 0 6.8" /></svg>
+                  }
+                </button>
+              }
               <div class="reading">@range.Display</div>
               @if (range.HasValue)
               {
-                <input type="range" min="@Inv(range.Minimum)" max="@Inv(range.Maximum)" step="1"
-                       value="@Inv(range.Value)" disabled="@(!range.CanEdit)"
-                       style="--fill:@Fill(range.Value, range.Minimum, range.Maximum)%"
-                       @oninput="e => OnUi(() => range.Value = Parse(e))" />
+                <div class="slider-wrap">
+                  <input type="range" min="@Inv(range.Minimum)" max="@Inv(range.Maximum)" step="1"
+                         value="@Inv(range.Value)" disabled="@(!range.CanEdit || range.IsMuted)"
+                         style="--fill:@Fill(range.Value, range.Minimum, range.Maximum)%"
+                         @oninput="e => OnUi(() => range.Value = Parse(e))" />
+                  @foreach (int detent in range.Detents)
+                  {
+                    <span class="detent" style="left:@Fill(detent, range.Minimum, range.Maximum)%"></span>
+                  }
+                </div>
               }
             </div>
             break;
@@ -106,16 +136,103 @@
 
           case CurveCapabilityViewModel curve:
             <div class="curve">
-              <div class="reading">@curve.Display</div>
+              <div class="curve-head">
+                <span class="curve-reading">@curve.Display</span>
+                @if (curve.IsWriting)
+                {
+                  <span class="badge pending busy">применяется</span>
+                }
+                else if (curve.IsDirty)
+                {
+                  <span class="badge warn">не сохранено</span>
+                }
+                @if (curve.HasCurve && !string.IsNullOrEmpty(curve.SelectedSummary))
+                {
+                  <span class="curve-band"><span class="curve-band-dot"></span>@curve.SelectedSummary</span>
+                }
+                <span class="curve-tools">
+                  @if (curve.IsDirty)
+                  {
+                    <button class="icon-btn" title="Вернуть кривую пресета"
+                            @onclick="() => OnUi(() => curve.RevertCommand.Execute(null))">
+                      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2.5 8a5.5 5.5 0 1 0 1.7-4"/>
+                        <path d="M2.2 2.4v3.4h3.4"/>
+                      </svg>
+                    </button>
+                  }
+                  @if (curve.IsDirty)
+                  {
+                    @* Filled rather than stroked. The outlined version drew nothing here
+                       and no amount of reading the stylesheet explained it; a solid shape
+                       needs neither a stroke width nor a fill rule to survive whatever was
+                       eating it. *@
+                    <button class="icon-btn accent" disabled="@(!curve.CanEdit)" title="Сохранить пресет">
+                      <svg class="solid" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M2 2h8.2L14 5.8V14H2V2zm3 .8v3.4h4.2V2.8H5zm-.4 10.4V9.4h6.8v3.8H4.6z"/>
+                      </svg>
+                    </button>
+                  }
+                  else if (curve.CanDelete)
+                  {
+                    <button class="icon-btn danger" title="Удалить пресет">
+                      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 4.5h10M6.5 4.5v-2h3v2M4.5 4.5l.7 9a1 1 0 0 0 1 .9h3.6a1 1 0 0 0 1-.9l.7-9"/>
+                      </svg>
+                    </button>
+                  }
+                  @if (curve.Slots is { } picker)
+                  {
+                    @* The application's own dropdown, not a native select: the operating
+                       system draws that one and will not take the page's palette, so its
+                       list came out grey on grey and read as disabled. *@
+                    <Dropdown Items="@([.. picker.Options.Select(SlotLabel)])"
+                              Disabled="@(!picker.CanEdit)"
+                              SelectedIndex="@(picker.Selected is { } slot ? IndexIn(picker.Options, slot) : -1)"
+                              SelectedIndexChanged="i => OnUi(() => picker.Selected = picker.Options.ElementAtOrDefault(i))" />
+                  }
+                </span>
+              </div>
               @if (curve.HasCurve)
               {
-                <svg class="plot" viewBox="0 0 100 30" preserveAspectRatio="none">
-                  <polyline points="@PlotPoints(curve.Points)" fill="none"
-                            stroke="var(--accent-primary)" stroke-width="1.2" />
-                  <polygon points="0,30 @PlotPoints(curve.Points) 100,30"
-                           fill="var(--accent-subtle)" stroke="none" />
-                </svg>
-                <div class="caption">@curve.Scale</div>
+                <div class="plot-frame">
+                  <div class="plot-axis">
+                    @foreach (string tick in curve.AxisTicks)
+                    {
+                      <span>@tick</span>
+                    }
+                  </div>
+                  <div class="plot">
+                    <span class="grid at-25"></span>
+                    <span class="grid at-75"></span>
+                    <span class="grid zero" style="bottom:@Pct(curve.ZeroFraction)"></span>
+                    @for (int i = 0; i < curve.Points.Count; i++)
+                    {
+                      int band = i;
+                      double point = curve.Points[i];
+                      double zero = curve.ZeroFraction;
+                      bool active = curve.SelectedBand == band;
+
+                      <div class="band @(active ? "sel" : "")"
+                           @onpointerdown="e => Move(curve, band, e)"
+                           @onpointermove="e => { if (e.Buttons == 1) Move(curve, band, e); }">
+                        <span class="band-value">@curve.BandText(band)</span>
+                        <span class="band-bar @(Math.Abs(point - zero) < 0.005 ? "flat" : "")"
+                              style="bottom:@Pct(Math.Min(point, zero));height:@Pct(Math.Abs(point - zero))"></span>
+                        <span class="band-knob" style="bottom:calc(@Pct(point) - 7px)"></span>
+                      </div>
+                    }
+                  </div>
+                </div>
+                <div class="plot-frame labels">
+                  <div class="plot-axis"></div>
+                  <div class="plot-labels">
+                    @for (int i = 0; i < curve.Labels.Count; i++)
+                    {
+                      <span class="@(curve.SelectedBand == i ? "sel" : "")">@curve.Labels[i]</span>
+                    }
+                  </div>
+                </div>
               }
             </div>
             break;
@@ -228,20 +345,14 @@
             break;
         }
 
-        @if (Vm.IsUntested)
-        {
-          <span class="dot" title="Ещё не проверено на живом устройстве"></span>
-        }
-        @if (Vm.IsIrreversible)
-        {
-          <svg class="tri" width="14" height="14" viewBox="0 0 16 16" title="Эту запись нельзя отменить">
-            <path d="M8 2.6 14.4 13.4H1.6L8 2.6Z M8 6.4v3.2 M8 11.4h.01"
-                  fill="none" stroke="var(--status-irreversible, #B96A00)" stroke-width="1.5" />
-          </svg>
-        }
+        @* The amber "not verified" is said by the title badge. The irreversibility
+           triangle that used to sit here is gone: see CapabilityViewModel.IsIrreversible
+           for what it meant and why it no longer shows. *@
       </div>
 
-      @if (!string.IsNullOrEmpty(Vm.Hint))
+      @* Warnings and errors keep a line of their own; everything an inline badge already
+         states (untested, read-only, waiting) does not repeat itself here. *@
+      @if (!string.IsNullOrEmpty(Vm.Hint) && Vm.HintTone is HintKind.Warning or HintKind.Error)
       {
         <div class="hint tone-@Vm.HintTone.ToString().ToLowerInvariant()">@Vm.Hint</div>
       }
@@ -250,7 +361,23 @@
 </div>
 
 @code {
+  /// <summary>
+  /// A slot's caption, tagged by where its curve comes from. The wearer's own four sit
+  /// beside six the headset ships with, they are edited and deleted quite differently,
+  /// and the numbers alone do not say which is which.
+  /// </summary>
+  private static string SlotLabel(CapabilityChoice option) =>
+      $"{option.Label}  ·  {(option.Hint is null ? "default" : "user")}";
+
+
   [Parameter, EditorRequired] public CapabilityViewModel Vm { get; set; } = default!;
+
+  /// <summary>
+  /// Draws this row as a continuation of the one above rather than a thing of its own:
+  /// no rule between them and the gap closed up. The left and right channels are one
+  /// control the device happens to expose as two.
+  /// </summary>
+  [Parameter] public bool Joined { get; set; }
 
   private CapabilityViewModel? _tracked;
 
@@ -283,6 +410,19 @@
 
   private bool Wide => Vm.IsWide;
 
+  /// <summary>A volume/level slider gets the small speaker glyph the audio rows draw.</summary>
+  private bool IsAudio => Vm.Domain is CapabilityDomain.Audio or CapabilityDomain.Microphone or CapabilityDomain.Mix;
+
+  private static string BadgeClass(CapabilityBadgeKind kind) => kind switch
+  {
+    CapabilityBadgeKind.Untested => "untested",
+    CapabilityBadgeKind.ReadOnly => "readonly",
+    CapabilityBadgeKind.Pending => "pending",
+    CapabilityBadgeKind.Accent => "accent",
+    CapabilityBadgeKind.Error => "error",
+    _ => "",
+  };
+
   private static int IndexIn(IReadOnlyList<CapabilityChoice> options, CapabilityChoice item)
   {
     for (int i = 0; i < options.Count; i++)
@@ -301,15 +441,28 @@
   private static string Fill(double value, double min, double max) =>
       max > min ? ((value - min) / (max - min) * 100).ToString("0.#", CultureInfo.InvariantCulture) : "0";
 
-  private static string PlotPoints(IReadOnlyList<double> points)
+  private static string Pct(double fraction) =>
+      (Math.Clamp(fraction, 0, 1) * 100).ToString("0.##", CultureInfo.InvariantCulture) + "%";
+
+  /// <summary>
+  /// The plot's own height in pixels, which the pointer maths needs and CSS owns. Kept
+  /// as a constant on both sides rather than measured through interop: a band editor
+  /// that has to call into JavaScript to find out how tall it is would pay a round trip
+  /// on every pixel of a drag.
+  /// </summary>
+  private const double PlotHeight = 210;
+
+  /// <summary>
+  /// Turns a pointer inside a band column into a value. Reading from the bottom, because
+  /// that is the direction the bars grow and the direction the axis counts.
+  /// </summary>
+  private void Move(CurveCapabilityViewModel curve, int band, PointerEventArgs e) => OnUi(() =>
   {
-    if (points.Count == 0) return "";
-    if (points.Count == 1) return $"0,{Y(points[0])} 100,{Y(points[0])}";
+    curve.SelectedBand = band;
 
-    return string.Join(" ", points.Select((p, i) =>
-        $"{(i * 100.0 / (points.Count - 1)).ToString("0.#", CultureInfo.InvariantCulture)},{Y(p)}"));
-  }
+    if (!curve.CanEdit) return;
 
-  private static string Y(double fraction) =>
-      ((1 - Math.Clamp(fraction, 0, 1)) * 30).ToString("0.#", CultureInfo.InvariantCulture);
+    double fraction = 1 - (e.OffsetY / PlotHeight);
+    curve.MovePointCommand.Execute(new CurvePoint(band, Math.Clamp(fraction, 0, 1)));
+  });
 }

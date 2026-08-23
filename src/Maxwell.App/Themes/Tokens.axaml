@@ -51,6 +51,13 @@
       <Color x:Key="StatusPendingColor">#8C0F6CBD</Color>
       <Color x:Key="StatusExternalRingColor">#380F6CBD</Color>
       <Color x:Key="StatusErrorBorderColor">#8CC42B1C</Color>
+
+      <!-- The tray panel, Turn 12: a translucent sheet over whatever sits behind it, and
+           the flat colour it falls back to wherever the compositor gives us no blur. -->
+      <Color x:Key="FlyoutTintColor">#F9F9F9</Color>
+      <Color x:Key="FlyoutStrokeColor">#14000000</Color>
+      <Color x:Key="FlyoutFadeStartColor">#00F9F9F9</Color>
+      <Color x:Key="FlyoutFadeEndColor">#F0F9F9F9</Color>
     </ResourceDictionary>
 
     <ResourceDictionary x:Key="Dark">
@@ -86,6 +93,11 @@
       <Color x:Key="StatusPendingColor">#8C479EF5</Color>
       <Color x:Key="StatusExternalRingColor">#38479EF5</Color>
       <Color x:Key="StatusErrorBorderColor">#8CFF99A4</Color>
+
+      <Color x:Key="FlyoutTintColor">#2C2C2C</Color>
+      <Color x:Key="FlyoutStrokeColor">#17FFFFFF</Color>
+      <Color x:Key="FlyoutFadeStartColor">#002C2C2C</Color>
+      <Color x:Key="FlyoutFadeEndColor">#EB2C2C2C</Color>
     </ResourceDictionary>
 
   </ResourceDictionary.ThemeDictionaries>
@@ -111,6 +123,8 @@
   <SolidColorBrush x:Key="StrokeDefaultBrush" Color="{DynamicResource StrokeDefaultColor}" />
   <SolidColorBrush x:Key="StrokeSubtleBrush" Color="{DynamicResource StrokeSubtleColor}" />
   <SolidColorBrush x:Key="StrokeStrongBrush" Color="{DynamicResource StrokeStrongColor}" />
+
+  <SolidColorBrush x:Key="FlyoutStrokeBrush" Color="{DynamicResource FlyoutStrokeColor}" />
 
   <SolidColorBrush x:Key="DangerBrush" Color="{DynamicResource DangerColor}" />
   <SolidColorBrush x:Key="WarningBrush" Color="{DynamicResource WarningColor}" />

@@ -1,7 +1,13 @@
 namespace Maxwell.Core.Model;
 
-/// <summary>An EQ slot on the headset.</summary>
-public sealed record EqPreset(byte Index, string Name, bool IsUserSlot);
+/// <summary>
+/// An EQ slot on the headset.
+/// </summary>
+/// <param name="Curve">
+/// Gain per band, in dB, aligned to <see cref="EqPresets.Bands"/>. Null for the user
+/// slots, whose curve lives on the headset rather than in this table.
+/// </param>
+public sealed record EqPreset(byte Index, string Name, bool IsUserSlot, IReadOnlyList<int>? Curve = null);
 
 /// <summary>
 /// The ten EQ slots the Maxwell exposes: six factory presets followed by four user
@@ -23,14 +29,34 @@ public sealed record EqPreset(byte Index, string Name, bool IsUserSlot);
 /// </summary>
 public static class EqPresets
 {
+    /// <summary>
+    /// The ten band centres, in Hz. Fixed: the Maxwell's equaliser is a graphic one, and
+    /// the wearer moves gain only. Audeze HQ builds this same list for every preset.
+    /// </summary>
+    public static readonly IReadOnlyList<int> Bands =
+        [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+
+    /// <summary>
+    /// The ten slots, with the factory curves lifted from Audeze HQ's own
+    /// <c>getBuitInModelData</c> — read through its jump table rather than off the order
+    /// the arms happen to sit in memory, which is not the same thing.
+    ///
+    /// The curves corroborate the slot order independently of the string block it was
+    /// first taken from: index 2 lifts only the top, index 3 only the bottom, index 4
+    /// both. A table numbered the way the user guide prints it would have Treble Boost
+    /// raising bass.
+    ///
+    /// "Audeze" is flat on purpose — it is the headset's native tuning with nothing
+    /// added, not a missing entry.
+    /// </summary>
     public static readonly IReadOnlyList<EqPreset> All =
     [
-        new(1, "Audeze", false),
-        new(2, "Treble Boost", false),
-        new(3, "Bass Boost", false),
-        new(4, "Immersive", false),
-        new(5, "Competition", false),
-        new(6, "Footsteps", false),
+        new(1, "Audeze", false, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+        new(2, "Treble Boost", false, [0, 0, 0, 0, 0, 0, 0, 1, 2, 1]),
+        new(3, "Bass Boost", false, [3, 2, 0, 0, 0, 0, 0, 0, 0, 0]),
+        new(4, "Immersive", false, [3, 2, 0, 0, 0, 0, 0, 1, 2, 1]),
+        new(5, "Competition", false, [-5, -5, -4, -2, 0, 0, 0, 4, -3, 2]),
+        new(6, "Footsteps", false, [-1, -1, 3, 0, 0, 1, 4, 3, 0, 2]),
         new(7, "EQ1", true),
         new(8, "EQ2", true),
         new(9, "EQ3", true),

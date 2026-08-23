@@ -42,10 +42,36 @@ public abstract class ReactiveComponent : ComponentBase, IDisposable
     /// models may be written from.</summary>
     protected static void OnUi(Action action) => Avalonia.Threading.Dispatcher.UIThread.Post(action);
 
-    private void OnChanged(object? sender, PropertyChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
+    private int _pending;
 
-    private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
-        _ = InvokeAsync(StateHasChanged);
+    /// <summary>
+    /// One redraw per burst, not one per property.
+    ///
+    /// The view models announce their fields individually and a device snapshot moves
+    /// several at once — the page header alone raises a dozen, and a session publishes a
+    /// fresh snapshot after every capability it reads rather than once at the end of a
+    /// sweep. Queueing a render for each of them put hundreds of work items on Blazor's
+    /// dispatcher during a full read, and anything the wearer did meanwhile waited behind
+    /// the pile: a reverted equaliser changed the sound at once and redrew ten seconds
+    /// later, which read as the application having hung.
+    ///
+    /// Collapsing them costs nothing — the render that does run sees all the changes,
+    /// because it reads the view models as they are by then.
+    /// </summary>
+    private void Redraw()
+    {
+        if (Interlocked.Exchange(ref _pending, 1) == 1) return;
+
+        _ = InvokeAsync(() =>
+        {
+            Volatile.Write(ref _pending, 0);
+            StateHasChanged();
+        });
+    }
+
+    private void OnChanged(object? sender, PropertyChangedEventArgs e) => Redraw();
+
+    private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => Redraw();
 
     public virtual void Dispose()
     {

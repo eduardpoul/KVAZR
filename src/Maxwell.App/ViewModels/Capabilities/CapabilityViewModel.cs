@@ -28,6 +28,32 @@ public enum HintKind
 }
 
 /// <summary>
+/// The small word beside a row's title in Turn 14/15 — the state, named at a glance,
+/// instead of a dot the reader has to decode or a sentence they have to read. Each maps
+/// to one legend colour on the artboards.
+/// </summary>
+public enum CapabilityBadgeKind
+{
+    /// <summary>Amber "запись не проверена": a write the hardware has never confirmed.</summary>
+    Untested,
+
+    /// <summary>Grey "только чтение": a control-shaped value the device will not let us set.</summary>
+    ReadOnly,
+
+    /// <summary>Dashed grey "ждёт устройства": the driver is ready, the device has not answered.</summary>
+    Pending,
+
+    /// <summary>Blue "изменено на устройстве": the value moved under us, at the device itself.</summary>
+    Accent,
+
+    /// <summary>Red: the last write came back with an error.</summary>
+    Error,
+}
+
+/// <summary>One inline state badge: the word and which legend colour draws it.</summary>
+public sealed record CapabilityBadge(string Text, CapabilityBadgeKind Kind);
+
+/// <summary>
 /// One capability, ready to bind.
 ///
 /// The eight control states from the design system live here rather than in the
@@ -105,6 +131,8 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
         State = state;
         Session = session;
 
+        TrackBusy();
+
         // The first attach is the dangerous one: the control has its defaults, the
         // binding hands it bounds and a value in whatever order it likes, and anything
         // it pushes back before it has settled is not a person's decision.
@@ -141,7 +169,21 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     /// <summary>The amber dot. Gone for good once the device has accepted a write.</summary>
     public bool IsUntested => State.Status == CapabilityStatus.Untested;
 
-    public bool IsWriting => State.IsWriting;
+    /// <summary>
+    /// A write is running, and has been running long enough to be worth saying so.
+    ///
+    /// Not the raw flag. A write to the headset takes about six hundred milliseconds, and
+    /// announcing each one turned every slider nudge into a badge that arrived and left
+    /// before it could be read — measured on the equaliser as "не сохранено" at 479 ms,
+    /// "применяется" at 892 ms and "не сохранено" again at 1509 ms, all from one drag.
+    /// Nobody is waiting on that: the value is on screen already and the device agrees a
+    /// moment later. What is worth a word is a write that does not come back — a headset
+    /// carried out of range mid-write — so the indicator holds its tongue for
+    /// <see cref="BusyDelay"/>, and having spoken stays up <see cref="BusyHold"/> so it
+    /// cannot flash either. A refused write is untouched by any of this; that reports
+    /// through <see cref="HasError"/>, which has never been delayed.
+    /// </summary>
+    public bool IsWriting => _busy;
 
     public bool HasError => State.WriteError is not null;
 
@@ -161,7 +203,21 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     /// "первая запись необратима" beside a slider that could do nothing at all — a
     /// caution about an action nobody could take.
     /// </summary>
-    public bool IsIrreversible => !Descriptor.IsReversible && Descriptor.IsWritable && CanEdit;
+    /// <summary>
+    /// Not surfaced any more, and deliberately so.
+    ///
+    /// The fact behind it is real and stays recorded on the descriptor: the first gain
+    /// write latches mirror register 0x31, which currently holds its factory 142 and only
+    /// a factory reset puts back. What that register governs was never established, and
+    /// it was never tested on hardware — the protocol notes file gain under "must not be
+    /// tested at all". A caution nobody can act on, printed beside a control people use
+    /// every day, teaches them to read past cautions; the owner of the hardware asked for
+    /// it gone and it is their headset.
+    ///
+    /// Kept as false rather than deleted so the knowledge, the descriptor flag and this
+    /// note stay together for whoever wonders later.
+    /// </summary>
+    public bool IsIrreversible => false;
 
     public bool NeedsConfirmation => Descriptor.Risk != CapabilityRisk.Safe && Descriptor.IsWritable;
 
@@ -190,12 +246,11 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
         // Said in the frame itself, in place of the control. Repeating it here put the
         // same sentence on the row twice.
         { IsAvailable: false } => null,
-        { IsWriting: true } => "Применяется…",
+        _ when IsWriting => "Применяется…",
         { Status: CapabilityStatus.Unavailable } => "Функция есть, способа вызвать пока нет",
         { Status: CapabilityStatus.Untested } when Detail == HintDetail.Full =>
             "Ещё не проверено на живом устройстве",
         { ChangedExternally: true } => "Изменено на устройстве",
-        _ when IsIrreversible => Descriptor.Note ?? "Первая запись необратима",
 
         // Risk explained in words beside the control rather than left to the button.
         // Only the Action control draws a mark of its own, so without this every other
@@ -214,9 +269,53 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     public HintKind HintTone => State switch
     {
         { WriteError: not null } => HintKind.Error,
-        _ when (IsIrreversible || NeedsConfirmation) && !HasError && IsAvailable && !IsWriting =>
+        _ when NeedsConfirmation && !HasError && IsAvailable && !IsWriting =>
             HintKind.Warning,
         _ => Hint is null ? HintKind.None : HintKind.Info,
+    };
+
+    /// <summary>
+    /// A control-shaped value that is nonetheless read-only — a slider for the ChatMix
+    /// wheel, a reading the device owns and we can only watch. The plain Readout and the
+    /// Action are excluded: a value with no control needs no "read only" beside it, and a
+    /// button is not a value at all.
+    /// </summary>
+    /// <summary>
+    /// The reading printed opposite the name in the tray panel, or null when the control
+    /// already shows its own value. A slider needs it — a bare track says nothing about
+    /// where it sits — while a dropdown's face is the value, and printing it twice on a
+    /// 360-pixel row is noise.
+    /// </summary>
+    public virtual string? QuickValue => null;
+
+    public bool HasQuickValue => !string.IsNullOrEmpty(QuickValue);
+
+    public bool IsReadOnlyInteractive =>
+        !Descriptor.IsWritable
+        && Descriptor.Primitive is not (CapabilityPrimitive.Readout or CapabilityPrimitive.Action);
+
+    /// <summary>
+    /// The inline badge beside the title — Turn 14/15's way of naming a row's state in a
+    /// word. Same one-thing-wins precedence as <see cref="Hint"/>: an error outranks a
+    /// missing driver outranks an unconfirmed write outranks a read-only value. Null for
+    /// an ordinary writable control at rest, and null while unavailable, where the frame
+    /// already stands in for the whole control.
+    /// </summary>
+    public CapabilityBadge? Badge => State switch
+    {
+        { WriteError: not null } => new CapabilityBadge("ошибка записи", CapabilityBadgeKind.Error),
+        _ when IsWriting => null,
+        { Status: CapabilityStatus.Unavailable } => new CapabilityBadge("ждёт устройства", CapabilityBadgeKind.Pending),
+        { IsAvailable: false } => null,
+        // No badge for a value that moved on the device.
+        //
+        // It was meant to explain a number changing on its own, but the only control it
+        // ever appeared on is the one with a wheel on the earcup — where the wearer just
+        // turned that wheel and needs no telling. All it did was flicker beside a slider
+        // that had already caught up.
+        { Status: CapabilityStatus.Untested } => new CapabilityBadge("запись не проверена", CapabilityBadgeKind.Untested),
+        _ when IsReadOnlyInteractive => new CapabilityBadge("только чтение", CapabilityBadgeKind.ReadOnly),
+        _ => null,
     };
 
     // ---------- updates ----------
@@ -225,6 +324,22 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     public void Apply(CapabilityState state)
     {
         ArgumentNullException.ThrowIfNull(state);
+
+        // Our own write, come back confirmed.
+        //
+        // The echo window exists to ignore readings taken before a write landed, and it
+        // was ignoring the write's own answer along with them: the session reports the
+        // accepted value the moment the device takes it, which is inside the window by
+        // definition. Skipped, the control kept whatever it held until some unrelated
+        // capability happened to move and forced a publish — thirteen seconds after a
+        // reset, in the measurement that found this. An echo carrying exactly the value
+        // we sent is the one reading that cannot be stale, so it closes the window
+        // instead of being thrown away by it.
+        if (_pending is { } sent && !state.IsWriting && state.Value == sent)
+        {
+            _pending = null;
+            _lastLocalWrite = DateTimeOffset.MinValue;
+        }
 
         _applying = true;
         _settling = true;
@@ -240,6 +355,7 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
             _applying = false;
         }
 
+        TrackBusy();
         Settle();
     }
 
@@ -273,6 +389,90 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     {
     }
 
+    /// <summary>Long enough that an ordinary round trip to the device says nothing at all.</summary>
+    private static readonly TimeSpan BusyDelay = TimeSpan.FromMilliseconds(1200);
+
+    /// <summary>Once it is up, long enough to be read rather than glimpsed.</summary>
+    private static readonly TimeSpan BusyHold = TimeSpan.FromMilliseconds(700);
+
+    private bool _busy;
+    private DateTimeOffset _writingSince = DateTimeOffset.MinValue;
+    private DateTimeOffset _busySince = DateTimeOffset.MinValue;
+    private bool _watching;
+
+    /// <summary>
+    /// Works out whether the row should call itself busy, and books another look if the
+    /// answer can still change without a new reading arriving — which it can, twice: when
+    /// a slow write crosses <see cref="BusyDelay"/>, and when a finished one has served
+    /// out its <see cref="BusyHold"/>.
+    /// </summary>
+    private void TrackBusy()
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        bool writing = State.IsWriting;
+
+        if (!writing) _writingSince = DateTimeOffset.MinValue;
+        else if (_writingSince == DateTimeOffset.MinValue) _writingSince = now;
+
+        bool want = writing
+            ? _busy || now - _writingSince >= BusyDelay
+            : _busy && now - _busySince < BusyHold;
+
+        if (want != _busy)
+        {
+            _busy = want;
+            if (want) _busySince = now;
+
+            OnPropertyChanged(nameof(IsWriting));
+            OnPropertyChanged(nameof(Hint));
+            OnPropertyChanged(nameof(HintTone));
+            OnPropertyChanged(nameof(Badge));
+        }
+
+        TimeSpan again =
+            writing && !_busy ? BusyDelay - (now - _writingSince)
+            : !writing && _busy ? BusyHold - (now - _busySince)
+            : TimeSpan.Zero;
+
+        if (again <= TimeSpan.Zero || _watching) return;
+
+        _watching = true;
+        DispatcherTimer.RunOnce(
+            () =>
+            {
+                _watching = false;
+                TrackBusy();
+            },
+            again);
+    }
+
+    /// <summary>
+    /// A local write has just gone out and the device has not caught up yet.
+    ///
+    /// The window covers the whole round trip: the debounce that batches a drag, the
+    /// write itself, and the poll after it that can still be carrying the value from
+    /// before. Without it a slider being dragged jumps back to where it was and then
+    /// forward again as the readings land out of order — visible as the control fighting
+    /// the hand on it, and made far more visible once readings began publishing one at a
+    /// time instead of in one batch at the end of a sweep.
+    /// </summary>
+    protected bool WriteInFlight => DateTimeOffset.UtcNow - _lastLocalWrite < WriteEcho;
+
+    /// <summary>
+    /// Long enough to cover a debounce, a write and the poll that follows it. Short
+    /// enough that a value moved on the device itself still shows up promptly.
+    /// </summary>
+    private static readonly TimeSpan WriteEcho = TimeSpan.FromMilliseconds(1500);
+
+    private DateTimeOffset _lastLocalWrite = DateTimeOffset.MinValue;
+
+    /// <summary>
+    /// The value last sent, kept only until the device confirms it. What makes the
+    /// confirmation recognisable — everything else arriving in the echo window is a
+    /// reading from before the write and has to be ignored.
+    /// </summary>
+    private CapabilityValue? _pending;
+
     protected void RaiseStateProperties()
     {
         OnPropertyChanged(nameof(IsAvailable));
@@ -284,6 +484,7 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
         OnPropertyChanged(nameof(IsIrreversible));
         OnPropertyChanged(nameof(Hint));
         OnPropertyChanged(nameof(HintTone));
+        OnPropertyChanged(nameof(Badge));
     }
 
     /// <summary>
@@ -294,6 +495,8 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     {
         if (_applying || _settling || Session is null || !CanEdit) return;
 
+        _pending = value;
+        _lastLocalWrite = DateTimeOffset.UtcNow;
         _debouncer.Schedule(ct => Session.WriteAsync(Id, value, ct));
     }
 
@@ -302,6 +505,8 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     {
         if (_applying || _settling || Session is null || !CanEdit) return;
 
+        _pending = value;
+        _lastLocalWrite = DateTimeOffset.UtcNow;
         _ = Session.WriteAsync(Id, value, CancellationToken.None);
     }
 

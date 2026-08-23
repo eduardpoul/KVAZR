@@ -20,6 +20,13 @@ public static class CapabilityIds
     public const string PowerAutoOff = "power.auto_off";
     public const string DeviceFirmware = "device.firmware";
 
+    /// <summary>
+    /// Which edition of a model this is, where the hardware tells them apart. An Audeze
+    /// Maxwell is sold as an Xbox one and a PlayStation one and says which by its USB
+    /// product id; a model with only one edition simply never declares this.
+    /// </summary>
+    public const string DeviceEdition = "device.edition";
+
     // Link
     public const string LinkTransport = "link.transport";
     public const string LinkSignal = "link.signal";
@@ -42,6 +49,14 @@ public static class CapabilityIds
     public const string AudioEqGraphic = "audio.eq_graphic";
     public const string AudioVoicePrompts = "audio.voice_prompts";
 
+    // Audio the operating system owns, as distinct from the device's own amplifier.
+    // Both can sit on one page and they are not the same number: the Windows slider
+    // scales what is sent to the device, the device's own gain decides how loudly it
+    // plays what arrives. Calling either of them plain "volume" made the page
+    // unreadable, so both say whose they are.
+    public const string AudioSystemVolume = "audio.system_volume";
+    public const string AudioSystemMute = "audio.system_mute";
+
     // Microphone
     public const string MicMute = "mic.mute";
     public const string MicLevel = "mic.level";
@@ -49,6 +64,11 @@ public static class CapabilityIds
     public const string MicSidetoneLevel = "mic.sidetone_level";
     public const string MicSidetoneMax = "mic.sidetone_level_max";
     public const string MicNoiseReduction = "mic.noise_reduction";
+
+    // The Windows side of a microphone: the recording level and the mute that every
+    // audio device has, whatever protocol it does or does not speak.
+    public const string MicSystemLevel = "mic.system_level";
+    public const string MicSystemMute = "mic.system_mute";
 
     // Game and chat
     public const string MixChat = "mix.chat";

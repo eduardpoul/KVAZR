@@ -75,6 +75,27 @@ internal static partial class Log
         Message = "{DeviceKey} from {Driver} shadowed by a driver that knows it better")]
     public static partial void DeviceShadowed(this ILogger logger, string deviceKey, string driver);
 
+    [LoggerMessage(
+        EventId = 1307,
+        Level = LogLevel.Debug,
+        Message = "{DeviceKey}: {Contributor} added {Count} capabilities")]
+    public static partial void ContributorAttached(
+        this ILogger logger, string deviceKey, string contributor, int count);
+
+    [LoggerMessage(
+        EventId = 1308,
+        Level = LogLevel.Warning,
+        Message = "{DeviceKey}: contributor {Contributor} recognised it and could not open it")]
+    public static partial void ContributorFailed(
+        this ILogger logger, Exception exception, string deviceKey, string contributor);
+
+    [LoggerMessage(
+        EventId = 1309,
+        Level = LogLevel.Warning,
+        Message = "{DeviceKey}: {CapabilityId} was declared twice; the owning driver keeps it")]
+    public static partial void CapabilityClaimedTwice(
+        this ILogger logger, string deviceKey, string capabilityId);
+
     [LoggerMessage(EventId = 1100, Level = LogLevel.Information, Message = "Device polling started")]
     public static partial void PollingStarted(this ILogger logger);
 
@@ -83,4 +104,16 @@ internal static partial class Log
 
     [LoggerMessage(EventId = 1102, Level = LogLevel.Error, Message = "Polling iteration failed")]
     public static partial void PollingIterationFailed(this ILogger logger, Exception exception);
+
+    [LoggerMessage(
+        EventId = 1104,
+        Level = LogLevel.Information,
+        Message = "Device {DeviceKey} moved to a different channel; reconnecting")]
+    public static partial void DeviceChannelChanged(this ILogger logger, string deviceKey);
+
+    [LoggerMessage(
+        EventId = 1103,
+        Level = LogLevel.Warning,
+        Message = "Device {DeviceKey} did not answer within its slice of the sweep")]
+    public static partial void DevicePollTimedOut(this ILogger logger, string deviceKey);
 }

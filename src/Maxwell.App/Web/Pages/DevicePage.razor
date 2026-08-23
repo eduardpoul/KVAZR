@@ -1,24 +1,49 @@
 @namespace Maxwell.App.Web
 @inherits ReactiveComponent
 
-@* A device, assembled from what it declares — artboards 5a and 8–11. There is no
-   per-model page: a headset, a mouse and a keyboard all lay out through the same rows,
-   which is what keeps them looking like one program. *@
+@* A device, assembled from what it declares — Turn 14 (the class page, one section per
+   protocol) and Turn 15 (the extended page, vendor rows on top). There is no per-model
+   page: a headset, a mouse and a keyboard all lay out through the same hero, sections and
+   rows, which is what keeps them looking like one program. What differs between a basic
+   and an extended device is not the template but the metadata — the hero pill, the
+   per-section protocol pill, the honest-limits line — all read off the same view model. *@
 
 <div class="content">
 
   <div class="hero">
     <Thumb Info="Vm.Snapshot.Info" />
     <div class="hero-text">
-      <div class="hero-name">@Vm.Heading</div>
+      <div class="hero-titles">
+        <div class="hero-name">@Vm.Heading</div>
+        @if (Vm.Extended is { } ext)
+        {
+          <span class="hero-pill @HeroPillClass(ext.Kind)">@ext.Text</span>
+        }
+      </div>
       @if (!Vm.IsWholeDevice)
       {
         <div class="caption">@Vm.Subheading</div>
       }
       <div class="hero-chips">
+        <span class="type-pill">@Vm.TypeLabel</span>
+        @* Present is not the same as working. A Maxwell paired over Bluetooth while its
+           dongle is in shows both, and painting both accent claims both are carrying the
+           device — the rule for which one actually is lives in TransportActivity. *@
         @foreach (TransportInfo transport in Vm.LiveTransports)
         {
-          <span class="pill @(TransportActivity.IsLive(Vm.Snapshot.Info, transport) ? "transport" : "")">@transport.Label</span>
+          <span class="xport-pill @(TransportActivity.IsLive(Vm.Snapshot.Info, transport) ? "" : "idle")">
+            @switch (transport.Kind)
+            {
+              case TransportKind.Bluetooth:
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 1.8v12.4" /><path d="M8 1.8l4 3.2-8 6" /><path d="M8 14.2l4-3.2-8-6" /></svg>
+                break;
+              case TransportKind.UsbCable:
+              case TransportKind.Dongle:
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4.6" y="1.8" width="6.8" height="5" rx="1.2" /><path d="M8 6.8v6" /><circle cx="8" cy="13.6" r="1.3" /></svg>
+                break;
+            }
+            <span>@transport.Label</span>
+          </span>
         }
         @if (Vm.HasFirmware)
         {
@@ -30,10 +55,30 @@
         <div class="caption wrap">@Vm.StateNotice</div>
       }
     </div>
-    <div class="hero-batt">
-      <div class="hero-percent">@Vm.Battery</div>
-      <div class="caption">@Vm.Freshness</div>
-    </div>
+
+    @if (Vm.BatteryMode == BatteryDisplay.Charge)
+    {
+      <div class="hero-batt">
+        <div class="gauge-row">
+          <HeroBattery Fraction="Vm.BatteryFraction" Charging="Vm.IsCharging" />
+          <div class="hero-percent">@Vm.Battery</div>
+        </div>
+        @if (!string.IsNullOrEmpty(Vm.Freshness))
+        {
+          <div class="caption">@Vm.Freshness</div>
+        }
+      </div>
+    }
+    else if (Vm.BatteryMode == BatteryDisplay.Absent)
+    {
+      <div class="hero-batt absent">
+        <div class="gauge-row">
+          <HeroBattery Absent="true" />
+          <div class="hero-absent">Заряд недоступен</div>
+        </div>
+        <div class="caption wrap">@Vm.NoBatteryReason</div>
+      </div>
+    }
   </div>
 
   @if (Vm.HasNothingToChange)
@@ -45,7 +90,7 @@
     </div>
 
     <div class="group">
-      <div class="group-heading">ЧТО УДАЛОСЬ ПРОЧИТАТЬ</div>
+      <div class="group-head"><span class="group-heading">ЧТО УДАЛОСЬ ПРОЧИТАТЬ</span></div>
       <div class="card">
         @foreach (DeviceFact fact in Vm.Facts)
         {
@@ -60,7 +105,7 @@
     @if (CanForget)
     {
       <div class="group">
-        <div class="group-heading">ДЕЙСТВИЯ</div>
+        <div class="group-head"><span class="group-heading">ДЕЙСТВИЯ</span></div>
         <div class="card">
           <div class="cap-row">
             <div class="cap-text">
@@ -93,16 +138,48 @@
       <div class="group">
         @if (Vm.IsWholeDevice)
         {
-          <div class="group-heading">@section.Heading</div>
+          <div class="group-head">
+            <span class="group-heading">@section.Heading</span>
+            @if (Vm.ProtocolFor(section.Domain) is { } proto)
+            {
+              <span class="proto-pill @ProtoClass(proto.Kind)">@proto.Text</span>
+            }
+            @if (Vm.SectionNote(section.Domain) is { } note)
+            {
+              <span class="section-note">@note</span>
+            }
+          </div>
         }
-        <div class="card">
-          @foreach (CapabilityViewModel cap in section.Items)
-          {
+        @* The curve gets a card to itself, as the artboard has it: a plot the width of the
+           page does not belong in a stack of one-line rows, and the slot picker and the
+           save button in its header have nowhere to sit inside one. *@
+        @if (section.Items.Any(c => c is not CurveCapabilityViewModel))
+        {
+          <div class="card">
+            @{ string? previous = null; }
+            @foreach (CapabilityViewModel cap in section.Items.Where(c => c is not CurveCapabilityViewModel))
+            {
+              <CapRow Vm="cap" Joined="@(cap.State.Id == CapabilityIds.AudioGainRight && previous == CapabilityIds.AudioGainLeft)" />
+              previous = cap.State.Id;
+            }
+          </div>
+        }
+        @foreach (CapabilityViewModel cap in section.Items.OfType<CurveCapabilityViewModel>())
+        {
+          <div class="card curve-card">
             <CapRow Vm="cap" />
-          }
-        </div>
+          </div>
+        }
       </div>
     }
+  }
+
+  @if (!string.IsNullOrEmpty(Vm.LimitsNote))
+  {
+    <div class="limits">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6.2" /><path d="M8 7.2v4M8 4.9v.1" /></svg>
+      <span>@Vm.LimitsNote</span>
+    </div>
   }
 </div>
 
@@ -129,4 +206,16 @@
   {
     if (Shell.SelectedDevice is { } device) Shell.ForgetDeviceCommand.Execute(device);
   });
+
+  private static string HeroPillClass(HeroPillKind kind) =>
+      kind == HeroPillKind.Vendor ? "vendor" : "hidpp";
+
+  private static string ProtoClass(ProtocolPillKind kind) => kind switch
+  {
+    ProtocolPillKind.CoreAudio => "audio",
+    ProtocolPillKind.Hidpp => "hidpp",
+    ProtocolPillKind.Via => "via",
+    ProtocolPillKind.XInput => "xinput",
+    _ => "system",
+  };
 }

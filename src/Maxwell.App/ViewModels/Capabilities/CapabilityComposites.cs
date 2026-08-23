@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Maxwell.Core.Devices;
@@ -57,6 +58,29 @@ public abstract class CompositeCapabilityViewModel : CapabilityViewModel
     protected void WriteSlotNow(int slot, CapabilityValue value)
     {
         if (Record(slot, value)) WriteNow(CapabilityValue.Vector([.. _readings]));
+    }
+
+    /// <summary>
+    /// Every slot at once — a revert, a preset dropped in whole.
+    ///
+    /// Goes through the same readings array a single slot does, and that is the whole
+    /// point of it existing. A caller that built its own vector and handed it straight to
+    /// <see cref="CapabilityViewModel.Write"/> left this array holding the values from
+    /// before, and the next <see cref="PushReadings"/> — which the base class runs after
+    /// every settle, whether or not a reading arrived — painted those back over the
+    /// change. That is exactly how the equaliser's reset appeared to work and then undo
+    /// itself a third of a second later.
+    /// </summary>
+    protected void WriteAll(IReadOnlyList<CapabilityValue> values)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+
+        for (int i = 0; i < _readings.Length; i++)
+        {
+            _readings[i] = i < values.Count ? values[i] : CapabilityValue.Absent;
+        }
+
+        Write(CapabilityValue.Vector([.. _readings]));
     }
 
     protected override void OnStateApplied(CapabilityState state)
@@ -231,7 +255,102 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
 
         Labels = [.. Members.Select(m => m.Label)];
         PushReadings();
+
+        // The curve the page opened on is as much a baseline as any that arrives later.
+        // Captured only on a snapshot, revert stayed dead until the first poll — long
+        // enough for someone to drag a band, press it and watch nothing happen.
+        if (Array.TrueForAll(_known, k => k)) _baseline = [.. _values];
     }
+
+    /// <summary>
+    /// The slot picker the artboard puts in this card's header, or null when the device
+    /// has no such capability.
+    ///
+    /// Linked rather than owned: the preset is a capability in its own right, read and
+    /// written like any other, and folding it into the curve would make one control out of
+    /// two things the device keeps apart. The page hands it over so the header can draw it.
+    /// </summary>
+    public ChoiceCapabilityViewModel? Slots
+    {
+        get => _slots;
+        set
+        {
+            if (ReferenceEquals(_slots, value)) return;
+
+            if (_slots is not null) _slots.PropertyChanged -= OnSlotChanged;
+            _slots = value;
+            if (_slots is not null) _slots.PropertyChanged += OnSlotChanged;
+        }
+    }
+
+    private ChoiceCapabilityViewModel? _slots;
+
+    /// <summary>
+    /// Picking a preset replaces the curve on the device, and nothing else would ask for
+    /// it: the capability is read on the polling interval, so without this the plot went
+    /// on showing the previous preset's shape for as long as ten seconds after the name
+    /// above it had changed.
+    /// </summary>
+    private async void OnSlotChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(ChoiceCapabilityViewModel.Selected) || Session is null) return;
+
+        IsEditing = false;
+        IsDirty = false;
+
+        try
+        {
+            await Session.RefreshAsync([State.Id]).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            // The page closed while the read was in flight; there is nothing left to show.
+        }
+    }
+
+    /// <summary>
+    /// True once a band has been moved away from what the selected preset holds. The
+    /// artboard shows this as a badge beside the title and as the appearance of a save
+    /// button; it is also what makes the revert worth offering.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsDirty { get; private set; }
+
+    /// <summary>
+    /// The curve as the selected preset has it, kept so an edit can be undone.
+    ///
+    /// Taken from the device rather than remembered from the last save: switching preset
+    /// replaces it wholesale, which is exactly the behaviour wanted — revert means "back
+    /// to this preset", not "back to whatever I had open an hour ago".
+    /// </summary>
+    private int[] _baseline = [];
+
+    /// <summary>Puts every band back to the selected preset and sends that to the device.</summary>
+    [RelayCommand]
+    private void Revert()
+    {
+        if (_baseline.Length != _values.Length || !CanEdit) return;
+
+        Array.Copy(_baseline, _values, _values.Length);
+        Array.Fill(_known, true);
+        IsEditing = false;
+
+        // Forced, not merely requested. Republish is deliberately quiet when the numbers
+        // match what it last published, and after a revert they can — the plot would then
+        // keep showing the edit while the headset had already gone back.
+        Republish(force: true);
+
+        // Scheduled rather than immediate, so it replaces whatever the drag left pending
+        // instead of queueing behind it. The plot has already gone back; only the headset
+        // is still catching up.
+        WriteAll([.. _values.Select(CapabilityValue.Of)]);
+    }
+
+    /// <summary>
+    /// True when the selected slot holds a curve the wearer put there, which is the only
+    /// kind that can be thrown away. The six the headset ships with have no delete.
+    /// </summary>
+    public bool CanDelete => Slots?.Selected?.Hint is not null;
 
     /// <summary>Frequency captions under the plot.</summary>
     public IReadOnlyList<string> Labels { get; }
@@ -262,6 +381,70 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
     public partial bool HasCurve { get; private set; }
 
     /// <summary>
+    /// The bands as the device states them — decibels, percent — for the numbers printed
+    /// over each bar and beside the plot. <see cref="Points"/> stays the geometry and this
+    /// stays the meaning, so the plot never has to convert one into the other.
+    /// </summary>
+    [ObservableProperty]
+    public partial IReadOnlyList<int> Values { get; private set; } = [];
+
+    public double Minimum => _bounds.Min;
+
+    public double Maximum => _bounds.Max;
+
+    public string? Unit => _bounds.Unit;
+
+    /// <summary>
+    /// Where the bars grow from, as a fraction of the plot's height. A scale that spans
+    /// zero — an equaliser in dB, a response curve in ± percent — hangs its bars off the
+    /// zero line, because a band at 0 means "unchanged" and has to look like nothing
+    /// rather than like half. A scale that starts at zero grows from the floor.
+    /// </summary>
+    public double ZeroFraction
+    {
+        get
+        {
+            double span = Math.Max(1, _bounds.Max - _bounds.Min);
+            return Math.Clamp((0 - _bounds.Min) / span, 0, 1);
+        }
+    }
+
+    /// <summary>
+    /// The band the reader is working on, echoed in the plot's header. Not a selection in
+    /// the device — nothing is written by pointing at a band — just where the eye is.
+    /// </summary>
+    [ObservableProperty]
+    public partial int SelectedBand { get; set; }
+
+    /// <summary>The five axis captions, top to bottom, from the scale's own bounds.</summary>
+    public IReadOnlyList<string> AxisTicks =>
+        [.. Enumerable.Range(0, 5).Select(i => Signed((int)Math.Round(_bounds.Max - ((_bounds.Max - _bounds.Min) * i / 4.0))))];
+
+    /// <summary>"250 Гц · +4.5 дБ" — what the header says about the band under the eye.</summary>
+    public string SelectedSummary
+    {
+        get
+        {
+            if (SelectedBand < 0 || SelectedBand >= Labels.Count) return string.Empty;
+
+            string value = Values.Count > SelectedBand ? BandText(SelectedBand) : "—";
+            return $"{Labels[SelectedBand]} · {value}";
+        }
+    }
+
+    /// <summary>One band's value with its sign and unit, as printed over its bar.</summary>
+    public string BandText(int index)
+    {
+        if (index < 0 || index >= Values.Count) return "—";
+
+        string text = Signed(Values[index]);
+        return _bounds.Unit is { } unit ? WithUnit(text, unit) : text;
+    }
+
+    /// <summary>Zero prints as a bare "0": a signed zero reads as a value someone set.</summary>
+    private static string Signed(int value) => value.ToString("+0;-0;0", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>
     /// The band count with no bands at all is the shape Maxwell's equaliser has: the
     /// firmware plainly holds one, and the command that reaches it has not been found.
     /// That is a different sentence from "read, and flat".
@@ -285,10 +468,62 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
 
         _values[point.Index] = raw;
         _known[point.Index] = true;
+        IsEditing = true;
 
         Republish();
         WriteSlot(point.Index, CapabilityValue.Of(raw));
     }
+
+    /// <summary>
+    /// Ignores readings that arrive while a write is still settling.
+    ///
+    /// A curve is written as a whole and answered a poll later, so for a moment the device
+    /// is still reporting what it held before the drag. Taken at face value that reading
+    /// snaps every band back under the wearer's finger — the same echo the single sliders
+    /// already guard against, and far more visible here because ten of them jump at once.
+    /// </summary>
+    /// <summary>
+    /// The second way a reading can reach the plot, and the one that was still getting
+    /// through.
+    ///
+    /// The base class re-pushes its readings once a write has settled, so children that
+    /// clamped themselves can be corrected. For a curve mid-edit that correction is the
+    /// device's old shape, and it landed a beat after the drag — the plot jumped back and
+    /// then forward again as the next move overtook it. Blocking the poll alone was not
+    /// enough; this path had to be closed too.
+    /// </summary>
+    protected override void OnSettled()
+    {
+        if (IsEditing) return;
+
+        base.OnSettled();
+    }
+
+    protected override void OnStateApplied(CapabilityState state)
+    {
+        // The curve belongs to whoever is editing it.
+        //
+        // Once a band has been moved the plot shows the wearer's work, and a poll has
+        // nothing to add: the device is reporting the very curve we just sent it, so
+        // accepting the reading would quietly make the edit the new baseline — the
+        // "unsaved" badge and both buttons would vanish a few seconds after the drag,
+        // leaving no way back. Readings resume when the edit is finished, by saving,
+        // reverting, or picking another preset.
+        if (IsEditing || WriteInFlight) return;
+
+        base.OnStateApplied(state);
+
+        // Not editing, so this is what the selected preset holds — the point a revert goes
+        // back to. Set before the state is settled, because publishing works out "dirty"
+        // by comparing against it: updated afterwards, every incoming curve first looked
+        // like an edit and the save button blinked once on every preset change.
+        if (Array.TrueForAll(_known, k => k)) _baseline = [.. _values];
+
+        IsDirty = false;
+    }
+
+    /// <summary>True between the first band moved and the edit being finished.</summary>
+    private bool IsEditing { get; set; }
 
     protected override void PushReadings()
     {
@@ -307,14 +542,33 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
         Republish();
     }
 
-    private void Republish()
+    private void Republish(bool force = false)
     {
+        bool curve = Array.Exists(_known, k => k);
+
+        // Silence when nothing moved.
+        //
+        // A poll answers with the same ten numbers every few seconds, and republishing
+        // them regardless makes the plot rebuild its DOM on a timer. That is not merely
+        // wasteful: the rebuild throws away wherever the page was scrolled to and whatever
+        // the pointer was holding, so a curve could not be dragged for longer than one
+        // polling interval without being yanked out from under the wearer.
+        if (!force && curve == HasCurve && Values.Count == _values.Length && Values.SequenceEqual(_values))
+        {
+            return;
+        }
+
         double span = Math.Max(1, _bounds.Max - _bounds.Min);
         Points = [.. _values.Select(v => Math.Clamp((v - _bounds.Min) / span, 0, 1))];
+        Values = [.. _values];
 
-        HasCurve = Array.Exists(_known, k => k);
+        HasCurve = curve;
+        IsDirty = IsEditing && _baseline.Length == _values.Length && !_baseline.SequenceEqual(_values);
         OnPropertyChanged(nameof(Display));
+        OnPropertyChanged(nameof(SelectedSummary));
     }
+
+    partial void OnSelectedBandChanged(int value) => OnPropertyChanged(nameof(SelectedSummary));
 
     private string Describe()
     {

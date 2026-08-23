@@ -41,8 +41,12 @@
 
     <DataTemplate DataType="cap:RangeCapabilityViewModel">
       <StackPanel HorizontalAlignment="Stretch" Spacing="2">
-        <TextBlock Classes="caption"
+        <!-- Classed so a compact host can turn it off: the tray panel prints the reading
+             opposite the capability's name instead, and two copies of "1600 DPI" on one
+             360-pixel row is the sort of thing a page renders without anyone noticing. -->
+        <TextBlock Classes="caption reading"
                    HorizontalAlignment="Right"
+                   IsVisible="{Binding $parent[controls:CapabilityControl].ShowReading}"
                    Text="{Binding Display}" />
         <!-- Bounds are declared before the value on purpose: a Slider clamps whatever
              it is handed to the range it holds at that moment, and widening the range

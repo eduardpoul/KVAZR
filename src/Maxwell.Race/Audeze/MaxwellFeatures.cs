@@ -16,8 +16,22 @@ public static class MaxwellFeatures
     /// <summary>EQ preset slot.</summary>
     public const byte PeqIndex = 0x00;
 
-    /// <summary>Voice-prompt volume.</summary>
+    /// <summary>Voice-prompt volume. Four bits wide — see <see cref="VpLevelMax"/>.</summary>
     public const byte VpLevel = 0x20;
+
+    /// <summary>
+    /// Loudest voice prompt the register can hold. The field is four bits, and the
+    /// firmware masks rather than rejects: 200 lands as 8 and 255 as 15, silently.
+    ///
+    /// This is what made the control look broken for so long. The frame was always
+    /// right; the declared range was not. A slider offering 0..255 spends most of its
+    /// travel writing values that come back as something else, and the row then reports —
+    /// accurately — that the headset did not accept what it was given.
+    ///
+    /// Measured on hardware 2026-08-23: 0..15 all round-trip exactly, and every value
+    /// above 15 comes back as <c>value &amp; 0x0F</c>.
+    /// </summary>
+    public const byte VpLevelMax = 15;
 
     /// <summary>Microphone mute. Read only — no write function exists in Audeze HQ either.</summary>
     public const byte MicMute = 0x22;
@@ -51,7 +65,15 @@ public static class MaxwellFeatures
     /// <summary>Sidetone on/off.</summary>
     public const byte SidetoneState = 0x07;
 
-    /// <summary>Auto power-off. Writes use the longer 0x0C-length form.</summary>
+    /// <summary>
+    /// Auto power-off, in seconds and sixteen bits wide — the one feature in this
+    /// namespace that is not a single byte.
+    ///
+    /// Read gives <c>00 &lt;sub&gt; 00 | &lt;on&gt; 00 &lt;lo&gt; &lt;hi&gt;</c> with the
+    /// flag-and-value group repeated, and the write needs the matching long form (length
+    /// <c>0x0C</c>). Sent as a byte like its neighbours it is silently refused. See
+    /// <see cref="Protocol.RaceSession.WriteAutoPowerOffAsync"/>.
+    /// </summary>
     public const byte AutoPowerOff = 0x01;
 
     public const byte ChatMix = 0x0B;

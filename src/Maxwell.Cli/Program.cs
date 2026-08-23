@@ -36,6 +36,22 @@ if (args.Contains("--hidpp")) return HidPlusPlusProbe.Run();
 if (args.Contains("--xinput")) return XInputProbe.Run();
 if (args.Contains("--audio")) return AudioProbe.Run();
 if (args.Contains("--desk")) return DeskProbe.Run(args);
+if (args.Contains("--timing")) return await TimingProbe.RunAsync().ConfigureAwait(false);
+if (args.Contains("--devchange")) return DeviceChangeProbe.Run(TimeSpan.FromSeconds(20));
+if (args.Contains("--charge")) return await ChargeProbe.RunAsync(4).ConfigureAwait(false);
+if (args.Contains("--autooff")) return await AutoOffProbe.RunAsync().ConfigureAwait(false);
+if (args.Contains("--eqwrite")) return await EqWriteProbe.RunAsync().ConfigureAwait(false);
+if (args.Contains("--listen")) return await ListenProbe.RunAsync(20).ConfigureAwait(false);
+if (args.Contains("--eqcompare")) return EqCompareProbe.Run();
+if (args.Contains("--eqpush"))
+{
+    return await EqPushProbe.RunAsync(
+        args.Contains("--dry"), args.Contains("--force"), args.Contains("--mine"),
+        ValueAfter(args, "--curve") ?? "flat")
+        .ConfigureAwait(false);
+}
+
+if (args.Contains("--eq")) return await EqProbe.RunAsync().ConfigureAwait(false);
 if (args.Contains("--airpods")) return AirPodsProbe.Run();
 if (args.Contains("--live")) return LiveProbe.Run();
 

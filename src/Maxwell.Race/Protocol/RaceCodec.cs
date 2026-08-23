@@ -37,6 +37,48 @@ public static class RaceCodec
     }
 
     /// <summary>
+    /// Split a body too long for one report into the chunks the chip reassembles.
+    ///
+    /// There is no sequence number and no continuation bit: the device simply
+    /// concatenates what arrives, so the chunks must go out in order and nothing may be
+    /// interleaved between them. Each report is <c>06 &lt;count&gt; &lt;flags&gt;</c> and
+    /// then up to <see cref="MaxChunk"/> bytes, with the flags byte repeated on every
+    /// chunk rather than only the first.
+    ///
+    /// Note the length byte counts the chunk alone, without the flags byte — unlike
+    /// <see cref="BuildShortReport"/>, whose caller folds the flag into the body and so
+    /// declares one more than it sends. That works only because the report is zero-filled
+    /// and the extra byte is a trailing zero the device ignores.
+    /// </summary>
+    /// <param name="flags">Transport byte, 0x80 for the paths we speak to.</param>
+    /// <param name="body">The RACE frame itself, starting at its 05 5A magic.</param>
+    public static List<byte[]> BuildChunkedReports(byte flags, ReadOnlySpan<byte> body, int reportLength)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(reportLength, MaxChunk + 3);
+
+        var reports = new List<byte[]>();
+        for (int sent = 0; sent < body.Length; sent += MaxChunk)
+        {
+            int take = Math.Min(MaxChunk, body.Length - sent);
+
+            byte[] report = new byte[reportLength];
+            report[0] = OutputReportId;
+            report[1] = (byte)take;
+            report[2] = flags;
+            body.Slice(sent, take).CopyTo(report.AsSpan(3));
+            reports.Add(report);
+        }
+
+        return reports;
+    }
+
+    /// <summary>
+    /// Payload bytes one report carries: the report is 62 long and three of those are
+    /// the id, the count and the flags.
+    /// </summary>
+    public const int MaxChunk = 59;
+
+    /// <summary>
     /// 2-byte length framing, used by 0x1680 whose body already starts with 05 5A.
     /// The magic still lands on byte 3, just via a wider length field.
     /// </summary>

@@ -304,3 +304,80 @@ public sealed class GainSafetyTests
         Assert.False(RaceCommands.IsDestructive(RaceCommands.Read, MaxwellFeatures.AmpGain));
     }
 }
+
+/// <summary>
+/// Multi-report framing, used by anything too long for one report — the equaliser
+/// coefficients above all.
+///
+/// The chip reassembles by concatenation alone: no sequence number, no continuation bit,
+/// no total length in the first report. That makes the framing simple and the ordering
+/// absolute, and it means a chunk sent with the wrong count silently shifts everything
+/// after it rather than being rejected.
+/// </summary>
+public sealed class RaceCodecChunkingTests
+{
+    private const int ReportLength = 62;
+
+    private static byte[] Body(int length)
+    {
+        byte[] body = new byte[length];
+        for (int i = 0; i < length; i++) body[i] = (byte)(i & 0xFF);
+        return body;
+    }
+
+    [Fact]
+    public void ShortBody_FitsOneReport()
+    {
+        List<byte[]> reports = RaceCodec.BuildChunkedReports(0x80, Body(10), ReportLength);
+
+        Assert.Single(reports);
+        Assert.Equal(RaceCodec.OutputReportId, reports[0][0]);
+        Assert.Equal(10, reports[0][1]);
+        Assert.Equal(0x80, reports[0][2]);
+    }
+
+    /// <summary>The real case: a ten-band coefficient blob is 219 bytes of body.</summary>
+    [Fact]
+    public void CoefficientBody_SplitsIntoFour()
+    {
+        List<byte[]> reports = RaceCodec.BuildChunkedReports(0x80, Body(219), ReportLength);
+
+        Assert.Equal(4, reports.Count);
+        Assert.Equal([59, 59, 59, 42], reports.Select(r => (int)r[1]));
+    }
+
+    /// <summary>Every chunk carries the flags byte, not just the first.</summary>
+    [Fact]
+    public void EveryChunk_CarriesTheFlags() =>
+        Assert.All(RaceCodec.BuildChunkedReports(0x80, Body(219), ReportLength),
+            report => Assert.Equal(0x80, report[2]));
+
+    /// <summary>
+    /// Concatenating the chunks must give the body back exactly. This is the invariant
+    /// the device relies on and the one a chunking bug breaks invisibly.
+    /// </summary>
+    [Fact]
+    public void Chunks_ReassembleToTheBody()
+    {
+        byte[] body = Body(219);
+
+        byte[] rejoined = [.. RaceCodec.BuildChunkedReports(0x80, body, ReportLength)
+            .SelectMany(report => report.Skip(3).Take(report[1]))];
+
+        Assert.Equal(body, rejoined);
+    }
+
+    [Fact]
+    public void ExactMultipleOfChunk_DoesNotEmitAnEmptyReport()
+    {
+        List<byte[]> reports = RaceCodec.BuildChunkedReports(0x80, Body(RaceCodec.MaxChunk * 2), ReportLength);
+
+        Assert.Equal(2, reports.Count);
+        Assert.All(reports, r => Assert.Equal(RaceCodec.MaxChunk, r[1]));
+    }
+
+    [Fact]
+    public void ReportTooShortForAChunk_IsRejected() =>
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => RaceCodec.BuildChunkedReports(0x80, Body(10), RaceCodec.MaxChunk + 2));
+}

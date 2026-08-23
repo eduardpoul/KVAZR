@@ -85,6 +85,20 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
     /// </summary>
     public bool HasNothing => Quick.Count == 0;
 
+    /// <summary>
+    /// What the empty row says. "Nothing to set" and "not over this link" are different
+    /// facts and the second one is actionable: a Maxwell on its dongle is not a device
+    /// without settings, it is a device whose settings are one cable away. The reason
+    /// comes from the capability that was skipped rather than being written here, because
+    /// the driver is what knows why.
+    /// </summary>
+    public string NothingSaid => _blocked is { Length: > 0 } reason
+        ? reason
+        : "Настраивать нечего: устройство отдаёт только то, что уже в строке.";
+
+    /// <summary>Why the quick controls were left out, if they were.</summary>
+    private string? _blocked;
+
     public void Update(DeviceSnapshot snapshot)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
@@ -125,6 +139,7 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
     private void Open()
     {
         IsOpen = true;
+        _blocked = null;
 
         DeviceSnapshot snapshot = Device.Snapshot;
         IDeviceSession? session = _registry.Session(Key);
@@ -137,10 +152,22 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
             // that cannot be moved earns nothing here and costs a line.
             if (snapshot.Get(id) is not { Descriptor.Access: not CapabilityAccess.Read } state) continue;
 
+            // Out of reach over this link. A Maxwell on its dongle carries its whole audio
+            // section and not one control in it can be moved without a cable — and a
+            // control that cannot be drawn leaves its name standing alone, which is what
+            // made an opened row read as a column of dead labels. The panel shows what the
+            // device gives; the reason goes in the sentence underneath instead.
+            if (!state.IsAvailable)
+            {
+                _blocked ??= state.Descriptor.RequirementHint;
+                continue;
+            }
+
             Quick.Add(CapabilityViewModelFactory.Create(state, session, HintDetail.Terse));
         }
 
         OnPropertyChanged(nameof(HasNothing));
+        OnPropertyChanged(nameof(NothingSaid));
     }
 
     [RelayCommand]

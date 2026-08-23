@@ -251,16 +251,23 @@ public sealed class CapabilityCatalogTests
     public void MaxwellDeclaresTheDangerousOperationsAsDangerous()
     {
         Capability reset = MaxwellCapabilities.All.Single(c => c.Id == CapabilityIds.MaintFactoryReset);
-        Capability pair = MaxwellCapabilities.All.Single(c => c.Id == CapabilityIds.LinkPair);
 
-        // Both wipe state the user cannot get back, and the public protocol notes label
-        // their command range "Battery/sync" — which is how a read-only sweep once came
-        // within one byte of erasing the headset.
+        // It wipes state the user cannot get back, and the public protocol notes label its
+        // command range "Battery/sync" — which is how a read-only sweep once came within
+        // one byte of erasing the headset.
         Assert.Equal(CapabilityRisk.Hidden, reset.Risk);
         Assert.False(reset.IsReversible);
-        Assert.Equal(CapabilityRisk.Confirm, pair.Risk);
-        Assert.False(pair.IsReversible);
     }
+
+    /// <summary>
+    /// Re-pairing is not offered. It is one byte away from the factory reset in the same
+    /// command range, it undoes a link the user did not set up by hand and cannot redo
+    /// without the dongle in reach, and nothing about a headset that is already paired
+    /// calls for it. A row nobody needs is not worth the chance of hitting it.
+    /// </summary>
+    [Fact]
+    public void MaxwellDoesNotOfferRePairing() =>
+        Assert.DoesNotContain(MaxwellCapabilities.All, c => c.Id == CapabilityIds.LinkPair);
 
     [Fact]
     public void MaxwellMicrophoneMuteIsAnIndicatorNotASwitch()

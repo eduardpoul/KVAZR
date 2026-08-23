@@ -28,6 +28,47 @@ public static class RaceCommands
     /// <summary>Four-byte flash and SRAM read. Answered locally by a dongle.</summary>
     public const ushort MemoryRead = 0x1680;
 
+    /// <summary>
+    /// Reads one user equaliser slot back as its parametric bands. The payload carries a
+    /// non-volatile key rather than a sub-command, so it is framed unlike the register
+    /// namespaces: <c>0C 0A &lt;slot&gt; EF E8 03</c> — slot, key, then a sixteen-bit cap
+    /// on how many bytes may come back.
+    /// </summary>
+    public const ushort EqBandsRead = 0x0A0C;
+
+    /// <summary>
+    /// Writes the band list of a user slot. Persists the editor's own view of the curve
+    /// and not what the headset plays from; see <see cref="EqCoefficientsApply"/>.
+    /// </summary>
+    public const ushort EqBandsWrite = 0x0A0D;
+
+    /// <summary>Frees the non-volatile key before <see cref="EqBandsWrite"/> refills it.</summary>
+    public const ushort EqNvKeyReclaim = 0x0A03;
+
+    /// <summary>
+    /// Loads biquad coefficients into the running filter. What the headset actually plays
+    /// from — the band list alone changes nothing audible.
+    /// </summary>
+    public const ushort EqCoefficientsApply = 0x0E03;
+
+    /// <summary>The non-volatile key the equaliser slots live under.</summary>
+    public const byte EqNvKey = 0xEF;
+
+    /// <summary>
+    /// Slots holding a user curve, numbered as the wire numbers them: <b>0 to 3</b>.
+    ///
+    /// Not the preset index. The firmware calls the four user presets 7 to 10 and the
+    /// equaliser commands call the same four 0 to 3 — Audeze HQ subtracts seven on the way
+    /// down, and the non-volatile key is 0xEF00 plus this number. Asking with the preset
+    /// index instead names keys that do not exist, and the headset answers every one of
+    /// them with the same "never written" status an empty slot gives, which reads exactly
+    /// like a headset with nothing saved on it.
+    /// </summary>
+    public static bool IsUserEqSlot(int slot) => slot is >= 0 and <= 3;
+
+    /// <summary>Preset index 7..10 as the equaliser commands number it, or -1.</summary>
+    public static int EqSlotOfPreset(int preset) => preset is >= 7 and <= 10 ? preset - 7 : -1;
+
     /// <summary>Highest gain the driver tolerates. Above this the coil can be damaged.</summary>
     public const int MaxGain = 150;
 

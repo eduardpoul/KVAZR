@@ -4,7 +4,9 @@
         xmlns:cap="using:Maxwell.App.ViewModels.Capabilities"
         xmlns:controls="using:Maxwell.App.Controls"
         xmlns:devices="using:Maxwell.App.ViewModels.Devices"
+        xmlns:core="using:Maxwell.Core.Devices"
         xmlns:vm="using:Maxwell.App.ViewModels"
+        xmlns:sys="using:System"
         x:Class="Maxwell.App.Views.FlyoutWindow"
         x:DataType="vm:FlyoutViewModel"
         Width="360"
@@ -13,7 +15,8 @@
         ShowInTaskbar="False"
         Topmost="True"
         CornerRadius="8"
-        Background="{DynamicResource LayerCardBrush}"
+        TransparencyLevelHint="AcrylicBlur, Blur, Transparent"
+        Background="Transparent"
         FontFamily="Segoe UI Variable Text, Segoe UI, sans-serif"
         FontSize="{DynamicResource FontSizeBody}"
         Foreground="{DynamicResource TextPrimaryBrush}">
@@ -33,6 +36,7 @@
     the panel taller. A tray panel that grows down the screen as devices connect is one
     that eventually cannot be dismissed by clicking beside it.
   -->
+
 
   <Window.Styles>
     <!-- The open row grows a surface of its own, so the controls inside read as
@@ -72,13 +76,108 @@
     <Style Selector="Button.footerRow:pointerover /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}" />
     </Style>
+    <!-- The opened row and everything under it are one surface, so the controls read as
+         belonging to the device named above them. The whole block, not just the 56-pixel
+         row: a card that stopped at the name would leave its own controls outside it. -->
     <Style Selector="Border.deviceRow.open">
-      <Setter Property="Background" Value="{DynamicResource LayerAltBrush}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource StrokeDefaultBrush}" />
+      <Setter Property="Background" Value="{DynamicResource LayerCardBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource StrokeSubtleBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+    <!-- A row of text that happens to be clickable, but still a row: Fluent gives a list
+         item 32 pixels and a 4-pixel radius, and a hover that hugs the glyphs instead of
+         filling the row reads as a rendering fault rather than as a target. -->
+    <Style Selector="Button.quietLink">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="8,0" />
+      <Setter Property="Height" Value="32" />
+      <Setter Property="MinHeight" Value="32" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <!-- Fluent's own slider, trimmed to the artboard's footprint.
+         It reserves room for a header and a tick strip that this panel never uses, and
+         left alone that spare height reads as a gap between a control and its own name —
+         the 5 pixels the drawing puts there became nearer twenty. -->
+    <!--
+      Fluent's slider stands 46 pixels tall: a 4-pixel track with a header strip and a
+      tick strip reserved around it, neither of which this panel uses. The artboard gives
+      the row 18, and the difference showed up as a gap between a control and its own
+      name wide enough to look like a mistake.
+
+      Height does not touch it — the reservations are inside the template — and the theme
+      resources that do are resolved statically inside the control theme, where a window
+      cannot reach them. So the spare is taken back with a negative margin: the stock
+      control keeps its behaviour, and only the space it reserves and never draws in is
+      removed. Measured, not guessed: 14 a side brings the block pitch from 79 to the
+      drawing's 51.
+    -->
+    <Style Selector="Slider.quick">
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Margin" Value="0,-14" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <!-- It is a link, but it still has to answer the pointer. The text and the chevron
+         carry explicit colours, so the hover has to reach them by name: setting the
+         inherited foreground alone changed nothing at all, which is why this row was the
+         one thing in the panel that did not light up. -->
+    <Style Selector="Button.quietLink:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}" />
+    </Style>
+    <Style Selector="Button.quietLink:pointerover TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="Button.quietLink:pointerover Path">
+      <Setter Property="Stroke" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+
+    <!-- The choice and command rows: one 30-pixel line, control against the right edge. -->
+    <Style Selector="ComboBox.quick">
+      <Setter Property="Height" Value="30" />
+      <Setter Property="MinHeight" Value="30" />
+      <Setter Property="Width" Value="150" />
+      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Button.quick">
+      <Setter Property="Height" Value="30" />
+      <Setter Property="MinHeight" Value="30" />
+      <Setter Property="Padding" Value="12,0" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
   </Window.Styles>
 
-  <Border BorderBrush="{DynamicResource StrokeDefaultBrush}" BorderThickness="1" CornerRadius="8">
+
+  <Panel>
+
+    <!--
+      The sheet the panel is drawn on. Turn 12 makes it translucent over whatever is
+      behind it, which is why the window itself is transparent and this paints instead of
+      Window.Background. FallbackColor is the load-bearing part: where the compositor
+      offers no blur — a remote session, a machine with transparency turned off — this
+      resolves to the flat tint rather than to nothing, and a tray panel that renders as
+      a black rectangle is a worse failure than one that is merely opaque.
+    -->
+    <ExperimentalAcrylicBorder IsHitTestVisible="False" CornerRadius="8">
+      <ExperimentalAcrylicBorder.Material>
+        <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                     TintColor="{DynamicResource FlyoutTintColor}"
+                                     TintOpacity="1"
+                                     MaterialOpacity="0.86"
+                                     FallbackColor="{DynamicResource FlyoutTintColor}" />
+      </ExperimentalAcrylicBorder.Material>
+    </ExperimentalAcrylicBorder>
+
+    <Border BorderBrush="{DynamicResource FlyoutStrokeBrush}" BorderThickness="1" CornerRadius="8">
     <DockPanel>
 
       <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto"
@@ -98,8 +197,9 @@
            reach, and the way into the window is the one thing the panel must not hide. -->
       <Border DockPanel.Dock="Bottom"
               BorderBrush="{DynamicResource StrokeSubtleBrush}" BorderThickness="0,1,0,0">
-        <Button Classes="footerRow" Command="{Binding OpenSettingsCommand}">
-          <Grid ColumnDefinitions="*,Auto">
+        <Button Classes="footerRow" Command="{Binding OpenSettingsCommand}"
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+          <Grid ColumnDefinitions="*,Auto" HorizontalAlignment="Stretch">
             <TextBlock Grid.Column="0" VerticalAlignment="Center"
                        FontSize="{DynamicResource FlyoutFooterSize}"
                        Foreground="{DynamicResource TextSecondaryBrush}"
@@ -168,10 +268,12 @@
 
       <!-- Five rows of 56 and the padding they sit in. Past that the list scrolls inside
            the panel rather than the panel growing off the screen. -->
+      <!-- Top, not stretched: the panel is only as tall as its rows, and a list that
+           filled the space would push the footer to the bottom of the screen. -->
+      <Panel VerticalAlignment="Top" IsVisible="{Binding Loading.ShowContent}">
       <ScrollViewer MaxHeight="{DynamicResource FlyoutListHeight}"
                     VerticalScrollBarVisibility="Auto"
-                    HorizontalScrollBarVisibility="Disabled"
-                    IsVisible="{Binding Loading.ShowContent}">
+                    HorizontalScrollBarVisibility="Disabled">
         <ItemsControl ItemsSource="{Binding Devices}" Margin="{DynamicResource FlyoutListPadding}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="devices:FlyoutRowViewModel">
@@ -189,7 +291,11 @@
                        anything a child asks for. This row is 56 because the artboard
                        says 56, and Metrics.axaml has that number from the design file
                        rather than from anyone's memory. -->
-                  <Button Classes="deviceRowButton" Command="{Binding ToggleCommand}">
+                  <!-- Transparent inline, not only through the class: the row sits on the
+                       opened card's surface and anything the button paints of its own
+                       would draw a second, lighter rectangle over the top of it. -->
+                  <Button Classes="deviceRowButton" Background="Transparent"
+                          Command="{Binding ToggleCommand}">
                     <Grid ColumnDefinitions="Auto,*,Auto,Auto"
                           Height="{DynamicResource FlyoutRowHeight}">
                       <Border Grid.Column="0"
@@ -203,7 +309,11 @@
                         <ctl:DeviceThumb Photo="{Binding Device.Photo}" IconKey="{Binding Device.IconKey}" />
                       </Border>
 
-                      <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                      <!-- The gap belongs to the text column rather than to the reading:
+                           without it a long device name runs straight into the percentage
+                           instead of being trimmed short of it. -->
+                      <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center"
+                                  Margin="0,0,12,0">
                         <TextBlock FontSize="{DynamicResource FlyoutNameSize}" FontWeight="SemiBold"
                                    Text="{Binding Device.DisplayName}"
                                    TextTrimming="CharacterEllipsis" />
@@ -217,10 +327,36 @@
                                                  VerticalAlignment="Center"
                                                  IsVisible="{Binding Device.IsBatteryPending}" />
 
-                      <TextBlock Grid.Column="2" FontSize="{DynamicResource FlyoutBatterySize}" FontWeight="SemiBold"
+                      <!--
+                        Three readings, not one string: Turn 12 prints a percentage at
+                        full weight, "от кабеля" small and grey for a device that runs off
+                        the wire, and a dash for one that ought to report and does not.
+                        They are different sizes and colours because they carry different
+                        amounts of news — the number is what the row is for, the other two
+                        are there to stop the reader waiting for a number.
+                      -->
+                      <!-- The cell and the number together, as every other surface draws
+                           them: the gauge carries the charging bolt, so a device on a
+                           cable says so without spending a word on it. -->
+                      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
+                                  VerticalAlignment="Center"
+                                  IsVisible="{Binding Device.ShowsBatteryPercent}">
+                        <controls:BatteryGauge Percent="{Binding Device.BatteryPercent}"
+                                               Charging="{Binding Device.IsCharging}"
+                                               VerticalAlignment="Center" />
+                        <TextBlock FontSize="{DynamicResource FlyoutBatterySize}" FontWeight="SemiBold"
+                                   VerticalAlignment="Center"
+                                   Text="{Binding Device.Battery}" />
+                      </StackPanel>
+
+                      <TextBlock Grid.Column="2" FontSize="12"
                                  VerticalAlignment="Center"
-                                 IsVisible="{Binding !Device.IsBatteryPending}"
-                                 Text="{Binding Device.Battery}" />
+                                 Foreground="{DynamicResource TextTertiaryBrush}"
+                                 IsVisible="{Binding Device.ShowsMains}"
+                                 Text="от кабеля" />
+
+                      <!-- Nothing at all where there is no reading. A dash in a column of
+                           numbers reads as a value the device gave, and it gave none. -->
 
                       <Path Grid.Column="3" Width="10" Height="10" Margin="10,0,0,0"
                             VerticalAlignment="Center"
@@ -242,17 +378,143 @@
 
                   <!-- Indented to the name rather than to the edge: the controls belong
                        to the device above them, and the picture column says so. -->
-                  <StackPanel IsVisible="{Binding IsOpen}" Margin="54,2,12,14" Spacing="12">
+                  <!-- The 2 pixels the artboard puts above the first control were drawn
+                       under a taller slider row; with the rhythm tightened to the drawing
+                       they left the first name sitting against the device's own. Eight
+                       gives it the same air the blocks below it have. -->
+                  <StackPanel IsVisible="{Binding IsOpen}" Margin="54,8,12,14" Spacing="12">
 
+                    <!--
+                      The panel's own controls, not the device page's.
+
+                      Measured off artboard 12b rather than reused: there a slider is a
+                      16-pixel caption row over an 18-pixel track row, and a choice is a
+                      30-pixel row with the control 150 wide against the right edge. The
+                      page's CapabilityControl is built for a 260-pixel column beside a
+                      name, and dropping it in here brought its full-width dropdowns, its
+                      taller sliders and its state dots into a 272-pixel body — which is
+                      what made the opened row look nothing like the design.
+                    -->
+                    <!-- No ItemTemplate on purpose: each item is presented through the
+                         implicit template for its own primitive, which is how a slider
+                         and a dropdown end up drawn differently without the list knowing
+                         either of them exists. -->
                     <ItemsControl ItemsSource="{Binding Quick}">
-                      <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="cap:CapabilityViewModel">
-                          <StackPanel Spacing="5" Margin="0,0,0,2">
-                            <TextBlock Classes="caption" FontSize="12" Text="{Binding Title}" />
-                            <controls:CapabilityControl HorizontalAlignment="Stretch" />
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <StackPanel Spacing="12" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+
+                      <!--
+                        Declared on the list itself rather than on the window. These are
+                        instantiated inside the row's own template, and an implicit
+                        template looked up from there does not reach the window's
+                        collection — the items came out as their type names, which is what
+                        a presenter prints when it finds no template at all.
+                      -->
+                      <!--
+                        Declared on the list, beside the templates it applies to.
+
+                        Fluent's slider stands 46 pixels tall: a 4-pixel track with a
+                        header strip and a tick strip reserved around it, neither of which
+                        this panel uses. The artboard gives the row 18, and the spare
+                        showed up as a gap between a control and its own name wide enough
+                        to look like a fault. Height does not touch it — the reservations
+                        live inside the template — and the theme resources that do are
+                        resolved statically inside the control theme, out of a window's
+                        reach. So the spare is taken back with a negative margin, and the
+                        style lives here because one declared on the window does not reach
+                        inside a data template at all.
+                      -->
+                      <ItemsControl.Styles>
+                        <Style Selector="Slider.quick">
+                          <Setter Property="MinHeight" Value="0" />
+                          <Setter Property="Padding" Value="0" />
+                          <Setter Property="Margin" Value="0,-14" />
+                          <Setter Property="VerticalAlignment" Value="Center" />
+                        </Style>
+                      </ItemsControl.Styles>
+
+                      <ItemsControl.DataTemplates>
+
+                        <DataTemplate DataType="cap:RangeCapabilityViewModel">
+                          <StackPanel Spacing="5">
+                            <Grid ColumnDefinitions="*,Auto" Height="16">
+                              <TextBlock Grid.Column="0" Classes="caption" FontSize="12" VerticalAlignment="Center"
+                                         Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                              <TextBlock Grid.Column="1" Classes="caption" FontSize="12" VerticalAlignment="Center"
+                                         Margin="8,0,0,0"
+                                         IsVisible="{Binding HasQuickValue}"
+                                         Text="{Binding QuickValue}" />
+                            </Grid>
+                            <!-- An empty track holds the place until the reading lands.
+                                 The row is the same height either way, so nothing jumps
+                                 when the value arrives; and an empty track claims no
+                                 value, where a slider parked at its minimum would. -->
+                            <Border Height="18" IsVisible="{Binding !HasValue}">
+                              <Border Height="4" CornerRadius="2" VerticalAlignment="Center"
+                                      Background="{DynamicResource StrokeStrongBrush}" Opacity="0.25" />
+                            </Border>
+
+                            <!-- The stock control, deliberately.
+                                 A hand-written template held the artboard's proportions
+                                 and quietly dropped what a slider is supposed to do:
+                                 clicking the track no longer moved the thumb, and the
+                                 keyboard and focus states went with it. Fluent's own
+                                 slider keeps all of that, and being slightly taller than
+                                 the drawing is the cheaper mistake. -->
+                            <Slider Classes="quick"
+                                    IsVisible="{Binding HasValue}"
+                                    IsEnabled="{Binding CanEdit}"
+                                    Minimum="{Binding Minimum}"
+                                    Maximum="{Binding Maximum}"
+                                    Value="{Binding Value, Mode=TwoWay}" />
                           </StackPanel>
                         </DataTemplate>
-                      </ItemsControl.ItemTemplate>
+
+                        <DataTemplate DataType="cap:ChoiceCapabilityViewModel">
+                          <Grid ColumnDefinitions="*,Auto" Height="30">
+                            <TextBlock Grid.Column="0" Classes="caption" FontSize="12" VerticalAlignment="Center"
+                                       Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                            <ComboBox Grid.Column="1" Classes="quick"
+                                      PlaceholderText="…"
+                                      IsEnabled="{Binding CanEdit}"
+                                      ItemsSource="{Binding Options}"
+                                      SelectedItem="{Binding Selected, Mode=TwoWay}">
+                              <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="core:CapabilityChoice">
+                                  <TextBlock FontSize="12" Text="{Binding Label}" />
+                                </DataTemplate>
+                              </ComboBox.ItemTemplate>
+                            </ComboBox>
+                          </Grid>
+                        </DataTemplate>
+
+                        <DataTemplate DataType="cap:ToggleCapabilityViewModel">
+                          <Grid ColumnDefinitions="*,Auto" Height="30">
+                            <TextBlock Grid.Column="0" Classes="caption" FontSize="12" VerticalAlignment="Center"
+                                       Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                            <ToggleSwitch Grid.Column="1"
+                                          HorizontalAlignment="Right" VerticalAlignment="Center"
+                                          IsEnabled="{Binding CanEdit}"
+                                          IsChecked="{Binding IsOn, Mode=TwoWay}"
+                                          OnContent="" OffContent="" />
+                          </Grid>
+                        </DataTemplate>
+
+                        <DataTemplate DataType="cap:ActionCapabilityViewModel">
+                          <Grid ColumnDefinitions="*,Auto" Height="30">
+                            <TextBlock Grid.Column="0" Classes="caption" FontSize="12" VerticalAlignment="Center"
+                                       Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                            <Button Grid.Column="1" Classes="quick"
+                                    IsEnabled="{Binding CanEdit}"
+                                    Command="{Binding InvokeCommand}"
+                                    Content="{Binding Label}" />
+                          </Grid>
+                        </DataTemplate>
+
+                      </ItemsControl.DataTemplates>
                     </ItemsControl>
 
                     <!-- Said out loud rather than left blank. "Connected, and there is
@@ -260,14 +522,33 @@
                          gap under an opened row reads as a fault. -->
                     <TextBlock Classes="secondary" FontSize="12" TextWrapping="Wrap"
                                IsVisible="{Binding HasNothing}"
-                               Text="Настраивать нечего: устройство отдаёт только то, что уже в строке." />
+                               Text="{Binding NothingSaid}" />
 
-                    <Button Classes="navRoot"
+                    <!-- A line of text with a chevron, not a filled button: the artboard
+                         gives this the weight of a link, and the navRoot class would put
+                         a 36-pixel control under every opened row. -->
+                    <!-- Set on the element, not only through the class: the button theme
+                         paints a surface of its own, and this has to read as a line of
+                         text rather than as a control. -->
+                    <!-- Pulled back by its own padding so the text still lines up with
+                         the controls above it while the hover fills the whole row. -->
+                    <Button Classes="quietLink"
+                            Background="Transparent" BorderThickness="0"
+                            Margin="-8,0"
                             Command="{Binding OpenPageCommand}"
                             HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Left"
+                            HorizontalContentAlignment="Stretch"
                             IsVisible="{Binding !HasNothing}">
-                      <TextBlock FontSize="12" Text="Открыть страницу устройства" Margin="8,0" />
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" FontSize="12" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                   Text="Открыть страницу устройства" />
+                        <Path Grid.Column="1" Width="10" Height="10" VerticalAlignment="Center"
+                              Stroke="{DynamicResource TextTertiaryBrush}"
+                              StrokeThickness="1.6" StrokeLineCap="Round" StrokeJoin="Round"
+                              Stretch="Uniform"
+                              Data="M6 3.6 10.4 8 6 12.4" />
+                      </Grid>
                     </Button>
                   </StackPanel>
 
@@ -278,7 +559,21 @@
         </ItemsControl>
       </ScrollViewer>
 
+        <!-- The list runs under the footer rather than stopping dead at it, so the last
+             row visibly continues. Painted in the sheet's own tint so it reads as the
+             panel closing over the list, not as a grey bar laid on top of it. -->
+        <Border Height="26" VerticalAlignment="Bottom" IsHitTestVisible="False">
+          <Border.Background>
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+              <GradientStop Offset="0" Color="{DynamicResource FlyoutFadeStartColor}" />
+              <GradientStop Offset="1" Color="{DynamicResource FlyoutFadeEndColor}" />
+            </LinearGradientBrush>
+          </Border.Background>
+        </Border>
+      </Panel>
+
     </DockPanel>
-  </Border>
+    </Border>
+  </Panel>
 
 </Window>

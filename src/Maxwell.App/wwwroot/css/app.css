@@ -59,6 +59,11 @@ html:has(.page.dark) { color-scheme: dark; }
 
 .group { display: flex; flex-direction: column; gap: 8px; }
 
+/* The section signpost: an upper-case label, then the protocol pill that names where the
+   rows come from, then an optional grey aside — Turn 14's "a class page is a stack of
+   protocols" made visible. */
+.group-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
 .group-heading {
   font-size: var(--section-heading-size);
   font-weight: 600;
@@ -66,6 +71,20 @@ html:has(.page.dark) { color-scheme: dark; }
   letter-spacing: 0.02em;
   line-height: var(--section-heading-line);
 }
+
+.proto-pill {
+  font-size: 11px; font-weight: 600;
+  border-radius: 4px; padding: 1px 7px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.proto-pill.audio { color: var(--proto-audio-fg); background: var(--proto-audio-bg); border-color: var(--proto-audio-bd); }
+.proto-pill.hidpp { color: var(--proto-hidpp-fg); background: var(--proto-hidpp-bg); border-color: var(--proto-hidpp-bd); }
+.proto-pill.via { color: var(--proto-via-fg); background: var(--proto-via-bg); border-color: var(--proto-via-bd); }
+.proto-pill.xinput { color: var(--proto-xinput-fg); background: var(--proto-xinput-bg); border-color: var(--proto-xinput-bd); }
+.proto-pill.system { color: var(--proto-audio-fg); background: var(--proto-audio-bg); border-color: var(--proto-audio-bd); }
+
+.section-note { font-size: 12px; color: var(--text-tertiary); }
 
 /* ---- cards and rows --------------------------------------------------------------- */
 
@@ -188,18 +207,62 @@ html:has(.page.dark) { color-scheme: dark; }
 
 .hero { display: flex; align-items: center; gap: var(--hero-gap); }
 
-.hero .thumb { width: var(--hero-thumb-size); height: var(--hero-thumb-size); border-radius: var(--hero-thumb-radius); }
+/* 88px in Turn 14/15, a touch smaller than the 96 the earlier turns drew. */
+.hero .thumb { width: 88px; height: 88px; border-radius: var(--hero-thumb-radius); }
 .hero .thumb.icon { padding: 14px; }
 
-.hero-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+.hero-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
 
+.hero-titles { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .hero-name { font-size: var(--hero-name-size); font-weight: 600; letter-spacing: -0.01em; }
 
-.hero-chips { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+/* The blue/purple pill that marks a device's page as the extended one. */
+.hero-pill {
+  font-size: 11px; font-weight: 600;
+  border-radius: 4px; padding: 3px 9px;
+  border: 1px solid transparent;
+}
+.hero-pill.vendor { color: var(--proto-audio-fg); background: var(--proto-audio-bg); border-color: var(--proto-audio-bd); }
+.hero-pill.hidpp { color: var(--proto-hidpp-fg); background: var(--proto-hidpp-bg); border-color: var(--proto-hidpp-bd); }
 
-.hero-batt { flex: none; text-align: right; display: flex; flex-direction: column; gap: 2px; align-items: flex-end; }
+.hero-chips { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
+.type-pill {
+  font-size: 11px;
+  color: var(--pill-type-fg);
+  background: var(--pill-type-bg);
+  border-radius: 4px;
+  padding: 2px 7px;
+  white-space: nowrap;
+}
+
+.xport-pill {
+  font-size: 11px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 5px;
+  color: var(--proto-audio-fg);
+  background: var(--proto-audio-bg);
+  border: 1px solid var(--proto-audio-bd);
+  border-radius: 4px;
+  padding: 2px 7px;
+  white-space: nowrap;
+}
+.xport-pill svg { flex: none; }
+
+/* Present, but not the channel doing the work. Same shape, no accent — the reader can
+   see the device is also paired that way without being told it is in use. */
+.xport-pill.idle {
+  color: var(--text-secondary);
+  background: var(--pill-type-bg);
+  border-color: transparent;
+  font-weight: 400;
+}
+
+.hero-batt { flex: none; text-align: right; display: flex; flex-direction: column; gap: 3px; align-items: flex-end; max-width: 200px; }
+.hero-batt .gauge-row { display: flex; align-items: center; gap: 10px; }
+.hero-batt .caption { text-align: right; }
+.hero-gauge { flex: none; }
 .hero-percent { font-size: var(--hero-battery-size); font-weight: 600; line-height: 1; letter-spacing: -0.02em; }
+.hero-absent { font-size: 15px; font-weight: 600; color: var(--gauge-absent-text); }
 
 /* ---- capability rows: artboards 5a, 8–10 ------------------------------------------ */
 
@@ -212,6 +275,10 @@ html:has(.page.dark) { color-scheme: dark; }
 }
 
 .cap-row.wide { flex-direction: column; align-items: stretch; gap: 10px; }
+
+/* Continues the row above: the two channels are one control. */
+.card > .cap-row.joined { border-top: none; padding-top: 0; }
+.card > .cap-row:has(+ .cap-row.joined) { border-bottom: none; padding-bottom: 2px; }
 
 .cap-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .cap-row.wide .cap-text { flex: none; }
@@ -423,10 +490,123 @@ input[type="range"]::-webkit-slider-thumb {
 .range-track .reading { font-size: 12px; color: var(--text-secondary); min-width: 64px; text-align: right; }
 .range-track input[type="range"] { width: 170px; }
 
-/* curve */
-.curve { display: flex; flex-direction: column; gap: 4px; }
-.curve .reading { font-size: 12px; color: var(--text-secondary); text-align: right; }
-.curve .plot { width: 100%; height: 62px; border: 1px solid var(--stroke-subtle); border-radius: 4px; background: var(--layer-card); }
+/* ---- the band editor: artboard 15a's equaliser ------------------------------------ */
+
+.curve { display: flex; flex-direction: column; gap: 8px; }
+
+.curve-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.curve-reading { font-size: 12px; color: var(--text-secondary); }
+.curve-band { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-primary); }
+.curve-band-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-hover); flex: none; }
+
+/* The header's right-hand group: the slot picker, and whichever of save or delete the
+   current state calls for. Pushed away from the title so the two never crowd. */
+.curve-tools { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+
+/* Icon-only on purpose. Captions on these two cost more width than the plot can spare,
+   and both actions are ones you reach for knowing what you want. */
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; padding: 0;
+  border: 1px solid var(--border-default); border-radius: 4px;
+  background: var(--surface-raised); color: var(--text-secondary);
+  cursor: pointer;
+}
+/* flex: none matters. The button is a flex container and an svg with no intrinsic width
+   is a shrinkable item: it collapsed to zero and the glyph vanished while every colour and
+   rule around it looked correct — which is what made this so hard to see. */
+.icon-btn svg { flex: none; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+
+/* A solid glyph, for the ones drawn as shapes rather than outlines. Needed because the
+   rule above sets fill: none, and a stylesheet beats a fill attribute written on the
+   element — which is why an icon that looked correct in the markup drew nothing at all. */
+.icon-btn svg.solid { fill: currentColor; stroke: none; }
+.icon-btn:hover:not(:disabled) { background: var(--surface-hover); color: var(--text-primary); }
+.icon-btn:disabled { opacity: .4; cursor: default; }
+.icon-btn.accent { color: #fff; background: var(--accent-primary); border-color: var(--accent-primary); }
+.icon-btn.accent:hover:not(:disabled) { background: var(--accent-hover); color: #fff; }
+.icon-btn.danger { color: var(--danger); border-color: rgba(196, 43, 28, 0.28); }
+.icon-btn.danger:hover:not(:disabled) { background: rgba(196, 43, 28, 0.10); color: var(--danger); }
+
+
+.plot-frame { display: flex; gap: 10px; align-items: stretch; }
+
+/* The dB gutter. Fixed width so the plot's left edge lines up with the captions under
+   it, which is the whole reason the labels row repeats this empty column. */
+.plot-axis {
+  width: 40px; flex: none;
+  display: flex; flex-direction: column; justify-content: space-between;
+  font-size: 10px; color: var(--text-tertiary); text-align: right;
+  padding: 2px 0;
+}
+.plot-axis span:nth-child(3) { color: var(--text-secondary); font-weight: 600; }
+
+.plot {
+  flex: 1; min-width: 0; height: 210px;
+  border-radius: 6px;
+  background: var(--layer-subtle);
+  border: 1px solid var(--stroke-subtle);
+  position: relative;
+  display: flex; align-items: stretch; justify-content: center;
+  padding: 0 6px;
+}
+
+.dark .plot { background: rgba(255, 255, 255, 0.03); }
+
+.grid { position: absolute; left: 0; right: 0; height: 1px; background: var(--stroke-subtle); pointer-events: none; }
+.grid.at-25 { top: 25%; }
+.grid.at-75 { top: 75%; }
+.grid.zero { background: var(--stroke-strong); opacity: 0.35; }
+
+/* Each band takes an equal share of the plot but stops growing.
+   Without the ceiling the bars stretched with the card: fine when the curve was a row in
+   a stack, gross once it got a card of its own the width of the page. The whole strip is
+   centred so the ten stay together instead of drifting apart. */
+.band { flex: 1 1 0; max-width: 48px; height: 100%; position: relative; cursor: ns-resize; touch-action: none; }
+
+/* A drag is a drag, not a text selection. Without this, pulling a band downwards sweeps
+   the decibel captions and the frequency row into a highlight, and the pointer ends up
+   dragging that instead of the curve. */
+.plot, .plot-frame, .curve-head { user-select: none; -webkit-user-select: none; }
+.band:hover { background: var(--accent-subtle); }
+
+.band-bar {
+  position: absolute; left: 50%; margin-left: -13px;
+  width: 26px; min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: var(--accent-primary);
+  pointer-events: none;
+}
+
+/* A band sitting exactly on the zero line is a hairline, not a bar: "unchanged" has to
+   look like nothing at all. */
+.band-bar.flat { height: 2px !important; margin-bottom: -1px; border-radius: 1px; background: var(--accent-border); }
+
+.band-knob {
+  position: absolute; left: 50%; margin-left: -7px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--layer-card);
+  border: 2px solid var(--accent-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
+  pointer-events: none;
+}
+
+.band-value {
+  position: absolute; left: 0; right: 0; top: 2px;
+  text-align: center;
+  font-size: 10px; font-weight: 600;
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.band.sel .band-bar { background: var(--accent-hover); }
+.band.sel .band-knob { border-color: var(--accent-hover); box-shadow: 0 0 0 4px var(--accent-subtle); }
+.band.sel .band-value { color: var(--accent-hover); }
+
+.plot-labels { flex: 1; min-width: 0; display: flex; justify-content: center; padding: 0 6px; }
+.plot-labels span { flex: 1 1 0; max-width: 48px; text-align: center; font-size: 10px; color: var(--text-tertiary); }
+.plot-labels span.sel { color: var(--accent-hover); font-weight: 600; }
 
 /* lighting zones */
 .zones { display: flex; flex-direction: column; gap: 10px; }
@@ -702,3 +882,168 @@ details.adv summary::after {
 details.adv[open] summary { border-radius: 8px 8px 0 0; }
 details.adv[open] summary::after { transform: rotate(225deg) translateY(-2px); }
 details.adv .card { border-radius: 0 0 8px 8px; border-top: none; }
+
+/* ==================================================================================== */
+/* Turn 14/15: the class page and the extended page.                                    */
+/* Colours snapped from the new design bundle. Kept here rather than in tokens.css       */
+/* because the generator still reads the previous design file — these are the numbers it  */
+/* does not carry yet, one legend entry each.                                            */
+/* ==================================================================================== */
+
+:root {
+  --pill-type-fg: #444444;
+  --pill-type-bg: rgba(0, 0, 0, 0.05);
+
+  --proto-audio-fg: #0F6CBD; --proto-audio-bg: rgba(15, 108, 189, 0.10); --proto-audio-bd: rgba(15, 108, 189, 0.20);
+  --proto-hidpp-fg: #6B4BB0; --proto-hidpp-bg: rgba(107, 75, 176, 0.10); --proto-hidpp-bd: rgba(107, 75, 176, 0.22);
+  --proto-via-fg: #6B4BB0;   --proto-via-bg: rgba(107, 75, 176, 0.10);   --proto-via-bd: rgba(107, 75, 176, 0.22);
+  --proto-xinput-fg: #0E7A2C; --proto-xinput-bg: rgba(14, 122, 44, 0.10); --proto-xinput-bd: rgba(14, 122, 44, 0.22);
+
+  --badge-untested-fg: #9D5D00; --badge-untested-bg: rgba(157, 93, 0, 0.10); --badge-untested-bd: rgba(157, 93, 0, 0.24);
+  --badge-readonly-fg: #616161; --badge-readonly-bg: rgba(0, 0, 0, 0.05);
+  --badge-pending-fg: #5C5C5C;  --badge-pending-bd: rgba(0, 0, 0, 0.30);
+
+  --gauge-empty: #9A9A9A;
+  --gauge-absent-text: #5C5C5C;
+  --track-empty: #DEDEDE;
+  --detent: rgba(0, 0, 0, 0.30);
+}
+
+.dark {
+  --pill-type-fg: #DADADA;
+  --pill-type-bg: rgba(255, 255, 255, 0.08);
+
+  --proto-audio-fg: #60CDFF; --proto-audio-bg: rgba(96, 205, 255, 0.12); --proto-audio-bd: rgba(96, 205, 255, 0.28);
+  --proto-hidpp-fg: #C4ADF0; --proto-hidpp-bg: rgba(196, 173, 240, 0.12); --proto-hidpp-bd: rgba(196, 173, 240, 0.26);
+  --proto-via-fg: #C4ADF0;   --proto-via-bg: rgba(196, 173, 240, 0.14);   --proto-via-bd: rgba(196, 173, 240, 0.26);
+  --proto-xinput-fg: #6CCB5F; --proto-xinput-bg: rgba(108, 203, 95, 0.14); --proto-xinput-bd: rgba(108, 203, 95, 0.28);
+
+  --badge-untested-fg: #F2C94C; --badge-untested-bg: rgba(242, 201, 76, 0.12); --badge-untested-bd: rgba(242, 201, 76, 0.28);
+  --badge-readonly-fg: #C8C8C8; --badge-readonly-bg: rgba(255, 255, 255, 0.08);
+  --badge-pending-fg: #C8C8C8;  --badge-pending-bd: rgba(255, 255, 255, 0.30);
+
+  --gauge-empty: #6E6E6E;
+  --gauge-absent-text: #C8C8C8;
+  --track-empty: rgba(255, 255, 255, 0.16);
+  --detent: rgba(255, 255, 255, 0.30);
+}
+
+/* The content surface the artboards paint: #F9F9F9 light, #272727 dark. The dark token is
+   a translucent white meant to sit over a window, but the pane has no window behind it. */
+.page.dark { background: #272727; }
+
+/* ---- the inline title badge ------------------------------------------------------- */
+
+.cap-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.badge {
+  font-size: 11px; font-weight: 600;
+  border-radius: 4px; padding: 1px 7px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.badge.untested { color: var(--badge-untested-fg); background: var(--badge-untested-bg); border-color: var(--badge-untested-bd); }
+.badge.readonly { color: var(--badge-readonly-fg); background: var(--badge-readonly-bg); }
+.badge.pending  { color: var(--badge-pending-fg); background: transparent; border: 1px dashed var(--badge-pending-bd); }
+.badge.accent   { color: var(--accent-primary); background: var(--accent-subtle); border-color: var(--accent-border); }
+.badge.error    { color: var(--danger); background: rgba(196, 43, 28, 0.10); border-color: rgba(196, 43, 28, 0.28); }
+
+/* Unsaved work. Amber rather than red: nothing is wrong, something is merely unfinished,
+   and the same amber already means "not written yet" on the rows above. */
+.badge.warn     { color: var(--badge-untested-fg); background: var(--badge-untested-bg); border-color: var(--badge-untested-bd); }
+
+/* Something is on its way to the device. A pulse rather than a spinner: it sits inline in
+   a line of text, and a spinning thing there reads as an error more than as progress. */
+.badge.busy { animation: badge-pulse 1.1s ease-in-out infinite; }
+
+@keyframes badge-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+
+@media (prefers-reduced-motion: reduce) { .badge.busy { animation: none; } }
+
+/* ---- the slider, Turn 14/15 shape: value to the right, an optional leading icon ---- */
+
+.range { flex-direction: row; align-items: center; gap: 12px; }
+/* Wide enough for "139 / 150" on one line. At the settings width it wrapped, and a
+   reading folded across two lines pushed its own row taller than its neighbours — which
+   is what made a column of sliders look unaligned. */
+.range .reading {
+  order: 9;
+  min-width: 62px;
+  white-space: nowrap;
+  text-align: right;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+/* Quiet until pointed at. A permanent box around every speaker glyph turned a column of
+   volume rows into a column of buttons competing with the sliders beside them; the
+   affordance is only needed once the pointer is on the row that owns it. */
+.range.with-icon .slider-icon {
+  width: 32px; height: 32px; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-secondary);
+  transition: background 0.1s ease, border-color 0.1s ease, color 0.1s ease;
+}
+
+/* The button answers the pointer that is on the button. Lighting it from anywhere in the
+   row meant reaching for the slider lit the mute control instead, which reads as having
+   hit the wrong thing. */
+.range.with-icon .slider-icon:hover:not(:disabled) {
+  border-color: var(--stroke-default);
+  border-bottom-color: var(--stroke-strong);
+  background: var(--layer-card);
+  color: var(--text-primary);
+}
+
+.dark .range.with-icon .slider-icon:hover:not(:disabled) { background: var(--layer-alt); }
+
+.slider-wrap { position: relative; display: flex; align-items: center; width: 240px; flex: none; }
+.slider-wrap input[type="range"] { width: 100%; }
+
+/* A notch on the track: the centre of an earcup balance, the marks of a ChatMix. */
+.detent {
+  position: absolute; top: 50%; left: 0;
+  width: 2px; height: 12px;
+  transform: translate(-50%, -50%);
+  background: var(--detent);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+/* The unfilled track is the light grey the artboards use, not the strong stroke. */
+input[type="range"]::-webkit-slider-runnable-track {
+  background: linear-gradient(to right,
+      var(--accent-primary) 0%, var(--accent-primary) var(--fill, 0%),
+      var(--track-empty) var(--fill, 0%), var(--track-empty) 100%);
+}
+
+/* ---- the honest-limits line at the foot of a class page --------------------------- */
+
+.limits {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 12px; color: var(--text-secondary);
+  line-height: 1.45; max-width: 680px;
+}
+.limits svg { flex: none; margin-top: 2px; color: var(--text-tertiary); }
+
+/* ---- muted: the level is kept, the track goes quiet ------------------------------- */
+
+/* Grey, not empty. The slider still stands where the sound will come back to, which is
+   the whole point of remembering it; drawing it at zero would throw that away. */
+.range.muted input[type="range"] { opacity: 0.45; }
+.range.muted input[type="range"]::-webkit-slider-runnable-track {
+  background: var(--track-empty);
+}
+.range.muted .reading { color: var(--text-tertiary); }
+
+/* The crossed speaker keeps its box while silent, so the state is visible without
+   hovering the row it belongs to. */
+.range.muted .slider-icon {
+  border-color: var(--stroke-default);
+  background: var(--layer-card);
+  color: var(--danger);
+}
+.dark .range.muted .slider-icon { background: var(--layer-alt); }

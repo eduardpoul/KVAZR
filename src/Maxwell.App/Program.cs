@@ -208,7 +208,8 @@ internal static class Program
             includeMockDevices: true,
             mockDeviceCount: mocks,
             new Maxwell.Core.Drivers.Audeze.AudezeModule(),
-            new Maxwell.Core.Drivers.Logitech.LogitechModule());
+            new Maxwell.Core.Drivers.Logitech.LogitechModule(),
+            new Maxwell.Core.Drivers.Audio.AudioModule());
 
         builder.Services.AddSingleton<IConfirmationPrompt>(sp =>
             new ModalConfirmation(sp.GetRequiredService<MainWindow>));

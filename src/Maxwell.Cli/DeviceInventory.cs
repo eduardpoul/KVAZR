@@ -3,6 +3,7 @@ using Maxwell.Race.Abstractions;
 using Maxwell.Core.Catalogue;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Drivers.Audeze;
+using Maxwell.Core.Drivers.Audio;
 using Maxwell.Core.Drivers.Mock;
 using Maxwell.Core.Drivers.System;
 using Maxwell.Core.Polling;
@@ -42,8 +43,15 @@ internal static class DeviceInventory
 
         if (includeMocks) drivers.Add(new MockDeviceDriver());
 
+        // The same contributors the application composes, so the harness prints the page
+        // a person would see rather than a thinner one.
+        ICapabilityContributor[] contributors =
+        [
+            new AudioContributor(new WindowsAudioEndpoints(), new WindowsSystemDeviceEnumerator()),
+        ];
+
         using var registry = new DeviceRegistry(
-            drivers, new InMemoryCapabilityLedger(), NullLoggerFactory.Instance);
+            drivers, new InMemoryCapabilityLedger(), NullLoggerFactory.Instance, contributors);
 
         if (watchFor is { } window) return await WatchAsync(registry, window, cancellationToken).ConfigureAwait(false);
 
@@ -186,6 +194,11 @@ internal static class DeviceInventory
             TextValue t => t.Value,
             ChoiceValue c => state.Descriptor.Choices.FirstOrDefault(o => o.Index == c.Index)?.Label
                 ?? $"#{c.Index}",
+
+            // A curve or a channel pair, printed as its members. An unanswered member
+            // stays a dash inside the list rather than collapsing the whole reading.
+            VectorValue v => string.Join(" ", v.Items.Select(
+                item => item is NumberValue m ? m.Value.ToString() : "—")),
 
             // A capability that has not answered is not zero and not off. Printing a
             // dash keeps the distinction visible in the harness too.

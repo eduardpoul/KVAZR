@@ -25,6 +25,17 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     private readonly IConfirmationPrompt? _confirm;
     private readonly Dictionary<string, CapabilityViewModel> _byId = new(StringComparer.Ordinal);
 
+    /// <summary>
+    /// Capabilities the hero already shows, so they earn no row of their own. They are
+    /// still declared, read and polled — the charge in particular feeds the hero, the tray
+    /// and the low-battery alert — this only decides what the page draws twice.
+    /// </summary>
+    private static readonly HashSet<string> DrawnInHero = new(StringComparer.Ordinal)
+    {
+        CapabilityIds.PowerBattery,
+        CapabilityIds.PowerCharging,
+    };
+
     private bool _disposed;
 
     public DevicePageViewModel(
@@ -193,6 +204,105 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
 
     public bool IsCharging => Snapshot.IsCharging;
 
+    /// <summary>The one-word class, for the grey type pill in the hero.</summary>
+    public string TypeLabel => ClassName;
+
+    /// <summary>The battery percentage as a fraction, for drawing the glyph's fill.</summary>
+    public double BatteryFraction => Math.Clamp((Snapshot.BatteryPercent ?? 0) / 100.0, 0, 1);
+
+    /// <summary>
+    /// How the hero draws power. A number when we have one; a struck-through empty cell
+    /// with a reason when the class ought to have a battery and this link will not report
+    /// it; nothing at all for a mains device that was never going to.
+    /// </summary>
+    /// <summary>
+    /// An offline device draws no battery cell at all. "Заряд недоступен" is a statement
+    /// about a live link that will not report one, and putting it on a device that is
+    /// simply not here would blame the link for the absence — the notice at the top
+    /// already says what is actually going on.
+    /// </summary>
+    public BatteryDisplay BatteryMode => BatteryReadout.Mode(Snapshot) switch
+    {
+        BatteryDisplay.Absent when Snapshot.Availability != DeviceAvailability.Active => BatteryDisplay.Mains,
+        var mode => mode,
+    };
+
+    private bool HasDongle => Snapshot.Info.Transports.Any(t => t is { Kind: TransportKind.Dongle, IsPresent: true });
+
+    /// <summary>Why the battery cell is empty, phrased for the class and the link it is on.</summary>
+    public string NoBatteryReason => Snapshot.Info.Class switch
+    {
+        DeviceClass.Gamepad => "Донгл рапортует «проводной, батареи нет»",
+        _ when HasDongle => "Донгл не отдаёт уровень батареи. Появится, если спарить по Bluetooth",
+        _ => "Заряд по этому подключению не читается",
+    };
+
+    /// <summary>
+    /// The blue/purple hero pill of Turn 15. A device answered by a vendor or class
+    /// protocol carries settings past the plain class baseline, and the pill says which
+    /// protocol earned them; a device the system alone describes has no pill and reads as
+    /// the basic page it is.
+    /// </summary>
+    public HeroPill? Extended => Snapshot.Info.DriverId switch
+    {
+        "audeze.race" => new HeroPill("Расширенный · протокол Audeze", HeroPillKind.Vendor),
+        "logitech.hidpp" => new HeroPill("Расширенный · HID++", HeroPillKind.Hidpp),
+        _ => null,
+    };
+
+    /// <summary>
+    /// The protocol pill beside a section heading — Turn 14's whole organising idea, that
+    /// a class page is a stack of protocols. Null on a vendor device, where the hero pill
+    /// already names the source and a per-section one would only repeat it.
+    /// </summary>
+    public ProtocolPill? ProtocolFor(CapabilityDomain domain) => Snapshot.Info.DriverId switch
+    {
+        "audeze.race" => null,
+        "logitech.hidpp" => domain is CapabilityDomain.Mix
+            ? null
+            : new ProtocolPill("HID++", ProtocolPillKind.Hidpp),
+        _ => domain switch
+        {
+            CapabilityDomain.Audio or CapabilityDomain.Microphone or CapabilityDomain.Mix =>
+                new ProtocolPill("Core Audio", ProtocolPillKind.CoreAudio),
+            _ => null,
+        },
+    };
+
+    /// <summary>The grey aside beside a section pill: how its writes reach the device.</summary>
+    public string? SectionNote(CapabilityDomain domain) =>
+        Snapshot.Info.DriverId != "audeze.race"
+            && domain is CapabilityDomain.Audio or CapabilityDomain.Microphone
+                ? "применяется сразу, без «Применить»"
+                : null;
+
+    /// <summary>
+    /// The honest-limits line at the foot of a class page — what this level cannot read
+    /// and where it would come from — so an empty spot reads as a known boundary rather
+    /// than a missing feature. Absent on an extended device, which withholds nothing
+    /// worth apologising for.
+    /// </summary>
+    public string? LimitsNote => Snapshot.Info.DriverId switch
+    {
+        "audeze.race" => null,
+        "logitech.hidpp" =>
+            "У мышей других вендоров этих строк не будет: HID++ — протокол Logitech, у Razer и Glorious остаются имя, класс и подключение.",
+        _ => Snapshot.Info.Class switch
+        {
+            DeviceClass.Headset or DeviceClass.Earbuds =>
+                "Кодек Bluetooth, аппаратная громкость и заряд через донгл базовым путём не читаются — их отдаёт только вендорский протокол.",
+            DeviceClass.Microphone =>
+                "Диаграмма направленности, аппаратный gain и подсветка живут в протоколе вендора — на базовом уровне их нет.",
+            DeviceClass.Keyboard =>
+                "Через донгл клавиатура не отдаёт ни заряд, ни VIA — раскладку, слои и подсветку правят по кабелю.",
+            DeviceClass.Gamepad =>
+                "Заряд по XInput отдают только настоящие Xbox-контроллеры; ремап кнопок и профили — вендорский путь.",
+            DeviceClass.Speaker =>
+                "Аппаратные эффекты и эквалайзер колонки — вендорский путь. Базово это та же звуковая страница, что у гарнитуры.",
+            _ => null,
+        },
+    };
+
     /// <summary>
     /// The one line at the top explaining a degraded device. Absent when everything
     /// works, and never phrased as an error — a headset reachable only over its dongle
@@ -261,14 +371,33 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         RaiseHeader();
     }
 
+    /// <summary>
+    /// The capability ids the current sections were built from.
+    ///
+    /// Held separately rather than inferred from the view models, because not every
+    /// capability gets one: the charge and the charging flag are drawn in the hero and
+    /// have no row. Comparing the snapshot against the view models therefore found two
+    /// missing every time and rebuilt the whole page on every poll — which threw away the
+    /// scroll position, every control's state and the identity of every element in the
+    /// tree, several times a minute. Nothing above this line could have looked right while
+    /// that was happening, and a curve could not be dragged at all.
+    /// </summary>
+    private readonly HashSet<string> _shape = new(StringComparer.Ordinal);
+
     private bool SameShape(DeviceSnapshot snapshot) =>
-        snapshot.Capabilities.Count == _byId.Count && snapshot.Capabilities.Keys.All(_byId.ContainsKey);
+        snapshot.Capabilities.Count == _shape.Count && snapshot.Capabilities.Keys.All(_shape.Contains);
 
     private void Rebuild(DeviceSnapshot snapshot)
     {
-        foreach (CapabilitySectionViewModel section in Sections) section.Dispose();
-        Sections.Clear();
-        _byId.Clear();
+        // Everything is built off to the side and published in one go at the end.
+        //
+        // Sections is observable and the page redraws on each change, so filling it a
+        // section at a time meant the card list was rendered several times half-built —
+        // and the equaliser, whose header borrows the preset picker from another view
+        // model, was drawn without it until the last step. That is what made the dropdown
+        // flicker in and out on every rebuild.
+        var built = new List<CapabilitySectionViewModel>();
+        var byId = new Dictionary<string, CapabilityViewModel>(StringComparer.Ordinal);
 
         foreach (CapabilityDomain domain in snapshot.Domains())
         {
@@ -276,15 +405,43 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
 
             foreach (CapabilityState state in snapshot.InDomain(domain))
             {
+                // Already drawn at the top of the page, in a size that can be read across
+                // a desk. Repeating them as rows underneath said the same three things
+                // twice and left the section looking like a list of things the hero had
+                // already answered.
+                if (DrawnInHero.Contains(state.Id)) continue;
+
                 CapabilityViewModel vm = CapabilityViewModelFactory.Create(
                     state, _session, HintDetail.Normal, _confirm);
-                _byId[state.Id] = vm;
+                byId[state.Id] = vm;
+
+                // The preset picker is drawn inside the equaliser card rather than as a
+                // row beneath it, so it is handed over and skipped here.
+                if (state.Id == CapabilityIds.AudioEqPreset) continue;
+
                 items.Add(vm);
             }
 
-            if (items.Count > 0) Sections.Add(new CapabilitySectionViewModel(domain, items));
+            if (items.Count > 0) built.Add(new CapabilitySectionViewModel(domain, items));
         }
+
+        if (byId.GetValueOrDefault(CapabilityIds.AudioEqGraphic) is CurveCapabilityViewModel curve
+            && byId.GetValueOrDefault(CapabilityIds.AudioEqPreset) is ChoiceCapabilityViewModel slots)
+        {
+            curve.Slots = slots;
+        }
+
+        foreach (CapabilitySectionViewModel section in Sections) section.Dispose();
+        Sections.Clear();
+        _byId.Clear();
+
+        foreach ((string id, CapabilityViewModel vm) in byId) _byId[id] = vm;
+        foreach (CapabilitySectionViewModel section in built) Sections.Add(section);
+
+        _shape.Clear();
+        foreach (string id in snapshot.Capabilities.Keys) _shape.Add(id);
     }
+
 
     private void RaiseHeader()
     {
@@ -306,6 +463,12 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(Transports));
         OnPropertyChanged(nameof(StateNotice));
         OnPropertyChanged(nameof(Freshness));
+        OnPropertyChanged(nameof(TypeLabel));
+        OnPropertyChanged(nameof(BatteryMode));
+        OnPropertyChanged(nameof(BatteryFraction));
+        OnPropertyChanged(nameof(NoBatteryReason));
+        OnPropertyChanged(nameof(Extended));
+        OnPropertyChanged(nameof(LimitsNote));
     }
 
     public void Dispose()
@@ -318,8 +481,35 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         foreach (CapabilitySectionViewModel section in Sections) section.Dispose();
         Sections.Clear();
         _byId.Clear();
+        _shape.Clear();
     }
 }
 
 /// <summary>One line of "what we managed to read". Label on the left, value on the right.</summary>
 public sealed record DeviceFact(string Label, string Value);
+
+/// <summary>Which legend colour the extended hero pill takes.</summary>
+public enum HeroPillKind
+{
+    /// <summary>Blue: a deeply-reversed vendor protocol.</summary>
+    Vendor,
+
+    /// <summary>Purple: a class protocol that still reaches past the baseline — HID++.</summary>
+    Hidpp,
+}
+
+/// <summary>The blue/purple pill in a device hero that says the page is the extended one.</summary>
+public sealed record HeroPill(string Text, HeroPillKind Kind);
+
+/// <summary>Which class protocol a section's pill names, and thus which colour it takes.</summary>
+public enum ProtocolPillKind
+{
+    CoreAudio,
+    Hidpp,
+    Via,
+    XInput,
+    System,
+}
+
+/// <summary>The protocol pill beside a section heading.</summary>
+public sealed record ProtocolPill(string Text, ProtocolPillKind Kind);

@@ -46,6 +46,21 @@ public sealed class DevicePollingOptions
     /// </summary>
     public int IdleMultiplier { get; set; } = 4;
 
+    /// <summary>
+    /// How often the one device whose page is open is read.
+    ///
+    /// Much shorter than the rest, and it has to be: the settings channel volunteers
+    /// nothing, so anything the wearer changes on the device itself is invisible until the
+    /// next read. At the ordinary interval a ChatMix wheel turned under someone's thumb
+    /// took ten seconds to reach the panel they were looking at, which reads as the
+    /// application being broken rather than patient.
+    ///
+    /// Affordable because it is one device, only while its page is open, and one reading
+    /// costs a few tens of milliseconds. The volume wheel does not depend on this — it
+    /// announces itself and is handled the moment it moves.
+    /// </summary>
+    public TimeSpan FocusedInterval { get; set; } = TimeSpan.FromSeconds(1);
+
     /// <summary>How often to look for new hardware while none is attached.</summary>
     public TimeSpan DiscoveryInterval { get; set; } = TimeSpan.FromSeconds(5);
 
@@ -100,9 +115,11 @@ public static class PollingPolicy
 
         PollScope scope = focused ? PollScope.BatteryAndVolatile : PollScope.Battery;
 
-        TimeSpan interval = attention == PollingAttention.Idle
-            ? options.Interval * Math.Max(1, options.IdleMultiplier)
-            : options.Interval;
+        TimeSpan interval = focused
+            ? options.FocusedInterval
+            : attention == PollingAttention.Idle
+                ? options.Interval * Math.Max(1, options.IdleMultiplier)
+                : options.Interval;
 
         return new PollPlan(scope, Backoff(interval, subject.ConsecutiveFailures, options));
     }

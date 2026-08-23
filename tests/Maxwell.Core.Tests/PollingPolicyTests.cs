@@ -143,3 +143,50 @@ public sealed class BatteryWatchdogTests
         Assert.Equal([30, 15, 5], BatteryWatchdog.ThresholdsFor(15));
     }
 }
+
+/// <summary>
+/// How often the device somebody is actually looking at gets read.
+///
+/// The settings channel says nothing unless asked, so everything the wearer changes on the
+/// device itself — the ChatMix wheel, the sidetone, the preset button — reaches the screen
+/// no sooner than the next read. At the interval the other devices use, that is ten
+/// seconds of a panel disagreeing with the thing in someone's hands.
+/// </summary>
+public sealed class FocusedPollingTests
+{
+    private static readonly DevicePollingOptions Options = new()
+    {
+        Interval = TimeSpan.FromSeconds(10),
+        FocusedInterval = TimeSpan.FromSeconds(1),
+        IdleMultiplier = 4,
+    };
+
+    private static PollSubject Subject(string key = "device") => new(key, IsPresent: true, CanControl: true, ConsecutiveFailures: 0);
+
+    [Fact]
+    public void OpenPage_IsReadFarMoreOften()
+    {
+        PollPlan plan = PollingPolicy.Plan(Subject(), PollingAttention.Focused, "device", Options);
+
+        Assert.Equal(Options.FocusedInterval, plan.Interval);
+        Assert.Equal(PollScope.BatteryAndVolatile, plan.Scope);
+    }
+
+    /// <summary>The others carry on at the ordinary rate; only the watched one is hurried.</summary>
+    [Fact]
+    public void OtherDevices_KeepTheOrdinaryInterval()
+    {
+        PollPlan plan = PollingPolicy.Plan(Subject("other"), PollingAttention.Focused, "device", Options);
+
+        Assert.Equal(Options.Interval, plan.Interval);
+        Assert.Equal(PollScope.Battery, plan.Scope);
+    }
+
+    [Fact]
+    public void NothingOpen_SlowsDownAsBefore()
+    {
+        PollPlan plan = PollingPolicy.Plan(Subject(), PollingAttention.Idle, null, Options);
+
+        Assert.Equal(Options.Interval * Options.IdleMultiplier, plan.Interval);
+    }
+}

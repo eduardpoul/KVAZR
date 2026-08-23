@@ -1,5 +1,6 @@
 using Maxwell.Core.Abstractions;
 using Maxwell.Core.Devices;
+using Maxwell.Race.Abstractions;
 using Maxwell.Core.Logging;
 using Maxwell.Core.Notifications;
 using Maxwell.Core.Settings;
@@ -25,6 +26,13 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
     /// <summary>Floor on the sleep, so a misconfigured interval cannot spin the loop.</summary>
     private static readonly TimeSpan MinSleep = TimeSpan.FromMilliseconds(250);
 
+    /// <summary>
+    /// How long one device may hold the sweep. Generous — a full read of a headset over a
+    /// dongle takes seconds — but finite, because the pass that notices a device was
+    /// unplugged comes after this one.
+    /// </summary>
+    private static readonly TimeSpan DeviceBudget = TimeSpan.FromSeconds(12);
+
     private static readonly TimeSpan MaxSleep = TimeSpan.FromSeconds(60);
 
     private readonly IDeviceRegistry _registry;
@@ -36,6 +44,14 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
     private readonly Dictionary<string, Entry> _entries = new(StringComparer.Ordinal);
     private readonly BatteryWatchdog _watch = new();
     private readonly HashSet<string> _fullRefreshRequests = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Devices that have been read once in full since they appeared. The ordinary policy
+    /// applies to everything after that — battery in the tray, the rest only where
+    /// something is actually looking.
+    /// </summary>
+    private readonly HashSet<string> _introduced = new(StringComparer.Ordinal);
+
     private readonly Lock _sync = new();
 
     private CancellationTokenSource _wake = new();
@@ -46,7 +62,8 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
         INotifier notifier,
         ISettingsStore settings,
         IOptionsMonitor<DevicePollingOptions> options,
-        ILogger<DevicePollingScheduler> logger)
+        ILogger<DevicePollingScheduler> logger,
+        IDeviceChangeWatcher? changes = null)
     {
         ArgumentNullException.ThrowIfNull(registry);
         ArgumentNullException.ThrowIfNull(notifier);
@@ -59,7 +76,52 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
         _settings = settings;
         _options = options;
         _logger = logger;
+        _changes = changes;
+
+        // Optional so the harnesses and the tests can build a scheduler without a
+        // platform under them; where it is absent the timed sweep is the whole story.
+        if (_changes is not null) _changes.Changed += OnDevicesChanged;
     }
+
+    private readonly IDeviceChangeWatcher? _changes;
+
+    /// <summary>
+    /// Something was plugged in or unplugged. Discovery is made due immediately and every
+    /// device is queued for a full read: whatever changed, the values on screen were
+    /// taken before it happened.
+    ///
+    /// The event arrives on whatever thread the platform raises it on and may arrive in
+    /// bursts — one physical device announces several interfaces — so this only sets
+    /// flags and wakes the loop, which is cheap enough to do a dozen times in a row.
+    /// </summary>
+    private void OnDevicesChanged(object? sender, EventArgs e)
+    {
+        lock (_sync)
+        {
+            // One headset announces an audio interface, a HID interface and a control
+            // interface, and each of them is its own notification. Answering all three
+            // would start a full sweep of every device three times over, so the burst is
+            // treated as the single event it is.
+            DateTimeOffset now = DateTimeOffset.Now;
+            if (now - _lastChange < ChangeCoalesce) return;
+
+            _lastChange = now;
+            _nextDiscovery = DateTimeOffset.MinValue;
+
+            foreach (DeviceSnapshot device in _registry.Devices)
+            {
+                _fullRefreshRequests.Add(device.Info.Key);
+                EntryFor(device.Info.Key).NextDue = DateTimeOffset.MinValue;
+            }
+        }
+
+        Nudge();
+    }
+
+    /// <summary>How long one plug or unplug is allowed to keep announcing itself.</summary>
+    private static readonly TimeSpan ChangeCoalesce = TimeSpan.FromMilliseconds(750);
+
+    private DateTimeOffset _lastChange = DateTimeOffset.MinValue;
 
     // ---------- coordinator ----------
 
@@ -106,6 +168,10 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
     {
         _logger.PollingStarted();
 
+        // Started here rather than in the constructor: a notification that arrives before
+        // the loop exists has nothing to wake.
+        _changes?.Start();
+
         while (!stoppingToken.IsCancellationRequested)
         {
             TimeSpan sleep;
@@ -134,7 +200,7 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
 
     private async Task<TimeSpan> TickAsync(CancellationToken cancellationToken)
     {
-        DevicePollingOptions options = _options.CurrentValue;
+        DevicePollingOptions options = Effective(_options.CurrentValue, _settings.Current);
         DateTimeOffset now = DateTimeOffset.Now;
 
         if (now >= _nextDiscovery)
@@ -149,6 +215,15 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
 
         AppSettings settings = _settings.Current;
         var hiddenKeys = settings.HiddenDevices.Keys.ToHashSet(StringComparer.Ordinal);
+
+        // One task per device, awaited together.
+        //
+        // Devices share nothing: separate handles, separate radios, separate hardware.
+        // Read one after another, the slowest of them set the pace for all — a headset
+        // that takes seconds to answer held up a mouse that would have taken twenty
+        // milliseconds, and nothing on the screen moved until the queue reached it. Each
+        // device still reads its own capabilities one at a time, because a single
+        // request-and-reply channel cannot carry two questions at once.
 
         foreach (DeviceSnapshot device in _registry.Devices)
         {
@@ -168,7 +243,22 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
                 focused,
                 options);
 
-            bool wantsFull = TakeFullRefreshRequest(key);
+            // Read once, in full, the first time a device is seen — and only then.
+            //
+            // Everything a device can do is a few kilobytes and is kept for as long as it
+            // stays attached, so the cost of knowing it is paid once. Without this the
+            // cost lands somewhere much worse: the tray reads nothing but the battery, so
+            // the first person to open a device found its controls empty and watched them
+            // fill in a second later, which reads as a fault rather than as a policy.
+            // Hidden devices are excluded — nobody is going to open one.
+            if (!device.IsPresent) ForgetIntroduction(key);
+
+            bool firstSight = !hidden
+                && device.IsPresent
+                && device.CanControl
+                && TakeIntroduction(key);
+
+            bool wantsFull = TakeFullRefreshRequest(key) || firstSight;
 
             if (plan.Scope == PollScope.None && !wantsFull) continue;
 
@@ -178,15 +268,83 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
                 continue;
             }
 
-            await PollAsync(device, plan.Scope, wantsFull, entry, cancellationToken).ConfigureAwait(false);
-
+            // Due is stamped before the read rather than after it, so a device that takes
+            // four seconds to answer is not rewarded with four extra seconds of quiet.
             entry.NextDue = now + (plan.Interval > TimeSpan.Zero ? plan.Interval : options.Interval);
             if (entry.NextDue < nextWake) nextWake = entry.NextDue;
+
+            DeviceSnapshot subject = device;
+            PollScope scope = plan.Scope;
+            bool full = wantsFull;
+            Entry target = entry;
+
+            // Started, not awaited.
+            //
+            // Waiting for all of them meant the next sweep could not begin until the
+            // slowest had finished, so the device whose page is open — the one asked for a
+            // reading every second — actually got one at the pace of whichever unrelated
+            // headset or dongle was answering worst. A device already busy is skipped
+            // rather than queued, which keeps one conversation per device without making
+            // the others wait for it.
+            if (target.InFlight is { IsCompleted: false }) continue;
+
+            target.InFlight = PollSafeAsync(subject, scope, full, target, cancellationToken);
         }
 
         TimeSpan sleep = nextWake - DateTimeOffset.Now;
 
         return sleep < MinSleep ? MinSleep : sleep > MaxSleep ? MaxSleep : sleep;
+    }
+
+    /// <summary>
+    /// One device's poll, sealed off from the others.
+    ///
+    /// The devices are read side by side now, and a sweep of eight must not end because
+    /// one of them threw. The session already swallows a dead handle, but a driver, a
+    /// notifier or a decoder can still fail in a way it does not cover, and without this
+    /// that failure would surface out of the gathered task and take the whole tick's
+    /// bookkeeping with it.
+    /// </summary>
+    private async Task PollSafeAsync(
+        DeviceSnapshot device,
+        PollScope scope,
+        bool full,
+        Entry entry,
+        CancellationToken cancellationToken)
+    {
+        // A device gets a slice of time, not all of it.
+        //
+        // The sweep gathers every device and waits for the lot, and discovery runs at the
+        // top of the next one — so a single device that never answers stops not just its
+        // own reading but the pass that would have noticed it had been unplugged. That is
+        // exactly what happened swapping a headset from its dongle to a cable: the old
+        // handle stopped answering, the tick never finished, and the application went on
+        // showing the dongle until it was restarted.
+        using var slice = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        slice.CancelAfter(DeviceBudget);
+
+        try
+        {
+            await PollAsync(device, scope, full, entry, slice.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (OperationCanceledException)
+        {
+            // Its own budget ran out. Counts as a failure so the backoff notices, and the
+            // sweep carries on without it.
+            entry.Failures++;
+            _logger.DevicePollTimedOut(device.Info.Key);
+        }
+#pragma warning disable CA1031 // One device's failure is that device's business.
+        catch (Exception ex)
+        {
+            entry.Failures++;
+            _logger.PollingIterationFailed(ex);
+        }
+#pragma warning restore CA1031
     }
 
     private async Task PollAsync(
@@ -213,7 +371,7 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
         if (session.Snapshot.CanControl) entry.Failures = 0;
         else entry.Failures++;
 
-        await EvaluateBatteryAsync(session.Snapshot, cancellationToken).ConfigureAwait(false);
+        await EvaluateBatteryAsync(session.Snapshot, entry, cancellationToken).ConfigureAwait(false);
     }
 
     private static string[] Wanted(DeviceSnapshot device, PollScope scope)
@@ -234,9 +392,28 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
 
     // ---------- battery alerts ----------
 
-    private async Task EvaluateBatteryAsync(DeviceSnapshot device, CancellationToken cancellationToken)
+    private async Task EvaluateBatteryAsync(DeviceSnapshot device, Entry entry, CancellationToken cancellationToken)
     {
         if (device.BatteryPercent is not { } percent) return;
+
+        // A battery does not fall thirty points in one poll. A reading that claims so is
+        // a glitch until a second poll repeats it — a mouse sitting on its charger kept
+        // reporting a phantom 15% and waking the user's corner with a low-battery toast,
+        // several times in one evening. Real drops confirm themselves half a minute
+        // later; phantoms never do. The probation is only against alerts — the interface
+        // still shows whatever the device said, because hiding readings is a different
+        // and worse policy.
+        if (entry.LastBattery >= 0 && entry.LastBattery - percent > 30)
+        {
+            if (entry.SuspectBattery != percent)
+            {
+                entry.SuspectBattery = percent;
+                return;
+            }
+        }
+
+        entry.SuspectBattery = -1;
+        entry.LastBattery = percent;
 
         AppSettings settings = _settings.Current;
 
@@ -291,9 +468,53 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
         }
     }
 
+    /// <summary>
+    /// The configured options with the user's chosen interval applied.
+    ///
+    /// The settings screen has offered an interval all along and nothing read it: the
+    /// scheduler took its period from configuration, so choosing "every 10 seconds"
+    /// changed a stored number and nothing else. Zero means the user has not chosen, and
+    /// the configured default stands.
+    /// </summary>
+    private static DevicePollingOptions Effective(DevicePollingOptions options, AppSettings settings)
+    {
+        if (settings.PollingSeconds <= 0) return options;
+
+        return new DevicePollingOptions
+        {
+            Interval = TimeSpan.FromSeconds(settings.PollingSeconds),
+            FocusedInterval = options.FocusedInterval,
+            IdleMultiplier = options.IdleMultiplier,
+            DiscoveryInterval = options.DiscoveryInterval,
+            IdleDiscoveryInterval = options.IdleDiscoveryInterval,
+            MaxBackoffShift = options.MaxBackoffShift,
+        };
+    }
+
     private bool TakeFullRefreshRequest(string key)
     {
         lock (_sync) return _fullRefreshRequests.Remove(key);
+    }
+
+    /// <summary>
+    /// True once per device, the first time it is offered. A device that goes away and
+    /// comes back is introduced again, because it may have been changed while it was
+    /// gone — a headset re-paired to another host, a mouse whose profile was switched on
+    /// the device itself.
+    /// </summary>
+    private bool TakeIntroduction(string key)
+    {
+        lock (_sync) return _introduced.Add(key);
+    }
+
+    /// <summary>
+    /// Forgets that a device was introduced, so it is read in full again when it returns.
+    /// A device that went away may come back changed — a headset re-paired to another
+    /// host, a mouse whose profile was switched on the mouse itself.
+    /// </summary>
+    private void ForgetIntroduction(string key)
+    {
+        lock (_sync) _introduced.Remove(key);
     }
 
     private void DueNow()
@@ -343,6 +564,11 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
 
     public override void Dispose()
     {
+        // Unsubscribed before anything else: the watcher calls back from a native thread
+        // and a notification landing on a half-disposed scheduler is a crash with no
+        // stack worth reading.
+        if (_changes is not null) _changes.Changed -= OnDevicesChanged;
+
         _wake.Dispose();
         base.Dispose();
     }
@@ -351,6 +577,19 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
     {
         public DateTimeOffset NextDue { get; set; } = DateTimeOffset.MinValue;
 
+        /// <summary>
+        /// This device's poll, while it is still running. One conversation per device is a
+        /// hard rule — the channel is request-and-reply — but it is a rule about this
+        /// device, not about the sweep, so the others carry on regardless.
+        /// </summary>
+        public Task? InFlight { get; set; }
+
         public int Failures { get; set; }
+
+        /// <summary>The last battery reading that was believed, for the glitch filter.</summary>
+        public int LastBattery { get; set; } = -1;
+
+        /// <summary>An implausible reading is on probation until a second poll repeats it.</summary>
+        public int SuspectBattery { get; set; } = -1;
     }
 }

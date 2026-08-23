@@ -10,6 +10,7 @@ namespace Maxwell.Core.Devices;
 public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
 {
     private readonly IReadOnlyList<IDeviceDriver> _drivers;
+    private readonly IReadOnlyList<ICapabilityContributor> _contributors;
     private readonly ICapabilityLedger _ledger;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<DeviceRegistry> _logger;
@@ -22,13 +23,18 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
     public DeviceRegistry(
         IEnumerable<IDeviceDriver> drivers,
         ICapabilityLedger ledger,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        IEnumerable<ICapabilityContributor>? contributors = null)
     {
         ArgumentNullException.ThrowIfNull(drivers);
         ArgumentNullException.ThrowIfNull(ledger);
         ArgumentNullException.ThrowIfNull(loggerFactory);
 
         _drivers = [.. drivers];
+
+        // Optional, and empty is a working configuration: contributors only ever add to
+        // what a driver already found, so a build without any behaves exactly as before.
+        _contributors = [.. contributors ?? []];
         _ledger = ledger;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger<DeviceRegistry>();
@@ -157,7 +163,8 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
         {
             if (_sessions.TryGetValue(key, out DeviceSession? existing)) return existing;
 
-            var session = new DeviceSession(info, driver, _ledger, _loggerFactory.CreateLogger<DeviceSession>());
+            var session = new DeviceSession(
+                info, driver, _ledger, _loggerFactory.CreateLogger<DeviceSession>(), _contributors);
             session.SnapshotChanged += OnSnapshotChanged;
             _sessions[key] = session;
 

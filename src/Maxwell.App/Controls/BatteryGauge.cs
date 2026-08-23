@@ -32,10 +32,24 @@ public sealed class BatteryGauge : Control
     public static readonly StyledProperty<int> LowThresholdProperty =
         AvaloniaProperty.Register<BatteryGauge, int>(nameof(LowThreshold), 15);
 
+    /// <summary>
+    /// Draws the bolt over the fill. A separate flag rather than a colour change, because
+    /// "charging" and "low" are different facts and a device can be both — a headset at
+    /// four percent on a cable is the exact case where showing only one of them misleads.
+    /// </summary>
+    public static readonly StyledProperty<bool> ChargingProperty =
+        AvaloniaProperty.Register<BatteryGauge, bool>(nameof(Charging));
+
     static BatteryGauge()
     {
-        AffectsRender<BatteryGauge>(PercentProperty, LowThresholdProperty);
+        AffectsRender<BatteryGauge>(PercentProperty, LowThresholdProperty, ChargingProperty);
         AffectsMeasure<BatteryGauge>(PercentProperty);
+    }
+
+    public bool Charging
+    {
+        get => GetValue(ChargingProperty);
+        set => SetValue(ChargingProperty, value);
     }
 
     public int? Percent
@@ -77,7 +91,39 @@ public sealed class BatteryGauge : Control
             : Charged;
 
         context.DrawRectangle(fill, null, new RoundedRect(new Rect(1.5, 1.5, filled, 13 - 3), 1.5));
+
+        if (Charging) DrawBolt(context);
     }
+
+    /// <summary>
+    /// The charging bolt, laid over the cell in white with a dark edge so it reads on
+    /// both the filled part and the empty part — at eleven pixels tall a single-colour
+    /// bolt disappears into whichever half it happens to land on.
+    /// </summary>
+    private static void DrawBolt(DrawingContext context)
+    {
+        StreamGeometry geometry = new();
+
+        // Nearly the full height of the cell and centred on it. The first attempt was a
+        // small mark tucked to one side, and white on the green fill it read as a smudge
+        // rather than as a bolt; at this size, with an edge dark enough to survive both
+        // the filled and the empty half, it is legible at the size a tray row draws it.
+        using (StreamGeometryContext path = geometry.Open())
+        {
+            path.BeginFigure(new Point(15.4, 0.8), isFilled: true);
+            path.LineTo(new Point(9.2, 7.4));
+            path.LineTo(new Point(12.6, 7.4));
+            path.LineTo(new Point(10.8, 12.2));
+            path.LineTo(new Point(17.2, 5.4));
+            path.LineTo(new Point(13.6, 5.4));
+            path.EndFigure(isClosed: true);
+        }
+
+        context.DrawGeometry(Brushes.White, BoltEdge, geometry);
+    }
+
+    /// <summary>Dark enough to outline white against the green fill behind it.</summary>
+    private static readonly Pen BoltEdge = new(new SolidColorBrush(Color.FromArgb(0xB0, 0, 0, 0)), 0.9);
 
     private static IBrush Foreground(Control control) =>
         control.FindResource("TextSecondaryBrush") as IBrush ?? Brushes.Gray;

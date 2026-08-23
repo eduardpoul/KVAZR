@@ -92,6 +92,80 @@ public sealed partial class RangeCapabilityViewModel : CapabilityViewModel
         : $"{Value:0}"
         : "—";
 
+    /// <summary>
+    /// Where the track draws a notch — the centre of an earcup balance, the 0/10/20 of a
+    /// ChatMix. The artboards mark these so a value's meaningful rest position is visible
+    /// even before the reader knows the scale; empty when the scale has no special point.
+    /// </summary>
+    public IReadOnlyList<int> Detents => State.Range?.Detents ?? [];
+
+    /// <summary>
+    /// A track alone says nothing about where it sits, so the tray row prints it — but
+    /// only once there is something to print. Before the first reading the control hides
+    /// itself, and a lone "—" against the name is a row that looks broken rather than one
+    /// that is waiting.
+    /// </summary>
+    public override string? QuickValue => HasValue ? Display : null;
+
+    /// <summary>
+    /// Whether this scale can be silenced.
+    ///
+    /// A volume can: nothing is the bottom of it. An earcup balance cannot — its scale
+    /// runs 122 to 134 around a centre, and zero is not a point on it at all. The test is
+    /// the scale itself rather than a list of capability ids, which would need extending
+    /// for every device that ever ships a volume.
+    /// </summary>
+    public bool CanMute => Domain is CapabilityDomain.Audio && Minimum <= 0 && Descriptor.IsWritable;
+
+    /// <summary>
+    /// Silenced by us: the floor is written and the previous position is remembered.
+    ///
+    /// The protocol has no mute of its own — there is a gain and that is all — so this is
+    /// the application holding the position while the device sits at zero. The control
+    /// goes on showing that position, greyed, because a slider that snapped to the far
+    /// left would throw away the very thing being kept.
+    ///
+    /// It lives for the session. Close the application while muted and the headset stays
+    /// at zero with nothing left to restore from, which is why unmuting also happens when
+    /// the connection is torn down.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsMuted { get; private set; }
+
+    private int _beforeMute;
+
+    [RelayCommand]
+    private void ToggleMute()
+    {
+        if (!CanEdit || !CanMute) return;
+
+        if (IsMuted)
+        {
+            IsMuted = false;
+            Value = _beforeMute;
+            WriteNow(CapabilityValue.Of(_beforeMute));
+            return;
+        }
+
+        _beforeMute = (int)Math.Round(Value);
+        IsMuted = true;
+
+        WriteNow(CapabilityValue.Of((int)Minimum));
+    }
+
+    public override void Dispose()
+    {
+        // Leaving the hardware silent with the remembered level held only in a dead
+        // object would be a device that stopped working for no reason the user can see.
+        if (IsMuted && Session is not null)
+        {
+            IsMuted = false;
+            WriteNow(CapabilityValue.Of(_beforeMute));
+        }
+
+        base.Dispose();
+    }
+
     protected override void OnStateApplied(CapabilityState state)
     {
         // Bounds first, value second, and the order is not cosmetic. A Slider clamps
@@ -104,9 +178,18 @@ public sealed partial class RangeCapabilityViewModel : CapabilityViewModel
 
         HasValue = !state.Value.IsAbsent;
         _reading = state.Value.AsNumber((int)Minimum);
-        Value = _reading;
+
+        // A reading that arrives while our own write is still travelling is older than
+        // the hand on the control. Taking it would drag the slider back to where it was
+        // and then forward again when the next poll catches up — the control visibly
+        // fighting the person using it.
+        //
+        // While muted the device honestly reports zero, and taking that would erase the
+        // level being held for the person to come back to.
+        if (!WriteInFlight && !IsMuted) Value = _reading;
 
         OnPropertyChanged(nameof(Display));
+        OnPropertyChanged(nameof(QuickValue));
     }
 
     /// <summary>
@@ -115,6 +198,10 @@ public sealed partial class RangeCapabilityViewModel : CapabilityViewModel
     /// </summary>
     protected override void OnSettled()
     {
+        // Same rule as a fresh reading: the last thing the person did outranks the last
+        // thing the device said, until the write has had time to land.
+        if (WriteInFlight) return;
+
         if (Math.Abs(Value - _reading) < 0.5) return;
 
         Value = _reading;
@@ -124,6 +211,7 @@ public sealed partial class RangeCapabilityViewModel : CapabilityViewModel
     partial void OnValueChanged(double value)
     {
         OnPropertyChanged(nameof(Display));
+        OnPropertyChanged(nameof(QuickValue));
         Write(CapabilityValue.Of((int)Math.Round(value)));
     }
 }

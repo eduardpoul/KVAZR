@@ -29,6 +29,17 @@ public partial class FlyoutWindow : Window
     {
         InitializeComponent();
 
+        // The first opening is the one that lands in the wrong place. SizeToContent
+        // settles the height only after the content has measured, which is a frame or
+        // more after Show returns — so the placement made on the way up used a height
+        // that was not yet the final one, and the panel sat away from the tray corner.
+        // Every later opening reuses an already-measured window and looks right, which
+        // is precisely the "wrong the first time, fine the second" this produced.
+        Resized += (_, _) =>
+        {
+            if (IsVisible) PlaceByTray();
+        };
+
         // Deactivation is the dismissal: clicking anywhere else puts the panel away —
         // but only once it has held focus in the first place.
         Activated += (_, _) => _held = true;

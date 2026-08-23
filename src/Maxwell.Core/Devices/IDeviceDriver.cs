@@ -95,3 +95,27 @@ public interface IDeviceConnection : IDisposable
     /// </summary>
     Task<bool> WriteAsync(string capabilityId, CapabilityValue value, CancellationToken cancellationToken = default);
 }
+
+/// <summary>
+/// A connection that can say when something moved on the device, instead of waiting to be
+/// asked.
+///
+/// Optional, because most of what a headset knows has to be polled: its settings live
+/// behind a request-and-reply protocol that volunteers nothing. But the controls under the
+/// wearer's fingers are ordinary HID — the volume wheel and the mute button announce
+/// themselves the instant they are used, on interfaces that have nothing to do with the
+/// vendor protocol.
+///
+/// Ignoring that is what made the panel lag ten seconds behind the earcup: the value had
+/// changed, the device had said so, and the application was waiting for its next timer to
+/// come round and ask. A driver that implements this turns the wait into a refresh of the
+/// handful of readings the event could have affected.
+/// </summary>
+public interface IDeviceNotifier
+{
+    /// <summary>
+    /// Raised when the device reports activity of its own accord. Carries the capability
+    /// ids worth re-reading — the event says something happened, not what it now is.
+    /// </summary>
+    event EventHandler<IReadOnlyList<string>>? Activity;
+}
