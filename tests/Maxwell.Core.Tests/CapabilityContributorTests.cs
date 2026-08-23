@@ -170,6 +170,22 @@ public sealed class CapabilityContributorTests
         Assert.True(contributor.Connection.Disposed);
     }
 
+
+    [Fact]
+    public async Task AnOwnerThatSupersedesAContributor_KeepsThatGroundToItself()
+    {
+        Fixture fixture = new(new FakeContributor("extra", Added)) { Superseded = "extra" };
+        DeviceSession session = fixture.CreateSession();
+
+        await session.MarkPresentAsync(fixture.Info, Ct);
+
+        // A vendor protocol that answers for the device's own sound does not want the
+        // Windows slider for the same hardware beside it: both numbers are real, they are
+        // not the same number, and the page stops being readable. Tiering cannot express
+        // this — by the time contributors run, the owner has already won the device.
+        Assert.False(session.Snapshot.Has(Added));
+        Assert.True(session.Snapshot.Has(Owned));
+    }
     private sealed class Fixture
     {
         private readonly ICapabilityContributor[] _contributors;
@@ -182,12 +198,18 @@ public sealed class CapabilityContributorTests
 
         public bool ConnectFails { get; init; }
 
-        public DeviceInfo Info { get; } = new()
+        /// <summary>A contributor whose ground the owning driver says it already covers.</summary>
+        public string? Superseded { get; init; }
+
+        public DeviceInfo Info => new()
         {
             Key = "fake:device",
             DriverId = "fake",
             Vendor = "Fake",
             Model = "Device",
+            Supersedes = Superseded is null
+                ? new HashSet<string>(StringComparer.Ordinal)
+                : new HashSet<string>(StringComparer.Ordinal) { Superseded },
         };
 
         public DeviceSession CreateSession() =>

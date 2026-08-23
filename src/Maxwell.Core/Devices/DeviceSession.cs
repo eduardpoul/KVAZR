@@ -501,6 +501,11 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
 
         foreach (ICapabilityContributor contributor in _contributors)
         {
+            // The owner says it has the deeper answer here. Core Audio beside a vendor
+            // protocol is two volumes on one page that are both real and are not the
+            // same number, which reads as a bug however carefully either is labelled.
+            if (info.Supersedes.Contains(contributor.ContributorId)) continue;
+
             if (_attachments.Any(a => string.Equals(a.Id, contributor.ContributorId, StringComparison.Ordinal)))
             {
                 continue;

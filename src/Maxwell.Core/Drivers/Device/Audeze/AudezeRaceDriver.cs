@@ -162,6 +162,15 @@ public sealed class AudezeRaceDriver : IDeviceDriver
                 interfaces.Select(i => $"usb:{MaxwellInterface.VendorId:x4}:{i.ProductId:x4}"),
                 StringComparer.Ordinal),
 
+
+            // The headset answers for its own sound: master gain, per-earcup balance,
+            // microphone level, the equaliser. Core Audio would put the Windows slider
+            // for the same hardware beside all of that, and a page carrying two volumes
+            // that are both correct and unrelated is a page nobody can read.
+            //
+            // Only the audio contributor is superseded. A battery usage or anything else
+            // that turns up later is still welcome, because RACE does not answer for it.
+            Supersedes = new HashSet<string>(StringComparer.Ordinal) { "audio" },
             Transports = TransportsOf(interfaces),
         };
 

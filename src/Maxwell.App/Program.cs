@@ -204,12 +204,22 @@ internal static class Program
         // The device families this build understands, listed once. A new class protocol
         // or a new deep device is one more module here and its folder under Drivers — the
         // core and the other modules do not move. See docs/ARCHITECTURE.md.
-        builder.Services.AddDeviceRegistry(
-            includeMockDevices: true,
-            mockDeviceCount: mocks,
-            new Maxwell.Core.Drivers.Audeze.AudezeModule(),
+        // --no-vendor drops the deep drivers and leaves the class protocols, so a device
+        // that has a vendor driver falls through to the shared page and that page can be
+        // looked at on real hardware. The only headset on this desk is an Audeze: without
+        // this switch the baseline headset page could be guessed at and never seen.
+        List<IDriverModule> modules =
+        [
             new Maxwell.Core.Drivers.Logitech.LogitechModule(),
-            new Maxwell.Core.Drivers.Audio.AudioModule());
+            new Maxwell.Core.Drivers.Audio.AudioModule(),
+        ];
+
+        if (Array.IndexOf(args, "--no-vendor") < 0)
+        {
+            modules.Insert(0, new Maxwell.Core.Drivers.Audeze.AudezeModule());
+        }
+
+        builder.Services.AddDeviceRegistry(includeMockDevices: true, mockDeviceCount: mocks, [.. modules]);
 
         builder.Services.AddSingleton<IConfirmationPrompt>(sp =>
             new ModalConfirmation(sp.GetRequiredService<MainWindow>));

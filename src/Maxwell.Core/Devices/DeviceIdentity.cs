@@ -119,6 +119,25 @@ public sealed record DeviceInfo
     /// </summary>
     public IReadOnlySet<string> HardwareIds { get; init; } = new HashSet<string>(StringComparer.Ordinal);
 
+    /// <summary>
+    /// Contributors whose ground this device's own driver already covers, by contributor
+    /// id. Named by the driver that found the device, because it is the only thing that
+    /// knows.
+    ///
+    /// A contributor exists to fill in what a driver cannot say, and on most devices
+    /// there is no overlap at all. On a device with a vendor protocol there is: the
+    /// Audeze reports its own amplifier gain, its own earcup balance and its own
+    /// microphone level, and Core Audio would add the Windows slider for the same
+    /// hardware beside them. Both numbers are real and they are not the same number,
+    /// which is exactly what makes the pair unreadable — the page ends up asking the
+    /// person to know which volume they meant.
+    ///
+    /// So the driver that has the deeper answer says so and the shallower source stands
+    /// aside. This is not tiering: tiering decides who owns the device, and by then the
+    /// owner has already won. This decides what the owner lets anyone else add.
+    /// </summary>
+    public IReadOnlySet<string> Supersedes { get; init; } = new HashSet<string>(StringComparer.Ordinal);
+
     public IReadOnlyList<TransportInfo> Transports { get; init; } = [];
 
     /// <summary>

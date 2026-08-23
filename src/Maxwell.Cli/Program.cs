@@ -22,7 +22,8 @@ Console.WriteLine();
 if (args.Contains("--devices"))
 {
     TimeSpan? watch = args.Contains("--watch") ? TimeSpan.FromSeconds(30) : null;
-    return await DeviceInventory.RunAsync(args.Contains("--mock"), watch).ConfigureAwait(false);
+    return await DeviceInventory.RunAsync(
+        args.Contains("--mock"), watch, args.Contains("--no-vendor")).ConfigureAwait(false);
 }
 
 // Tier zero on its own: everything the operating system knows with no driver involved.

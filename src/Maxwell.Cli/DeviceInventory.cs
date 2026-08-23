@@ -24,22 +24,30 @@ internal static class DeviceInventory
     public static async Task<int> RunAsync(
         bool includeMocks,
         TimeSpan? watchFor = null,
+        bool vendorless = false,
         CancellationToken cancellationToken = default)
     {
-        // The Bluetooth monitor matters here: paired over Bluetooth alone the headset
-        // has no HID interface at all, and without this the harness would report no
-        // device to someone who is wearing it.
         List<IDeviceDriver> drivers =
         [
-            new AudezeRaceDriver(
-                new WindowsHidEnumerator(),
-                new WindowsHidTransportFactory(),
-                new WindowsBluetoothMonitor()),
-
-            // Everything else on the machine. Expected to be shadowed for the Audeze —
-            // that is the arrangement working, not a clash.
+            // Everything on the machine, understood as little as possible.
             new SystemDeviceDriver(new WindowsSystemDeviceEnumerator(), new DeviceCatalogue()),
         ];
+
+        // --no-vendor drops the deep drivers and leaves the class protocols, so a device
+        // that has a vendor driver falls through to the shared page and that page can be
+        // read off real hardware instead of imagined. Otherwise the Audeze goes in front,
+        // where it shadows the system tier's copy of the same headset — the arrangement
+        // working, not a clash.
+        // The Bluetooth monitor matters here: paired over Bluetooth alone the headset has
+        // no HID interface at all, and without it the harness would report no device to
+        // someone who is wearing one.
+        if (!vendorless)
+        {
+            drivers.Insert(0, new AudezeRaceDriver(
+                new WindowsHidEnumerator(),
+                new WindowsHidTransportFactory(),
+                new WindowsBluetoothMonitor()));
+        }
 
         if (includeMocks) drivers.Add(new MockDeviceDriver());
 
