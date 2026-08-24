@@ -94,10 +94,6 @@ html:has(.page.dark) { color-scheme: dark; }
 
 .section-note { font-size: 12px; color: var(--text-tertiary); }
 
-/* The page's own source line, directly under the hero. Pulled up against the hero rather
-   than spaced like a section, because it belongs to the device above it and not to the
-   first card below it. */
-.page-source { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: -8px; }
 
 /* ---- cards and rows --------------------------------------------------------------- */
 

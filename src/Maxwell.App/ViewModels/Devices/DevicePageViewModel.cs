@@ -365,10 +365,15 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     /// </summary>
     public string? StateNotice => Snapshot switch
     {
-        // Answering, but over a link that carries no control. Over Bluetooth the Maxwell
-        // publishes no HID service at all, so the short list of capabilities is the
-        // truth about this link rather than something failing.
-        { Availability: DeviceAvailability.Active, Info.ControlTransport: null } =>
+        // Answering over Bluetooth, and only over Bluetooth. The Maxwell publishes no HID
+        // service on that link, so the short list of capabilities is the truth about it
+        // rather than something failing.
+        //
+        // The condition used to be "no control channel at all", which was written with a
+        // headset in mind and was wrong about every class device: a USB microphone has no
+        // control channel either — everything it offers comes from Windows — and it was
+        // being told, on a cable, that it was on Bluetooth and should try a cable.
+        { Availability: DeviceAvailability.Active, Info.ControlTransport: null } when OnBluetoothOnly =>
             Maxwell.App.Localization.Localizer.Current.Say("Connected over Bluetooth: only the charge is available. Settings work over the dongle or the cable"),
 
         _ => Snapshot.Availability switch
@@ -380,6 +385,14 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
             _ => null,
         },
     };
+
+    /// <summary>
+    /// Every live link is Bluetooth. Said as "every" rather than "any", because a headset
+    /// with its dongle in and a Bluetooth pairing besides is not on Bluetooth in the sense
+    /// the notice means — its settings are reachable and there is nothing to explain.
+    /// </summary>
+    private bool OnBluetoothOnly =>
+        LiveTransports.Count > 0 && LiveTransports.All(t => t.Kind == TransportKind.Bluetooth);
 
     /// <summary>"updated 14:41", or when the device was last seen if it is gone.</summary>
     public string? Freshness => Snapshot switch
@@ -446,6 +459,17 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     private bool SameShape(DeviceSnapshot snapshot) =>
         snapshot.Capabilities.Count == _shape.Count && snapshot.Capabilities.Keys.All(_shape.Contains);
 
+    /// <summary>
+    /// The section that says what the device is, for the classes where the enum's order
+    /// disagrees. Null everywhere else, and then nothing moves — a headset already leads
+    /// with sound, and a mouse's page follows the artboard.
+    /// </summary>
+    private static CapabilityDomain? Leading(DeviceClass kind) => kind switch
+    {
+        DeviceClass.Microphone => CapabilityDomain.Microphone,
+        _ => null,
+    };
+
     private void Rebuild(DeviceSnapshot snapshot)
     {
         // Everything is built off to the side and published in one go at the end.
@@ -485,7 +509,10 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
                 items.Add(vm);
             }
 
-            if (items.Count > 0) built.Add(new CapabilitySectionViewModel(domain, items));
+            if (items.Count > 0)
+            {
+                built.Add(new CapabilitySectionViewModel(domain, items, snapshot.Info.Class));
+            }
         }
 
         if (byId.GetValueOrDefault(CapabilityIds.AudioEqGraphic) is CurveCapabilityViewModel curve)
@@ -497,6 +524,17 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
 
             // After the slots, so the picker is built once with both halves in it.
             curve.Library = _presets;
+        }
+
+        // The section a device is named after comes first.
+        //
+        // Order is the enum's otherwise, and the enum is written headset-first — audio
+        // before microphone — which is right for a headset and backwards for a
+        // microphone, where the capsule is the whole point of the device and the
+        // headphone socket is an extra. The artboard puts them that way round too.
+        if (Leading(snapshot.Info.Class) is { } first)
+        {
+            built = [.. built.OrderBy(s => s.Domain == first ? 0 : 1)];
         }
 
         foreach (CapabilitySectionViewModel section in Sections) section.Dispose();

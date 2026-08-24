@@ -48,6 +48,22 @@
             <span>@Maxwell.App.Localization.TransportNames.Of(transport)</span>
           </span>
         }
+        @* Where this page's settings come from, after the chips that say what the device
+           is and how it is attached — the same kind of fact, and the identity ones come
+           first. It was a pill above every section until a two-section page said it
+           twice. *@
+        @if (Vm.IsWholeDevice && Vm.PageProtocol is { } source)
+        {
+          <span class="proto-pill @ProtoClass(source.Kind)">@source.Text</span>
+
+          @* Kept beside the pill rather than dropped, on the same footing as the firmware
+             version next to it: an aside about the chip before it, in the row where this
+             page keeps its asides. *@
+          @if (Vm.PageNote is { } howItApplies)
+          {
+            <span class="caption">@howItApplies</span>
+          }
+        }
         @if (Vm.HasFirmware)
         {
           <span class="caption">@Vm.Firmware</span>
@@ -84,19 +100,6 @@
     }
   </div>
 
-  @* Where the settings on this page come from, said once. It was above every section
-     until a microphone page with two of them read it twice; a fact about the whole page
-     belongs at the top of it. Sections keep their own pill only when they disagree. *@
-  @if (Vm.IsWholeDevice && Vm.PageProtocol is { } source)
-  {
-    <div class="page-source">
-      <span class="proto-pill @ProtoClass(source.Kind)">@source.Text</span>
-      @if (Vm.PageNote is { } howItApplies)
-      {
-        <span class="section-note">@howItApplies</span>
-      }
-    </div>
-  }
 
   @if (Vm.HasNothingToChange)
   {

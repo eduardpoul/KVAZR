@@ -82,7 +82,11 @@ internal static class AudioCapabilities
             string? source = several
                 ? endpoint.Name
                 : render
-                    ? monitoring ? "The headphone output on the microphone" : "The system volume, not the hardware one"
+                    // What the socket is for, rather than what it is. The artboard says
+                    // it this way and it is the better sentence: a person plugs
+                    // headphones into a microphone to hear themselves as they speak,
+                    // and "the headphone output" leaves them to work that out.
+                    ? monitoring ? "Your own voice in the headphones, with no delay" : "The system volume, not the hardware one"
                     : "The recording level in Windows";
 
             rows.Add(new AudioRow(

@@ -11,24 +11,35 @@ namespace Maxwell.App.ViewModels.Devices;
 /// from the driver. That is the whole reason a mouse and a headset read as one
 /// application: neither page was written, both were assembled the same way, and an
 /// empty section simply does not appear.
+///
+/// The device's class reaches one thing here, and only naming: a render endpoint on a
+/// microphone is not "sound", it is the headphone socket on its base, and the artboard
+/// calls it so.
 /// </summary>
 public sealed class CapabilitySectionViewModel : IDisposable
 {
     private bool _disposed;
 
-    public CapabilitySectionViewModel(CapabilityDomain domain, IEnumerable<CapabilityViewModel> items)
+    public CapabilitySectionViewModel(
+        CapabilityDomain domain,
+        IEnumerable<CapabilityViewModel> items,
+        DeviceClass owner = DeviceClass.Unknown)
     {
         ArgumentNullException.ThrowIfNull(items);
 
         Domain = domain;
+        Owner = owner;
         Items = [.. items];
     }
 
     public CapabilityDomain Domain { get; }
 
+    /// <summary>What kind of device this section belongs to. Reaches the title and nothing else.</summary>
+    public DeviceClass Owner { get; }
+
     public ObservableCollection<CapabilityViewModel> Items { get; }
 
-    public string Title => TitleOf(Domain);
+    public string Title => TitleOf(Domain, Owner);
 
     /// <summary>
     /// The label above the section's card. Upper case because the artboard has it that
@@ -75,9 +86,20 @@ public sealed class CapabilitySectionViewModel : IDisposable
     /// The section names the design uses. Kept here rather than on the enum so the core
     /// stays free of interface language and of any one language at all.
     /// </summary>
-    public static string TitleOf(CapabilityDomain domain) =>
-        Maxwell.App.Localization.Localizer.Current[
+    public static string TitleOf(CapabilityDomain domain, DeviceClass owner = DeviceClass.Unknown)
+    {
+        // Playback on a microphone is the socket on its base, and calling that section
+        // "Sound" on a page about a microphone reads as a second, mysterious volume.
+        if (domain == CapabilityDomain.Audio && owner == DeviceClass.Microphone)
+        {
+            return Maxwell.App.Localization.Localizer.Current[
+                "domain.audio.microphone",
+                Maxwell.App.Localization.Localizer.Current.Say("Headphones in the microphone")];
+        }
+
+        return Maxwell.App.Localization.Localizer.Current[
             $"domain.{domain}".ToLowerInvariant(), Written(domain)];
+    }
 
     /// <summary>The source wording, which is what the catalogue is keyed by.</summary>
     private static string Written(CapabilityDomain domain) => domain switch
