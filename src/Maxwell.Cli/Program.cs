@@ -55,6 +55,15 @@ if (args.Contains("--vendor"))
 // The guided dig: a script of things to do to the microphone, with every channel
 // listened to and the lighting pipe polled, so each report lands under the step that
 // caused it. Passive.
+// The polar selector, read through the contributor the application uses. The device
+// inventory cannot show this: it prints one snapshot and the row is empty until the
+// dial moves.
+if (args.Contains("--polar"))
+{
+    return await PolarProbe.RunAsync(
+        int.TryParse(ValueAfter(args, "--polar"), out int watched) ? watched : 40).ConfigureAwait(false);
+}
+
 if (args.Contains("--quadcast"))
 {
     return QuadCastProbe.Run(ValueAfter(args, "--log"), args.Contains("--patterns"));
