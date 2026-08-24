@@ -55,7 +55,7 @@ public static class CapabilityIds
     // plays what arrives. Calling either of them plain "volume" made the page
     // unreadable, so both say whose they are.
     public const string AudioSystemVolume = "audio.system_volume";
-    public const string AudioSystemMute = "audio.system_mute";
+    public const string AudioSystemOn = "audio.system_on";
 
     // Microphone
     public const string MicMute = "mic.mute";
@@ -68,7 +68,7 @@ public static class CapabilityIds
     // The Windows side of a microphone: the recording level and the mute that every
     // audio device has, whatever protocol it does or does not speak.
     public const string MicSystemLevel = "mic.system_level";
-    public const string MicSystemMute = "mic.system_mute";
+    public const string MicSystemOn = "mic.system_on";
 
     /// <summary>
     /// What the microphone is hearing, right now. Only read while its page is open —

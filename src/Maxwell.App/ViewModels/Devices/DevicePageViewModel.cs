@@ -515,6 +515,16 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
             }
         }
 
+        // A control that depends on a switch is joined to it here, where every row of the
+        // page exists at once. The driver said which switch; this only finds it.
+        foreach (CapabilityViewModel vm in byId.Values)
+        {
+            if (vm.Descriptor.EnabledBy is not { Length: > 0 } gate) continue;
+            if (byId.GetValueOrDefault(gate) is not ToggleCapabilityViewModel toggle) continue;
+
+            vm.GateWith(toggle);
+        }
+
         if (byId.GetValueOrDefault(CapabilityIds.AudioEqGraphic) is CurveCapabilityViewModel curve)
         {
             if (byId.GetValueOrDefault(CapabilityIds.AudioEqPreset) is ChoiceCapabilityViewModel slots)

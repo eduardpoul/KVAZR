@@ -133,6 +133,21 @@ public sealed record Capability
     public bool IsLive { get; init; }
 
     /// <summary>
+    /// The id of a switch that has to be on for this control to do anything: the sound
+    /// over its volume, the lighting over its brightness.
+    ///
+    /// Declared by the driver rather than worked out by the page, because only the driver
+    /// knows whether two capabilities are one control split in two or two independent
+    /// ones. A page that guessed by matching names would eventually grey a slider that
+    /// works perfectly well.
+    ///
+    /// It says nothing about order. The interface draws the switch first because a
+    /// condition belongs before the thing it governs, but that is a decision about
+    /// reading, and this is a fact about the hardware.
+    /// </summary>
+    public string? EnabledBy { get; init; }
+
+    /// <summary>
     /// False when a write cannot be undone. Maxwell's gain mirror latches on the first
     /// write and only a factory reset puts it back, so the warning has to come before
     /// the write, not after it.

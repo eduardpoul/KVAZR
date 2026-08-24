@@ -36,7 +36,7 @@ if (args.Contains("--hid")) return HidSurvey.Run(!args.Contains("--all"));
 if (args.Contains("--hidpp")) return HidPlusPlusProbe.Run();
 if (args.Contains("--xinput")) return XInputProbe.Run();
 if (args.Contains("--audio")) return AudioProbe.Run();
-if (args.Contains("--micmute")) return await MuteProbe.RunAsync().ConfigureAwait(false);
+if (args.Contains("--micmute")) return await MuteProbe.RunAsync(args.Contains("--leave")).ConfigureAwait(false);
 if (args.Contains("--meter"))
 {
     int seconds = int.TryParse(ValueAfter(args, "--meter"), out int held) ? held : 6;

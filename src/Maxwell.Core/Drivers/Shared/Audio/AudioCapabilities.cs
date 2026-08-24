@@ -7,7 +7,13 @@ namespace Maxwell.Core.Drivers.Audio;
 internal enum AudioControl
 {
     Volume,
-    Mute,
+
+    /// <summary>
+    /// Whether the endpoint is on. The knob behind it is Core Audio's mute, so the value
+    /// is the opposite of it — see <c>AudioConnection</c>, which is the one place that
+    /// knows.
+    /// </summary>
+    OnOff,
 
     /// <summary>The input level. Unlike the other two, reading it means listening.</summary>
     Peak,
@@ -55,7 +61,7 @@ internal static class AudioCapabilities
         bool several = endpoints.Count > 1;
 
         string volumeId = render ? CapabilityIds.AudioSystemVolume : CapabilityIds.MicSystemLevel;
-        string muteId = render ? CapabilityIds.AudioSystemMute : CapabilityIds.MicSystemMute;
+        string onId = render ? CapabilityIds.AudioSystemOn : CapabilityIds.MicSystemOn;
         CapabilityDomain domain = render ? CapabilityDomain.Audio : CapabilityDomain.Microphone;
 
         // Playback on a microphone is the headphone socket on its base, not a speaker.
@@ -72,8 +78,14 @@ internal static class AudioCapabilities
                 monitoring ? "Monitoring volume" : render ? "Windows volume" : "Recording level",
                 label);
 
-            string muteTitle = Titled(
-                monitoring ? "Monitoring off" : render ? "Sound off" : "Microphone off",
+            // Named for what it is rather than for what it does when pressed. It was
+            // "Microphone off", which is the endpoint's own word — Core Audio has a mute
+            // — and it reads as a double negative the moment the switch governs anything:
+            // "Microphone off" turned on, with the level below it greyed out, is a
+            // sentence nobody should have to parse. The value is inverted at the driver,
+            // once, where the knob is actually written.
+            string onTitle = Titled(
+                monitoring ? "Monitoring" : render ? "Sound" : "Microphone",
                 label);
 
             // The subtitle says whose number this is. A headset with its own amplifier
@@ -89,6 +101,23 @@ internal static class AudioCapabilities
                     ? monitoring ? "Your own voice in the headphones, with no delay" : "The system volume, not the hardware one"
                     : "The recording level in Windows";
 
+            // The switch before the level, because it is the level's condition: a slider
+            // above the thing that decides whether it does anything is a slider people
+            // drag first and understand second.
+            rows.Add(new AudioRow(
+                Numbered(onId, i),
+                endpoint.Id,
+                AudioControl.OnOff,
+                new Capability
+                {
+                    Id = Numbered(onId, i),
+                    Domain = domain,
+                    Primitive = CapabilityPrimitive.Toggle,
+                    Title = onTitle,
+                    Subtitle = several ? endpoint.Name : null,
+                    IsVolatile = true,
+                }));
+
             rows.Add(new AudioRow(
                 Numbered(volumeId, i),
                 endpoint.Id,
@@ -101,24 +130,11 @@ internal static class AudioCapabilities
                     Title = volumeTitle,
                     Subtitle = source,
                     Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
+                    EnabledBy = Numbered(onId, i),
 
                     // Anything on the machine can move it — the volume keys, a game, the
                     // mixer — so the page has to yield to the system rather than assume
                     // it is the only writer.
-                    IsVolatile = true,
-                }));
-
-            rows.Add(new AudioRow(
-                Numbered(muteId, i),
-                endpoint.Id,
-                AudioControl.Mute,
-                new Capability
-                {
-                    Id = Numbered(muteId, i),
-                    Domain = domain,
-                    Primitive = CapabilityPrimitive.Toggle,
-                    Title = muteTitle,
-                    Subtitle = several ? endpoint.Name : null,
                     IsVolatile = true,
                 }));
 

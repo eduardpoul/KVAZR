@@ -468,6 +468,24 @@ input[type="range"] {
   flex: none;
 }
 
+/* A control whose switch is off.
+
+   Dimmed rather than hidden, and its value left on screen: the level a muted microphone
+   will come back to is still the truth about the device, and a row that disappeared when
+   something was switched off would take the setting out of reach of the person who wants
+   to change it before switching back on.
+
+   The slider carries `disabled` as well — this is only what that looks like. Without a
+   style for it a dead slider was indistinguishable from a live one, which invites a drag
+   that does nothing and reads as the application ignoring the pointer. */
+.cap-row.gated .cap-title,
+.cap-row.gated .caption,
+.cap-row.gated .value,
+.cap-row.gated .reading,
+.cap-row.gated .slider-value { opacity: 0.45; }
+
+input[type="range"]:disabled { opacity: 0.4; cursor: default; }
+
 .range { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .range .reading { font-size: 12px; color: var(--text-secondary); }
 

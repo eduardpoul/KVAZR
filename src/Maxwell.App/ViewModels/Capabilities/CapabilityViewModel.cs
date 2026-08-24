@@ -251,8 +251,42 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
         ? Text[$"requirement.{Descriptor.Requirement}".ToLowerInvariant(), why]
         : Text["hint.unreachable", "not available now"];
 
+    /// <summary>
+    /// The switch this control depends on, when the driver declared one: a volume's mute,
+    /// a lighting rig's on/off.
+    ///
+    /// Held as the other row's view model rather than as its last reading, because the two
+    /// have to agree the instant the switch is pressed. The reading arrives from the device
+    /// a few hundred milliseconds later, and a slider that stayed live for those
+    /// milliseconds is a slider somebody can drag into a device that is not listening.
+    /// </summary>
+    internal ToggleCapabilityViewModel? Gate { get; private set; }
+
+    internal void GateWith(ToggleCapabilityViewModel gate)
+    {
+        ArgumentNullException.ThrowIfNull(gate);
+
+        if (ReferenceEquals(Gate, gate)) return;
+
+        if (Gate is not null) Gate.PropertyChanged -= OnGateChanged;
+
+        Gate = gate;
+        Gate.PropertyChanged += OnGateChanged;
+    }
+
+    private void OnGateChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is not (nameof(ToggleCapabilityViewModel.IsOn) or "")) return;
+
+        OnPropertyChanged(nameof(CanEdit));
+        OnPropertyChanged(nameof(IsGated));
+    }
+
+    /// <summary>The switch that governs this control is off, so it is inert.</summary>
+    public bool IsGated => Gate is { IsOn: false };
+
     /// <summary>True when the control may be operated at all.</summary>
-    public bool CanEdit => State.CanWrite && Session is not null;
+    public bool CanEdit => State.CanWrite && Session is not null && !IsGated;
 
     /// <summary>
     /// The single line under the control. One line, not several, and the most urgent
@@ -542,6 +576,14 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     {
         if (_disposed) return;
         _disposed = true;
+
+        // The switch outlives nothing here — both rows are rebuilt together — but a page
+        // rebuilt while a stale handler is attached is a page that redraws twice.
+        if (Gate is not null)
+        {
+            Gate.PropertyChanged -= OnGateChanged;
+            Gate = null;
+        }
 
         _debouncer.Dispose();
         GC.SuppressFinalize(this);

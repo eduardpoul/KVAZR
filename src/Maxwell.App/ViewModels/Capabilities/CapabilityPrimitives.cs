@@ -172,7 +172,17 @@ public sealed partial class RangeCapabilityViewModel : CapabilityViewModel
     /// the scale itself rather than a list of capability ids, which would need extending
     /// for every device that ever ships a volume.
     /// </summary>
-    public bool CanMute => Domain is CapabilityDomain.Audio && Minimum <= 0 && Descriptor.IsWritable;
+    /// <summary>
+    /// Never where the device has a mute of its own. This icon writes the floor and
+    /// remembers the position, which is an imitation for protocols that offer nothing
+    /// better; beside a real switch it would be a second mute on one row, and the two
+    /// would disagree the moment either was used.
+    /// </summary>
+    public bool CanMute =>
+        Domain is CapabilityDomain.Audio
+        && Minimum <= 0
+        && Descriptor.IsWritable
+        && Descriptor.EnabledBy is null;
 
     /// <summary>
     /// Silenced by us: the floor is written and the previous position is remembered.

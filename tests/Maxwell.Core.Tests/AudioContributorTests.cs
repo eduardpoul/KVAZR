@@ -168,7 +168,11 @@ public sealed class AudioContributorTests
         IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
 
         Assert.Equal(CapabilityValue.Of(100), await connection.ReadAsync(CapabilityIds.MicSystemLevel, Ct));
-        Assert.Equal(CapabilityValue.Of(false), await connection.ReadAsync(CapabilityIds.MicSystemMute, Ct));
+
+        // True for a microphone that is working. The endpoint's own knob is a mute and
+        // reads false; the row is the other way up, and the driver is where that turns
+        // over.
+        Assert.Equal(CapabilityValue.Of(true), await connection.ReadAsync(CapabilityIds.MicSystemOn, Ct));
     }
 
     // ---------- the level, and what listening costs ----------

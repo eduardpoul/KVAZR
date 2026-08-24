@@ -11,7 +11,7 @@
    a command never confirmed on hardware and leaves for good after the first accepted
    write; the warning triangle appears only while a write is actually possible. *@
 
-<div class="cap-row @(Wide ? "wide" : "") @(Joined ? "joined" : "")">
+<div class="cap-row @(Wide ? "wide" : "") @(Joined ? "joined" : "") @(Vm.IsGated ? "gated" : "")">
   <div class="cap-text">
     <div class="cap-title-row">
       <span class="cap-title">@Vm.Title</span>

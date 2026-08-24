@@ -127,8 +127,12 @@ internal sealed class AudioConnection : IDeviceConnection
                 ? CapabilityValue.Of(percent)
                 : CapabilityValue.Absent,
 
-            AudioControl.Mute => binding.Channel.Mute is { } muted
-                ? CapabilityValue.Of(muted)
+            // Inverted here and nowhere else. Core Audio's knob is a mute; the row is a
+            // switch that says whether the thing is on, because that is what a person
+            // reading the page is asking. One negation, at the boundary, rather than a
+            // page full of double negatives.
+            AudioControl.OnOff => binding.Channel.Mute is { } muted
+                ? CapabilityValue.Of(!muted)
                 : CapabilityValue.Absent,
 
             AudioControl.Peak => Level(binding.EndpointId),
@@ -165,7 +169,7 @@ internal sealed class AudioConnection : IDeviceConnection
         bool accepted = (binding.Control, value) switch
         {
             (AudioControl.Volume, NumberValue number) => binding.Channel.SetVolume(number.Value),
-            (AudioControl.Mute, FlagValue flag) => binding.Channel.SetMute(flag.Value),
+            (AudioControl.OnOff, FlagValue flag) => binding.Channel.SetMute(!flag.Value),
             _ => false,
         };
 

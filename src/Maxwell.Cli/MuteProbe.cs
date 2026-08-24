@@ -17,7 +17,11 @@ namespace Maxwell.Cli;
 [SupportedOSPlatform("windows")]
 internal static class MuteProbe
 {
-    public static async Task<int> RunAsync()
+    /// <param name="leave">
+    /// Leave the switch where it was written instead of putting it back, so the
+    /// interface can be looked at against a microphone that really is off.
+    /// </param>
+    public static async Task<int> RunAsync(bool leave = false)
     {
         var endpoints = new WindowsAudioEndpoints();
 
@@ -54,8 +58,8 @@ internal static class MuteProbe
             Console.WriteLine($"  через 2 с      mute {Say(channel.Mute)}");
 
             // Put it back the way it was found. A probe that leaves somebody's microphone
-            // muted is worse than no probe.
-            if (before is { } original)
+            // muted is worse than no probe — unless it was asked to.
+            if (!leave && before is { } original)
             {
                 channel.SetMute(original);
                 Console.WriteLine($"  вернули        mute {Say(channel.Mute)}");

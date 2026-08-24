@@ -1,3 +1,4 @@
+using Maxwell.App.ViewModels.Capabilities;
 using Maxwell.App.ViewModels.Devices;
 using Maxwell.Core.Devices;
 using Xunit;
@@ -36,7 +37,11 @@ public sealed class MicrophonePageTests
             Task.FromResult(true);
     }
 
-    private static CapabilityState Row(string id, CapabilityDomain domain, string title) => new()
+    private static CapabilityState Row(
+        string id,
+        CapabilityDomain domain,
+        string title,
+        string? enabledBy = null) => new()
     {
         Descriptor = new Capability
         {
@@ -45,15 +50,29 @@ public sealed class MicrophonePageTests
             Primitive = CapabilityPrimitive.Range,
             Title = title,
             Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
+            EnabledBy = enabledBy,
         },
+        Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
         Value = CapabilityValue.Of(50),
+    };
+
+    private static CapabilityState Switch(string id, CapabilityDomain domain, string title, bool on) => new()
+    {
+        Descriptor = new Capability
+        {
+            Id = id,
+            Domain = domain,
+            Primitive = CapabilityPrimitive.Toggle,
+            Title = title,
+        },
+        Value = CapabilityValue.Of(on),
     };
 
     /// <summary>
     /// The QuadCast as this desk reports it: a capture endpoint and a render one, on a
     /// cable that carries sound and no settings at all.
     /// </summary>
-    private static DevicePageViewModel Microphone(TransportKind link = TransportKind.UsbCable)
+    private static DevicePageViewModel Microphone(TransportKind link = TransportKind.UsbCable, bool on = true)
     {
         var snapshot = new DeviceSnapshot
         {
@@ -72,10 +91,16 @@ public sealed class MicrophonePageTests
             Availability = DeviceAvailability.Active,
             Capabilities = new Dictionary<string, CapabilityState>(StringComparer.Ordinal)
             {
-                [CapabilityIds.AudioSystemVolume] =
-                    Row(CapabilityIds.AudioSystemVolume, CapabilityDomain.Audio, "Monitoring volume"),
-                [CapabilityIds.MicSystemLevel] =
-                    Row(CapabilityIds.MicSystemLevel, CapabilityDomain.Microphone, "Recording level"),
+                [CapabilityIds.AudioSystemOn] =
+                    Switch(CapabilityIds.AudioSystemOn, CapabilityDomain.Audio, "Monitoring", on),
+                [CapabilityIds.AudioSystemVolume] = Row(
+                    CapabilityIds.AudioSystemVolume, CapabilityDomain.Audio, "Monitoring volume",
+                    CapabilityIds.AudioSystemOn),
+                [CapabilityIds.MicSystemOn] =
+                    Switch(CapabilityIds.MicSystemOn, CapabilityDomain.Microphone, "Microphone", on),
+                [CapabilityIds.MicSystemLevel] = Row(
+                    CapabilityIds.MicSystemLevel, CapabilityDomain.Microphone, "Recording level",
+                    CapabilityIds.MicSystemOn),
             },
         };
 
@@ -120,6 +145,66 @@ public sealed class MicrophonePageTests
         // The case the sentence was written for, and it survives: the link carries sound
         // and no settings, and there is a cable that would carry both.
         Assert.NotNull(Microphone(TransportKind.Bluetooth).StateNotice);
+    }
+
+    // ---------- the switch and what it governs ----------
+
+    [Fact]
+    public void TheSwitchComesBeforeTheLevelItGoverns()
+    {
+        CapabilitySectionViewModel mic = Microphone().Sections
+            .Single(s => s.Domain == CapabilityDomain.Microphone);
+
+        // A condition read after the thing it governs is a slider people drag first and
+        // understand second.
+        Assert.Equal(
+            [CapabilityIds.MicSystemOn, CapabilityIds.MicSystemLevel],
+            mic.Items.Select(i => i.Descriptor.Id));
+    }
+
+    [Fact]
+    public void WithTheSwitchOff_TheLevelCannotBeDragged()
+    {
+        CapabilitySectionViewModel mic = Microphone(on: false).Sections
+            .Single(s => s.Domain == CapabilityDomain.Microphone);
+
+        CapabilityViewModel level = mic.Items.Single(i => i.Descriptor.Id == CapabilityIds.MicSystemLevel);
+
+        Assert.True(level.IsGated);
+        Assert.False(level.CanEdit);
+    }
+
+    [Fact]
+    public void PressingTheSwitch_FreesTheLevelAtOnce()
+    {
+        CapabilitySectionViewModel mic = Microphone(on: false).Sections
+            .Single(s => s.Domain == CapabilityDomain.Microphone);
+
+        var toggle = (ToggleCapabilityViewModel)mic.Items.Single(i => i.Descriptor.Id == CapabilityIds.MicSystemOn);
+        CapabilityViewModel level = mic.Items.Single(i => i.Descriptor.Id == CapabilityIds.MicSystemLevel);
+
+        // Not when the reading comes back a few hundred milliseconds later: for those
+        // milliseconds the slider would be live over a device that is not listening.
+        toggle.IsOn = true;
+
+        Assert.False(level.IsGated);
+    }
+
+    /// <summary>
+    /// The slider's own mute icon writes the floor and remembers the position, which is an
+    /// imitation for protocols that have no mute. Beside a real switch it would be a second
+    /// mute on the same row, and the two would disagree the moment either was used.
+    /// </summary>
+    [Fact]
+    public void ALevelWithARealSwitch_DoesNotAlsoCarryTheImitationOne()
+    {
+        CapabilitySectionViewModel sound = Microphone().Sections
+            .Single(s => s.Domain == CapabilityDomain.Audio);
+
+        var volume = (RangeCapabilityViewModel)sound.Items.Single(
+            i => i.Descriptor.Id == CapabilityIds.AudioSystemVolume);
+
+        Assert.False(volume.CanMute);
     }
 
     [Fact]
