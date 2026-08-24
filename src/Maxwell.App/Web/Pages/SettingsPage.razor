@@ -149,6 +149,49 @@
       }
     </div>
   </div>
+
+  @* Last on the page, and shut by default. What it opens is a way to switch off the
+     driver that understands your headset — the right tool for building the tier
+     underneath it, and a very effective way for anybody else to break their own
+     installation. *@
+  <div class="group">
+    <div class="group-heading">@T["settings.developer", "DEVELOPER"]</div>
+    <div class="card">
+      <div class="set-row">
+        <div class="cap-text">
+          <div class="cap-title">@T["settings.developer.mode", "Developer mode"]</div>
+          <div class="caption">@T.Say("Adds the device libraries below, so a page can be compared with the one underneath it")</div>
+        </div>
+        <button class="switch @(Vm.DeveloperMode ? "on" : "")"
+                @onclick="() => OnUi(() => Vm.DeveloperMode = !Vm.DeveloperMode)"><span class="knob"></span></button>
+      </div>
+    </div>
+  </div>
+
+  @if (Vm.DeveloperMode)
+  {
+    <div class="group">
+      <div class="group-heading">@T["settings.libraries", "DEVICE LIBRARIES"]</div>
+      <div class="card">
+        <div class="set-row">
+          <div class="caption wrap grow">
+            @T.Say("Switching one off hands its devices to the layer below it, at once and without a restart. Nothing is uninstalled and nothing is forgotten: turn it back on and the deeper page returns.")
+          </div>
+        </div>
+        @foreach (LibrarySwitchViewModel library in Vm.Libraries)
+        {
+          <div class="set-row">
+            <div class="cap-text">
+              <div class="cap-title">@library.Id</div>
+              <div class="caption">@library.Caption</div>
+            </div>
+            <button class="switch @(library.IsOn ? "on" : "")"
+                    @onclick="() => { var l = library; OnUi(() => l.ToggleCommand.Execute(null)); }"><span class="knob"></span></button>
+          </div>
+        }
+      </div>
+    </div>
+  }
 </div>
 
 @code {
@@ -158,6 +201,7 @@
   {
     Track(Vm);
     Track(Vm.Hidden);
+    Track(Vm.Libraries);
     Follow(Vm.Text);
   }
 }

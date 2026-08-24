@@ -78,6 +78,10 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<ICapabilityLedger, SettingsCapabilityLedger>();
 
+        // One per application, and registered before the modules so that anything wanting
+        // to read it during registration finds the same instance the registry will use.
+        services.TryAddSingleton<DriverSwitchboard>();
+
         // The device families come in as modules — one per class protocol or per deep
         // device — so the core never names a driver and adding a family is adding an
         // assembly folder and one argument here, nothing else. Order does not matter:

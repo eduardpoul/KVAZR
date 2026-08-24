@@ -150,6 +150,28 @@ public sealed class AppSettings
     /// </summary>
     public HashSet<string> MonitoringInTray { get; set; } = new(StringComparer.Ordinal);
 
+    /// <summary>
+    /// Show the developer section, and remember that it was asked for.
+    ///
+    /// Off, and not discoverable by accident: what it reveals is a way to switch off the
+    /// driver that understands your headset, which is the right tool for building the
+    /// tier underneath and a very effective way for anybody else to break their own
+    /// installation.
+    /// </summary>
+    public bool DeveloperMode { get; set; }
+
+    /// <summary>
+    /// Drivers and contributors the developer section has switched off, by the ids they
+    /// carry themselves.
+    ///
+    /// Persisted, because the comparison being made with them is not a five-minute one:
+    /// the point is to live with the baseline page for a while and find what it is
+    /// missing. Ids of things this build no longer contains are kept rather than pruned
+    /// — they cost nothing, and dropping them would silently re-enable a library on the
+    /// next launch after a version where it happened to be absent.
+    /// </summary>
+    public HashSet<string> DisabledLibraries { get; set; } = new(StringComparer.Ordinal);
+
     public AppSettings Clone() => new()
     {
         ConfirmedCapabilities = ConfirmedCapabilities.ToDictionary(
@@ -157,6 +179,8 @@ public sealed class AppSettings
         HiddenDevices = new Dictionary<string, DateTimeOffset>(HiddenDevices, StringComparer.Ordinal),
         HideSilentDevices = HideSilentDevices,
         MonitoringInTray = new HashSet<string>(MonitoringInTray, StringComparer.Ordinal),
+        DeveloperMode = DeveloperMode,
+        DisabledLibraries = new HashSet<string>(DisabledLibraries, StringComparer.Ordinal),
         PrimaryDeviceKey = PrimaryDeviceKey,
         Theme = Theme,
         RunAtLogin = RunAtLogin,

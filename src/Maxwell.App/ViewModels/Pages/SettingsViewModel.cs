@@ -28,6 +28,9 @@ public sealed partial class SettingsViewModel : ObservableObject, IDisposable
     private readonly IDeviceRegistry _registry;
     private readonly HiddenDevices _hidden;
     private readonly Localizer _text;
+    private readonly DriverSwitchboard _switches;
+    private readonly IReadOnlyList<IDeviceDriver> _drivers;
+    private readonly IReadOnlyList<ICapabilityContributor> _contributors;
 
     /// <summary>
     /// Set while a change is being written back, so the store's own change notification
@@ -43,23 +46,34 @@ public sealed partial class SettingsViewModel : ObservableObject, IDisposable
         IAutostart autostart,
         IDeviceRegistry registry,
         HiddenDevices hidden,
-        Localizer text)
+        Localizer text,
+        DriverSwitchboard switches,
+        IEnumerable<IDeviceDriver> drivers,
+        IEnumerable<ICapabilityContributor> contributors)
     {
         ArgumentNullException.ThrowIfNull(store);
         ArgumentNullException.ThrowIfNull(autostart);
         ArgumentNullException.ThrowIfNull(registry);
         ArgumentNullException.ThrowIfNull(hidden);
         ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(switches);
+        ArgumentNullException.ThrowIfNull(drivers);
+        ArgumentNullException.ThrowIfNull(contributors);
 
         _store = store;
         _autostart = autostart;
         _registry = registry;
         _hidden = hidden;
         _text = text;
+        _switches = switches;
+        _drivers = [.. drivers];
+        _contributors = [.. contributors];
 
         _hidden.Changed += OnHiddenChanged;
         _text.Changed += OnLanguageChanged;
+        _registry.DevicesChanged += OnDevicesChanged;
         RefreshHidden();
+        RefreshLibraries();
     }
 
     public string Title => _text["page.settings", Maxwell.App.Localization.Localizer.Current.Say("Settings")];
@@ -293,6 +307,133 @@ public sealed partial class SettingsViewModel : ObservableObject, IDisposable
     /// that awaited a file write would block the interface on a disk, and there is
     /// nothing useful to do about a failure that the next change will not also try.
     /// </summary>
+    // ---------- developer ----------
+
+    /// <summary>
+    /// Whether the developer section is shown at all.
+    ///
+    /// A switch rather than a build flag or an environment variable, because the people
+    /// it is for are the ones running an ordinary build on their own desk. Off by
+    /// default and remembered once turned on: what it reveals is a way to switch off the
+    /// driver that understands your headset, which is the right tool for building the
+    /// tier underneath and a very effective way for anybody else to break their own
+    /// installation.
+    /// </summary>
+    public bool DeveloperMode
+    {
+        get => _store.Current.DeveloperMode;
+        set
+        {
+            Write(s => s.DeveloperMode = value);
+            OnPropertyChanged(nameof(Libraries));
+        }
+    }
+
+    /// <summary>
+    /// Every driver and contributor in this build, with a switch each.
+    ///
+    /// The list is what the container holds rather than a written-down one, so a family
+    /// added under Drivers appears here with no second place to remember. Ordered deepest
+    /// first, because that is the order they shadow each other in: switching off the top
+    /// entry is what hands its devices to the one below.
+    /// </summary>
+    public ObservableCollection<LibrarySwitchViewModel> Libraries { get; } = [];
+
+    /// <summary>
+    /// Rebuilt rather than updated in place. The rows carry how many devices each library
+    /// currently owns, which is the number that answers "did that do anything", and it
+    /// changes underneath on every sweep.
+    /// </summary>
+    private void RefreshLibraries()
+    {
+        Dictionary<string, int> owned = _registry.Devices
+            .GroupBy(d => d.Info.DriverId, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.Count(), StringComparer.Ordinal);
+
+        // Only when something it shows has actually moved.
+        //
+        // DevicesChanged fires on every reading that differs, which is most sweeps of
+        // every device, and rebuilding the list each time replaced every row in a
+        // collection the screen is bound to. What that looks like is a settings page
+        // that will not hold its scroll position while a battery percentage ticks.
+        if (!Moved(owned)) return;
+
+        _owned = owned;
+        Libraries.Clear();
+
+        foreach (IDeviceDriver driver in _drivers.OrderByDescending(d => d.Tier).ThenBy(d => d.DriverId, StringComparer.Ordinal))
+        {
+            Libraries.Add(new LibrarySwitchViewModel(
+                driver.DriverId, driver.Tier, _switches.IsOn(driver.DriverId),
+                owned.GetValueOrDefault(driver.DriverId), SetLibrary));
+        }
+
+        foreach (ICapabilityContributor contributor in _contributors.OrderBy(c => c.ContributorId, StringComparer.Ordinal))
+        {
+            Libraries.Add(new LibrarySwitchViewModel(
+                contributor.ContributorId, null, _switches.IsOn(contributor.ContributorId), 0, SetLibrary));
+        }
+
+        OnPropertyChanged(nameof(Libraries));
+    }
+
+    /// <summary>
+    /// Switches one library and makes the change real at once.
+    ///
+    /// Three things, in this order, and the order is the point: the switchboard is what
+    /// the registry reads, the file is what the next launch reads, and the sweep is what
+    /// turns both into devices on the screen. Without the sweep the switch would be
+    /// honest and the list would go on showing the arrangement it replaced until
+    /// something else happened to trigger discovery.
+    /// </summary>
+    private void SetLibrary(string id, bool on)
+    {
+        _switches.Set(id, on);
+
+        Write(s =>
+        {
+            if (on) s.DisabledLibraries.Remove(id);
+            else s.DisabledLibraries.Add(id);
+        });
+
+        // Fire and forget, but not silently: an unobserved failure in here is a switch
+        // that moved on screen and changed nothing on the machine, and the screen would
+        // go on claiming otherwise until something else swept.
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _registry.DiscoverAsync().ConfigureAwait(false);
+            }
+            catch (IOException)
+            {
+                // A device that would not open on the way past. The next sweep tries
+                // again from scratch, which is what every other discovery failure does.
+            }
+        });
+    }
+
+    /// <summary>What each library owned when the list was last built.</summary>
+    private Dictionary<string, int> _owned = new(StringComparer.Ordinal);
+
+    private bool Moved(Dictionary<string, int> owned) =>
+        Libraries.Count == 0
+        || owned.Count != _owned.Count
+        || owned.Any(pair => _owned.GetValueOrDefault(pair.Key) != pair.Value)
+        || Libraries.Any(l => l.IsOn != _switches.IsOn(l.Id));
+
+    private void OnDevicesChanged(object? sender, EventArgs e) => OnUi(RefreshLibraries);
+
+    /// <summary>
+    /// Device events arrive on whatever thread the sweep ran on, and this touches a
+    /// collection the screen is bound to.
+    /// </summary>
+    private static void OnUi(Action work)
+    {
+        if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess()) work();
+        else Avalonia.Threading.Dispatcher.UIThread.Post(work);
+    }
+
     private void Write(Action<AppSettings> change)
     {
         if (_applying) return;
@@ -319,6 +460,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IDisposable
 
         _hidden.Changed -= OnHiddenChanged;
         _text.Changed -= OnLanguageChanged;
+        _registry.DevicesChanged -= OnDevicesChanged;
     }
 }
 

@@ -11,6 +11,7 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
 {
     private readonly IReadOnlyList<IDeviceDriver> _drivers;
     private readonly IReadOnlyList<ICapabilityContributor> _contributors;
+    private readonly DriverSwitchboard _switches;
     private readonly ICapabilityLedger _ledger;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<DeviceRegistry> _logger;
@@ -20,11 +21,18 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
 
     private bool _disposed;
 
+    /// <summary>The switchboard version this last swept with. See DriverSwitchboard.Version.</summary>
+    private int _swept;
+
+    /// <summary>What was switched off at that point, so a change can be told apart from the rest.</summary>
+    private HashSet<string> _lastOff = new(StringComparer.Ordinal);
+
     public DeviceRegistry(
         IEnumerable<IDeviceDriver> drivers,
         ICapabilityLedger ledger,
         ILoggerFactory loggerFactory,
-        IEnumerable<ICapabilityContributor>? contributors = null)
+        IEnumerable<ICapabilityContributor>? contributors = null,
+        DriverSwitchboard? switches = null)
     {
         ArgumentNullException.ThrowIfNull(drivers);
         ArgumentNullException.ThrowIfNull(ledger);
@@ -35,6 +43,12 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
         // Optional, and empty is a working configuration: contributors only ever add to
         // what a driver already found, so a build without any behaves exactly as before.
         _contributors = [.. contributors ?? []];
+
+        // Optional, and an empty one is the shipping configuration: with nothing switched
+        // off this behaves exactly as it did before there was a switchboard.
+        _switches = switches ?? new DriverSwitchboard();
+        _swept = _switches.Version;
+        _lastOff = [.. _switches.SwitchedOff];
         _ledger = ledger;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger<DeviceRegistry>();
@@ -74,10 +88,14 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            Resettle();
+
             var found = new Dictionary<string, (DeviceInfo Info, IDeviceDriver Driver)>(StringComparer.Ordinal);
 
             foreach (IDeviceDriver driver in _drivers)
             {
+                if (!_switches.IsOn(driver.DriverId)) continue;
+
                 try
                 {
                     IReadOnlyList<DeviceInfo> devices =
@@ -93,9 +111,12 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
                 }
             }
 
+            var shadowedKeys = new HashSet<string>(StringComparer.Ordinal);
+
             foreach (string shadowed in Shadowed(found))
             {
                 _logger.DeviceShadowed(shadowed, found[shadowed].Driver.DriverId);
+                shadowedKeys.Add(shadowed);
                 found.Remove(shadowed);
             }
 
@@ -107,6 +128,18 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
 
             foreach (DeviceSession session in Missing(found.Keys))
             {
+                // Superseded rather than gone. A device a deeper driver has just claimed
+                // is still on the desk, and marking it absent would leave its row in the
+                // list for ever beside the deeper one's — two rows for one headset, one
+                // of them permanently offline. That is what happened the moment a vendor
+                // driver was switched back on: the session the system driver had been
+                // keeping meanwhile had nothing to remove it.
+                if (shadowedKeys.Contains(session.DeviceKey))
+                {
+                    Retire(session);
+                    continue;
+                }
+
                 if (!session.Snapshot.IsPresent) continue;
 
                 _logger.DeviceDisappeared(session.DeviceKey);
@@ -120,6 +153,59 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
         {
             _gate.Release();
         }
+    }
+
+    /// <summary>
+    /// Drops the sessions the switchboard has just invalidated, and only those.
+    ///
+    /// Everything about a session was decided by who owned the device: which driver
+    /// opened it, and which contributors added rows to it. Neither can be revised in
+    /// place, so the session has to go and be built again.
+    ///
+    /// Which sessions, though, is the part that matters. The first version of this
+    /// dropped all of them on any change, and that is not merely wasteful: every open
+    /// device was closed and reopened within the same sweep, including the ones nothing
+    /// had happened to, and a handle that Windows has not finished releasing answers the
+    /// next open with "the requested resource is in use". So a driver being switched
+    /// takes only its own devices with it. A contributor is the one case that still
+    /// costs everything, because a contributor attaches to whatever any driver found and
+    /// there is no cheaper way to know where it landed.
+    ///
+    /// Dropped rather than marked absent, which is what happens to a device that is
+    /// merely unplugged. The hardware has not gone anywhere: it is about to be found
+    /// again by a different driver, under that driver's own key, and leaving the old
+    /// session behind would put two rows in the list for one headset — one of them
+    /// permanently offline, with no way to tell which was real.
+    /// </summary>
+    private void Resettle()
+    {
+        int version = _switches.Version;
+        if (version == _swept) return;
+
+        _swept = version;
+
+        var off = new HashSet<string>(_switches.SwitchedOff, StringComparer.Ordinal);
+        var moved = new HashSet<string>(off, StringComparer.Ordinal);
+        moved.SymmetricExceptWith(_lastOff);
+        _lastOff = off;
+
+        if (moved.Count == 0) return;
+
+        var driverIds = new HashSet<string>(_drivers.Select(d => d.DriverId), StringComparer.Ordinal);
+        bool everything = moved.Any(id => !driverIds.Contains(id));
+
+        List<DeviceSession> doomed;
+
+        lock (_sessions)
+        {
+            doomed =
+            [
+                .. _sessions.Values.Where(s => everything || moved.Contains(s.Snapshot.Info.DriverId)),
+            ];
+
+        }
+
+        foreach (DeviceSession session in doomed) Retire(session);
     }
 
     /// <summary>
@@ -164,7 +250,8 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
             if (_sessions.TryGetValue(key, out DeviceSession? existing)) return existing;
 
             var session = new DeviceSession(
-                info, driver, _ledger, _loggerFactory.CreateLogger<DeviceSession>(), _contributors);
+                info, driver, _ledger, _loggerFactory.CreateLogger<DeviceSession>(),
+                [.. _contributors.Where(c => _switches.IsOn(c.ContributorId))]);
             session.SnapshotChanged += OnSnapshotChanged;
             _sessions[key] = session;
 
@@ -181,6 +268,19 @@ public sealed class DeviceRegistry : IDeviceRegistry, IDisposable
         {
             return [.. _sessions.Values.Where(s => !present.Contains(s.DeviceKey))];
         }
+    }
+
+    /// <summary>Closes one session and forgets it. The caller decides whether to announce.</summary>
+    private void Retire(DeviceSession session)
+    {
+        lock (_sessions)
+        {
+            session.SnapshotChanged -= OnSnapshotChanged;
+            session.Dispose();
+            _sessions.Remove(session.DeviceKey);
+        }
+
+        Raise();
     }
 
     private void OnSnapshotChanged(object? sender, DeviceSnapshot snapshot) => Raise();

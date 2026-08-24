@@ -84,7 +84,8 @@ internal static class PagePreview
         {
             DataContext = new SettingsViewModel(
                 store, new PreviewAutostart(), registry, new HiddenDevices(store),
-                new Maxwell.App.Localization.Localizer(store)),
+                new Maxwell.App.Localization.Localizer(store),
+                new DriverSwitchboard(), [], []),
         };
     }
 

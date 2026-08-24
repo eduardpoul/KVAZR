@@ -104,6 +104,7 @@ public partial class App : Application, IDisposable
             _settings.LoadAsync().GetAwaiter().GetResult();
             _settings.Changed += OnSettingsChanged;
 
+
             // The development flag wins the first paint so captures are deterministic,
             // and then expires: left standing it outranked the settings toggle for the
             // whole session, which read as "the dark theme does not work".
