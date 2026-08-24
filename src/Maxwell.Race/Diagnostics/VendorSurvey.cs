@@ -181,63 +181,52 @@ public static class VendorSurvey
     }
 
     /// <summary>
-    /// Polls every feature report on one collection and prints only what changes.
+    /// Polls every readable report on every collection of one vendor and prints what
+    /// changes.
     ///
-    /// The question this answers is worth more than its size: a vendor pipe that answers a
-    /// read at all might be answering with a constant, or it might be handing back the
-    /// state of the device. If turning a knob moves a byte here, the whole page can be
-    /// read from this pipe and nothing has to be guessed. If nothing moves while the
-    /// hardware plainly does, then this pipe only takes orders, and the state has to come
-    /// from somewhere else.
+    /// The question it exists for: can the current state be asked for, or only waited
+    /// for? A device that answers a read can have its page filled in the moment it is
+    /// opened. One that does not leaves every row blank until somebody touches the
+    /// hardware, which is a page that looks broken to the person who has just opened it.
     ///
-    /// Read-only, at four times a second, which is slow enough to be polite to firmware
-    /// and fast enough that a hand on a dial shows up on the same line it happened.
+    /// Both kinds of report, because the two answer differently on the same device. The
+    /// QuadCast refuses to hand back its status report — measured, with the right report
+    /// id — while the sixteen-byte channel on its audio function answers every time. What
+    /// is in that answer is the whole question, and nothing but a dial in somebody's hand
+    /// will settle it.
+    ///
+    /// Read-only, four times a second. Nothing is written at any point.
     /// </summary>
-    public static int Watch(TextWriter writer, ushort vendorId, ushort usagePage, int seconds)
+    public static int Watch(TextWriter writer, ushort vendorId, int seconds)
     {
         ArgumentNullException.ThrowIfNull(writer);
 
-        HidInterface? found = new WindowsHidEnumerator().EnumerateAll()
-            .FirstOrDefault(i => i.VendorId == vendorId && i.UsagePage == usagePage && i.FeatureReportLength > 0);
+        List<Ear> ears = [.. Open(vendorId)];
 
-        if (found is not { } collection)
+        if (ears.Count == 0)
         {
-            writer.WriteLine($"No collection with feature reports on 0x{vendorId:X4} page 0x{usagePage:X4}.");
+            writer.WriteLine($"Nothing readable on 0x{vendorId:X4}.");
             return 1;
         }
 
-        IntPtr handle = HidNative.CreateFile(
-            collection.Path, Read, HidNative.FileShareReadWrite,
-            IntPtr.Zero, HidNative.OpenExisting, 0, IntPtr.Zero);
-
-        if (handle == HidNative.InvalidHandle)
-        {
-            writer.WriteLine("Will not open for reading.");
-            return 1;
-        }
-
-        writer.WriteLine($"Polling feature 0x00 on page 0x{usagePage:X4} for {seconds}s. Nothing is written.");
-        writer.WriteLine("Turn every dial on the device and press every button; only changes are printed.");
+        writer.WriteLine($"Polling {ears.Count} report(s) for {seconds}s. Nothing is written.");
+        writer.WriteLine("Turn the selector on the back, slowly, through every position.");
         writer.WriteLine();
 
         try
         {
-            string last = string.Empty;
+            var last = new Dictionary<string, string>(StringComparer.Ordinal);
             var clock = System.Diagnostics.Stopwatch.StartNew();
 
             while (clock.Elapsed < TimeSpan.FromSeconds(seconds))
             {
-                byte[] buffer = new byte[collection.FeatureReportLength];
-
-                if (HidNative.HidD_GetFeature(handle, buffer, buffer.Length))
+                foreach (Ear ear in ears)
                 {
-                    string now = Hex(buffer);
+                    if (ear.Read() is not { } now) continue;
+                    if (last.TryGetValue(ear.Tag, out string? before) && before == now) continue;
 
-                    if (now != last)
-                    {
-                        writer.WriteLine($"  {clock.Elapsed.TotalSeconds,5:0.0}s   {now}");
-                        last = now;
-                    }
+                    last[ear.Tag] = now;
+                    writer.WriteLine($"  {clock.Elapsed.TotalSeconds,5:0.0}s  {ear.Tag}  {now}");
                 }
 
                 Thread.Sleep(250);
@@ -249,8 +238,135 @@ public static class VendorSurvey
         }
         finally
         {
-            HidNative.CloseHandle(handle);
+            foreach (Ear ear in ears) ear.Dispose();
         }
+    }
+
+    /// <summary>Every report of every collection that will answer a read, opened once.</summary>
+    private static IEnumerable<Ear> Open(ushort vendorId)
+    {
+        foreach (HidInterface collection in new WindowsHidEnumerator().EnumerateAll()
+                     .Where(i => i.VendorId == vendorId)
+                     .OrderBy(i => i.ProductId)
+                     .ThenBy(i => i.UsagePage))
+        {
+            IntPtr handle = HidNative.CreateFile(
+                collection.Path, Read, HidNative.FileShareReadWrite,
+                IntPtr.Zero, HidNative.OpenExisting, 0, IntPtr.Zero);
+
+            if (handle == HidNative.InvalidHandle) continue;
+
+            if (!HidNative.HidD_GetPreparsedData(handle, out IntPtr preparsed))
+            {
+                HidNative.CloseHandle(handle);
+                continue;
+            }
+
+            var shared = new Handle(handle, preparsed);
+            bool used = false;
+
+            foreach (byte id in Ids(preparsed, HidNative.HidpFeature))
+            {
+                used = true;
+                yield return new Ear(shared, collection, id, feature: true);
+            }
+
+            foreach (byte id in Ids(preparsed, HidNative.HidpInput))
+            {
+                used = true;
+                yield return new Ear(shared, collection, id, feature: false);
+            }
+
+            if (!used) shared.Dispose();
+        }
+    }
+
+    /// <summary>The report ids of one kind, without printing them.</summary>
+    private static byte[] Ids(IntPtr preparsed, int reportType)
+    {
+        var caps = new HidNative.HidpCaps();
+        if (HidNative.HidP_GetCaps(preparsed, ref caps) != HidNative.HidpStatusSuccess) return [];
+
+        ushort count = reportType == HidNative.HidpFeature
+            ? caps.NumberFeatureValueCaps
+            : caps.NumberInputValueCaps;
+
+        if (count == 0) return [];
+
+        var values = new HidNative.HidpValueCaps[count];
+        if (HidNative.HidP_GetValueCaps(reportType, values, ref count, preparsed) != HidNative.HidpStatusSuccess)
+        {
+            return [];
+        }
+
+        return [.. values.Take(count).Select(v => v.ReportID).Distinct()];
+    }
+
+    /// <summary>One open handle, shared by every report of its collection.</summary>
+    private sealed class Handle(IntPtr raw, IntPtr preparsed) : IDisposable
+    {
+        public IntPtr Raw { get; private set; } = raw;
+
+        private int _users;
+
+        public Handle Claim()
+        {
+            _users++;
+            return this;
+        }
+
+        public void Release()
+        {
+            if (--_users > 0) return;
+
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            if (Raw == IntPtr.Zero) return;
+
+            HidNative.HidD_FreePreparsedData(preparsed);
+            HidNative.CloseHandle(Raw);
+            Raw = IntPtr.Zero;
+        }
+    }
+
+    private sealed class Ear : IDisposable
+    {
+        private readonly Handle _handle;
+        private readonly int _length;
+        private readonly byte _id;
+        private readonly bool _feature;
+
+        public Ear(Handle handle, HidInterface collection, byte id, bool feature)
+        {
+            _handle = handle.Claim();
+            _id = id;
+            _feature = feature;
+            _length = feature ? collection.FeatureReportLength : collection.InputReportLength;
+
+            Tag = $"{collection.ProductId:X4} 0x{collection.UsagePage:X4} " +
+                  $"{(feature ? "feat" : "in  ")} 0x{id:X2}";
+        }
+
+        public string Tag { get; }
+
+        public string? Read()
+        {
+            if (_length == 0) return null;
+
+            byte[] buffer = new byte[_length];
+            buffer[0] = _id;
+
+            bool ok = _feature
+                ? HidNative.HidD_GetFeature(_handle.Raw, buffer, buffer.Length)
+                : HidNative.HidD_GetInputReport(_handle.Raw, buffer, buffer.Length);
+
+            return ok ? Hex(buffer) : null;
+        }
+
+        public void Dispose() => _handle.Release();
     }
 
     /// <summary>

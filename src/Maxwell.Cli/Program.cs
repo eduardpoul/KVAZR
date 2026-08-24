@@ -42,10 +42,8 @@ if (args.Contains("--vendor"))
     if (args.Contains("--watch"))
     {
         int seconds = int.TryParse(ValueAfter(args, "--watch"), out int held) ? held : 60;
-        ushort page = ushort.TryParse(ValueAfter(args, "--page"), NumberStyles.HexNumber,
-            CultureInfo.InvariantCulture, out ushort onPage) ? onPage : (ushort)0xFF90;
 
-        return VendorSurvey.Watch(Console.Out, vid, page, seconds);
+        return VendorSurvey.Watch(Console.Out, vid, seconds);
     }
 
     return VendorSurvey.Dump(Console.Out, vid);
