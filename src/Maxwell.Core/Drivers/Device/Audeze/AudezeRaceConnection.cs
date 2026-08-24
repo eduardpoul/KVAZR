@@ -18,7 +18,14 @@ namespace Maxwell.Core.Drivers.Audeze;
 /// a second real driver will almost certainly show up something it got wrong.
 /// </summary>
 [SupportedOSPlatform("windows")]
-internal sealed class AudezeRaceConnection : IDeviceConnection, IDeviceNotifier
+/// <remarks>
+/// Not an <c>IDeviceNotifier</c>, and that was measured rather than assumed. The wheel
+/// under the wearer's finger does report itself, but it drives the host's volume and not
+/// anything we read; the mute was the one thing worth subscribing for, and the boom
+/// announces nothing on any of the three HID interfaces. A connection that raises no
+/// event is better named than one that raises none while claiming it might.
+/// </remarks>
+internal sealed class AudezeRaceConnection : IDeviceConnection
 {
     private readonly RaceSession _session;
     private readonly IReadOnlyList<TransportInfo> _transports;
@@ -50,52 +57,16 @@ internal sealed class AudezeRaceConnection : IDeviceConnection, IDeviceNotifier
 
     private bool _disposed;
 
-    private readonly MaxwellControlWatcher? _controls;
 
-    /// <summary>
-    /// Readings a touch of the headset's own controls can have moved.
-    ///
-    /// Deliberately short. The event says a wheel turned, not what the volume now is, so
-    /// this is the list worth asking about — not an excuse to re-read everything, which
-    /// would cost five seconds and undo the point of hearing about it early.
-    /// </summary>
-    private static readonly string[] MuteReadings = [CapabilityIds.MicMute];
-
-    public event EventHandler<IReadOnlyList<string>>? Activity;
-
-    public AudezeRaceConnection(
-        RaceSession session,
-        IReadOnlyList<TransportInfo> transports,
-        MaxwellControlWatcher? controls = null)
+    public AudezeRaceConnection(RaceSession session, IReadOnlyList<TransportInfo> transports)
     {
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(transports);
 
         _session = session;
         _transports = transports;
-        _controls = controls;
-
-        if (_controls is not null) _controls.Activity += OnControlTouched;
     }
 
-    /// <summary>
-    /// The wheel and the mute button are ordinary HID and report themselves at once; the
-    /// settings behind them are not and have to be asked for. So the touch is the trigger
-    /// and the read is the answer — which is still immediate, rather than up to a polling
-    /// interval later.
-    /// </summary>
-    private void OnControlTouched(object? sender, MaxwellControlEvent touched)
-    {
-        // The volume wheel is deliberately ignored.
-        //
-        // It reports itself the instant it turns, which looked like exactly the signal
-        // this was built for — but it drives the host's volume, not the amplifier gain
-        // inside the headset. Nothing we read has changed, so acting on it spent a round
-        // trip to re-read a number that had not moved.
-        if (!touched.IsMute) return;
-
-        Activity?.Invoke(this, MuteReadings);
-    }
 
 
 
@@ -127,8 +98,6 @@ internal sealed class AudezeRaceConnection : IDeviceConnection, IDeviceNotifier
             CapabilityIds.AudioEqPreset => await ChoiceAsync(MaxwellFeatures.PeqIndex, cancellationToken).ConfigureAwait(false),
             CapabilityIds.AudioEqGraphic => await ReadEqCurveAsync(cancellationToken).ConfigureAwait(false),
 
-            CapabilityIds.MicMute => await ReadMicMuteAsync(cancellationToken).ConfigureAwait(false),
-            CapabilityIds.MicLevel => await ScalarAsync(MaxwellFeatures.MicLevel, cancellationToken).ConfigureAwait(false),
             CapabilityIds.MicNoiseReduction => await ChoiceAsync(MaxwellFeatures.NoiseReduction, cancellationToken).ConfigureAwait(false),
             CapabilityIds.MicSidetoneLevel => await ScalarAsync(MaxwellFeatures.SidetoneLevel, cancellationToken).ConfigureAwait(false),
             CapabilityIds.MicSidetoneMax => await ReadSidetoneMaxAsync(cancellationToken).ConfigureAwait(false),
@@ -530,12 +499,6 @@ internal sealed class AudezeRaceConnection : IDeviceConnection, IDeviceNotifier
     {
         if (_disposed) return;
         _disposed = true;
-
-        if (_controls is not null)
-        {
-            _controls.Activity -= OnControlTouched;
-            _controls.Dispose();
-        }
 
         _session.Dispose();
     }

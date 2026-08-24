@@ -110,12 +110,13 @@ public sealed class AudezeRaceDriver : IDeviceDriver
 
         var session = new RaceSession(_factory.Open(target));
 
-        // The controls under the wearer's fingers speak for themselves; the settings behind
-        // them do not. Watching the first is what stops the panel trailing the second by a
-        // polling interval. Optional: if the interfaces cannot be opened the device still
-        // works exactly as before, only slower to notice a wheel.
-        var controls = new MaxwellControlWatcher(mine);
-        IDeviceConnection connection = new AudezeRaceConnection(session, TransportsOf(mine), controls);
+        // No control watcher. It was here to hear the boom being raised, and the boom
+        // says nothing: ninety seconds of listening on all three interfaces caught
+        // fourteen reports from the volume wheel and none from the boom. The wheel itself
+        // was never worth acting on — it moves the host's volume, not the gain inside the
+        // headset — so there is nothing left for it to do. MaxwellControlWatcher stays in
+        // the library, unused, for whoever tries again.
+        IDeviceConnection connection = new AudezeRaceConnection(session, TransportsOf(mine));
 
         return Task.FromResult(connection);
     }

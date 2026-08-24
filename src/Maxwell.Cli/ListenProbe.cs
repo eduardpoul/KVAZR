@@ -47,7 +47,8 @@ internal static class ListenProbe
         Console.WriteLine($"listening on {found.Count} interfaces for {seconds}s — nothing is being sent.");
         foreach (MaxwellInterface each in found)
         {
-            Console.WriteLine($"   usage {each.UsagePage:X4}:{each.Usage:02X}  in {each.InputReportLength,3}  {Name(each)}");
+            Console.WriteLine($"   PID 0x{each.ProductId:X4}  usage {each.UsagePage:X4}:{each.Usage:X2}"
+                              + $"  in {each.InputReportLength,3}  {Name(each)}");
         }
 
         Console.WriteLine();
@@ -77,10 +78,11 @@ internal static class ListenProbe
                 byte[]? report = pair.Channel.Listen(TimeSpan.FromMilliseconds(400));
                 if (report is null) continue;
 
-                string key = $"{pair.Face.UsagePage:X4}:{pair.Face.Usage:02X}";
+                string key = $"{pair.Face.ProductId:X4} {pair.Face.UsagePage:X4}:{pair.Face.Usage:X2}";
                 lock (seen) seen[key] = seen.GetValueOrDefault(key) + 1;
 
-                Console.WriteLine($"  {key}  {Convert.ToHexString(report.AsSpan(0, Math.Min(16, report.Length)))}");
+                    Console.WriteLine($"  +{Environment.TickCount64 % 100000,6} ms  {key}  "
+                                  + Convert.ToHexString(report.AsSpan(0, Math.Min(16, report.Length))));
             }
         }, cancellationToken)).ToArray();
 

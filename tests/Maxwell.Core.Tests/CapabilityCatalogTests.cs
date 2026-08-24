@@ -269,15 +269,66 @@ public sealed class CapabilityCatalogTests
     public void MaxwellDoesNotOfferRePairing() =>
         Assert.DoesNotContain(MaxwellCapabilities.All, c => c.Id == CapabilityIds.LinkPair);
 
+    /// <summary>
+    /// The microphone mute and level are not offered at all, and this is here so nobody
+    /// puts them back from the protocol notes without repeating the measurement.
+    ///
+    /// The headset does not report either one. Sub-command 0x22 answers 0xFF on both
+    /// leads, boom in or out, USB audio dead or live; 0x35 never answers; a sweep of
+    /// 0x00..0xFF in both read namespaces finds nothing that moves with the microphone;
+    /// and ninety seconds of listening on all three HID interfaces caught fourteen
+    /// reports from the volume wheel and none from the boom. Audeze HQ shows nothing
+    /// either, checked against the same movement by the owner of the headset.
+    /// </summary>
+    /// <summary>
+    /// Everything the headset can change without us is marked volatile, because an open
+    /// page reads the battery and the volatile set and nothing else. Noise reduction was
+    /// not marked, and the owner changed it on the headset and watched the page go on
+    /// claiming the old setting for a minute.
+    /// </summary>
     [Fact]
-    public void MaxwellMicrophoneMuteIsAnIndicatorNotASwitch()
+    public void WhatTheHeadsetChangesOnItsOwnIsPolledWhileThePageIsOpen()
     {
-        Capability mute = MaxwellCapabilities.All.Single(c => c.Id == CapabilityIds.MicMute);
+        foreach (string id in new[] { CapabilityIds.MixChat, CapabilityIds.MicNoiseReduction })
+        {
+            Assert.True(
+                MaxwellCapabilities.All.Single(c => c.Id == id).IsVolatile,
+                $"{id} can move on the headset, so it has to be polled");
+        }
+    }
 
-        // Audeze HQ has readMicMute and no writer at all; mute moves only when the boom
-        // arm is raised. Drawing a switch would promise control that does not exist.
-        Assert.Equal(CapabilityAccess.Read, mute.Access);
-        Assert.Equal(CapabilityPrimitive.Readout, mute.Primitive);
+    /// <summary>
+    /// The sidetone ceiling is read to bound the level slider and is not a setting. It
+    /// printed "31" under a slider already reading "9 / 31" — the same number twice, the
+    /// second one looking like something to set.
+    /// </summary>
+    [Fact]
+    public void TheSidetoneCeilingIsReadButNotShown()
+    {
+        Assert.True(MaxwellCapabilities.All.Single(c => c.Id == CapabilityIds.MicSidetoneMax).IsSupporting);
+
+        // And the level still takes its maximum from it, which is the only reason it is
+        // read at all.
+        Capability level = MaxwellCapabilities.All.Single(c => c.Id == CapabilityIds.MicSidetoneLevel);
+        Assert.Equal(CapabilityIds.MicSidetoneMax, level.Range!.MaxFromCapability);
+    }
+
+    [Fact]
+    public void MaxwellOffersNoMicrophoneMuteOrLevel()
+    {
+        Assert.DoesNotContain(MaxwellCapabilities.All, c => c.Id == CapabilityIds.MicMute);
+        Assert.DoesNotContain(MaxwellCapabilities.All, c => c.Id == CapabilityIds.MicLevel);
+
+        // The rest of the microphone section stays: these were measured working, there
+        // and back, on hardware.
+        foreach (string id in new[]
+                 {
+                     CapabilityIds.MicNoiseReduction, CapabilityIds.MicSidetone,
+                     CapabilityIds.MicSidetoneLevel,
+                 })
+        {
+            Assert.Contains(MaxwellCapabilities.All, c => c.Id == id);
+        }
     }
 
     [Fact]

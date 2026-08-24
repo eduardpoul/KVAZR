@@ -15,8 +15,18 @@ namespace Maxwell.Core.Drivers.Audeze;
 /// </summary>
 public static class MaxwellCapabilities
 {
-    private const string BoomHint = "Работают настройки бума. Подключите бум-микрофон";
-    private const string CableHint = "Настройка доступна по кабелю";
+    /// <summary>
+    /// Why a control is out of reach, and it is not the lead.
+    ///
+    /// This said "Настройка доступна по кабелю" for a long time and it was simply untrue:
+    /// the requirement these rows carry is <see cref="RequirementKind.ControlChannel"/>,
+    /// which asks that the headset be answering — and it answers over the dongle exactly
+    /// as it does over USB-C. Measured on both: the same twenty-five sub-commands reply,
+    /// and the only difference between the two sweeps is the byte that says which lead is
+    /// carrying the sound. The equaliser, the gains and the balance were all driven over
+    /// the dongle for a day while this sentence claimed they could not be.
+    /// </summary>
+    private const string SilentHint = "Гарнитура не отвечает — включите её";
 
     public static IReadOnlyList<Capability> All { get; } = Build();
 
@@ -71,7 +81,7 @@ public static class MaxwellCapabilities
                 new(8, "60 минут"),
             ],
             Requirement = RequirementKind.ControlChannel,
-            RequirementHint = CableHint,
+            RequirementHint = SilentHint,
         },
 
         new()
@@ -92,7 +102,7 @@ public static class MaxwellCapabilities
             Title = "Прошивка",
             Access = CapabilityAccess.Read,
             Requirement = RequirementKind.ControlChannel,
-            RequirementHint = CableHint,
+            RequirementHint = SilentHint,
         },
 
         // ---------- Audio ----------
@@ -115,7 +125,7 @@ public static class MaxwellCapabilities
             IsReversible = false,
             Range = new CapabilityRange { Min = 0, Max = RaceCommands.MaxGain },
             Requirement = RequirementKind.ControlChannel,
-            RequirementHint = CableHint,
+            RequirementHint = SilentHint,
         },
 
         new()
@@ -127,7 +137,7 @@ public static class MaxwellCapabilities
             IsReversible = false,
             Range = new CapabilityRange { Min = 0, Max = RaceCommands.MaxGain },
             Requirement = RequirementKind.ControlChannel,
-            RequirementHint = CableHint,
+            RequirementHint = SilentHint,
         },
 
         new()
@@ -139,7 +149,7 @@ public static class MaxwellCapabilities
             IsReversible = false,
             Range = new CapabilityRange { Min = 0, Max = RaceCommands.MaxGain },
             Requirement = RequirementKind.ControlChannel,
-            RequirementHint = CableHint,
+            RequirementHint = SilentHint,
         },
 
         new()
@@ -151,7 +161,7 @@ public static class MaxwellCapabilities
             Subtitle = "128 — ровно центр, ход около ±6",
             Range = new CapabilityRange { Min = 122, Max = 134, Detents = [128] },
             Requirement = RequirementKind.ControlChannel,
-            RequirementHint = CableHint,
+            RequirementHint = SilentHint,
         },
 
         // Back, and reading real bands off the headset. Three things had to be right at
@@ -191,7 +201,7 @@ public static class MaxwellCapabilities
                 new(9, "16 к"),
             ],
             Requirement = RequirementKind.ControlChannel,
-            RequirementHint = CableHint,
+            RequirementHint = SilentHint,
         },
 
         // Last in the audio group on purpose: the sliders above it are one shape read
@@ -215,39 +225,31 @@ public static class MaxwellCapabilities
             Choices = [.. EqPresets.All.Where(p => !p.IsUserSlot)
                 .Select(p => new CapabilityChoice(p.Index, p.Name))],
             Requirement = RequirementKind.ControlChannel,
-            RequirementHint = CableHint,
+            RequirementHint = SilentHint,
         },
 
         // ---------- Microphone ----------
 
-        new()
-        {
-            Id = CapabilityIds.MicMute,
-            Domain = CapabilityDomain.Microphone,
-            Primitive = CapabilityPrimitive.Readout,
-            Title = "Микрофон замьючен",
-
-            // Read only, and not as a shortcut: Audeze HQ has readMicMute and no writer
-            // at all. Mute moves only when the boom arm is raised. Drawing a switch here
-            // would promise control that does not exist.
-            Access = CapabilityAccess.Read,
-            Subtitle = "Управляется подъёмом бум-микрофона",
-            DeclaredStatus = CapabilityStatus.Untested,
-            Requirement = RequirementKind.BoomMicrophone,
-            RequirementHint = BoomHint,
-        },
-
-        new()
-        {
-            Id = CapabilityIds.MicLevel,
-            Domain = CapabilityDomain.Microphone,
-            Primitive = CapabilityPrimitive.Range,
-            Title = "Уровень микрофона",
-            DeclaredStatus = CapabilityStatus.Untested,
-            Range = new CapabilityRange { Min = 0, Max = 255 },
-            Requirement = RequirementKind.BoomMicrophone,
-            RequirementHint = BoomHint,
-        },
+        // No microphone-mute row, and the reason is measured rather than assumed.
+        //
+        // The headset does not tell the host about it, by any route. Sub-command 0x22,
+        // which Audeze HQ reads for this, answers 0xFF and never anything else — over the
+        // dongle and over USB-C, with the boom out and with the boom seated, with the USB
+        // audio device dead and with it live and passing sound. Sub-command 0x35, the mic
+        // level, does not answer at all; a read-only sweep of 0x00..0xFF in both the
+        // 0x0901 and the 0x2C83 namespaces finds neither of them moving for anything the
+        // microphone does. Nor is it announced: listening on all three HID interfaces —
+        // including the telephony page, where a headset mute belongs — caught fourteen
+        // reports from the volume wheel and not one from the boom.
+        //
+        // The owner checked Audeze HQ itself against the same movement: nothing there
+        // changes either. So the mute happens inside the headset, the USB stream simply
+        // carries silence, and no software on this side can know. A row that says
+        // "подключите бум-микрофон" to somebody whose boom is plugged in is worse than no
+        // row at all.
+        //
+        // Kept as a note rather than deleted from history: if the firmware or the headset
+        // is ever taken apart further, this is the ground the next attempt starts from.
 
         new()
         {
@@ -255,6 +257,13 @@ public static class MaxwellCapabilities
             Domain = CapabilityDomain.Microphone,
             Primitive = CapabilityPrimitive.Choice,
             Title = "Шумоподавление",
+
+            // The headset changes this on its own — there is a control on it for exactly
+            // that, and the owner used it while the page was open and watched the page go
+            // on claiming the old setting for a minute. An open page reads the battery
+            // and whatever is marked here, and nothing else; unmarked, this was read once
+            // when the device appeared and never again.
+            IsVolatile = true,
 
             // Processing applied to the outgoing voice, not noise cancelling for the
             // wearer. The Maxwell has no ANC at all, and wording that blurs the two
@@ -268,7 +277,7 @@ public static class MaxwellCapabilities
                 new((int)NoiseReductionMode.High, "Высокое"),
             ],
             Requirement = RequirementKind.ControlChannel,
-            RequirementHint = CableHint,
+            RequirementHint = SilentHint,
         },
 
         new()
@@ -280,7 +289,7 @@ public static class MaxwellCapabilities
             Subtitle = "Самослышимость в наушниках",
             DeclaredStatus = CapabilityStatus.Untested,
             Requirement = RequirementKind.ControlChannel,
-            RequirementHint = CableHint,
+            RequirementHint = SilentHint,
         },
 
         new()
@@ -301,12 +310,13 @@ public static class MaxwellCapabilities
                 MaxFromCapability = CapabilityIds.MicSidetoneMax,
             },
             Requirement = RequirementKind.ControlChannel,
-            RequirementHint = CableHint,
+            RequirementHint = SilentHint,
         },
 
         new()
         {
             Id = CapabilityIds.MicSidetoneMax,
+            IsSupporting = true,
             Domain = CapabilityDomain.Microphone,
             Primitive = CapabilityPrimitive.Readout,
             Title = "Потолок сайдтона",
@@ -334,7 +344,7 @@ public static class MaxwellCapabilities
                 Detents = [0, RaceCommands.ChatMixBalanced, RaceCommands.ChatMixMax],
             },
             Requirement = RequirementKind.ControlChannel,
-            RequirementHint = CableHint,
+            RequirementHint = SilentHint,
         },
 
         new()
@@ -348,8 +358,16 @@ public static class MaxwellCapabilities
             DeclaredStatus = CapabilityStatus.Untested,
             Risk = CapabilityRisk.Hidden,
             IsReversible = false,
+
+            // Shown, and not pressable. The command is sub 0x95 of 0x1101 and has never
+            // been run against this headset — deliberately, because the notes label
+            // 0x1100-0x1101 "Battery/sync" and getting that wrong once would wipe the
+            // owner's settings, the corrected channel balance among them. Until it has
+            // been confirmed some other way, the row exists to describe the device rather
+            // than to be used.
+            IsWithheld = true,
             Requirement = RequirementKind.ControlChannel,
-            RequirementHint = CableHint,
+            RequirementHint = SilentHint,
         },
     ];
 }

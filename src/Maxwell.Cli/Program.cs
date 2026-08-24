@@ -42,7 +42,13 @@ if (args.Contains("--devchange")) return DeviceChangeProbe.Run(TimeSpan.FromSeco
 if (args.Contains("--charge")) return await ChargeProbe.RunAsync(4).ConfigureAwait(false);
 if (args.Contains("--autooff")) return await AutoOffProbe.RunAsync().ConfigureAwait(false);
 if (args.Contains("--eqwrite")) return await EqWriteProbe.RunAsync().ConfigureAwait(false);
-if (args.Contains("--listen")) return await ListenProbe.RunAsync(20).ConfigureAwait(false);
+if (args.Contains("--listen"))
+{
+    // How long to hold the door open. Twenty seconds was hard-coded and it is not enough
+    // when the person who has to move the boom is reading about it in another window.
+    int seconds = int.TryParse(ValueAfter(args, "--listen"), out int given) ? given : 20;
+    return await ListenProbe.RunAsync(seconds).ConfigureAwait(false);
+}
 if (args.Contains("--eqcompare")) return EqCompareProbe.Run();
 if (args.Contains("--eqpush"))
 {
@@ -206,15 +212,37 @@ static async Task<int> ShowFeaturesAsync(RaceSession session)
 
 static async Task<int> ScanAsync(RaceSession session, string[] args)
 {
-    Console.WriteLine("[scan] Read-only sweep of the 0x0901 namespace");
+    // Which read namespace, and how far up. Both default to what the sweep has always
+    // done — 0x0901, sub-commands 0x00 to 0x3F — because that is the range the settings
+    // live in; the arguments are for looking outside it, which is how you find out that
+    // something is not there rather than assuming it.
+    ushort ns = ParseHex(ValueAfter(args, "--ns")) is { } n ? (ushort)n : RaceCommands.Read;
+    int from = ParseHex(ValueAfter(args, "--from")) ?? 0x00;
+    int to = ParseHex(ValueAfter(args, "--to")) ?? 0x3F;
+
+    // A sweep is not a value somebody is waiting on: most sub-commands do not answer, and
+    // the patient read spends a second and a half on each of those.
+    bool fast = args.Contains("--fast") || to - from > 0x40;
+    int attempts = fast ? 1 : 4;
+    int window = fast ? 120 : 400;
+
+    Console.WriteLine($"[scan] Read-only sweep of 0x{ns:X4}, sub 0x{from:X2}..0x{to:X2}" +
+                      (fast ? "  (one attempt, 120 ms)" : ""));
     Console.WriteLine();
 
     var snapshot = new SortedDictionary<string, string>(StringComparer.Ordinal);
 
-    for (int sub = 0x00; sub <= 0x3F; sub++)
+    for (int sub = from; sub <= to; sub++)
     {
-        int value = await session.ReadValueAsync((byte)sub).ConfigureAwait(false);
-        if (value >= 0) snapshot[$"09.{sub:X2}"] = value.ToString(CultureInfo.InvariantCulture);
+        // The 0x2C namespace answers with the sub-command in a different byte, so it
+        // needs its own reader. Sweeping it through the general one found nothing and
+        // would have been read as "the headset has nothing there", which is the worst
+        // kind of wrong answer a probe can give.
+        int value = ns == RaceCommands.ChatMixRead
+            ? await session.ReadNamespace2CAsync((byte)sub, attempts, window).ConfigureAwait(false)
+            : await session.ReadValueAsync(ns, (byte)sub, attempts, window).ConfigureAwait(false);
+
+        if (value >= 0) snapshot[$"{ns >> 8:X2}.{sub:X2}"] = value.ToString(CultureInfo.InvariantCulture);
     }
 
     if (await session.ReadStatusAsync().ConfigureAwait(false) is { } status)
@@ -321,6 +349,13 @@ static string? ValueAfter(string[] args, string flag)
     int index = Array.IndexOf(args, flag);
     return index >= 0 && index + 1 < args.Length ? args[index + 1] : null;
 }
+
+static int? ParseHex(string? text) =>
+    text is { Length: > 0 }
+        && int.TryParse(text.Replace("0x", "", StringComparison.OrdinalIgnoreCase),
+                        NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int value)
+        ? value
+        : null;
 
 static ushort? ParsePid(string[] args)
 {
