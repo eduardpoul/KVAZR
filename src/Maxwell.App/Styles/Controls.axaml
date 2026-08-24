@@ -414,6 +414,14 @@
     <Setter Property="OnContent" Value="" />
     <Setter Property="OffContent" Value="" />
     <Setter Property="MinWidth" Value="0" />
+
+    <!-- And no minimum height either.
+         Fluent's switch asks for the room a switch with a label beside it would need, and
+         this one has no label: it measured taller than the thirty-pixel row it sits in, so
+         it was arranged at thirty and clipped. What that looks like is a pill with square
+         corners and a knob touching both edges — which is exactly how it looked. -->
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Padding" Value="0" />
   </Style>
 
   <!-- A white knob on the accent, in both themes, because that is what the artboards

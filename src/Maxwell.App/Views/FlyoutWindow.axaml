@@ -438,7 +438,13 @@
                                content — visibly past the value printed above it and into
                                the scrollbar. The artboard's own slider pulls the thumb
                                inside at 100% for the same reason. -->
-                          <Setter Property="Margin" Value="10,-14" />
+                          <!-- Twelve, not fourteen. Fourteen each side left a box of
+                               eighteen pixels for a thumb of twenty-two, so the thumb was
+                               flattened top and bottom — the same fault as the switch
+                               above, from the same habit of trusting a control to fit a
+                               height that was measured from the artboard's drawing rather
+                               than from the control. -->
+                          <Setter Property="Margin" Value="10,-12" />
                           <Setter Property="VerticalAlignment" Value="Center" />
                         </Style>
                       </ItemsControl.Styles>
