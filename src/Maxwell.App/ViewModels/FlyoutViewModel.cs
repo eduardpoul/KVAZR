@@ -74,8 +74,22 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
     public string Heading => Devices.Count switch
     {
         0 or 1 => Maxwell.App.Localization.Localizer.Current.Say("Устройства"),
-        int n => $"Устройства · {n}",
+        int n => Maxwell.App.Localization.Localizer.Current.Say("Устройства · {0}", n),
     };
+
+    // The panel's three fixed lines. Properties rather than words in the markup, because
+    // markup literals are the one place in this application the catalogue cannot reach:
+    // XAML has no way to call a method, so a sentence written there is a sentence in one
+    // language for good.
+
+    /// <summary>The pinned row at the foot: the way from the panel into the window.</summary>
+    public string SettingsLabel => Maxwell.App.Localization.Localizer.Current.Say("Все настройки");
+
+    /// <summary>Ten seconds with no answer from the poll.</summary>
+    public string StalledLabel => Maxwell.App.Localization.Localizer.Current.Say("Опрос не отвечает");
+
+    /// <summary>Nothing attached. Short: the tray is not the place to explain.</summary>
+    public string EmptyLabel => Maxwell.App.Localization.Localizer.Current.Say("Устройств не найдено");
 
     /// <summary>
     /// The flyout is open, so every device's battery is worth keeping fresh — and this is

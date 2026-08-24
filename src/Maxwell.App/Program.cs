@@ -69,8 +69,6 @@ internal static class Program
         if (Array.IndexOf(args, "--splash") >= 0) App.PinSplash = SplashForm.Named;
         if (Array.IndexOf(args, "--splash-mark") >= 0) App.PinSplash = SplashForm.MarkOnly;
 
-        App.OpenIdentityOnStart = Array.IndexOf(args, "--identity") >= 0;
-
         // The artboards are drawn light and the machine this is developed on runs dark,
         // so without this every comparison was made across two different themes — which
         // is how a page can look "close enough" while being wrong about its geometry.
@@ -105,11 +103,6 @@ internal static class Program
         {
             App.OpenDeviceOnStart = index;
         }
-
-        // The design-system matrix is the surface every control is checked against, and
-        // it is reachable only through the navigation pane. Driving the pointer to get
-        // there steals the cursor from whoever is at the machine.
-        App.OpenShowcaseOnStart = Array.IndexOf(args, "--showcase") >= 0;
 
         // The content pane renders in a WebView by default on Windows; --native falls
         // back to the Avalonia views, which is also what every capture pipeline that
@@ -227,7 +220,6 @@ internal static class Program
         builder.Services.AddSingleton<Localization.Localizer>();
         builder.Services.AddSingleton<Infrastructure.CurvePresetLibrary>();
         builder.Services.AddSingleton<Infrastructure.FirstSweep>();
-        builder.Services.AddSingleton<CapabilityShowcaseViewModel>();
         builder.Services.AddSingleton<HotkeysViewModel>();
         builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<AboutViewModel>();

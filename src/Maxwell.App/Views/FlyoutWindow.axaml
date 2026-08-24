@@ -203,7 +203,7 @@
             <TextBlock Grid.Column="0" VerticalAlignment="Center"
                        FontSize="{DynamicResource FlyoutFooterSize}"
                        Foreground="{DynamicResource TextSecondaryBrush}"
-                       Text="Все настройки" />
+                       Text="{Binding SettingsLabel}" />
             <Path Grid.Column="1" Width="11" Height="11" VerticalAlignment="Center"
                   Stroke="{DynamicResource TextSecondaryBrush}"
                   StrokeThickness="1.6" StrokeLineCap="Round" StrokeJoin="Round"
@@ -253,11 +253,11 @@
       <!-- Ten seconds with no answer. Text, never a placeholder that never stops. -->
       <TextBlock DockPanel.Dock="Top" Classes="secondary" Margin="16,8,16,12"
                  IsVisible="{Binding Loading.ShowError}"
-                 Text="Опрос не отвечает" />
+                 Text="{Binding StalledLabel}" />
 
       <!-- Nothing attached. Short, because the tray is not the place to explain. -->
       <TextBlock DockPanel.Dock="Top" Classes="secondary" Margin="16,8,16,12"
-                 Text="Устройств не найдено">
+                 Text="{Binding EmptyLabel}">
         <TextBlock.IsVisible>
           <MultiBinding Converter="{x:Static BoolConverters.And}">
             <Binding Path="!HasDevices" />

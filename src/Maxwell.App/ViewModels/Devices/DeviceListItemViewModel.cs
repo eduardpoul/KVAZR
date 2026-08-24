@@ -92,7 +92,7 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     {
         DeviceAvailability.Unreachable => Maxwell.App.Localization.Localizer.Current["device.silent", "не отвечает"],
         DeviceAvailability.Offline =>
-            Snapshot.LastSeenAt is { } seen ? $"последний раз — {seen:HH:mm}" : Maxwell.App.Localization.Localizer.Current.Say("не подключено"),
+            Snapshot.LastSeenAt is { } seen ? LastSeen(seen) : Maxwell.App.Localization.Localizer.Current.Say("не подключено"),
 
         // Deliberately not "только чтение" any more: on this machine that was most of the
         // list, and a label most rows carry stops being information. What a device
@@ -167,14 +167,26 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
             string model = Snapshot.Info.Model;
             string vendor = Snapshot.Info.Vendor;
 
+            // The maker is stripped first and the rest translated, not the other way
+            // round: the catalogue is keyed on what the driver wrote, and "MX Master
+            // (макет)" is a key while "Master (макет)" is nothing.
             if (vendor.Length > 0 && model.StartsWith(vendor, StringComparison.CurrentCultureIgnoreCase))
             {
-                return model[vendor.Length..].TrimStart();
+                model = model[vendor.Length..].TrimStart();
             }
 
-            return model;
+            return Maxwell.App.Localization.Localizer.Current.Say(model);
         }
     }
+
+    /// <summary>
+    /// "последний раз — 14:41", said in one piece. The time is invariant and the words
+    /// around it are not, which is why the key is the whole sentence.
+    /// </summary>
+    private static string LastSeen(DateTimeOffset seen) =>
+        Maxwell.App.Localization.Localizer.Current.Say(
+            "последний раз — {0}",
+            seen.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture));
 
     /// <summary>
     /// What the row says under the name in the tray panel. Never an error for a normal
@@ -189,7 +201,7 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     {
         DeviceAvailability.Active => HasNote ? $"{Link} · {Note}" : Link,
         DeviceAvailability.Unreachable => Maxwell.App.Localization.Localizer.Current["device.silent.caps", "Не отвечает"],
-        _ => Snapshot.LastSeenAt is { } seen ? $"последний раз — {seen:HH:mm}" : Maxwell.App.Localization.Localizer.Current.Say("Не подключено"),
+        _ => Snapshot.LastSeenAt is { } seen ? LastSeen(seen) : Maxwell.App.Localization.Localizer.Current.Say("Не подключено"),
     };
 
     /// <summary>

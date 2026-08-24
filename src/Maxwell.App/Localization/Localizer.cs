@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 using Maxwell.Core.Settings;
@@ -101,6 +102,21 @@ public sealed class Localizer
     /// </summary>
     public string Say(string? russian) =>
         russian is { Length: > 0 } text ? this[text, text] : string.Empty;
+
+    /// <summary>
+    /// One sentence with something dropped into it: a count, a time, a device's name.
+    ///
+    /// The key is the whole sentence with the hole in it — "последний раз — {0}" — and
+    /// not the words around the hole. Where the value goes is part of the translation:
+    /// languages put it in different places, and some need no word at all on one side of
+    /// it. Translating the fragments separately produced sentences that were each
+    /// correct and together meant nothing.
+    ///
+    /// Formatting is invariant on purpose; see the note in <see cref="Use"/> about why
+    /// this catalogue moves words and never numbers or dates.
+    /// </summary>
+    public string Say(string russian, params object?[] parts) =>
+        string.Format(CultureInfo.InvariantCulture, Say(russian), parts);
 
     /// <summary>
     /// A capability's own words, looked up by its id — "audio.volume" with "title" gives

@@ -34,7 +34,6 @@ public partial class App : Application, IDisposable
     /// </summary>
     internal static SplashForm? PinSplash { get; set; }
 
-    /// <summary>Development affordance: open the identity sheet without a synthetic click.</summary>
     /// <summary>Forces a theme for the session, for putting a render beside a light artboard.</summary>
     internal static AppTheme? ThemeOnStart { get; set; }
 
@@ -42,23 +41,11 @@ public partial class App : Application, IDisposable
 
     internal static int? OpenSectionOnStart { get; set; }
 
-    internal static bool OpenIdentityOnStart { get; set; }
-
     /// <summary>Development affordance: a window size as "1040x2000", so a long page fits one picture.</summary>
     internal static string? WindowSizeOnStart { get; set; }
 
     /// <summary>Development affordance: scroll the content pane down before the screenshot.</summary>
     internal static double? ScrollOnStart { get; set; }
-
-    /// <summary>
-    /// Development affordance: open the design-system matrix, maximised.
-    ///
-    /// Maximised is part of the switch rather than a second flag because the matrix is
-    /// twelve primitives wide by eight states across and does not fit a default window —
-    /// opening it at 1040 pixels shows three columns, which is not a thing anyone can
-    /// check the design against.
-    /// </summary>
-    internal static bool OpenShowcaseOnStart { get; set; }
 
     private readonly IServiceProvider? _services;
 
@@ -69,7 +56,7 @@ public partial class App : Application, IDisposable
     private PrimaryDevice? _primary;
     private HiddenDevices? _hidden;
     private ISettingsStore? _settings;
-    private HotkeyCoordinator? _hotkeys;
+    // private HotkeyCoordinator? _hotkeys;   // shelved, see the startup block below
     private SplashWindow? _splash;
     private bool _discovered;
     private bool _disposed;
@@ -94,19 +81,35 @@ public partial class App : Application, IDisposable
             // Tray-first: closing the window hides it, and only the tray menu quits.
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            // Before the settings read and before discovery: the splash exists to cover
-            // exactly the interval between here and the shell being on screen, and one
-            // put up after that work has already happened covers nothing.
-            ShowSplash(desktop);
-
+            // The two settings every window is built out of — the theme and the language —
+            // are read before the first window rather than after it.
+            //
+            // This used to come after the splash, so that the splash covered the read, and
+            // that was the wrong trade for a file of two kilobytes. A window built before
+            // these are known is built wrong: the splash came up in the default theme and
+            // then changed under the user, and the tray panel — whose fixed labels are
+            // bound once, when it is constructed — came up in Russian under an English
+            // interface, which is exactly the bug this ordering hides best. Reading the
+            // file first costs a millisecond and nobody has ever seen it.
             _settings = _services.GetRequiredService<ISettingsStore>();
             _settings.LoadAsync().GetAwaiter().GetResult();
             _settings.Changed += OnSettingsChanged;
+
             // The development flag wins the first paint so captures are deterministic,
             // and then expires: left standing it outranked the settings toggle for the
             // whole session, which read as "the dark theme does not work".
             ApplyTheme(ThemeOnStart ?? _settings.Current.Theme);
             ThemeOnStart = null;
+
+            // Resolved for its side effect: the constructor makes this instance the
+            // ambient catalogue. Anything built before it says its words in the fallback
+            // language, which is Russian whatever the user has chosen.
+            _services.GetRequiredService<Localization.Localizer>();
+
+            // Still before discovery. The splash exists to cover the interval between
+            // here and the shell being on screen, and one put up after that work has
+            // already happened covers nothing.
+            ShowSplash(desktop);
 
             _registry = _services.GetRequiredService<IDeviceRegistry>();
             _primary = _services.GetRequiredService<PrimaryDevice>();
@@ -117,9 +120,12 @@ public partial class App : Application, IDisposable
             // device already attached at launch has not just connected — popping the
             // panel every time the app starts is not what "on connect" means.
 
-            _hotkeys = _services.GetRequiredService<HotkeyCoordinator>();
-            _hotkeys.WindowRequested += (_, _) => Dispatcher.UIThread.Post(ShowWindow);
-            _hotkeys.Apply();
+            // Shortcuts are shelved along with their page. Left registered they would keep
+            // claiming key combinations system-wide with no screen to change or clear them
+            // — a shortcut nobody can see is worse than none.
+            // _hotkeys = _services.GetRequiredService<HotkeyCoordinator>();
+            // _hotkeys.WindowRequested += (_, _) => Dispatcher.UIThread.Post(ShowWindow);
+            // _hotkeys.Apply();
 
             _flyout = _services.GetRequiredService<FlyoutWindow>();
             FlyoutViewModel flyout = _services.GetRequiredService<FlyoutViewModel>();
@@ -174,12 +180,6 @@ public partial class App : Application, IDisposable
                 Dispatcher.UIThread.Post(() => shell.SelectAppSectionAt(section), DispatcherPriority.Background);
             }
 
-            if (OpenIdentityOnStart)
-            {
-                ShellViewModel shell = _services.GetRequiredService<ShellViewModel>();
-                Dispatcher.UIThread.Post(shell.SelectIdentity, DispatcherPriority.Background);
-            }
-
             if (ScrollOnStart is { } offset)
             {
                 // After the page has been laid out, or the scroll viewer has no extent
@@ -187,13 +187,6 @@ public partial class App : Application, IDisposable
                 Dispatcher.UIThread.Post(
                     () => _window?.ScrollTo(offset),
                     DispatcherPriority.ApplicationIdle);
-            }
-
-            if (OpenShowcaseOnStart)
-            {
-                ShellViewModel shell = _services.GetRequiredService<ShellViewModel>();
-                _window.WindowState = WindowState.Maximized;
-                Dispatcher.UIThread.Post(shell.ShowShowcase, DispatcherPriority.Background);
             }
 
             if (PresentFlyoutOnStart)
@@ -271,16 +264,16 @@ public partial class App : Application, IDisposable
         // device layer keeps working and the window is still reachable.
         try
         {
-            var open = new NativeMenuItem("Открыть KVAZR");
+            var open = new NativeMenuItem(Maxwell.App.Localization.Localizer.Current.Say("Открыть KVAZR"));
             open.Click += (_, _) => ShowWindow();
 
-            var quit = new NativeMenuItem("Выход");
+            var quit = new NativeMenuItem(Maxwell.App.Localization.Localizer.Current.Say("Выход"));
             quit.Click += (_, _) => Shutdown();
 
             _tray = new TrayIcon
             {
                 Icon = TrayIconRenderer.Render(KvazrMarkState.Searching),
-                ToolTipText = "KVAZR — поиск устройств…",
+                ToolTipText = Maxwell.App.Localization.Localizer.Current.Say("KVAZR — поиск устройств…"),
                 IsVisible = true,
                 Menu = [open, new NativeMenuItemSeparator(), quit],
             };
@@ -366,7 +359,7 @@ public partial class App : Application, IDisposable
         List<DeviceSnapshot> devices =
             [.. (_registry?.Devices ?? []).Where(d => d.IsPresent && _hidden?.IsVisible(d) != false)];
 
-        if (devices.Count == 0) return "KVAZR — устройств не найдено";
+        if (devices.Count == 0) return Maxwell.App.Localization.Localizer.Current.Say("KVAZR — устройств не найдено");
 
         List<string> lines =
         [
@@ -374,10 +367,10 @@ public partial class App : Application, IDisposable
                 .Where(d => d.BatteryPercent is not null)
                 .OrderBy(d => d.BatteryPercent)
                 .Take(4)
-                .Select(d => $"{d.Info.DisplayName} — {d.BatteryPercent}%"),
+                .Select(d => $"{Maxwell.App.Localization.Localizer.Current.Say(d.Info.DisplayName)} — {d.BatteryPercent}%"),
         ];
 
-        if (lines.Count == 0) return $"KVAZR — устройств: {devices.Count}";
+        if (lines.Count == 0) return Maxwell.App.Localization.Localizer.Current.Say("KVAZR — устройств: {0}", devices.Count);
 
         return string.Join(Environment.NewLine, lines);
     }

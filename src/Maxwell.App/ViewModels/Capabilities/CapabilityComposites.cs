@@ -2,6 +2,7 @@ using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Maxwell.App.Infrastructure;
+using Maxwell.App.Localization;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Settings;
 
@@ -161,6 +162,7 @@ public sealed partial class GroupedRangeViewModel : ObservableObject
 {
     private readonly RangeGroupCapabilityViewModel _owner;
     private readonly CapabilityRange _bounds;
+    private readonly string _label;
 
     /// <summary>The last value the device reported. Outranks anything the slider coerces.</summary>
     private int _reading;
@@ -178,12 +180,18 @@ public sealed partial class GroupedRangeViewModel : ObservableObject
         _bounds = member.Range ?? shared ?? new CapabilityRange { Min = 0, Max = 100 };
 
         Index = member.Index;
-        Label = member.Label;
+        _label = member.Label;
     }
 
     public int Index { get; }
 
-    public string Label { get; }
+    /// <summary>
+    /// Translated on the way out rather than in the constructor, like every other name a
+    /// member carries: these objects are built once and live as long as the page, so a
+    /// name captured at construction would stay in whichever language was in force then
+    /// and survive a language switch untouched.
+    /// </summary>
+    public string Label => Localizer.Current.Say(_label);
 
     public double Minimum => _bounds.Min;
 
@@ -942,6 +950,7 @@ public sealed class LightingCapabilityViewModel : CompositeCapabilityViewModel
 public sealed partial class LightingZoneViewModel : ObservableObject
 {
     private readonly LightingCapabilityViewModel _owner;
+    private readonly string _label;
 
     internal LightingZoneViewModel(
         LightingCapabilityViewModel owner,
@@ -951,13 +960,13 @@ public sealed partial class LightingZoneViewModel : ObservableObject
         _owner = owner;
 
         Index = member.Index;
-        Label = member.Label;
+        _label = member.Label;
         Palette = palette;
     }
 
     public int Index { get; }
 
-    public string Label { get; }
+    public string Label => Localizer.Current.Say(_label);
 
     public IReadOnlyList<LightingSwatch> Palette { get; }
 
@@ -1007,7 +1016,18 @@ public sealed class ButtonMapCapabilityViewModel : CompositeCapabilityViewModel
     {
         ArgumentNullException.ThrowIfNull(state);
 
-        IReadOnlyList<CapabilityChoice> actions = state.Descriptor.Choices;
+        // The vocabulary is translated once, here, rather than per button: the same list
+        // is handed to every row, and the index — not the label — is what goes down to
+        // the device, so renaming an action for display cannot change what is written.
+        IReadOnlyList<CapabilityChoice> actions =
+        [
+            .. state.Descriptor.Choices.Select(c => c with
+            {
+                Label = Localizer.Current.Say(c.Label),
+                Hint = Localizer.Current.Say(c.Hint),
+            }),
+        ];
+
         Buttons = [.. Members.Select(m => new ButtonAssignmentViewModel(this, m, actions))];
         PushReadings();
     }
@@ -1032,6 +1052,8 @@ public sealed class ButtonMapCapabilityViewModel : CompositeCapabilityViewModel
 public sealed partial class ButtonAssignmentViewModel : ObservableObject
 {
     private readonly ButtonMapCapabilityViewModel _owner;
+    private readonly string _label;
+    private readonly string? _hint;
 
     internal ButtonAssignmentViewModel(
         ButtonMapCapabilityViewModel owner,
@@ -1041,17 +1063,17 @@ public sealed partial class ButtonAssignmentViewModel : ObservableObject
         _owner = owner;
 
         Index = member.Index;
-        Label = member.Label;
-        Hint = member.Hint;
+        _label = member.Label;
+        _hint = member.Hint;
         Actions = actions;
     }
 
     public int Index { get; }
 
-    public string Label { get; }
+    public string Label => Localizer.Current.Say(_label);
 
     /// <summary>Why this button is special: it cycles DPI, it cannot be remapped.</summary>
-    public string? Hint { get; }
+    public string? Hint => Localizer.Current.Say(_hint);
 
     public IReadOnlyList<CapabilityChoice> Actions { get; }
 
@@ -1080,7 +1102,19 @@ public sealed partial class ButtonAssignmentViewModel : ObservableObject
 // ---------- KeyMap ----------
 
 /// <summary>One layer tab of a <see cref="KeyMapCapabilityViewModel"/>.</summary>
-public sealed record KeyLayer(int Index, string Label);
+/// <summary>
+/// One tab above the layout. Carries the number and nothing else: the word beside it is
+/// looked up when it is drawn, so switching language renames the tabs like everything
+/// else. The catalogue key is the whole sentence with its hole in it — "Слой {0}" — and
+/// not the bare word, because where the number goes is part of the translation.
+/// </summary>
+public sealed record KeyLayer(int Index)
+{
+    public string Label => string.Format(
+        System.Globalization.CultureInfo.InvariantCulture,
+        Localizer.Current.Say("Слой {0}"),
+        Index);
+}
 
 /// <summary>
 /// Layers of keycodes written into the keyboard itself.
@@ -1104,7 +1138,7 @@ public sealed partial class KeyMapCapabilityViewModel : CompositeCapabilityViewM
 
         Layers = [.. Enumerable
             .Range(0, Math.Max(1, state.Descriptor.LayerCount))
-            .Select(i => new KeyLayer(i, $"Слой {i}"))];
+            .Select(i => new KeyLayer(i))];
 
         Keys = [.. Members.Select(m => new KeyCapViewModel(m))];
 
@@ -1205,16 +1239,18 @@ public sealed partial class KeyMapCapabilityViewModel : CompositeCapabilityViewM
 /// <summary>One key position of a <see cref="KeyMapCapabilityViewModel"/>.</summary>
 public sealed partial class KeyCapViewModel : ObservableObject
 {
+    private readonly string _position;
+
     internal KeyCapViewModel(CapabilityMember member)
     {
         Index = member.Index;
-        Position = member.Label;
+        _position = member.Label;
     }
 
     public int Index { get; }
 
     /// <summary>Where the key sits, which never changes. The legend on it does.</summary>
-    public string Position { get; }
+    public string Position => Localizer.Current.Say(_position);
 
     [ObservableProperty]
     public partial string Legend { get; private set; } = string.Empty;
@@ -1336,23 +1372,25 @@ public sealed class HostSlotsCapabilityViewModel : SlotListCapabilityViewModel
 public sealed partial class CapabilitySlotViewModel : ObservableObject
 {
     private readonly SlotListCapabilityViewModel _owner;
+    private readonly string _label;
+    private readonly string? _hint;
 
     internal CapabilitySlotViewModel(SlotListCapabilityViewModel owner, CapabilityMember member)
     {
         _owner = owner;
 
         Index = member.Index;
-        Label = member.Label;
-        Hint = member.Hint;
+        _label = member.Label;
+        _hint = member.Hint;
         IsEmpty = member.IsEmpty;
     }
 
     public int Index { get; }
 
-    public string Label { get; }
+    public string Label => Localizer.Current.Say(_label);
 
     /// <summary>What the slot holds, or what filling it would take.</summary>
-    public string? Hint { get; }
+    public string? Hint => Localizer.Current.Say(_hint);
 
     public bool IsEmpty { get; }
 

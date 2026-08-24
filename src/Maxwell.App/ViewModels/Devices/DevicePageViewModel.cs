@@ -114,7 +114,12 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
 
     public string DeviceKey => _session.DeviceKey;
 
-    public string Title => Snapshot.Info.DisplayName;
+    /// <summary>
+    /// Through the catalogue like the same name in the device list, and for the same
+    /// reason: the stand-ins carry "(макет)" in their model names, and a page headed in
+    /// one language above a list that used the other looked like two different devices.
+    /// </summary>
+    public string Title => Maxwell.App.Localization.Localizer.Current.Say(Snapshot.Info.DisplayName);
 
     public IReadOnlyList<TransportInfo> Transports => Snapshot.Info.Transports;
 
@@ -344,7 +349,8 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     /// <summary>"обновлено 14:41", or when the device was last seen if it is gone.</summary>
     public string? Freshness => Snapshot switch
     {
-        { Availability: DeviceAvailability.Offline, LastSeenAt: { } seen } => $"последний раз — {seen:HH:mm}",
+        { Availability: DeviceAvailability.Offline, LastSeenAt: { } seen } => Maxwell.App.Localization.Localizer.Current.Say(
+            "последний раз — {0}", seen.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)),
         { UpdatedAt: { } updated } => string.Format(
             System.Globalization.CultureInfo.InvariantCulture,
             Maxwell.App.Localization.Localizer.Current["dash.updated", "обновлено {0}"],

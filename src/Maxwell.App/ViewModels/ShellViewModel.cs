@@ -27,8 +27,6 @@ public sealed record AppSection(object Page)
     {
         Pages.HotkeysViewModel h => h.Title,
         Pages.SettingsViewModel s => s.Title,
-        Pages.CapabilityShowcaseViewModel c => c.Title,
-        Pages.IdentityViewModel i => i.Title,
         Pages.AboutViewModel a => a.Title,
         _ => string.Empty,
     };
@@ -60,7 +58,6 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         IConfirmationPrompt confirm,
         HiddenDevices hidden,
         PrimaryDevice primary,
-        CapabilityShowcaseViewModel showcase,
         SettingsViewModel settings,
         HotkeysViewModel hotkeys,
         AboutViewModel about,
@@ -72,7 +69,6 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         ArgumentNullException.ThrowIfNull(confirm);
         ArgumentNullException.ThrowIfNull(hidden);
         ArgumentNullException.ThrowIfNull(primary);
-        ArgumentNullException.ThrowIfNull(showcase);
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(hotkeys);
         ArgumentNullException.ThrowIfNull(about);
@@ -86,12 +82,13 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         _primary = primary;
         _presets = presets;
 
+        // Shortcuts are shelved, not deleted: the page, its view model and the coordinator
+        // all still build and their tests still run — the entry is simply not offered. Put
+        // the line back and the section returns with its bindings intact.
         AppSections =
         [
-            new AppSection(hotkeys),
+            // new AppSection(hotkeys),
             new AppSection(settings),
-            new AppSection(showcase),
-            new AppSection(Identity),
             new AppSection(about),
         ];
         Dashboard = new DashboardViewModel(this, Devices, Loading, settings);
@@ -120,9 +117,6 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     public partial AppSection? SelectedAppSection { get; set; }
 
     public DashboardViewModel Dashboard { get; }
-
-    /// <summary>The identity sheet: every mark state, motion, loader and skeleton on one page.</summary>
-    internal IdentityViewModel Identity { get; } = new();
 
     /// <summary>
     /// The first-sweep gate. Owned here rather than by the dashboard because the flyout
@@ -310,16 +304,6 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Opens the design-system matrix. Same reason as <see cref="SelectDeviceAt"/>: it
-    /// is the page every control has to be checked against, and reaching it by driving
-    /// the pointer is both unreliable and rude to whoever is using the machine.
-    /// </summary>
-    public void ShowShowcase()
-    {
-        if (AppSections.Count > 0) SelectedAppSection = AppSections[0];
-    }
-
-    /// <summary>
     /// Looks again, now, for the first-launch screen's button.
     ///
     /// Discovery already runs on a timer, so this changes nothing a few seconds of
@@ -451,14 +435,6 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     });
 
     /// <summary>
-    /// Selects the identity sheet. Exists for the same reason as the other development
-    /// flags: it is a page of drawings, and the only way to review a drawing is to open
-    /// it.
-    /// </summary>
-    public void SelectIdentity() =>
-        SelectedAppSection = AppSections.FirstOrDefault(s => ReferenceEquals(s.Page, Identity));
-
-    /// <summary>
     /// Reconciles the list in place rather than replacing it, so the selected row stays
     /// selected when a poll comes in and the list does not flicker every few seconds.
     /// </summary>
@@ -582,7 +558,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             Id = "device.forget",
             Domain = CapabilityDomain.Maintenance,
             Primitive = CapabilityPrimitive.Action,
-            Title = $"Забыть {device.DisplayName}?",
+            Title = Maxwell.App.Localization.Localizer.Current.Say("Забыть {0}?", device.DisplayName),
             Subtitle = Maxwell.App.Localization.Localizer.Current.Say("Пара в Windows будет удалена. Чтобы вернуть устройство, ")
                 + Maxwell.App.Localization.Localizer.Current.Say("его придётся сопрягать заново, как в первый раз."),
             Risk = CapabilityRisk.Confirm,

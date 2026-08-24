@@ -19,30 +19,19 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Maxwell.App.Views.Pages;
 
 /// <summary>
-/// Renders the design-system matrix and the stand-in device pages straight to pictures,
-/// in both themes.
+/// Renders the application's pages straight to pictures, in both themes.
 ///
-/// The alternative is a screenshot of the running window, and it fails here for two
-/// reasons that are not going away. The matrix is twelve primitives by eight states and
-/// wider than any monitor on this desk, so a screen capture shows a third of it; and
-/// capturing a window means putting it in front of whoever is using the computer, which
-/// is not an acceptable price for looking at a control. Rendering offscreen has neither
-/// problem, and it goes through the same views, view models, factory and templates the
-/// application does — the same reason the showcase page is built from live controls
-/// rather than drawn a second time.
-///
-/// The device pages are here as well as the matrix because they are a different layout
-/// path: on the showcase a control stands alone, on a device page it sits in a row
-/// beside its name, and a composite that fits one does not automatically fit the other.
+/// The alternative is a screenshot of the running window, and capturing a window means
+/// putting it in front of whoever is using the computer — not an acceptable price for
+/// looking at a control. Rendering offscreen has no such problem, and it goes through the
+/// same views, view models, factory and templates the application does, so what appears in
+/// the picture is what a user would get rather than a second drawing of it.
 ///
 /// The same argument produced <c>TrayIconPreview</c> one phase earlier: some things can
 /// only be judged by looking at the pixels.
 /// </summary>
 internal static class PagePreview
 {
-    /// <summary>Wide enough for the label column plus eight columns of the widest control.</summary>
-    private const double MatrixWidth = 2960;
-
     /// <summary>About what the content pane holds in a comfortably sized window.</summary>
     private const double PageWidth = 900;
 
@@ -60,15 +49,15 @@ internal static class PagePreview
         {
             string suffix = theme == ThemeVariant.Light ? "light" : "dark";
 
-            Render($"{path}-matrix-{suffix}.png", theme, MatrixWidth, Showcase);
-
             // The first-launch screen only appears when nothing is attached, which on a
             // developer's machine is never. Rendering it on demand is the only way it
             // gets looked at more than once.
             Render($"{path}-welcome-{suffix}.png", theme, PageWidth, () => new WelcomeView());
             Render($"{path}-settings-{suffix}.png", theme, PageWidth, Settings);
             Render($"{path}-about-{suffix}.png", theme, PageWidth, About);
-            Render($"{path}-hotkeys-{suffix}.png", theme, PageWidth, Hotkeys);
+            // Shortcuts are shelved; the page still builds, so put this back with the
+            // rail entry when they return.
+            // Render($"{path}-hotkeys-{suffix}.png", theme, PageWidth, Hotkeys);
             Render($"{path}-mouse-{suffix}.png", theme, PageWidth, () => Device(MockDeviceDriver.MouseKey));
             Render($"{path}-keyboard-{suffix}.png", theme, PageWidth, () => Device(MockDeviceDriver.KeyboardKey));
 
@@ -131,6 +120,10 @@ internal static class PagePreview
         }
     }
 
+    // Shelved with the shortcuts page itself. Kept whole rather than deleted: what it
+    // stands up — a settings store, a registry, a coordinator over a service that
+    // registers nothing — is the awkward part to write again.
+    /*
     private static HotkeysView Hotkeys()
     {
         var store = new PreviewSettings();
@@ -158,15 +151,13 @@ internal static class PagePreview
         {
         }
     }
+    */
 
     private static AboutView About()
     {
         var registry = new DeviceRegistry([], new InMemoryCapabilityLedger(), NullLoggerFactory.Instance);
         return new AboutView { DataContext = new AboutViewModel(registry) };
     }
-
-    private static CapabilityShowcaseView Showcase() =>
-        new CapabilityShowcaseView { DataContext = new CapabilityShowcaseViewModel() };
 
     /// <summary>
     /// A stand-in device page driven by a real session over the real mock driver, so what

@@ -340,7 +340,7 @@ public sealed partial class HiddenDeviceViewModel : ObservableObject
 
     public DateTimeOffset HiddenAt { get; }
 
-    public string DisplayName => Device.Info.DisplayName;
+    public string DisplayName => Maxwell.App.Localization.Localizer.Current.Say(Device.Info.DisplayName);
 
     public string Kind => Device.Info.Class == DeviceClass.Unknown ? Maxwell.App.Localization.Localizer.Current.Say("Класс не определён") : Device.Info.Class.ToString();
 
@@ -348,7 +348,7 @@ public sealed partial class HiddenDeviceViewModel : ObservableObject
     /// "скрыто 18 августа". A date rather than "3 days ago", because the list is read
     /// months later and a relative time turns into arithmetic the reader has to do.
     /// </summary>
-    public string When => $"скрыто {HiddenAt:d MMMM}";
+    public string When => Maxwell.App.Localization.Localizer.Current.Say("скрыто {0:d MMMM}", HiddenAt);
 
     [RelayCommand]
     private async Task RestoreAsync() => await _hidden.ShowAsync(Device.Info.Key).ConfigureAwait(true);

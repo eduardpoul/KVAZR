@@ -19,9 +19,9 @@ public sealed class NoiseReductionLabelConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         value switch
         {
-            NoiseReductionMode.Off => "Выкл",
-            NoiseReductionMode.Low => "Низкое",
-            NoiseReductionMode.High => "Высокое",
+            NoiseReductionMode.Off => Maxwell.App.Localization.Localizer.Current.Say("Выкл"),
+            NoiseReductionMode.Low => Maxwell.App.Localization.Localizer.Current.Say("Низкое"),
+            NoiseReductionMode.High => Maxwell.App.Localization.Localizer.Current.Say("Высокое"),
             _ => "—",
         };
 
@@ -50,7 +50,7 @@ public sealed class PresetKindConverter : IValueConverter
     public static readonly PresetKindConverter Instance = new();
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        value is true ? "Пользовательский" : "Встроенный";
+        value is true ? Maxwell.App.Localization.Localizer.Current.Say("Пользовательский") : Maxwell.App.Localization.Localizer.Current.Say("Встроенный");
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();
@@ -64,9 +64,9 @@ public sealed class ThemeLabelConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         value switch
         {
-            AppTheme.System => "Системная",
-            AppTheme.Light => "Светлая",
-            AppTheme.Dark => "Тёмная",
+            AppTheme.System => Maxwell.App.Localization.Localizer.Current.Say("Системная"),
+            AppTheme.Light => Maxwell.App.Localization.Localizer.Current.Say("Светлая"),
+            AppTheme.Dark => Maxwell.App.Localization.Localizer.Current.Say("Тёмная"),
             _ => "—",
         };
 

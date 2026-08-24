@@ -54,7 +54,8 @@ public sealed class AboutViewModel : ObservableObject, IDisposable
             int plus = version.IndexOf('+', StringComparison.Ordinal);
             if (plus > 0) version = version[..plus];
 
-            return $"Версия {version} · .NET {Environment.Version.Major} · Avalonia";
+            return Maxwell.App.Localization.Localizer.Current.Say(
+                "Версия {0} · .NET {1} · Avalonia", version, Environment.Version.Major);
         }
     }
 
@@ -86,9 +87,11 @@ public sealed class AboutViewModel : ObservableObject, IDisposable
             }
 
             Firmware.Add(new FirmwareRow(
-                device.Info.DisplayName,
+                Maxwell.App.Localization.Localizer.Current.Say(device.Info.DisplayName),
                 version.Value,
-                device.UpdatedAt is { } at ? $"проверено {at:HH:mm}" : string.Empty));
+                device.UpdatedAt is { } at
+                    ? Maxwell.App.Localization.Localizer.Current.Say("проверено {0}", at.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture))
+                    : string.Empty));
         }
 
         OnPropertyChanged(nameof(HasFirmware));
