@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<style>
+  body { margin: 0; font-family: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif; }
+</style>
+</helmet>
+
+<div style="width: 1080px; background: #F3F3F3; padding: 28px 32px 40px; box-sizing: border-box; color: #242424;">
+
+  <div style="font-size: 22px; font-weight: 600; margin-bottom: 4px;">Три стиля отрисовки</div>
+  <div style="font-size: 13px; color: #616161; margin-bottom: 22px;">Геометрия одна и та же — сетка 32×32, детали прорисованы. Отличается только подача.</div>
+
+  <div style="background: #FFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; overflow: hidden;">
+    <div style="display: flex; align-items: center; height: 44px; background: #FAFAFA; border-bottom: 1px solid rgba(0,0,0,0.07); font-size: 12px; font-weight: 600; color: #444;">
+      <div style="width: 190px; flex: none; padding-left: 20px;">Устройство</div>
+      <div style="width: 210px; flex: none; text-align: center;">A · Контур</div>
+      <div style="width: 210px; flex: none; text-align: center;">B · Дуотон</div>
+      <div style="width: 210px; flex: none; text-align: center;">C · Заливка в плитке</div>
+      <div style="flex: 1; text-align: center;">16 px</div>
+    </div>
+    <sc-for list="{{ rows }}" as="r" hint-placeholder-count="10">
+      <div style="display: flex; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); padding: 14px 0;">
+        <div style="width: 190px; flex: none; padding-left: 20px; font-size: 12.5px; color: #444;">{{ r.label }}</div>
+        <div style="width: 210px; flex: none; display: flex; justify-content: center; color: #242424;">{{ r.line }}</div>
+        <div style="width: 210px; flex: none; display: flex; justify-content: center; color: #0F6CBD;">{{ r.duo }}</div>
+        <div style="width: 210px; flex: none; display: flex; justify-content: center;">
+          <div style="width: 56px; height: 56px; border-radius: 12px; background: #0F6CBD; display: flex; align-items: center; justify-content: center; color: #FFF;">{{ r.solid }}</div>
+        </div>
+        <div style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 18px; color: #444;">
+          <div style="display: flex; align-items: center;">{{ r.line16 }}</div>
+          <div style="display: flex; align-items: center; color: #0F6CBD;">{{ r.duo16 }}</div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;">
+    <div style="background: #FFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; padding: 18px 20px 20px;">
+      <div style="font-size: 13px; font-weight: 600; margin-bottom: 12px;">Плитка списка · светлая</div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <sc-for list="{{ tilesLight }}" as="t" hint-placeholder-count="8">
+          <div style="width: 56px; height: 56px; border-radius: 6px; background: #F0F0F0; display: flex; align-items: center; justify-content: center; color: #3B3B3B;">{{ t.icon }}</div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="background: #202020; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 18px 20px 20px;">
+      <div style="font-size: 13px; font-weight: 600; margin-bottom: 12px; color: #F5F5F5;">Плитка списка · тёмная</div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <sc-for list="{{ tilesDark }}" as="t" hint-placeholder-count="8">
+          <div style="width: 56px; height: 56px; border-radius: 6px; background: #2D2D2D; display: flex; align-items: center; justify-content: center; color: #D6D6D6;">{{ t.icon }}</div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const E = React.createElement;
+
+// role: b = корпус (заливается), k = вырез внутри корпуса, d = деталь
+const ICONS = {
+  headphones: {label: 'Полноразмерные наушники', s: [
+    ['b','p','M4.8 19v-4.6a11.2 11.2 0 0 1 22.4 0V19h-3.1v-4.6a8.1 8.1 0 0 0-16.2 0V19Z'],
+    ['b','r',3,18.4,6.3,10.8,2.8],['b','r',22.7,18.4,6.3,10.8,2.8],
+    ['k','r',4.9,20.5,2.5,6.6,1.25],['k','r',24.6,20.5,2.5,6.6,1.25]]},
+  headset: {label: 'Гарнитура с микрофоном', s: [
+    ['b','p','M4.8 17.6v-4.4a11.2 11.2 0 0 1 22.4 0v4.4h-3.1v-4.4a8.1 8.1 0 0 0-16.2 0v4.4Z'],
+    ['b','r',3,17,6.3,9.8,2.8],['b','r',22.7,17,6.3,9.8,2.8],
+    ['k','r',4.9,19,2.5,5.8,1.25],['k','r',24.6,19,2.5,5.8,1.25],
+    ['d','p','M25.85 26.8v1.3a2.4 2.4 0 0 1-2.4 2.4h-4.2'],
+    ['b','r',13.4,28.6,5.8,3.1,1.55]]},
+  earbuds: {label: 'TWS-наушники', s: [
+    ['b','c',9.4,10.2,4],['b','r',7.3,12.8,4.2,11.8,2.1],
+    ['k','c',9.4,10.2,1.7],['d','p','M8.4 21.6h2'],
+    ['b','c',22.6,10.2,4],['b','r',20.5,12.8,4.2,11.8,2.1],
+    ['k','c',22.6,10.2,1.7],['d','p','M21.6 21.6h2']]},
+  'earbuds-case': {label: 'Кейс TWS', s: [
+    ['b','r',5,7.5,22,18,4.6],['k','p','M5.4 13.9h21.2'],
+    ['k','c',12.4,19.6,2.5],['k','c',19.6,19.6,2.5],
+    ['d','p','M16 10.6h.01']]},
+  speaker: {label: 'Портативная колонка', s: [
+    ['b','r',8,3,16,26,4.4],['k','c',16,19.4,4.8],['k','c',16,19.4,1.7],
+    ['k','c',16,9.4,2],['d','p','M13.4 25.6h5.2']]},
+  'keyboard-tkl': {label: 'Клавиатура TKL', s: [
+    ['b','r',2,9,28,15,2.8],
+    ['k','p','M5.2 12.8h1.9M8.6 12.8h1.9M12 12.8h1.9M15.4 12.8h1.9M18.8 12.8h1.9M22.2 12.8h1.9M25.6 12.8h1.4'],
+    ['k','p','M5.2 16.4h1.9M8.6 16.4h1.9M12 16.4h1.9M15.4 16.4h1.9M18.8 16.4h1.9M22.2 16.4h1.9M25.6 16.4h1.4'],
+    ['k','p','M5.2 20.2h2.4M9.4 20.2h9.4M20.6 20.2h2.4M24.8 20.2h2.2']]},
+  'keyboard-full': {label: 'Клавиатура 100%', s: [
+    ['b','r',1,9,30,15,2.8],
+    ['k','p','M4 12.8h1.8M7.3 12.8h1.8M10.6 12.8h1.8M13.9 12.8h1.8M17.2 12.8h1.8M21.6 12.8h1.6M24.6 12.8h1.6M27.6 12.8h1.6'],
+    ['k','p','M4 16.4h1.8M7.3 16.4h1.8M10.6 16.4h1.8M13.9 16.4h1.8M17.2 16.4h1.8M21.6 16.4h1.6M24.6 16.4h1.6M27.6 16.4h1.6'],
+    ['k','p','M4 20.2h2.2M8 20.2h7.4M17.2 20.2h1.8M21.6 20.2h1.6M24.6 20.2h4.6'],
+    ['k','p','M20.1 10.6v11.8']]},
+  mouse: {label: 'Мышь', s: [
+    ['b','p','M16 2.6c-5.3 0-9 4.1-9 9.5v8.8c0 5.4 3.7 9.5 9 9.5s9-4.1 9-9.5v-8.8c0-5.4-3.7-9.5-9-9.5Z'],
+    ['k','p','M7.2 13.4h17.6'],['k','p','M16 3.1v4.4'],['b','r',14.9,7.2,2.2,4.4,1.1]]},
+  'mouse-gaming': {label: 'Игровая мышь', s: [
+    ['b','p','M16 2.6c-5.3 0-9 4.1-9 9.5v8.8c0 5.4 3.7 9.5 9 9.5s9-4.1 9-9.5v-8.8c0-5.4-3.7-9.5-9-9.5Z'],
+    ['k','p','M7.2 13.4h17.6'],['k','p','M16 3.1v4.4'],['b','r',14.9,7.2,2.2,4.4,1.1],
+    ['k','r',8.6,15.4,2.4,3.1,1.2],['k','r',8.6,19.2,2.4,3.1,1.2],['d','p','M16 17.6h.01']]},
+  'gamepad-xbox': {label: 'Геймпад Xbox', s: [
+    ['b','p','M12 9.4h8c4.3 0 7.2 2.9 8.1 7.2l1.4 6.9c.6 2.9-3 4.9-4.9 2.6l-3.4-4.1H12.8l-3.4 4.1c-1.9 2.3-5.5.3-4.9-2.6l1.4-6.9C6.8 12.3 9.7 9.4 12 9.4Z'],
+    ['k','c',11.4,16.4,3.1],['d','c',11.4,16.4,1.3],
+    ['k','p','M11.9 22.4h3.2M13.5 20.8v3.2'],
+    ['k','c',19.9,22,2.6],['d','c',19.9,22,1.1],
+    ['k','c',22.6,14.5,1.15],['k','c',25.2,17,1.15],['k','c',20,17,1.15],['k','c',22.6,19.5,1.15]]},
+  'gamepad-ps': {label: 'Геймпад PlayStation', s: [
+    ['b','p','M11.4 9h9.2c4 0 6.3 2.4 7.5 6.6l2 7c1 3.5-2.7 5.6-4.9 3.2l-3.4-3.7h-8.6l-3.4 3.7c-2.2 2.4-5.9.3-4.9-3.2l2-7C5.1 11.4 7.4 9 11.4 9Z'],
+    ['k','r',13,10.4,6,3.6,1],
+    ['k','p','M8.6 16.4h3.6M10.4 14.6v3.6'],
+    ['k','p','M22 13.1l1.2 2.1h-2.4Z'],['k','c',25.3,17.4,1.1],
+    ['k','p','M20.6 19.1l1.5 1.5M22.1 19.1l-1.5 1.5'],['k','r',17.6,16.3,2.2,2.2,0.4],
+    ['k','c',13.2,21.4,2.5],['k','c',19,21.4,2.5]]},
+  'gamepad-nintendo': {label: 'Nintendo Switch', s: [
+    ['b','r',3,5,7.6,22,3.4],['b','r',21.4,5,7.6,22,3.4],['b','r',11.2,7,9.6,18,1.6],
+    ['k','c',6.8,10.6,2],['d','c',6.8,10.6,0.8],
+    ['k','c',6.8,17.4,0.9],['k','c',6.8,22,0.9],['k','c',4.9,19.7,0.9],['k','c',8.7,19.7,0.9],
+    ['k','c',25.2,20.8,2],['d','c',25.2,20.8,0.8],
+    ['k','c',25.2,9.6,0.9],['k','c',25.2,14.2,0.9],['k','c',23.3,11.9,0.9],['k','c',27.1,11.9,0.9]]},
+  'mic-studio': {label: 'Студийный микрофон', s: [
+    ['b','r',11,3.6,10,17.4,5],
+    ['k','p','M12.8 8h6.4M12.8 11.2h6.4M12.8 14.4h6.4M12.8 17.6h6.4'],
+    ['d','p','M7.4 10v6.2a8.6 8.6 0 0 0 17.2 0V10'],
+    ['d','p','M16 24.8v3'],['b','p','M10.6 30.6h10.8l-2-2.8h-6.8Z']]},
+  dongle: {label: 'Донгл / приёмник', s: [
+    ['b','r',12.8,3,6.4,7.4,1.3],['k','p','M14.6 5.2h2.8M14.6 7.4h2.8'],
+    ['b','r',10.4,10.4,11.2,18,3.2],['d','p','M16 15h.01'],['k','p','M13.4 22.4h5.2']]},
+  unknown: {label: 'Неизвестное устройство', s: [
+    ['b','r',4,4,24,24,5.6],
+    ['k','p','M12.8 12.3a3.3 3.3 0 1 1 4.4 3.2c-.9.4-1.2 1.1-1.2 2v.9'],['k','p','M16 22.4h.01']]}
+};
+
+const ORDER = Object.keys(ICONS);
+const TILES = ['headphones','earbuds','keyboard-tkl','mouse','gamepad-xbox','gamepad-nintendo','mic-studio','unknown'];
+
+function shape(el, key, extra) {
+  const t = el[1];
+  const p = Object.assign({key: key}, extra);
+  if (t === 'r') return E('rect', Object.assign(p, {x: el[2], y: el[3], width: el[4], height: el[5], rx: el[6]}));
+  if (t === 'c') return E('circle', Object.assign(p, {cx: el[2], cy: el[3], r: el[4]}));
+  return E('path', Object.assign(p, {d: el[2]}));
+}
+
+class Component extends DCLogic {
+  ico(key, size, style, bg) {
+    const def = ICONS[key];
+    if (!def) return null;
+    const k = 32 / size;
+    const heavy = size <= 20 ? 2.6 : size <= 32 ? 1.9 : 1.7;
+    const light = size <= 20 ? 2.2 : 1.55;
+    const els = [];
+    def.s.forEach((el, i) => {
+      const role = el[0];
+      if (style === 'solid') {
+        if (role === 'b') els.push(shape(el, i, {fill: 'currentColor', stroke: 'none'}));
+        else els.push(shape(el, i, {fill: 'none', stroke: bg || '#FFF', strokeWidth: light * k, strokeLinecap: 'round', strokeLinejoin: 'round'}));
+      } else if (style === 'duo') {
+        if (role === 'b') {
+          els.push(shape(el, i + 'f', {fill: 'currentColor', fillOpacity: 0.16, stroke: 'currentColor', strokeWidth: heavy * k, strokeLinecap: 'round', strokeLinejoin: 'round'}));
+        } else {
+          els.push(shape(el, i, {fill: 'none', stroke: 'currentColor', strokeWidth: light * k, strokeLinecap: 'round', strokeLinejoin: 'round', opacity: role === 'd' ? 1 : 0.85}));
+        }
+      } else {
+        els.push(shape(el, i, {fill: 'none', stroke: 'currentColor', strokeWidth: (role === 'b' ? heavy : light) * k, strokeLinecap: 'round', strokeLinejoin: 'round'}));
+      }
+    });
+    return E('svg', {width: size, height: size, viewBox: '0 0 32 32', fill: 'none', style: {display: 'block', overflow: 'visible'}}, els);
+  }
+
+  renderVals() {
+    return {
+      rows: ORDER.map(k => ({
+        label: ICONS[k].label,
+        line: this.ico(k, 40, 'line'),
+        duo: this.ico(k, 40, 'duo'),
+        solid: this.ico(k, 34, 'solid', '#0F6CBD'),
+        line16: this.ico(k, 16, 'line'),
+        duo16: this.ico(k, 16, 'duo')
+      })),
+      tilesLight: TILES.map(k => ({icon: this.ico(k, 30, 'duo')})),
+      tilesDark: TILES.map(k => ({icon: this.ico(k, 30, 'duo')}))
+    };
+  }
+}
+
+</script>
+</body>
+</html>

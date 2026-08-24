@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<style>
+  body { margin: 0; background: #E9E9E9; font-family: "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #0F6CBD; text-decoration: none; }
+  a:hover { color: #0C5AA6; text-decoration: underline; }
+  @keyframes kvazr-pulse { 0%, 100% { opacity: 0.30; } 50% { opacity: 0.70; } }
+  @keyframes kvazr-sweep { 0% { transform: translateX(-40%); } 100% { transform: translateX(240%); } }
+</style>
+</helmet>
+
+<section style="display: flex; flex-direction: column; gap: 40px; padding: 48px; color: #1B1B1B;">
+
+  <div style="display: flex; flex-direction: column; gap: 8px;">
+    <div style="font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #707070;">KVAZR &#183; Комплект идентики</div>
+    <div style="font-size: 30px; font-weight: 600; letter-spacing: -0.01em;">Орбита с разрывом</div>
+    <div style="font-size: 14px; color: #5C5C5C; max-width: 780px; text-wrap: pretty;">Одна конструкция на весь набор: дуга 305&deg; с разрывом 55&deg;, ядро радиусом 11 и планета радиусом 5 на краю разрыва. Геометрия не меняется ни на одном размере &mdash; масштабируется весь знак целиком.</div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+    <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #16324D;">01 &#183; ЗНАК</div>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: stretch;">
+      <div style="width: 300px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 32px;">
+        <svg width="224" height="224" viewBox="0 0 64 64" fill="none"><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#16324D" stroke-width="3" stroke-linecap="round"></path><circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle><circle cx="20" cy="8.94" r="5" fill="{{ accent }}"></circle></svg>
+      </div>
+      <div style="flex: 1; min-width: 420px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="flex: 1; display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap; padding: 26px 24px;">
+          <sc-for list="{{ sizes }}" as="s" hint-placeholder-count="8">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 7px;">
+              <svg width="{{ s.px }}" height="{{ s.px }}" viewBox="0 0 64 64" fill="none"><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#16324D" stroke-width="3" stroke-linecap="round"></path><circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle><circle cx="20" cy="8.94" r="5" fill="{{ accent }}"></circle></svg>
+              <div style="font-size: 10px; color: #8A8A8A;">{{ s.px }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap; padding: 26px 24px; background: #0B1420;">
+          <sc-for list="{{ sizes }}" as="s" hint-placeholder-count="8">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 7px;">
+              <svg width="{{ s.px }}" height="{{ s.px }}" viewBox="0 0 64 64" fill="none"><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#A8BFD6" stroke-width="3" stroke-linecap="round"></path><circle cx="32" cy="32" r="11" fill="{{ accentDark }}"></circle><circle cx="20" cy="8.94" r="5" fill="{{ accentDark }}"></circle></svg>
+              <div style="font-size: 10px; color: #6E8098;">{{ s.px }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+    <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #16324D;">02 &#183; ЛОГОТИП</div>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: stretch;">
+
+      <div style="width: 340px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; flex-direction: column;">
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 34px 20px;">
+          <svg width="46" height="46" viewBox="0 0 64 64" fill="none"><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#16324D" stroke-width="3" stroke-linecap="round"></path><circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle><circle cx="20" cy="8.94" r="5" fill="{{ accent }}"></circle></svg>
+          <div style="font-size: 32px; font-weight: 600; letter-spacing: 0.22em; color: #16324D;">KVAZR</div>
+        </div>
+        <div style="font-size: 11px; color: #8A8A8A; padding: 11px 18px; border-top: 1px solid rgba(0,0,0,0.06);">Горизонтальный &#183; основной</div>
+      </div>
+
+      <div style="width: 260px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; flex-direction: column;">
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 26px 20px;">
+          <svg width="52" height="52" viewBox="0 0 64 64" fill="none"><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#16324D" stroke-width="3" stroke-linecap="round"></path><circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle><circle cx="20" cy="8.94" r="5" fill="{{ accent }}"></circle></svg>
+          <div style="font-size: 24px; font-weight: 600; letter-spacing: 0.26em; color: #16324D; padding-left: 0.26em;">KVAZR</div>
+        </div>
+        <div style="font-size: 11px; color: #8A8A8A; padding: 11px 18px; border-top: 1px solid rgba(0,0,0,0.06);">Вертикальный &#183; сплеш, о программе</div>
+      </div>
+
+      <div style="width: 240px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; flex-direction: column;">
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 34px 20px;">
+          <svg width="40" height="40" viewBox="0 0 64 64" fill="none"><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#1B1B1B" stroke-width="3" stroke-linecap="round"></path><circle cx="32" cy="32" r="11" fill="#1B1B1B"></circle><circle cx="20" cy="8.94" r="5" fill="#1B1B1B"></circle></svg>
+          <div style="font-size: 26px; font-weight: 600; letter-spacing: 0.22em; color: #1B1B1B;">KVAZR</div>
+        </div>
+        <div style="font-size: 11px; color: #8A8A8A; padding: 11px 18px; border-top: 1px solid rgba(0,0,0,0.06);">Монохром &#183; печать, факс, гравировка</div>
+      </div>
+
+      <div style="width: 240px; background: #0B1420; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; flex-direction: column;">
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 34px 20px;">
+          <svg width="40" height="40" viewBox="0 0 64 64" fill="none"><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"></path><circle cx="32" cy="32" r="11" fill="#FFFFFF"></circle><circle cx="20" cy="8.94" r="5" fill="#FFFFFF"></circle></svg>
+          <div style="font-size: 26px; font-weight: 600; letter-spacing: 0.22em; color: #FFFFFF;">KVAZR</div>
+        </div>
+        <div style="font-size: 11px; color: #6E8098; padding: 11px 18px; border-top: 1px solid rgba(255,255,255,0.08);">Выворотка &#183; на фото и заливке</div>
+      </div>
+
+      <div style="width: 240px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; flex-direction: column;">
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 34px 20px;">
+          <div style="font-size: 30px; font-weight: 600; letter-spacing: 0.22em; color: #16324D;">KVAZR</div>
+        </div>
+        <div style="font-size: 11px; color: #8A8A8A; padding: 11px 18px; border-top: 1px solid rgba(0,0,0,0.06);">Только слово &#183; шапка сайта, подпись</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+    <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #16324D;">03 &#183; ИКОНКА ПРИЛОЖЕНИЯ</div>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: stretch;">
+      <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; align-items: flex-end; gap: 24px; padding: 26px 28px;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <svg width="128" height="128" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="14" fill="#0B1420"></rect><path d="M32 12A20 20 0 1 1 15.6 20.5" stroke="#A8BFD6" stroke-width="2.6" stroke-linecap="round"></path><circle cx="32" cy="32" r="8.5" fill="{{ accentDark }}"></circle><circle cx="22.8" cy="14.3" r="3.9" fill="{{ accentDark }}"></circle></svg>
+          <div style="font-size: 10px; color: #8A8A8A;">128</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <svg width="48" height="48" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="14" fill="#0B1420"></rect><path d="M32 12A20 20 0 1 1 15.6 20.5" stroke="#A8BFD6" stroke-width="2.6" stroke-linecap="round"></path><circle cx="32" cy="32" r="8.5" fill="{{ accentDark }}"></circle><circle cx="22.8" cy="14.3" r="3.9" fill="{{ accentDark }}"></circle></svg>
+          <div style="font-size: 10px; color: #8A8A8A;">48</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <svg width="32" height="32" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="14" fill="#0B1420"></rect><path d="M32 12A20 20 0 1 1 15.6 20.5" stroke="#A8BFD6" stroke-width="2.6" stroke-linecap="round"></path><circle cx="32" cy="32" r="8.5" fill="{{ accentDark }}"></circle><circle cx="22.8" cy="14.3" r="3.9" fill="{{ accentDark }}"></circle></svg>
+          <div style="font-size: 10px; color: #8A8A8A;">32</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <svg width="16" height="16" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="14" fill="#0B1420"></rect><path d="M32 12A20 20 0 1 1 15.6 20.5" stroke="#A8BFD6" stroke-width="2.6" stroke-linecap="round"></path><circle cx="32" cy="32" r="8.5" fill="{{ accentDark }}"></circle><circle cx="22.8" cy="14.3" r="3.9" fill="{{ accentDark }}"></circle></svg>
+          <div style="font-size: 10px; color: #8A8A8A;">16</div>
+        </div>
+        <div style="width: 200px; font-size: 12px; color: #707070; text-wrap: pretty; padding-bottom: 6px;">Плитка для установщика, ярлыка и таскбара. Знак ужат до радиуса 20, чтобы остались поля.</div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; align-items: flex-end; gap: 24px; padding: 26px 28px;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <svg width="128" height="128" viewBox="0 0 64 64" fill="none"><rect x="0.5" y="0.5" width="63" height="63" rx="13.5" fill="#F4F7FA" stroke="#DCE4EC"></rect><path d="M32 12A20 20 0 1 1 15.6 20.5" stroke="#16324D" stroke-width="2.6" stroke-linecap="round"></path><circle cx="32" cy="32" r="8.5" fill="{{ accent }}"></circle><circle cx="22.8" cy="14.3" r="3.9" fill="{{ accent }}"></circle></svg>
+          <div style="font-size: 10px; color: #8A8A8A;">128</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <svg width="48" height="48" viewBox="0 0 64 64" fill="none"><rect x="0.5" y="0.5" width="63" height="63" rx="13.5" fill="#F4F7FA" stroke="#DCE4EC"></rect><path d="M32 12A20 20 0 1 1 15.6 20.5" stroke="#16324D" stroke-width="2.6" stroke-linecap="round"></path><circle cx="32" cy="32" r="8.5" fill="{{ accent }}"></circle><circle cx="22.8" cy="14.3" r="3.9" fill="{{ accent }}"></circle></svg>
+          <div style="font-size: 10px; color: #8A8A8A;">48</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <svg width="32" height="32" viewBox="0 0 64 64" fill="none"><rect x="0.5" y="0.5" width="63" height="63" rx="13.5" fill="#F4F7FA" stroke="#DCE4EC"></rect><path d="M32 12A20 20 0 1 1 15.6 20.5" stroke="#16324D" stroke-width="2.6" stroke-linecap="round"></path><circle cx="32" cy="32" r="8.5" fill="{{ accent }}"></circle><circle cx="22.8" cy="14.3" r="3.9" fill="{{ accent }}"></circle></svg>
+          <div style="font-size: 10px; color: #8A8A8A;">32</div>
+        </div>
+        <div style="width: 130px; font-size: 12px; color: #707070; text-wrap: pretty; padding-bottom: 6px;">Светлая плитка для тёмных панелей.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+    <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #16324D;">04 &#183; СОСТОЯНИЯ</div>
+    <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden;">
+      <sc-for list="{{ states }}" as="s" hint-placeholder-count="6">
+        <div style="display: flex; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05);">
+          <div style="width: 92px; flex: none; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 16px 0;">
+            <svg width="32" height="32" viewBox="0 0 64 64" fill="none"><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="{{ s.lRing }}" stroke-width="3" stroke-linecap="round"></path><circle cx="32" cy="32" r="11" fill="{{ s.lCore }}"></circle><circle cx="20" cy="8.94" r="5" fill="{{ s.lDot }}"></circle></svg>
+            <svg width="16" height="16" viewBox="0 0 64 64" fill="none"><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="{{ s.lRing }}" stroke-width="3" stroke-linecap="round"></path><circle cx="32" cy="32" r="11" fill="{{ s.lCore }}"></circle><circle cx="20" cy="8.94" r="5" fill="{{ s.lDot }}"></circle></svg>
+          </div>
+          <div style="width: 92px; flex: none; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 16px 0; background: #0B1420;">
+            <svg width="32" height="32" viewBox="0 0 64 64" fill="none"><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="{{ s.dRing }}" stroke-width="3" stroke-linecap="round"></path><circle cx="32" cy="32" r="11" fill="{{ s.dCore }}"></circle><circle cx="20" cy="8.94" r="5" fill="{{ s.dDot }}"></circle></svg>
+            <svg width="16" height="16" viewBox="0 0 64 64" fill="none"><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="{{ s.dRing }}" stroke-width="3" stroke-linecap="round"></path><circle cx="32" cy="32" r="11" fill="{{ s.dCore }}"></circle><circle cx="20" cy="8.94" r="5" fill="{{ s.dDot }}"></circle></svg>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 22px;">
+            <div style="font-size: 14px; font-weight: 600;">{{ s.name }}</div>
+            <div style="font-size: 12px; color: #707070;">{{ s.hint }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+    <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #16324D;">05 &#183; АНИМАЦИИ</div>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: stretch;">
+
+      <div style="width: 216px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="height: 128px; display: flex; align-items: center; justify-content: center; gap: 20px; background: #FAFAFA;">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#16324D" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accent }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="2.8s" repeatCount="indefinite"></animateTransform></g></svg>
+          <svg width="20" height="20" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#16324D" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accent }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="2.8s" repeatCount="indefinite"></animateTransform></g></svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 2px; padding: 13px 16px; border-top: 1px solid rgba(0,0,0,0.06);">
+          <div style="font-size: 13px; font-weight: 600;">Загрузка</div>
+          <div style="font-size: 11px; color: #707070;">2,8 с, линейно, бесконечно</div>
+        </div>
+      </div>
+
+      <div style="width: 216px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="height: 128px; display: flex; align-items: center; justify-content: center; gap: 20px; background: #FAFAFA;">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#16324D" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accent }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="1.4s" repeatCount="indefinite"></animateTransform></g></svg>
+          <svg width="20" height="20" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#16324D" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accent }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="1.4s" repeatCount="indefinite"></animateTransform></g></svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 2px; padding: 13px 16px; border-top: 1px solid rgba(0,0,0,0.06);">
+          <div style="font-size: 13px; font-weight: 600;">Быстрая</div>
+          <div style="font-size: 11px; color: #707070;">1,4 с &#183; кнопки, короткие ответы</div>
+        </div>
+      </div>
+
+      <div style="width: 216px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="height: 128px; display: flex; align-items: center; justify-content: center; background: #FAFAFA;">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <circle cx="32" cy="32" r="11" fill="{{ accent }}"><animate attributeName="opacity" values="1;0.55;1" dur="6s" repeatCount="indefinite"></animate></circle>
+            <g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#16324D" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accent }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="6s" repeatCount="indefinite"></animateTransform></g>
+          </svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 2px; padding: 13px 16px; border-top: 1px solid rgba(0,0,0,0.06);">
+          <div style="font-size: 13px; font-weight: 600;">Дыхание</div>
+          <div style="font-size: 11px; color: #707070;">6 с &#183; фон сплеша, простой</div>
+        </div>
+      </div>
+
+      <div style="width: 216px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="height: 128px; display: flex; align-items: center; justify-content: center; background: #FAFAFA;">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <circle cx="32" cy="32" r="26" stroke="#E4EAF0" stroke-width="3"></circle>
+            <circle cx="32" cy="32" r="26" stroke="{{ accent }}" stroke-width="3" stroke-linecap="round" transform="rotate(-90 32 32)" stroke-dasharray="0 164"><animate attributeName="stroke-dasharray" values="0 164;164 0" dur="3.2s" repeatCount="indefinite"></animate></circle>
+            <circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle>
+          </svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 2px; padding: 13px 16px; border-top: 1px solid rgba(0,0,0,0.06);">
+          <div style="font-size: 13px; font-weight: 600;">Прогресс</div>
+          <div style="font-size: 11px; color: #707070;">Орбита замыкается по мере загрузки</div>
+        </div>
+      </div>
+
+      <div style="width: 216px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="height: 128px; display: flex; align-items: center; justify-content: center; background: #FAFAFA;">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#16324D" stroke-width="3" stroke-linecap="round"></path>
+            <circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle>
+            <circle cx="20" cy="8.94" r="5" fill="{{ accent }}"><animate attributeName="r" values="5;7.5;5" dur="1.3s" repeatCount="indefinite"></animate></circle>
+          </svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 2px; padding: 13px 16px; border-top: 1px solid rgba(0,0,0,0.06);">
+          <div style="font-size: 13px; font-weight: 600;">Пульс</div>
+          <div style="font-size: 11px; color: #707070;">Устройство отвечает, но ещё не готово</div>
+        </div>
+      </div>
+
+      <div style="width: 216px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="height: 128px; display: flex; align-items: center; justify-content: center; background: #FAFAFA;">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle>
+            <g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#16324D" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accent }}"></circle><animateTransform attributeName="transform" type="rotate" values="0 32 32;720 32 32;720 32 32" keyTimes="0;0.55;1" calcMode="spline" keySplines="0.16 0.8 0.24 1;0 0 1 1" dur="3.4s" repeatCount="indefinite"></animateTransform></g>
+          </svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 2px; padding: 13px 16px; border-top: 1px solid rgba(0,0,0,0.06);">
+          <div style="font-size: 13px; font-weight: 600;">Посадка</div>
+          <div style="font-size: 11px; color: #707070;">Два оборота с торможением, конец загрузки</div>
+        </div>
+      </div>
+
+      <div style="width: 216px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="height: 128px; display: flex; align-items: center; justify-content: center; background: #FAFAFA;">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <g>
+              <path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#16324D" stroke-width="3" stroke-linecap="round"></path>
+              <circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle>
+              <circle cx="20" cy="8.94" r="5" fill="#C42B1C"></circle>
+              <animateTransform attributeName="transform" type="translate" values="0 0;-1.6 0;1.6 0;-1.2 0;0 0;0 0;0 0;0 0" dur="2.4s" repeatCount="indefinite"></animateTransform>
+            </g>
+          </svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 2px; padding: 13px 16px; border-top: 1px solid rgba(0,0,0,0.06);">
+          <div style="font-size: 13px; font-weight: 600;">Сбой</div>
+          <div style="font-size: 11px; color: #707070;">Вращение стоит, планета красная, короткий сдвиг</div>
+        </div>
+      </div>
+
+      <div style="width: 216px; background: #0B1420; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="height: 128px; display: flex; align-items: center; justify-content: center; gap: 20px;">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="11" fill="{{ accentDark }}"></circle><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#A8BFD6" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accentDark }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="2.8s" repeatCount="indefinite"></animateTransform></g></svg>
+          <svg width="20" height="20" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="11" fill="{{ accentDark }}"></circle><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#A8BFD6" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accentDark }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="2.8s" repeatCount="indefinite"></animateTransform></g></svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 2px; padding: 13px 16px; border-top: 1px solid rgba(255,255,255,0.08);">
+          <div style="font-size: 13px; font-weight: 600; color: #E8EEF5;">Загрузка &#183; тёмная</div>
+          <div style="font-size: 11px; color: #6E8098;">Те же тайминги, орбита светлеет</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+    <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #16324D;">06 &#183; СПЛЕШ-СКРИНЫ</div>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start;">
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div data-screen-label="Сплеш тёмный с названием" style="width: 640px; height: 400px; background: #0B1420; border-radius: 8px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; overflow: hidden;">
+          <svg width="104" height="104" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="11" fill="{{ accentDark }}"></circle><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#2E4B68" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accentDark }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="2.8s" repeatCount="indefinite"></animateTransform></g></svg>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+            <div style="font-size: 34px; font-weight: 600; letter-spacing: 0.30em; color: #E8EEF5; padding-left: 0.30em;">KVAZR</div>
+            <div style="font-size: 12px; color: #6E8098; letter-spacing: 0.04em;">Поиск устройств</div>
+          </div>
+          <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: rgba(255,255,255,0.07); overflow: hidden;"><div style="width: 30%; height: 100%; background: {{ accentDark }}; animation: kvazr-sweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;"></div></div>
+          <div style="position: absolute; right: 20px; bottom: 16px; font-size: 11px; color: #4C6076;">1.0.0</div>
+        </div>
+        <div style="font-size: 12px; color: #707070;">640&times;400 &#183; тёмный, с названием &#183; основной</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div data-screen-label="Сплеш тёмный без названия" style="width: 400px; height: 400px; background: #0B1420; border-radius: 8px; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+          <svg width="132" height="132" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="11" fill="{{ accentDark }}"></circle><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#2E4B68" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accentDark }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="2.8s" repeatCount="indefinite"></animateTransform></g></svg>
+        </div>
+        <div style="font-size: 12px; color: #707070;">400&times;400 &#183; только знак &#183; повторный запуск</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div data-screen-label="Сплеш светлый" style="width: 640px; height: 400px; background: #F4F7FA; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; overflow: hidden;">
+          <svg width="104" height="104" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#B7C6D4" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accent }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="2.8s" repeatCount="indefinite"></animateTransform></g></svg>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+            <div style="font-size: 34px; font-weight: 600; letter-spacing: 0.30em; color: #16324D; padding-left: 0.30em;">KVAZR</div>
+            <div style="font-size: 12px; color: #7C8B9A; letter-spacing: 0.04em;">Поиск устройств</div>
+          </div>
+          <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: rgba(0,0,0,0.06); overflow: hidden;"><div style="width: 30%; height: 100%; background: {{ accent }}; animation: kvazr-sweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;"></div></div>
+          <div style="position: absolute; right: 20px; bottom: 16px; font-size: 11px; color: #A8B4C0;">1.0.0</div>
+        </div>
+        <div style="font-size: 12px; color: #707070;">640&times;400 &#183; светлая тема системы</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div data-screen-label="Сплеш компактный" style="width: 400px; height: 250px; background: #0B1420; border-radius: 8px; position: relative; display: flex; align-items: center; justify-content: center; gap: 22px; overflow: hidden;">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="11" fill="{{ accentDark }}"></circle><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#2E4B68" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accentDark }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="2.8s" repeatCount="indefinite"></animateTransform></g></svg>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <div style="font-size: 24px; font-weight: 600; letter-spacing: 0.24em; color: #E8EEF5;">KVAZR</div>
+            <div style="font-size: 11px; color: #6E8098;">Поиск устройств</div>
+          </div>
+          <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: rgba(255,255,255,0.07); overflow: hidden;"><div style="width: 30%; height: 100%; background: {{ accentDark }}; animation: kvazr-sweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;"></div></div>
+        </div>
+        <div style="font-size: 12px; color: #707070;">400&times;250 &#183; компактный, горизонтальный</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div data-screen-label="Сплеш без полосы" style="width: 400px; height: 250px; background: #0B1420; border-radius: 8px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; overflow: hidden;">
+          <svg width="72" height="72" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="11" fill="{{ accentDark }}"><animate attributeName="opacity" values="1;0.55;1" dur="6s" repeatCount="indefinite"></animate></circle><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#2E4B68" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accentDark }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="6s" repeatCount="indefinite"></animateTransform></g></svg>
+          <div style="font-size: 22px; font-weight: 600; letter-spacing: 0.28em; color: #E8EEF5; padding-left: 0.28em;">KVAZR</div>
+        </div>
+        <div style="font-size: 12px; color: #707070;">400&times;250 &#183; без полосы, «дыхание» &#183; ожидание</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+    <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #16324D;">07 &#183; ЗАГРУЗКА В ИНТЕРФЕЙСЕ</div>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start;">
+
+      <div style="width: 400px; background: #F9F9F9; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden;">
+        <div style="font-size: 11px; color: #8A8A8A; padding: 11px 18px; border-bottom: 1px solid rgba(0,0,0,0.06); background: #FFFFFF;">Пустой экран &#183; первое сканирование</div>
+        <div style="height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;">
+          <svg width="56" height="56" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#B7C6D4" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accent }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="2.8s" repeatCount="indefinite"></animateTransform></g></svg>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+            <div style="font-size: 15px; font-weight: 600;">Ищем устройства</div>
+            <div style="font-size: 12px; color: #707070;">Проверяем USB и Bluetooth</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width: 400px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden;">
+        <div style="font-size: 11px; color: #8A8A8A; padding: 11px 18px; border-bottom: 1px solid rgba(0,0,0,0.06);">Строки устройств &#183; частичная загрузка</div>
+        <div style="display: flex; align-items: center; gap: 14px; height: 68px; padding: 0 18px; border-bottom: 1px solid rgba(0,0,0,0.05);">
+          <div style="width: 44px; height: 44px; flex: none; border-radius: 6px; background: #EEF2F6;"></div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 3px;">
+            <div style="font-size: 14px; font-weight: 600;">Audeze Maxwell</div>
+            <div style="font-size: 12px; color: #707070;">Наушники &#183; 2,4 ГГц</div>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 64 64" fill="none" style="flex: none;"><circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#B7C6D4" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accent }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="1.4s" repeatCount="indefinite"></animateTransform></g></svg>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px; height: 68px; padding: 0 18px; border-bottom: 1px solid rgba(0,0,0,0.05);">
+          <div style="width: 44px; height: 44px; flex: none; border-radius: 6px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out infinite;"></div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 7px;">
+            <div style="width: 58%; height: 9px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.15s infinite;"></div>
+            <div style="width: 34%; height: 7px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.3s infinite;"></div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px; height: 68px; padding: 0 18px;">
+          <div style="width: 44px; height: 44px; flex: none; border-radius: 6px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.2s infinite;"></div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 7px;">
+            <div style="width: 44%; height: 9px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.35s infinite;"></div>
+            <div style="width: 28%; height: 7px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.5s infinite;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width: 400px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden;">
+        <div style="font-size: 11px; color: #8A8A8A; padding: 11px 18px; border-bottom: 1px solid rgba(0,0,0,0.06);">Прошивка &#183; известен объём</div>
+        <div style="display: flex; align-items: center; gap: 20px; padding: 26px 22px;">
+          <svg width="56" height="56" viewBox="0 0 64 64" fill="none" style="flex: none;">
+            <circle cx="32" cy="32" r="26" stroke="#E4EAF0" stroke-width="3"></circle>
+            <circle cx="32" cy="32" r="26" stroke="{{ accent }}" stroke-width="3" stroke-linecap="round" transform="rotate(-90 32 32)" stroke-dasharray="106 58"></circle>
+            <circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle>
+          </svg>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+            <div style="font-size: 15px; font-weight: 600;">Обновление прошивки</div>
+            <div style="font-size: 12px; color: #707070;">65&#37; &#183; не отключайте устройство</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; padding: 0 22px 22px;">
+          <div style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 9px; height: 34px; border-radius: 5px; background: {{ accent }}; color: #FFFFFF; font-size: 13px; font-weight: 600;">
+            <svg width="16" height="16" viewBox="0 0 64 64" fill="none"><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="rgba(255,255,255,0.45)" stroke-width="4" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="7" fill="#FFFFFF"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="1.4s" repeatCount="indefinite"></animateTransform></g></svg>
+            Устанавливается
+          </div>
+          <div style="width: 110px; display: flex; align-items: center; justify-content: center; height: 34px; border-radius: 5px; border: 1px solid rgba(0,0,0,0.14); font-size: 13px; color: #5C5C5C;">Отмена</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+    <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #16324D;">08 &#183; СКЕЛЕТОНЫ ЭКРАНОВ</div>
+    <div style="font-size: 13px; color: #5C5C5C; max-width: 780px; text-wrap: pretty;">Скелетон рисуется только там, где содержимое заранее неизвестно. Заголовок окна, боковое меню, названия разделов и кнопки появляются сразу &mdash; они не зависят от опроса устройств.</div>
+
+    <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start;">
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div data-screen-label="Дашборд холодный старт" style="width: 700px; height: 470px; background: #F3F3F3; border: 1px solid rgba(0,0,0,0.10); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+          <div style="height: 40px; flex: none; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 9px; padding-left: 14px;">
+              <svg width="16" height="16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#16324D" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accent }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="2.8s" repeatCount="indefinite"></animateTransform></g></svg>
+              <div style="font-size: 11px;">KVAZR</div>
+            </div>
+            <div style="display: flex; height: 40px; color: #1B1B1B;">
+              <div style="width: 40px; display: flex; align-items: center; justify-content: center; font-size: 9px;">&#9472;</div>
+              <div style="width: 40px; display: flex; align-items: center; justify-content: center; font-size: 9px;">&#9633;</div>
+              <div style="width: 40px; display: flex; align-items: center; justify-content: center; font-size: 10px;">&#10005;</div>
+            </div>
+          </div>
+          <div style="flex: 1; display: flex; min-height: 0;">
+            <div style="width: 190px; flex: none; display: flex; flex-direction: column; gap: 3px; padding: 0 8px;">
+              <div style="height: 28px; margin: 0 4px 6px; border-radius: 4px; background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.08); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 11px; color: #8A8A8A;">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4.2"></circle><path d="M10.2 10.2 13.5 13.5"></path></svg>
+                Поиск
+              </div>
+              <div style="height: 30px; border-radius: 4px; background: #EBEBEB; display: flex; align-items: center; gap: 10px; padding: 0 10px; font-size: 12px; font-weight: 600; position: relative;">
+                <div style="position: absolute; left: 0; top: 8px; width: 3px; height: 14px; border-radius: 2px; background: {{ accent }};"></div>
+                <div style="width: 14px; height: 14px; border: 1.2px solid #444; border-radius: 2px;"></div>
+                Все устройства
+              </div>
+              <div style="height: 8px; width: 76px; margin: 14px 10px 6px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out infinite;"></div>
+              <div style="height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 10px;"><div style="width: 14px; height: 14px; flex: none; border-radius: 3px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.1s infinite;"></div><div style="width: 96px; height: 8px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.1s infinite;"></div></div>
+              <div style="height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 10px;"><div style="width: 14px; height: 14px; flex: none; border-radius: 3px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.2s infinite;"></div><div style="width: 74px; height: 8px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.2s infinite;"></div></div>
+              <div style="height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 10px;"><div style="width: 14px; height: 14px; flex: none; border-radius: 3px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.3s infinite;"></div><div style="width: 88px; height: 8px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.3s infinite;"></div></div>
+            </div>
+            <div style="flex: 1; min-width: 0; background: #F9F9F9; border-top: 1px solid rgba(0,0,0,0.06); border-left: 1px solid rgba(0,0,0,0.06); border-top-left-radius: 8px; padding: 20px 22px; display: flex; flex-direction: column; gap: 16px;">
+              <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+                <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.01em;">Все устройства</div>
+                <div style="width: 120px; height: 8px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out infinite;"></div>
+              </div>
+              <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; overflow: hidden;">
+                <div style="height: 68px; display: flex; align-items: center; gap: 14px; padding: 0 14px; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                  <div style="width: 46px; height: 46px; flex: none; border-radius: 6px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out infinite;"></div>
+                  <div style="flex: 1; display: flex; flex-direction: column; gap: 7px;"><div style="width: 46%; height: 9px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.1s infinite;"></div><div style="width: 30%; height: 7px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.2s infinite;"></div></div>
+                  <div style="width: 60px; height: 12px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.15s infinite;"></div>
+                </div>
+                <div style="height: 68px; display: flex; align-items: center; gap: 14px; padding: 0 14px; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                  <div style="width: 46px; height: 46px; flex: none; border-radius: 6px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.2s infinite;"></div>
+                  <div style="flex: 1; display: flex; flex-direction: column; gap: 7px;"><div style="width: 38%; height: 9px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.3s infinite;"></div><div style="width: 24%; height: 7px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.4s infinite;"></div></div>
+                  <div style="width: 60px; height: 12px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.35s infinite;"></div>
+                </div>
+                <div style="height: 68px; display: flex; align-items: center; gap: 14px; padding: 0 14px;">
+                  <div style="width: 46px; height: 46px; flex: none; border-radius: 6px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.4s infinite;"></div>
+                  <div style="flex: 1; display: flex; flex-direction: column; gap: 7px;"><div style="width: 52%; height: 9px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.5s infinite;"></div><div style="width: 28%; height: 7px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.6s infinite;"></div></div>
+                  <div style="width: 60px; height: 12px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.55s infinite;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size: 12px; color: #707070; max-width: 700px; text-wrap: pretty;">Холодный старт. Заголовок, поиск и пункт меню уже на месте &mdash; они не ждут опроса. Число разделов заранее неизвестно, поэтому подписи «Подключены» и «Отключены» тоже скелетон.</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div data-screen-label="Флайаут трея загрузка" style="box-sizing: border-box; width: 320px; background: #202020; border: 1px solid rgba(255,255,255,0.10); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+          <div style="height: 46px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 16px; border-bottom: 1px solid rgba(255,255,255,0.07);">
+            <svg width="16" height="16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="11" fill="{{ accentDark }}"></circle><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#A8BFD6" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accentDark }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="2.8s" repeatCount="indefinite"></animateTransform></g></svg>
+            <div style="flex: 1; font-size: 13px; font-weight: 600; color: #E8EEF5;">Устройства</div>
+            <div style="font-size: 11px; color: #6E8098;">поиск</div>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 12px;">
+            <div style="height: 62px; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-radius: 6px; background: rgba(255,255,255,0.04);">
+              <div style="width: 40px; height: 40px; flex: none; border-radius: 6px; background: #A8BFD6; animation: kvazr-pulse 1.4s ease-in-out infinite;"></div>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 7px;"><div style="width: 62%; height: 9px; border-radius: 4px; background: #A8BFD6; animation: kvazr-pulse 1.4s ease-in-out 0.1s infinite;"></div><div style="width: 40%; height: 7px; border-radius: 4px; background: #A8BFD6; animation: kvazr-pulse 1.4s ease-in-out 0.2s infinite;"></div></div>
+            </div>
+            <div style="height: 62px; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-radius: 6px; background: rgba(255,255,255,0.04);">
+              <div style="width: 40px; height: 40px; flex: none; border-radius: 6px; background: #A8BFD6; animation: kvazr-pulse 1.4s ease-in-out 0.25s infinite;"></div>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 7px;"><div style="width: 48%; height: 9px; border-radius: 4px; background: #A8BFD6; animation: kvazr-pulse 1.4s ease-in-out 0.35s infinite;"></div><div style="width: 30%; height: 7px; border-radius: 4px; background: #A8BFD6; animation: kvazr-pulse 1.4s ease-in-out 0.45s infinite;"></div></div>
+            </div>
+            <div style="height: 62px; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-radius: 6px; background: rgba(255,255,255,0.04);">
+              <div style="width: 40px; height: 40px; flex: none; border-radius: 6px; background: #A8BFD6; animation: kvazr-pulse 1.4s ease-in-out 0.5s infinite;"></div>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 7px;"><div style="width: 56%; height: 9px; border-radius: 4px; background: #A8BFD6; animation: kvazr-pulse 1.4s ease-in-out 0.6s infinite;"></div><div style="width: 34%; height: 7px; border-radius: 4px; background: #A8BFD6; animation: kvazr-pulse 1.4s ease-in-out 0.7s infinite;"></div></div>
+            </div>
+          </div>
+          <div style="height: 44px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px; border-top: 1px solid rgba(255,255,255,0.07); font-size: 12px; color: #9AAABA;">
+            <div>Настройки</div>
+            <div>Выход</div>
+          </div>
+        </div>
+        <div style="font-size: 12px; color: #707070; max-width: 320px; text-wrap: pretty;">Флайаут из трея. Шапка и нижние ссылки готовы сразу. Три строки-заглушки занимают ровно ту высоту, которую займут готовые строки, поэтому окно не изменит размер при подстановке данных.</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div data-screen-label="Дашборд догрузка" style="box-sizing: border-box; width: 700px; background: #F9F9F9; border: 1px solid rgba(0,0,0,0.10); border-radius: 8px; padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; overflow: hidden;">
+          <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+            <div style="font-size: 20px; font-weight: 600; letter-spacing: -0.01em;">Все устройства</div>
+            <div style="font-size: 11px; color: #616161;">Опрос каждые 30 с</div>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; overflow: hidden;">
+            <div style="height: 66px; display: flex; align-items: center; gap: 14px; padding: 0 14px; border-bottom: 1px solid rgba(0,0,0,0.05);">
+              <div style="width: 44px; height: 44px; flex: none; border-radius: 6px; background: #EEF2F6;"></div>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 3px;"><div style="font-size: 14px; font-weight: 600;">Audeze Maxwell</div><div style="font-size: 11px; color: #707070;">Наушники &#183; 2,4 ГГц</div></div>
+              <div style="font-size: 14px; font-weight: 600; width: 42px; text-align: right;">78&#37;</div>
+            </div>
+            <div style="height: 66px; display: flex; align-items: center; gap: 14px; padding: 0 14px; border-bottom: 1px solid rgba(0,0,0,0.05);">
+              <div style="width: 44px; height: 44px; flex: none; border-radius: 6px; background: #EEF2F6;"></div>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 3px;"><div style="font-size: 14px; font-weight: 600;">Logitech G Pro X</div><div style="font-size: 11px; color: #707070;">Мышь &#183; приёмник</div></div>
+              <svg width="20" height="20" viewBox="0 0 64 64" fill="none" style="flex: none;"><circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle><g><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#B7C6D4" stroke-width="3" stroke-linecap="round"></path><circle cx="20" cy="8.94" r="5" fill="{{ accent }}"></circle><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="1.4s" repeatCount="indefinite"></animateTransform></g></svg>
+            </div>
+            <div style="height: 66px; display: flex; align-items: center; gap: 14px; padding: 0 14px;">
+              <div style="width: 44px; height: 44px; flex: none; border-radius: 6px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out infinite;"></div>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 7px;"><div style="width: 40%; height: 9px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.15s infinite;"></div><div style="width: 26%; height: 7px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.3s infinite;"></div></div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size: 12px; color: #707070; max-width: 700px; text-wrap: pretty;">Догрузка. Готовые строки не мигают. Спиннер там, где ждём одно значение; скелетон &mdash; там, где строка пришла целиком пустой.</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div data-screen-label="Страница устройства загрузка" style="box-sizing: border-box; width: 700px; background: #F9F9F9; border: 1px solid rgba(0,0,0,0.10); border-radius: 8px; padding: 20px 22px; display: flex; flex-direction: column; gap: 16px; overflow: hidden;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 22px; height: 22px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.12); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #5C5C5C;">&#8592;</div>
+            <div style="width: 180px; height: 13px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out infinite;"></div>
+          </div>
+          <div style="display: flex; gap: 16px;">
+            <div style="width: 190px; height: 130px; flex: none; border-radius: 8px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.1s infinite;"></div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 10px; padding-top: 6px;">
+              <div style="width: 55%; height: 11px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.2s infinite;"></div>
+              <div style="width: 34%; height: 8px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.3s infinite;"></div>
+              <div style="width: 68%; height: 8px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.4s infinite;"></div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 14px;">
+            <div style="flex: 1; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+              <div style="font-size: 13px; font-weight: 600;">Питание</div>
+              <div style="width: 80%; height: 8px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.15s infinite;"></div>
+              <div style="width: 100%; height: 6px; border-radius: 3px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.25s infinite;"></div>
+              <div style="width: 54%; height: 8px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.35s infinite;"></div>
+            </div>
+            <div style="flex: 1; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+              <div style="font-size: 13px; font-weight: 600;">Связь</div>
+              <div style="width: 66%; height: 8px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.3s infinite;"></div>
+              <div style="width: 100%; height: 6px; border-radius: 3px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.4s infinite;"></div>
+              <div style="width: 44%; height: 8px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.5s infinite;"></div>
+            </div>
+            <div style="flex: 1; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+              <div style="font-size: 13px; font-weight: 600;">Дополнительно</div>
+              <div style="width: 72%; height: 8px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.45s infinite;"></div>
+              <div style="width: 100%; height: 6px; border-radius: 3px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.55s infinite;"></div>
+              <div style="width: 38%; height: 8px; border-radius: 4px; background: #16324D; animation: kvazr-pulse 1.4s ease-in-out 0.65s infinite;"></div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size: 12px; color: #707070; max-width: 700px; text-wrap: pretty;">Страница устройства. Названия панелей известны из типа устройства и рисуются сразу; заглушки стоят на месте значений и регуляторов, сохраняя высоту карточек.</div>
+      </div>
+
+    </div>
+
+    <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 18px 22px; display: flex; flex-direction: column; gap: 9px; max-width: 780px;">
+      <div style="font-size: 13px; font-weight: 600;">Как это работает</div>
+      <div style="font-size: 13px; color: #5C5C5C; line-height: 1.55; text-wrap: pretty;">Заглушка &mdash; прямоугольник цвета орбиты #16324D, скруглённый на половину высоты, с пульсацией от 30 до 70 процентов прозрачности за 1,4 с. Соседние блоки сдвинуты по фазе на 0,1&ndash;0,15 с, поэтому строка читается как одно целое, а не как набор мигающих полос. На тёмной теме тот же приём в цвете #A8BFD6. Скелетон держит ровно ту высоту, которую займёт готовый элемент, иначе экран дёрнется при подстановке данных.</div>
+      <div style="font-size: 13px; color: #5C5C5C; line-height: 1.55; text-wrap: pretty;">Скелетон показывается, если ответ идёт дольше 300 мс, и живёт не меньше 500 мс &mdash; иначе он мелькает. Если через 10 с данных нет, скелетон заменяется на текст ошибки, а не крутится бесконечно.</div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+    <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #16324D;">09 &#183; ПРАВИЛА</div>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: stretch;">
+
+      <div style="width: 340px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden;">
+        <div style="font-size: 11px; color: #8A8A8A; padding: 11px 18px; border-bottom: 1px solid rgba(0,0,0,0.06);">Палитра</div>
+        <sc-for list="{{ palette }}" as="p" hint-placeholder-count="6">
+          <div style="display: flex; align-items: center; gap: 14px; padding: 11px 18px; border-bottom: 1px solid rgba(0,0,0,0.05);">
+            <div style="width: 26px; height: 26px; flex: none; border-radius: 5px; border: 1px solid rgba(0,0,0,0.10); background: {{ p.hex }};"></div>
+            <div style="flex: 1; font-size: 13px; font-weight: 600;">{{ p.name }}</div>
+            <div style="font-size: 12px; color: #707070; font-variant-numeric: tabular-nums;">{{ p.hex }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="width: 300px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="font-size: 11px; color: #8A8A8A; padding: 11px 18px; border-bottom: 1px solid rgba(0,0,0,0.06);">Охранное поле</div>
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 26px; background: #FAFAFA;">
+          <div style="padding: 22px; border: 1px dashed #B7C6D4; border-radius: 6px;">
+            <svg width="88" height="88" viewBox="0 0 64 64" fill="none"><path d="M32 6A26 26 0 1 1 10.7 17.09" stroke="#16324D" stroke-width="3" stroke-linecap="round"></path><circle cx="32" cy="32" r="11" fill="{{ accent }}"></circle><circle cx="20" cy="8.94" r="5" fill="{{ accent }}"></circle></svg>
+          </div>
+        </div>
+        <div style="font-size: 12px; color: #707070; padding: 13px 18px; border-top: 1px solid rgba(0,0,0,0.06); text-wrap: pretty;">Свободное поле вокруг знака &mdash; не меньше радиуса ядра, то есть четверти высоты знака.</div>
+      </div>
+
+      <div style="width: 340px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden;">
+        <div style="font-size: 11px; color: #8A8A8A; padding: 11px 18px; border-bottom: 1px solid rgba(0,0,0,0.06);">Чего не делать</div>
+        <sc-for list="{{ donts }}" as="d" hint-placeholder-count="5">
+          <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px 18px; border-bottom: 1px solid rgba(0,0,0,0.05);">
+            <div style="width: 16px; height: 16px; flex: none; margin-top: 1px; border-radius: 50%; background: #C42B1C; color: #FFFFFF; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">&#10005;</div>
+            <div style="flex: 1; font-size: 13px; color: #3C3C3C; line-height: 1.45; text-wrap: pretty;">{{ d }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1480},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#0F6CBD&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#0F6CBD&quot;,&quot;#1B5FE0&quot;,&quot;#0B6A9E&quot;,&quot;#3B5BD9&quot;],&quot;section&quot;:&quot;Цвет&quot;},&quot;accentDark&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#60CDFF&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#60CDFF&quot;,&quot;#7FB3FF&quot;,&quot;#4FD8E8&quot;,&quot;#9BB8FF&quot;],&quot;section&quot;:&quot;Цвет&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? "#0F6CBD";
+    const accentDark = this.props.accentDark ?? "#60CDFF";
+    return {
+      accent, accentDark,
+      sizes: [128, 96, 64, 48, 32, 24, 20, 16].map(px => ({ px })),
+      states: [
+        { name: "Всё подключено", hint: "Планета в акцентном цвете, вращения нет",
+          lRing: "#16324D", lCore: accent, lDot: accent, dRing: "#A8BFD6", dCore: accentDark, dDot: accentDark },
+        { name: "Идёт поиск", hint: "Связка вращается, планета приглушена",
+          lRing: "#16324D", lCore: accent, lDot: "#B7C6D4", dRing: "#A8BFD6", dCore: accentDark, dDot: "#5E7690" },
+        { name: "Обновление прошивки", hint: "Планета фиолетовая; в крупном размере орбита замыкается по проценту",
+          lRing: "#16324D", lCore: accent, lDot: "#7B4EC4", dRing: "#A8BFD6", dCore: accentDark, dDot: "#B39CFF" },
+        { name: "Нет устройств", hint: "Весь знак уходит в серый",
+          lRing: "#9AA7B4", lCore: "#A8B4C0", lDot: "#A8B4C0", dRing: "#5A6B7C", dCore: "#7C8B9A", dDot: "#7C8B9A" },
+        { name: "Низкий заряд", hint: "Планета янтарная, ядро без изменений",
+          lRing: "#16324D", lCore: accent, lDot: "#B26A00", dRing: "#A8BFD6", dCore: accentDark, dDot: "#E8A33D" },
+        { name: "Ошибка связи", hint: "Планета красная, вращение остановлено",
+          lRing: "#16324D", lCore: accent, lDot: "#C42B1C", dRing: "#A8BFD6", dCore: accentDark, dDot: "#F0625A" }
+      ],
+      palette: [
+        { name: "Ядро и планета", hex: accent },
+        { name: "Орбита", hex: "#16324D" },
+        { name: "Ядро на тёмном", hex: accentDark },
+        { name: "Орбита на тёмном", hex: "#A8BFD6" },
+        { name: "Фон сплеша", hex: "#0B1420" },
+        { name: "Орбита в покое", hex: "#B7C6D4" }
+      ],
+      donts: [
+        "Не менять угол разрыва: 55 градусов, начало на 12 часах, дальше по часовой стрелке.",
+        "Не отрывать планету от края разрыва в статике. Свободно она движется только в анимации.",
+        "Не растягивать знак по одной оси и не наклонять его.",
+        "Не заливать плитку акцентным синим: ядро на таком фоне пропадает. Фон плитки только тёмный или светло-серый.",
+        "Не ставить знак меньше 16 пикселей. Ниже орбита в 3 единицы уходит в субпиксель."
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>
