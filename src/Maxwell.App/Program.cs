@@ -292,6 +292,7 @@ internal static class Program
         List<IDriverModule> modules =
         [
             new Maxwell.Core.Drivers.Audeze.AudezeModule(),
+            new Maxwell.Core.Drivers.HyperX.HyperXModule(),
             new Maxwell.Core.Drivers.Logitech.LogitechModule(),
             new Maxwell.Core.Drivers.Audio.AudioModule(),
         ];

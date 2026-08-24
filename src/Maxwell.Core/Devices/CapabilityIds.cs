@@ -76,6 +76,15 @@ public static class CapabilityIds
     /// </summary>
     public const string MicSystemPeak = "mic.system_peak";
 
+    /// <summary>
+    /// Which way a microphone listens: the selector on the back of a QuadCast.
+    ///
+    /// Not a system capability and it never will be — Windows has no notion of a polar
+    /// pattern, and the dial is mechanical, so this is read from the device and never
+    /// written to it.
+    /// </summary>
+    public const string MicPolarPattern = "mic.polar_pattern";
+
     // Game and chat
     public const string MixChat = "mix.chat";
 

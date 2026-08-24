@@ -122,6 +122,7 @@ public static class ServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         services.AddSingleton<IHidEnumerator, WindowsHidEnumerator>();
+        services.AddSingleton<IHidListenerFactory, WindowsHidListenerFactory>();
         services.AddSingleton<IHidTransportFactory, WindowsHidTransportFactory>();
         services.AddSingleton<IBluetoothMonitor, WindowsBluetoothMonitor>();
         services.AddSingleton<ISystemDeviceEnumerator, WindowsSystemDeviceEnumerator>();

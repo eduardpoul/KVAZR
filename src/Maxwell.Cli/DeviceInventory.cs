@@ -56,6 +56,7 @@ internal static class DeviceInventory
         ICapabilityContributor[] contributors =
         [
             new AudioContributor(new WindowsAudioEndpoints(), new WindowsSystemDeviceEnumerator()),
+            new Maxwell.Core.Drivers.HyperX.HyperXContributor(new WindowsHidListenerFactory()),
         ];
 
         using var registry = new DeviceRegistry(
