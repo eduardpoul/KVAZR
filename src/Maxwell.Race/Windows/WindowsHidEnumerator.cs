@@ -129,7 +129,7 @@ public sealed class WindowsHidEnumerator : IHidEnumerator
                 if (!HidNative.HidD_GetAttributes(handle, ref attributes)) continue;
 
                 ushort usagePage = 0, usage = 0;
-                int inputLength = 0, outputLength = 0;
+                int inputLength = 0, outputLength = 0, featureLength = 0;
 
                 if (HidNative.HidD_GetPreparsedData(handle, out IntPtr preparsed))
                 {
@@ -144,6 +144,7 @@ public sealed class WindowsHidEnumerator : IHidEnumerator
                         usage = caps.Usage;
                         inputLength = caps.InputReportByteLength;
                         outputLength = caps.OutputReportByteLength;
+                        featureLength = caps.FeatureReportByteLength;
                     }
                 }
 
@@ -155,6 +156,7 @@ public sealed class WindowsHidEnumerator : IHidEnumerator
                     usage,
                     inputLength,
                     outputLength,
+                    featureLength,
                     ReadProductString(handle)));
             }
             finally

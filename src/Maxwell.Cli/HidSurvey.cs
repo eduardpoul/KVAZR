@@ -24,6 +24,7 @@ internal static class HidSurvey
         (0x0085, "Battery System"),
         (0xFF00, "vendor · HID++ lives here"),
         (0xFF13, "vendor · Audeze RACE"),
+        (0xFF90, "vendor · HyperX NGENUITY"),
         (0xFF60, "vendor · VIA / QMK"),
     ];
 
@@ -49,7 +50,8 @@ internal static class HidSurvey
 
             Console.WriteLine(
                 $"  {iface.VendorId:X4}:{iface.ProductId:X4}  page 0x{iface.UsagePage:X4} usage 0x{iface.Usage:X2}  " +
-                $"in {iface.InputReportLength,3} out {iface.OutputReportLength,3}  {iface.ProductName}");
+                $"in {iface.InputReportLength,3} out {iface.OutputReportLength,3} " +
+                $"feat {iface.FeatureReportLength,3}  {iface.ProductName}");
 
             if (what.Length > 0) Console.WriteLine($"        {what}");
         }

@@ -38,6 +38,17 @@ public sealed record HidInterface(
     ushort Usage,
     int InputReportLength,
     int OutputReportLength,
+
+    /// <summary>
+    /// Size of a feature report, or zero where the collection has none.
+    ///
+    /// Worth its own field because it is a third channel rather than a detail of the
+    /// other two: a device can carry its whole vendor protocol on feature reports and
+    /// show nothing at all on the input and output pipes. The HyperX QuadCast is one —
+    /// its lighting is written as 64-byte feature reports and its input reports carry
+    /// only the mute button.
+    /// </summary>
+    int FeatureReportLength,
     string ProductName);
 
 public interface IHidEnumerator
