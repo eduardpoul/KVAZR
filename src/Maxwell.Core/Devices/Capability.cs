@@ -164,6 +164,28 @@ public sealed record Capability
     /// <summary>Standing caution shown with the control, e.g. a damage ceiling.</summary>
     public string? Note { get; init; }
 
+    /// <summary>
+    /// Read for another row's sake, and never shown as one of its own.
+    ///
+    /// The sidetone ceiling is the case: the level slider takes its maximum from it, so it
+    /// has to be read and kept — but printing "Потолок сайдтона  31" under a slider that
+    /// already reads "9 / 31" is the same number twice, and the second one looks like a
+    /// setting because it is sitting in a list of settings.
+    /// </summary>
+    public bool IsSupporting { get; init; }
+
+    /// <summary>
+    /// Known, reachable, and deliberately not offered.
+    ///
+    /// Different from <see cref="CapabilityStatus.Unavailable"/>, which says we have no
+    /// way to invoke the function: this says we have one and are not handing it over yet.
+    /// The factory reset is the case it exists for — the command is in the protocol notes,
+    /// it has never been run against this headset, and running it wipes the owner's
+    /// settings including a channel balance that was corrected by hand. The control stays
+    /// on the page, so the device is described honestly; it just cannot be pressed.
+    /// </summary>
+    public bool IsWithheld { get; init; }
+
     public bool IsWritable => Access is CapabilityAccess.Write or CapabilityAccess.ReadWrite;
 
     public bool IsReadable => Access is CapabilityAccess.Read or CapabilityAccess.ReadWrite;

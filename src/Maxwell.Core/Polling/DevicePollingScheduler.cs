@@ -98,30 +98,32 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
     {
         lock (_sync)
         {
-            // One headset announces an audio interface, a HID interface and a control
-            // interface, and each of them is its own notification. Answering all three
-            // would start a full sweep of every device three times over, so the burst is
-            // treated as the single event it is.
-            DateTimeOffset now = DateTimeOffset.Now;
-            if (now - _lastChange < ChangeCoalesce) return;
-
-            _lastChange = now;
-            _nextDiscovery = DateTimeOffset.MinValue;
-
+            // Flags first, and for every notification without exception. They are cheap
+            // and setting them twice changes nothing, so there is no reason to be clever
+            // about which notification in a burst gets to set them.
             foreach (DeviceSnapshot device in _registry.Devices)
             {
                 _fullRefreshRequests.Add(device.Info.Key);
                 EntryFor(device.Info.Key).NextDue = DateTimeOffset.MinValue;
             }
+
+            // The sweep itself is taken once, a moment after the burst rather than at its
+            // head. One headset announces an audio interface, a HID interface and a
+            // control interface, and at the first of those there is usually nothing that
+            // can be opened yet — so the pass runs, finds the device half-arrived, and the
+            // rest of the burst was being dropped as duplicates of an event that had
+            // already been answered badly. What the person saw was a headset switched on
+            // in front of them and a page that stayed empty until the twenty-second timer
+            // came round.
+            DateTimeOffset due = DateTimeOffset.Now + ChangeCoalesce;
+            if (due < _nextDiscovery) _nextDiscovery = due;
         }
 
         Nudge();
     }
 
-    /// <summary>How long one plug or unplug is allowed to keep announcing itself.</summary>
+    /// <summary>How long one plug or unplug is given to finish announcing itself.</summary>
     private static readonly TimeSpan ChangeCoalesce = TimeSpan.FromMilliseconds(750);
-
-    private DateTimeOffset _lastChange = DateTimeOffset.MinValue;
 
     // ---------- coordinator ----------
 

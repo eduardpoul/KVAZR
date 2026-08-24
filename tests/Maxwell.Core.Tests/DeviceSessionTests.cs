@@ -17,6 +17,7 @@ public sealed class DeviceSessionTests
     private const string NeedsCable = "test.needs_cable";
     private const string Plain = "test.plain";
     private const string Grouped = "test.grouped";
+    private const string Withheld = "test.withheld";
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
@@ -90,6 +91,69 @@ public sealed class DeviceSessionTests
         // exactly like this, and it is an ordinary situation rather than a fault.
         Assert.Equal(DeviceAvailability.Unreachable, session.Snapshot.Availability);
         Assert.False(session.Snapshot.CanControl);
+    }
+
+    [Fact]
+    public async Task AWithheldCapability_IsDescribedAndCannotBeWritten()
+    {
+        (DeviceSession session, Fixture fixture) = await StartAsync();
+
+        CapabilityState state = session.Snapshot.Capabilities[Withheld];
+
+        // Still on the page. Dropping it would describe a device that does not have the
+        // function, and it does — we are the ones declining to offer it.
+        Assert.True(session.Snapshot.Has(Withheld));
+        Assert.True(state.IsAvailable);
+        Assert.False(state.CanWrite);
+
+        bool accepted = await session.WriteAsync(Withheld, CapabilityValue.Of(1), Ct);
+
+        // Refused here rather than left to the interface to grey out, because a hotkey, a
+        // tray command or a future page would each have to remember on its own otherwise.
+        Assert.False(accepted);
+        Assert.True(fixture.Connection.AcceptWrites);
+    }
+
+    [Fact]
+    public async Task AChannelTheConnectionDoesNotUse_DoesNotCountAsTheDeviceMoving()
+    {
+        // What the Maxwell looks like: a dongle it is controlled over, and a Bluetooth
+        // channel that carries sound and a battery reading and no control at all. The
+        // connection knows only about the lead it talks over.
+        TransportInfo dongle = new()
+        {
+            Kind = TransportKind.Dongle, Label = "USB-донгл", IsPresent = true, CarriesControl = true,
+        };
+
+        TransportInfo bluetooth = new()
+        {
+            Kind = TransportKind.Bluetooth, Label = "Bluetooth", IsPresent = true, CarriesControl = false,
+            CarriesAudio = true,
+        };
+
+        var fixture = new Fixture();
+        fixture.Connection.Transports = [dongle];
+        DeviceSession session = fixture.CreateSession();
+
+        DeviceInfo found = fixture.Info with { Transports = [dongle, bluetooth] };
+
+        await session.MarkPresentAsync(found, Ct);
+        Assert.Equal(1, fixture.Driver.Connects);
+
+        // The next sweep, finding exactly what the last one found.
+        await session.MarkPresentAsync(found, Ct);
+
+        // One connection, still. Rebuilding it here cost twenty seconds out of every
+        // minute on real hardware: the channel discovery knew about was overwritten by
+        // the connection's shorter list, the next sweep saw it come back, and the
+        // difference read as the headset having moved from one lead to another.
+        Assert.Equal(1, fixture.Driver.Connects);
+
+        // And the channel discovery knew about is still on the device, which is the half
+        // of this the person sees — the Bluetooth chip in the header.
+        Assert.Contains(
+            session.Snapshot.Info.Transports,
+            t => t.Kind == TransportKind.Bluetooth);
     }
 
     [Fact]
@@ -206,8 +270,13 @@ public sealed class DeviceSessionTests
             Model = "Device",
         };
 
-        public DeviceSession CreateSession() =>
-            new(Info, new FakeDriver(this), Ledger, NullLogger<DeviceSession>.Instance);
+        public FakeDriver Driver { get; private set; } = null!;
+
+        public DeviceSession CreateSession()
+        {
+            Driver = new FakeDriver(this);
+            return new DeviceSession(Info, Driver, Ledger, NullLogger<DeviceSession>.Instance);
+        }
     }
 
     private sealed class FakeDriver : IDeviceDriver
@@ -221,10 +290,15 @@ public sealed class DeviceSessionTests
         public Task<IReadOnlyList<DeviceInfo>> DiscoverAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<DeviceInfo>>([_fixture.Info]);
 
-        public Task<IDeviceConnection> ConnectAsync(DeviceInfo device, CancellationToken cancellationToken = default) =>
-            _fixture.ConnectFails
-                ? throw new IOException("no control channel")
-                : Task.FromResult<IDeviceConnection>(_fixture.Connection);
+        public int Connects { get; private set; }
+
+        public Task<IDeviceConnection> ConnectAsync(DeviceInfo device, CancellationToken cancellationToken = default)
+        {
+            if (_fixture.ConnectFails) throw new IOException("no control channel");
+
+            Connects++;
+            return Task.FromResult<IDeviceConnection>(_fixture.Connection);
+        }
     }
 
     private sealed class FakeConnection : IDeviceConnection
@@ -284,6 +358,16 @@ public sealed class DeviceSessionTests
             },
             new()
             {
+                Id = Withheld,
+                Domain = CapabilityDomain.Power,
+                Primitive = CapabilityPrimitive.Action,
+                Access = CapabilityAccess.Write,
+                Title = "Withheld",
+                Risk = CapabilityRisk.Hidden,
+                IsWithheld = true,
+            },
+            new()
+            {
                 Id = Grouped,
                 Domain = CapabilityDomain.Pointing,
                 Primitive = CapabilityPrimitive.RangeGroup,
@@ -298,7 +382,7 @@ public sealed class DeviceSessionTests
             },
         ];
 
-        public IReadOnlyList<TransportInfo> Transports { get; } =
+        public IReadOnlyList<TransportInfo> Transports { get; set; } =
         [
             new() { Kind = TransportKind.UsbCable, Label = "USB", IsPresent = true, CarriesControl = true },
         ];

@@ -111,7 +111,11 @@ public enum RequirementKind
     /// </summary>
     ControlChannel,
 
-    /// <summary>Needs the detachable boom microphone to be attached.</summary>
+    /// <summary>
+    /// Needed the detachable boom microphone to be attached, and nothing declares it any
+    /// more. The Maxwell was the only device that did, and it turned out not to report
+    /// the boom by any route — see the note where its microphone rows used to be.
+    /// </summary>
     BoomMicrophone,
 }
 

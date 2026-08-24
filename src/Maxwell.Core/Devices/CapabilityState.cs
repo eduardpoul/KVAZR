@@ -73,6 +73,7 @@ public sealed record CapabilityState
     /// </summary>
     public bool CanWrite =>
         Descriptor.IsWritable
+        && !Descriptor.IsWithheld
         && IsAvailable
         && Status != CapabilityStatus.Unavailable;
 }

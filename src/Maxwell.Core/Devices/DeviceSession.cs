@@ -176,11 +176,17 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
     /// Compared by kind and presence rather than by label: a label carries a product id
     /// that can differ between two ways into the same device, and comparing those would
     /// rebuild the connection on every sweep.
+    ///
+    /// Only the channels that carry control count, because a connection is bound to one
+    /// of those and to nothing else. A headset that gains a Bluetooth channel has not
+    /// moved anywhere as far as the open handle is concerned — it can now also be heard
+    /// over the radio — and rebuilding the handle for that throws away the applied
+    /// equaliser curve and starts a full re-read for no reason anybody asked for.
     /// </summary>
     private static bool MovedChannel(DeviceInfo before, DeviceInfo after)
     {
         static HashSet<TransportKind> Live(DeviceInfo info) =>
-            [.. info.Transports.Where(t => t.IsPresent).Select(t => t.Kind)];
+            [.. info.Transports.Where(t => t.IsPresent && t.CarriesControl).Select(t => t.Kind)];
 
         return !Live(before).SetEquals(Live(after));
     }
@@ -483,7 +489,28 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
 
         // Transports belong to whoever owns the device. A contributor knows one thing
         // about it and has no business describing how it is attached.
-        if (_connection is not null) _info = _info with { Transports = _connection.Transports };
+        //
+        // The connection is not the whole story either, and taking it as the whole story
+        // cost twenty seconds of every minute. It describes the lead it talks over;
+        // discovery can know of a channel it does not use — the Maxwell's Bluetooth, which
+        // carries sound and a battery reading and no control at all. Overwritten with the
+        // connection's list, that channel vanished the moment the device connected, the
+        // next sweep found it again, the difference read as the headset having moved, and
+        // the whole connection was torn down and rebuilt. Every twenty seconds, for as
+        // long as the application ran: measured six times in ninety seconds of log.
+        if (_connection is not null)
+        {
+            HashSet<TransportKind> owned = [.. _connection.Transports.Select(t => t.Kind)];
+
+            _info = _info with
+            {
+                Transports =
+                [
+                    .. _connection.Transports,
+                    .. _info.Transports.Where(t => !owned.Contains(t.Kind)),
+                ],
+            };
+        }
     }
 
     /// <summary>
@@ -624,17 +651,16 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
         }
     }
 
-    private bool IsRequirementMet(Capability descriptor, DeviceAvailability availability) =>
+    private static bool IsRequirementMet(Capability descriptor, DeviceAvailability availability) =>
         descriptor.Requirement switch
         {
             RequirementKind.ControlChannel => availability == DeviceAvailability.Active,
 
-            // The boom mic announces itself by answering its level read at all. There is
-            // no presence flag; silence is the signal.
-            RequirementKind.BoomMicrophone =>
-                availability == DeviceAvailability.Active
-                && _states.TryGetValue(CapabilityIds.MicLevel, out CapabilityState? level)
-                && !level.Value.IsAbsent,
+            // Was: the boom mic announces itself by answering its level read at all.
+            // It does not answer, ever, so this could only ever be false — and the rows
+            // that asked for it are gone. Kept as the plain reachability test so a device
+            // that declares it is disabled rather than silently shown as working.
+            RequirementKind.BoomMicrophone => availability == DeviceAvailability.Active,
 
             _ => true,
         };

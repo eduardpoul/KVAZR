@@ -181,14 +181,31 @@ public sealed class RaceSession : IDisposable
         ReadValueAsync(RaceCommands.Read, sub, cancellationToken);
 
     /// <summary>Read a value from any read-namespace command that leads its payload with the sub-command.</summary>
-    public async Task<int> ReadValueAsync(ushort command, byte sub, CancellationToken cancellationToken = default)
+    public Task<int> ReadValueAsync(ushort command, byte sub, CancellationToken cancellationToken = default) =>
+        ReadValueAsync(command, sub, DefaultAttempts, DefaultWindowMs, cancellationToken);
+
+    /// <summary>
+    /// The same read with the patience spelled out, for sweeping a namespace.
+    ///
+    /// Four attempts at four hundred milliseconds is right for a value somebody is waiting
+    /// on: the headset over its dongle drops a reply often enough that one try is not
+    /// enough. It is the wrong trade for a sweep, where most sub-commands do not exist and
+    /// each of them costs the full one and a half seconds of waiting for a reply that was
+    /// never coming — two hundred and fifty of those is six minutes of nothing.
+    /// </summary>
+    public async Task<int> ReadValueAsync(
+        ushort command,
+        byte sub,
+        int attempts,
+        int windowMs,
+        CancellationToken cancellationToken = default)
     {
         byte[] body = [0x80, 0x05, 0x5A, 0x04, 0x00, (byte)command, (byte)(command >> 8), sub];
 
         RacePacket? packet = await RequestAsync(
             RaceCodec.BuildShortReport(body, Descriptor.OutputReportLength),
             p => p.Command == command && p.Sub == sub && p.Payload.Length >= 4,
-            DefaultAttempts, DefaultWindowMs, cancellationToken).ConfigureAwait(false);
+            attempts, windowMs, cancellationToken).ConfigureAwait(false);
 
         return packet?.Value ?? -1;
     }
@@ -197,7 +214,16 @@ public sealed class RaceSession : IDisposable
     /// Read from the 0x2C83 namespace, which lays its payload out as
     /// 00 &lt;sub&gt; 00 &lt;value&gt; — sub-command second, unlike the 0x09xx family.
     /// </summary>
-    public async Task<int> ReadNamespace2CAsync(byte sub, CancellationToken cancellationToken = default)
+    public Task<int> ReadNamespace2CAsync(byte sub, CancellationToken cancellationToken = default) =>
+        ReadNamespace2CAsync(sub, DefaultAttempts, DefaultWindowMs, cancellationToken);
+
+    /// <inheritdoc cref="ReadNamespace2CAsync(byte, CancellationToken)"/>
+    /// <remarks>With the patience spelled out, for sweeping the namespace.</remarks>
+    public async Task<int> ReadNamespace2CAsync(
+        byte sub,
+        int attempts,
+        int windowMs,
+        CancellationToken cancellationToken = default)
     {
         byte[] body = [0x80, 0x05, 0x5A, 0x04, 0x00, 0x83, 0x2C, sub];
 
@@ -205,7 +231,7 @@ public sealed class RaceSession : IDisposable
             RaceCodec.BuildShortReport(body, Descriptor.OutputReportLength),
             p => p.Command == RaceCommands.ChatMixRead && p.Payload.Length >= 4
                  && (p.Sub2C == sub || p.Sub == sub),
-            DefaultAttempts, DefaultWindowMs, cancellationToken).ConfigureAwait(false);
+            attempts, windowMs, cancellationToken).ConfigureAwait(false);
 
         return packet?.Value ?? -1;
     }

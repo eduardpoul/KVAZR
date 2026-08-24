@@ -71,6 +71,13 @@ public sealed class AppSettings
     /// <summary>Named device presets the user has saved.</summary>
     public List<DeviceProfile> Profiles { get; set; } = [];
 
+    /// <summary>
+    /// Equaliser curves the user has drawn and named. Here rather than on the headset
+    /// because a name does not fit in one of its four user slots; see
+    /// <see cref="EqCurvePreset"/> for what that costs.
+    /// </summary>
+    public List<EqCurvePreset> EqPresets { get; set; } = [];
+
     /// <summary>Switch profiles automatically when a matching process starts.</summary>
     public bool AutoSwitchProfiles { get; set; }
 
