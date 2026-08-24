@@ -62,6 +62,22 @@ public interface IAudioEndpointChannel : IDisposable
 
     bool? Mute { get; }
 
+    /// <summary>
+    /// The loudest sample to pass through this endpoint since the last time it was asked,
+    /// 0..100, or null when the endpoint has gone away.
+    ///
+    /// Peak rather than an average on purpose: an average of a spoken syllable is a small
+    /// number that sits near the floor and says nothing about whether the microphone is
+    /// working, which is the one question a level meter exists to answer.
+    ///
+    /// It reads the audio engine's meter, so it moves only while something is streaming
+    /// through the endpoint. That is a fact about Windows and not a bug here: with no
+    /// stream there is nothing to measure, and the alternative — opening a capture stream
+    /// of our own — would light the microphone-in-use indicator for as long as the page
+    /// was open.
+    /// </summary>
+    int? Peak { get; }
+
     /// <summary>True when the device took the value.</summary>
     bool SetVolume(int percent);
 
@@ -86,4 +102,58 @@ public interface IAudioEndpoints
     /// <summary>Opens one endpoint for reading and writing.</summary>
     /// <exception cref="IOException">The endpoint could not be opened.</exception>
     IAudioEndpointChannel Open(string endpointId);
+
+    /// <summary>
+    /// Starts listening to a capture endpoint so its level can be measured.
+    ///
+    /// Separate from <see cref="Open"/> because it is a different kind of act. Opening an
+    /// endpoint reads settings and costs nothing anybody can observe; this one starts a
+    /// stream from the microphone, which is what makes the level move at all — and what
+    /// lights the in-use indicator. Whoever calls it is answerable for stopping it.
+    /// </summary>
+    /// <exception cref="IOException">The endpoint could not be captured.</exception>
+    IAudioLevelMeter Listen(string endpointId);
+}
+
+/// <summary>
+/// A microphone held open, and the loudest thing it has heard since it was last asked.
+///
+/// It exists as a separate object from the endpoint channel so that the listening has an
+/// obvious lifetime: while one of these is alive the microphone is in use, and disposing
+/// it is what puts the indicator out. Nothing about a level is worth a doubt over whether
+/// the machine is still listening.
+/// </summary>
+public interface IAudioLevelMeter : IDisposable
+{
+    /// <summary>
+    /// The loudest sample since the previous call as a fraction of full scale, 0..1, or
+    /// null once the stream has failed — a device unplugged mid-sentence, an
+    /// exclusive-mode application taking the endpoint.
+    ///
+    /// A fraction rather than a percentage, and that is not fussiness. Sound is measured
+    /// on a logarithmic scale: a quiet room reads about 0.001 of full scale and ordinary
+    /// speech about 0.1, so rounding the raw amplitude to whole percent throws away
+    /// everything below a shout. What scale to draw it on is a decision for the layer
+    /// that draws it; this one reports what it heard.
+    /// </summary>
+    double? Read();
+
+    /// <summary>
+    /// How the stream is arriving — "48 kHz · 32-bit float · 2 ch". Worth showing on the
+    /// page next to the level, and worth having in a log when a meter reads zero.
+    /// </summary>
+    string Format { get; }
+
+    /// <summary>
+    /// What has arrived since the stream started: how many packets, and how many of them
+    /// held nothing but zeroes.
+    ///
+    /// This exists because "the level is zero" has three quite different causes and they
+    /// are indistinguishable from the number alone: nothing is arriving, or audio is
+    /// arriving and it is digital silence — which is what a microphone muted by its own
+    /// button sends, its own switch being invisible to the operating system — or the room
+    /// really is that quiet, which no real microphone ever is. Packets with no silence is
+    /// the third; packets that are all silence is the second.
+    /// </summary>
+    (long Packets, long Silent) Tally { get; }
 }

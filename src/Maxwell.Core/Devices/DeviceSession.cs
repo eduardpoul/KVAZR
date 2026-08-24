@@ -248,8 +248,16 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
 
     // ---------- reads ----------
 
+    /// <summary>
+    /// Everything worth having a stored value for. Live readings are not: they are
+    /// measurements taken while somebody watches, and one sample of a microphone's level
+    /// during a discovery sweep would light the in-use indicator to learn a number nobody
+    /// asked for. The fast lane asks for those by name.
+    /// </summary>
     public Task RefreshAllAsync(CancellationToken cancellationToken = default) =>
-        RefreshAsync([.. _states.Values.Where(s => s.Descriptor.IsReadable).Select(s => s.Id)], cancellationToken);
+        RefreshAsync(
+            [.. _states.Values.Where(s => s.Descriptor.IsReadable && !s.Descriptor.IsLive).Select(s => s.Id)],
+            cancellationToken);
 
     public async Task RefreshAsync(
         IReadOnlyList<string> capabilityIds,

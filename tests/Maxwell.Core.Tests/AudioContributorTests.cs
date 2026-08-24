@@ -171,6 +171,141 @@ public sealed class AudioContributorTests
         Assert.Equal(CapabilityValue.Of(false), await connection.ReadAsync(CapabilityIds.MicSystemMute, Ct));
     }
 
+    // ---------- the level, and what listening costs ----------
+
+    [Fact]
+    public async Task OnlyWhatRecords_GetsALevelRow()
+    {
+        Fixture fixture = Desk();
+        IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
+
+        string[] ids = [.. connection.Capabilities.Select(c => c.Id)];
+
+        // The QuadCast has a headphone socket as well as a capsule, and a level meter on
+        // the socket would be measuring what the user is listening to.
+        Assert.Contains(CapabilityIds.MicSystemPeak, ids);
+        Assert.DoesNotContain($"{CapabilityIds.MicSystemPeak}.2", ids);
+
+        Capability level = connection.Capabilities.Single(c => c.Id == CapabilityIds.MicSystemPeak);
+
+        Assert.True(level.IsLive);
+        Assert.Equal(CapabilityDomain.Microphone, level.Domain);
+    }
+
+    /// <summary>
+    /// The one that matters most. Attaching a device happens on every discovery sweep, for
+    /// every microphone on the machine; if that opened a stream, plugging a headset in
+    /// would light the in-use indicator of every microphone in the house for a moment, and
+    /// nobody would ever work out why.
+    /// </summary>
+    [Fact]
+    public async Task AttachingToAMicrophone_DoesNotListenToIt()
+    {
+        Fixture fixture = Desk();
+
+        await AttachAsync(fixture, QuadCastInfo);
+
+        Assert.Empty(fixture.Audio.Listening);
+    }
+
+    [Fact]
+    public async Task AskingForTheLevel_StartsListeningAndKeepsTheOneStream()
+    {
+        Fixture fixture = Desk();
+        IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
+
+        await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct);
+        await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct);
+        await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct);
+
+        // One stream, not one per reading: the level is asked for sixteen times a second,
+        // and starting and stopping a capture stream at that rate would make the taskbar
+        // indicator strobe.
+        FakeMeter meter = Assert.Single(fixture.Audio.Listening);
+
+        Assert.Equal("quad-in", meter.EndpointId);
+        Assert.Equal(3, meter.Reads);
+    }
+
+    [Fact]
+    public async Task TheLevelIsReportedInDecibels()
+    {
+        Fixture fixture = Desk();
+        IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
+
+        // A tenth of full scale is −20 dBFS, which is roughly ordinary speech.
+        FakeMeter meter = await FirstListenAsync(fixture, connection);
+        meter.Level = 0.1;
+
+        Assert.Equal(CapabilityValue.Of(-20), await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct));
+
+        // Full scale is the top of the scale, and digital silence is the bottom of it
+        // rather than an absent reading: a muted microphone is a fact, not a failure.
+        meter.Level = 1.0;
+        Assert.Equal(CapabilityValue.Of(0), await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct));
+
+        meter.Level = 0;
+        Assert.Equal(CapabilityValue.Of(-60), await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct));
+    }
+
+    [Fact]
+    public async Task AStreamThatDies_IsLetGoOfRatherThanAskedAgain()
+    {
+        Fixture fixture = Desk();
+        IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
+
+        FakeMeter meter = await FirstListenAsync(fixture, connection);
+        meter.Level = null;
+
+        Assert.Equal(CapabilityValue.Absent, await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct));
+        Assert.True(meter.Disposed);
+
+        // And the next glance starts a fresh one, because whatever took the endpoint may
+        // have let go by then.
+        await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct);
+        Assert.Equal(2, fixture.Audio.Listening.Count);
+    }
+
+    [Fact]
+    public async Task ClosingTheConnection_StopsListening()
+    {
+        Fixture fixture = Desk();
+        IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
+
+        FakeMeter meter = await FirstListenAsync(fixture, connection);
+
+        connection.Dispose();
+
+        // A device unplugged while its page is open is the one case where the user cannot
+        // put the light out themselves.
+        Assert.True(meter.Disposed);
+    }
+
+    [Fact]
+    public async Task AnEndpointHeldExclusively_RefusesOnceRatherThanEveryFrame()
+    {
+        Fixture fixture = Desk();
+        fixture.Audio.Refuse.Add("quad-in");
+
+        // The endpoint still opens for settings; it is the stream that is refused, so the
+        // rest of the microphone's page is unaffected.
+        fixture.Audio.Refuse.Remove("quad-in");
+        IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
+        fixture.Audio.Refuse.Add("quad-in");
+
+        Assert.Equal(CapabilityValue.Absent, await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct));
+        Assert.Equal(CapabilityValue.Absent, await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct));
+
+        Assert.Empty(fixture.Audio.Listening);
+        Assert.Equal(CapabilityValue.Of(100), await connection.ReadAsync(CapabilityIds.MicSystemLevel, Ct));
+    }
+
+    private static async Task<FakeMeter> FirstListenAsync(Fixture fixture, IDeviceConnection connection)
+    {
+        await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct);
+        return Assert.Single(fixture.Audio.Listening);
+    }
+
     private static async Task<IDeviceConnection> AttachAsync(Fixture fixture, DeviceInfo device)
     {
         IDeviceConnection? connection = await fixture.Contributor.AttachAsync(device, Ct);
@@ -243,6 +378,43 @@ public sealed class AudioContributorTests
             Refuse.Contains(endpointId)
                 ? throw new IOException("held by another process")
                 : Channels[endpointId];
+
+        /// <summary>Every meter handed out, so a test can check that they were let go of.</summary>
+        public List<FakeMeter> Listening { get; } = [];
+
+        public IAudioLevelMeter Listen(string endpointId)
+        {
+            if (Refuse.Contains(endpointId)) throw new IOException("held by another process");
+
+            var meter = new FakeMeter(endpointId);
+            Listening.Add(meter);
+            return meter;
+        }
+    }
+
+    /// <summary>A microphone that is not listened to, which is the point of most of these tests.</summary>
+    internal sealed class FakeMeter(string endpointId) : IAudioLevelMeter
+    {
+        public string EndpointId { get; } = endpointId;
+
+        public bool Disposed { get; private set; }
+
+        public int Reads { get; private set; }
+
+        /// <summary>What the next read answers. Null stands for a stream that has died.</summary>
+        public double? Level { get; set; } = 0.1;
+
+        public string Format => "48 kHz · 32-bit float · 1 ch";
+
+        public (long Packets, long Silent) Tally => (Reads, 0);
+
+        public double? Read()
+        {
+            Reads++;
+            return Level;
+        }
+
+        public void Dispose() => Disposed = true;
     }
 
     private sealed class FakeChannel : IAudioEndpointChannel
@@ -253,6 +425,9 @@ public sealed class AudioContributorTests
 
         /// <summary>Not null: a real endpoint always has an answer to whether it is muted.</summary>
         public bool? Mute { get; private set; } = false;
+
+        /// <summary>Silence unless a test says otherwise, which is what an idle endpoint reads.</summary>
+        public int? Peak { get; set; }
 
         public bool Disposed { get; private set; }
 

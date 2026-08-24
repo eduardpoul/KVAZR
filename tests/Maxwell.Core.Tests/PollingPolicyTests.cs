@@ -1,3 +1,4 @@
+using Maxwell.Core.Devices;
 using Maxwell.Core.Notifications;
 using Maxwell.Core.Polling;
 using Xunit;
@@ -85,6 +86,102 @@ public sealed class PollingPolicyTests
         Assert.True(
             PollingPolicy.DiscoveryDelay(anyDevicePresent: false, Options)
             < PollingPolicy.DiscoveryDelay(anyDevicePresent: true, Options));
+    }
+
+    // ---------- the fast lane ----------
+
+    /// <summary>
+    /// The fast lane exists for one row today — a microphone's input level — and reading
+    /// that row means listening to the microphone. So every one of these is really the
+    /// same question: can the application end up listening to somebody without their
+    /// having asked to see a level?
+    /// </summary>
+    [Fact]
+    public void AnOpenPage_ReadsItsLiveRows()
+    {
+        Assert.Equal([Level], PollingPolicy.Live(Microphone(), PollingAttention.Focused, Mic));
+    }
+
+    [Fact]
+    public void TheTrayAndTheFlyout_ReadNothingLive()
+    {
+        // Neither surface shows a level. The flyout is batteries, the tray is one icon.
+        Assert.Empty(PollingPolicy.Live(Microphone(), PollingAttention.Idle, Mic));
+        Assert.Empty(PollingPolicy.Live(Microphone(), PollingAttention.Glance, Mic));
+    }
+
+    [Fact]
+    public void AMicrophoneWhosePageIsNotOpen_IsNotListenedTo()
+    {
+        // The page open is a headset's; the microphone is merely in the list behind it.
+        Assert.Empty(PollingPolicy.Live(Microphone(), PollingAttention.Focused, Headset));
+    }
+
+    [Fact]
+    public void ADeviceThatIsNotAnswering_HasNothingToMeasure()
+    {
+        Assert.Empty(PollingPolicy.Live(Microphone(canControl: false), PollingAttention.Focused, Mic));
+        Assert.Empty(PollingPolicy.Live(Microphone(present: false), PollingAttention.Focused, Mic));
+    }
+
+    [Fact]
+    public void OrdinaryRows_AreNotTheFastLanesBusiness()
+    {
+        // Volume is read by the sweep, at the sweep's pace. If it came through here as
+        // well the two would race each other into the same session sixteen times a second.
+        Assert.DoesNotContain(CapabilityIds.MicSystemLevel, PollingPolicy.Live(Microphone(), PollingAttention.Focused, Mic));
+    }
+
+    private const string Mic = "system:quadcast";
+    private const string Level = "mic.system_peak";
+
+    private static DeviceSnapshot Microphone(bool present = true, bool canControl = true)
+    {
+        var info = new DeviceInfo
+        {
+            Key = Mic,
+            DriverId = "system",
+            Vendor = "HyperX",
+            Model = "QuadCast S",
+            Class = DeviceClass.Microphone,
+        };
+
+        return new DeviceSnapshot
+        {
+            Info = info,
+
+            // Unreachable is the shape of a device Windows can see and nothing can talk
+            // to — which for a microphone means there is no stream to measure either.
+            Availability = !present
+                ? DeviceAvailability.Offline
+                : canControl ? DeviceAvailability.Active : DeviceAvailability.Unreachable,
+
+            Capabilities = new Dictionary<string, CapabilityState>(StringComparer.Ordinal)
+            {
+                [Level] = new()
+                {
+                    Descriptor = new Capability
+                    {
+                        Id = Level,
+                        Domain = CapabilityDomain.Microphone,
+                        Primitive = CapabilityPrimitive.Readout,
+                        Access = CapabilityAccess.Read,
+                        Title = "Input level",
+                        IsLive = true,
+                    },
+                },
+                [CapabilityIds.MicSystemLevel] = new()
+                {
+                    Descriptor = new Capability
+                    {
+                        Id = CapabilityIds.MicSystemLevel,
+                        Domain = CapabilityDomain.Microphone,
+                        Primitive = CapabilityPrimitive.Range,
+                        Title = "Recording level",
+                    },
+                },
+            },
+        };
     }
 
     private static PollPlan Plan(

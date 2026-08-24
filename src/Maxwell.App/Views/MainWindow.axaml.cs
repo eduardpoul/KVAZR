@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -90,6 +91,27 @@ public partial class MainWindow : Window
         // Opening the window is the moment a full read is worth its cost; the polling
         // loop deliberately only keeps the battery warm.
         _shell?.OnWindowOpened();
+    }
+
+    /// <summary>
+    /// The window went away, by whichever of the several routes there are: the close
+    /// button, the tray menu, a programmatic hide.
+    ///
+    /// Watched as a property rather than hooked onto each of those routes, because there
+    /// was no counterpart to <see cref="OnOpened"/> at all and the omission was invisible
+    /// until a page could cost something. A hidden window left the scheduler believing a
+    /// device page was open, which used to mean one wasted reading a second — and now
+    /// means a microphone held open, with the in-use light on, over a window nobody can
+    /// see.
+    /// </summary>
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == IsVisibleProperty && !change.GetNewValue<bool>())
+        {
+            _shell?.OnWindowHidden();
+        }
     }
 
     /// <summary>The client area is extended over the chrome, so dragging is ours to implement.</summary>

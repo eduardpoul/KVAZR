@@ -1,3 +1,5 @@
+using Maxwell.Core.Devices;
+
 namespace Maxwell.Core.Polling;
 
 /// <summary>What the interface currently needs from the device layer.</summary>
@@ -90,6 +92,34 @@ public readonly record struct PollPlan(PollScope Scope, TimeSpan Interval)
 /// </summary>
 public static class PollingPolicy
 {
+    /// <summary>
+    /// Which capabilities the fast lane should read, which is almost always none.
+    ///
+    /// Three conditions, and each of them is there to keep a measurement from being taken
+    /// behind the user's back. The page has to be open — not the tray, not the flyout,
+    /// which show batteries and never a level. It has to be <em>this</em> device's page,
+    /// because a microphone two rows down in a list nobody is reading must not be
+    /// listened to. And the device has to be answering, or there is nothing to measure.
+    /// </summary>
+    public static IReadOnlyList<string> Live(
+        DeviceSnapshot device,
+        PollingAttention attention,
+        string? focusedDeviceKey)
+    {
+        ArgumentNullException.ThrowIfNull(device);
+
+        if (attention != PollingAttention.Focused) return [];
+        if (!string.Equals(device.Info.Key, focusedDeviceKey, StringComparison.Ordinal)) return [];
+        if (!device.IsPresent || !device.CanControl) return [];
+
+        return
+        [
+            .. device.Capabilities.Values
+                .Where(c => c.Descriptor.IsLive && c.Descriptor.IsReadable)
+                .Select(c => c.Id),
+        ];
+    }
+
     public static PollPlan Plan(
         PollSubject subject,
         PollingAttention attention,

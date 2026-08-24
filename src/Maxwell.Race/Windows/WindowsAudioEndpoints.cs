@@ -92,6 +92,40 @@ public sealed class WindowsAudioEndpoints : IAudioEndpoints
         }
     }
 
+    /// <summary>
+    /// Starts a capture stream on the endpoint. The device object is handed to the meter,
+    /// which owns it from then on: the stream and the reference have to end together, and
+    /// the meter is the thing whose lifetime is visible in the taskbar.
+    /// </summary>
+    public IAudioLevelMeter Listen(string endpointId)
+    {
+        ArgumentNullException.ThrowIfNull(endpointId);
+
+        IMMDeviceEnumerator enumerator = Create();
+
+        try
+        {
+            if (enumerator.GetDevice(endpointId, out IMMDevice device) != 0)
+            {
+                throw new IOException($"Audio endpoint {endpointId} could not be opened.");
+            }
+
+            try
+            {
+                return new WindowsAudioLevelMeter(device);
+            }
+            catch
+            {
+                Release(device);
+                throw;
+            }
+        }
+        finally
+        {
+            Release(enumerator);
+        }
+    }
+
     private static AudioEndpoint? Describe(IMMDevice device, AudioFlow flow)
     {
         if (device.GetId(out string id) != 0) return null;
@@ -148,11 +182,12 @@ public sealed class WindowsAudioEndpoints : IAudioEndpoints
         if (comObject is not null && Marshal.IsComObject(comObject)) Marshal.ReleaseComObject(comObject);
     }
 
-    /// <summary>One endpoint held open: its volume interface, and nothing else.</summary>
+    /// <summary>One endpoint held open: its volume interface and its meter.</summary>
     private sealed class Channel : IAudioEndpointChannel
     {
         private IMMDevice? _device;
         private IAudioEndpointVolume? _volume;
+        private IAudioMeterInformation? _meter;
 
         public Channel(IMMDevice device)
         {
@@ -165,6 +200,15 @@ public sealed class WindowsAudioEndpoints : IAudioEndpoints
             }
 
             _volume = (IAudioEndpointVolume)activated;
+
+            // The meter is optional and the endpoint is not. A device that answers about
+            // its volume and refuses a meter is still worth every other row on the page,
+            // so this failure is a null rather than an exception.
+            Guid meter = typeof(IAudioMeterInformation).GUID;
+            if (device.Activate(ref meter, InprocServer, IntPtr.Zero, out object metering) == 0)
+            {
+                _meter = (IAudioMeterInformation)metering;
+            }
         }
 
         public int? Volume =>
@@ -174,6 +218,9 @@ public sealed class WindowsAudioEndpoints : IAudioEndpoints
 
         public bool? Mute =>
             _volume is { } volume && volume.GetMute(out bool muted) == 0 ? muted : null;
+
+        public int? Peak =>
+            _meter is { } meter && meter.GetPeakValue(out float peak) == 0 ? Percent(peak) : null;
 
         public bool SetVolume(int percent)
         {
@@ -206,9 +253,11 @@ public sealed class WindowsAudioEndpoints : IAudioEndpoints
 
         public void Dispose()
         {
+            Release(_meter);
             Release(_volume);
             Release(_device);
 
+            _meter = null;
             _volume = null;
             _device = null;
         }
@@ -326,5 +375,22 @@ public sealed class WindowsAudioEndpoints : IAudioEndpoints
         int SetMute(bool mute, ref Guid context);
 
         int GetMute(out bool mute);
+    }
+
+    /// <summary>
+    /// The endpoint's meter. Same rule as above about declaring the whole vtable: the
+    /// three methods after <c>GetPeakValue</c> are never called and are here so that
+    /// nothing else lands on their slots.
+    /// </summary>
+    [ComImport, Guid("C02216F6-8C67-4B5B-9D00-D008E73E0064"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IAudioMeterInformation
+    {
+        int GetPeakValue(out float peak);
+
+        int GetMeteringChannelCount(out uint channels);
+
+        int GetChannelsPeakValues(uint channels, [Out] float[] peaks);
+
+        int QueryHardwareSupport(out uint mask);
     }
 }

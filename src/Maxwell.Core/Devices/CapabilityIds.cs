@@ -70,6 +70,12 @@ public static class CapabilityIds
     public const string MicSystemLevel = "mic.system_level";
     public const string MicSystemMute = "mic.system_mute";
 
+    /// <summary>
+    /// What the microphone is hearing, right now. Only read while its page is open —
+    /// reading it means listening, and listening is visible in the taskbar.
+    /// </summary>
+    public const string MicSystemPeak = "mic.system_peak";
+
     // Game and chat
     public const string MixChat = "mix.chat";
 

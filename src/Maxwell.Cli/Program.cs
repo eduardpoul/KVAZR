@@ -36,6 +36,11 @@ if (args.Contains("--hid")) return HidSurvey.Run(!args.Contains("--all"));
 if (args.Contains("--hidpp")) return HidPlusPlusProbe.Run();
 if (args.Contains("--xinput")) return XInputProbe.Run();
 if (args.Contains("--audio")) return AudioProbe.Run();
+if (args.Contains("--meter"))
+{
+    int seconds = int.TryParse(ValueAfter(args, "--meter"), out int held) ? held : 6;
+    return await MeterProbe.RunAsync(seconds).ConfigureAwait(false);
+}
 if (args.Contains("--desk")) return DeskProbe.Run(args);
 if (args.Contains("--timing")) return await TimingProbe.RunAsync().ConfigureAwait(false);
 if (args.Contains("--devchange")) return DeviceChangeProbe.Run(TimeSpan.FromSeconds(20));

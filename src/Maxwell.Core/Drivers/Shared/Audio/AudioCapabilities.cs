@@ -8,6 +8,9 @@ internal enum AudioControl
 {
     Volume,
     Mute,
+
+    /// <summary>The input level. Unlike the other two, reading it means listening.</summary>
+    Peak,
 }
 
 /// <summary>One capability, and the endpoint knob behind it.</summary>
@@ -114,8 +117,51 @@ internal static class AudioCapabilities
                     Subtitle = several ? endpoint.Name : null,
                     IsVolatile = true,
                 }));
+
+            if (render) continue;
+
+            // The input level, and only for what a microphone actually records.
+            //
+            // Measured in decibels relative to full scale, which is the scale sound is
+            // heard on and the only one that makes a meter readable: ordinary speech is
+            // about a tenth of full amplitude, so on a linear percentage it and a quiet
+            // room share the bottom of the bar. The floor is −60, below which the
+            // difference between "quiet" and "nothing" stops being information.
+            rows.Add(new AudioRow(
+                Numbered(CapabilityIds.MicSystemPeak, i),
+                endpoint.Id,
+                AudioControl.Peak,
+                new Capability
+                {
+                    Id = Numbered(CapabilityIds.MicSystemPeak, i),
+                    Domain = domain,
+                    Primitive = CapabilityPrimitive.Readout,
+                    Title = Titled("Input level", label),
+                    Subtitle = "Measured while this page is open, so Windows shows the microphone as in use",
+                    Range = new CapabilityRange { Min = MinimumDecibels, Max = 0, Unit = "dB" },
+                    IsLive = true,
+                }));
         }
     }
+
+    /// <summary>
+    /// The bottom of the meter. A microphone in a silent room sits around −70 dBFS and a
+    /// muted one at negative infinity; both are "nothing", and a scale that tried to show
+    /// the difference would spend most of itself on it.
+    /// </summary>
+    internal const int MinimumDecibels = -60;
+
+    /// <summary>
+    /// Amplitude as the meter reports it, 0..1, turned into the decibels the row carries.
+    ///
+    /// Kept here rather than in the platform layer because it is a presentation decision:
+    /// what the microphone delivered is a fraction of full scale, and choosing to show
+    /// that logarithmically — and where to stop — is this layer's business.
+    /// </summary>
+    public static int Decibels(double fraction) =>
+        fraction <= 0
+            ? MinimumDecibels
+            : (int)Math.Round(Math.Clamp(20 * Math.Log10(fraction), MinimumDecibels, 0));
 
     private static string Titled(string title, string? label) => label is null ? title : $"{title} · {label}";
 

@@ -105,11 +105,13 @@ internal static class Program
             App.ScrollOnStart = offset;
         }
 
-        if (Array.IndexOf(args, "--open") is var open and >= 0
-            && open + 1 < args.Length
-            && int.TryParse(args[open + 1], out int index))
+        // A number or a piece of the name. The number was there first and kept being
+        // wrong: the list is ordered by name and fills over a minute, so "the fourth
+        // device" means different things depending on how much of the sweep has landed.
+        if (Array.IndexOf(args, "--open") is var open and >= 0 && open + 1 < args.Length)
         {
-            App.OpenDeviceOnStart = index;
+            if (int.TryParse(args[open + 1], out int index)) App.OpenDeviceOnStart = index;
+            else App.OpenDeviceNamed = args[open + 1];
         }
 
         // The content pane renders in a WebView by default on Windows; --native falls

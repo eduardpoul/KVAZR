@@ -262,6 +262,34 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
 
     private int? _pendingIndex;
 
+    /// <summary>
+    /// Opens a device by a piece of its name, held until it turns up.
+    ///
+    /// The position is the wrong handle for this and three wasted runs proved it: the
+    /// list is ordered by name and filled by a sweep that takes a minute, so "the fourth
+    /// device" is a different device depending on how much of the sweep has landed —
+    /// which is exactly when a development flag is used. A fragment of the name is stable.
+    /// </summary>
+    public void SelectDeviceNamed(string fragment)
+    {
+        ArgumentNullException.ThrowIfNull(fragment);
+
+        DeviceListItemViewModel? found = Devices.FirstOrDefault(
+            d => d.DisplayName.Contains(fragment, StringComparison.CurrentCultureIgnoreCase));
+
+        if (found is null)
+        {
+            _pendingName = fragment;
+            return;
+        }
+
+        _pendingName = null;
+        SelectedDevice = found;
+        TryApplyPendingSection();
+    }
+
+    private string? _pendingName;
+
     /// <summary>Which section the development flag asked for, held until it exists.</summary>
     public int? PendingSectionIndex { get; set; }
 
@@ -367,6 +395,14 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         else _polling.SetAttention(PollingAttention.Glance);
     }
 
+    /// <summary>
+    /// The window is gone but the page is still selected, so nothing else will say that
+    /// it stopped being looked at. Without this the scheduler goes on reading a device
+    /// page nobody can see — and a page with a live row goes on measuring, which for a
+    /// microphone means the machine keeps listening behind a hidden window.
+    /// </summary>
+    public void OnWindowHidden() => _polling.SetAttention(PollingAttention.Idle);
+
     partial void OnSelectedDeviceChanged(DeviceListItemViewModel? value)
     {
         if (value is null) return;
@@ -458,6 +494,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         Reorder(snapshots);
 
         if (_pendingIndex is { } wanted) SelectDeviceAt(wanted);
+        if (_pendingName is { } named) SelectDeviceNamed(named);
         TryApplyPendingSection();
 
         OnPropertyChanged(nameof(HasDevices));

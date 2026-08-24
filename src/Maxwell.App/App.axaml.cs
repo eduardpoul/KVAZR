@@ -28,6 +28,9 @@ public partial class App : Application, IDisposable
     /// <summary>Development affordance: open a device page without a synthetic click.</summary>
     internal static int? OpenDeviceOnStart { get; set; }
 
+    /// <summary>The same, by a piece of the device's name — which does not move as the list fills.</summary>
+    internal static string? OpenDeviceNamed { get; set; }
+
     /// <summary>
     /// Development affordance: hold the splash up instead of letting the shell dismiss
     /// it. A screen that is on for six hundred milliseconds cannot be photographed.
@@ -183,6 +186,13 @@ public partial class App : Application, IDisposable
                 ShellViewModel shell = _services.GetRequiredService<ShellViewModel>();
                 shell.PendingSectionIndex = OpenSectionOnStart;
                 Dispatcher.UIThread.Post(() => shell.SelectDeviceAt(index), DispatcherPriority.Background);
+            }
+
+            if (OpenDeviceNamed is { Length: > 0 } named)
+            {
+                ShellViewModel shell = _services.GetRequiredService<ShellViewModel>();
+                shell.PendingSectionIndex = OpenSectionOnStart;
+                Dispatcher.UIThread.Post(() => shell.SelectDeviceNamed(named), DispatcherPriority.Background);
             }
 
             if (OpenAppSectionOnStart is { } section)

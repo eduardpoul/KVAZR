@@ -116,6 +116,23 @@ public sealed record Capability
     public bool IsVolatile { get; init; }
 
     /// <summary>
+    /// The value moves many times a second and is worth reading only while somebody is
+    /// watching it: an input level, a stick position, a live temperature.
+    ///
+    /// Deliberately not a faster <see cref="IsVolatile"/>. Volatile means "poll it so the
+    /// page does not disagree with the hardware"; live means "this is a measurement, and
+    /// between glances there is nothing to remember". So these are left out of ordinary
+    /// sweeps entirely — including the full read a device gets when it is first seen —
+    /// and read only by the fast lane, only for the device whose page is open.
+    ///
+    /// The exclusion is not an optimisation. Reading a microphone's level means opening
+    /// the microphone, which lights the in-use indicator in the taskbar; a full sweep that
+    /// took one sample of it would flash that indicator for every device the application
+    /// discovers, which is not a thing anybody should have to explain.
+    /// </summary>
+    public bool IsLive { get; init; }
+
+    /// <summary>
     /// False when a write cannot be undone. Maxwell's gain mirror latches on the first
     /// write and only a factory reset puts it back, so the warning has to come before
     /// the write, not after it.

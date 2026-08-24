@@ -17,6 +17,7 @@ public sealed class DeviceSessionTests
     private const string NeedsCable = "test.needs_cable";
     private const string Plain = "test.plain";
     private const string Grouped = "test.grouped";
+    private const string Live = "test.live";
     private const string Withheld = "test.withheld";
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
@@ -63,6 +64,38 @@ public sealed class DeviceSessionTests
         // Declared as 0..1 with the real ceiling living in another capability; the
         // hard-coded placeholder must not survive contact with the device.
         Assert.Equal(31, session.Snapshot.Capabilities[Ranged].Range!.Max);
+    }
+
+    /// <summary>
+    /// A read of everything is what a device gets the first time it is seen, on a sweep
+    /// nobody asked for. Reading a live capability there means measuring something — for a
+    /// microphone, listening to it — so the reading a user never asked for would light the
+    /// in-use indicator on every discovery pass, for every microphone on the machine.
+    /// </summary>
+    [Fact]
+    public async Task ReadingEverything_LeavesTheLiveReadingsAlone()
+    {
+        (DeviceSession session, Fixture fixture) = await StartAsync();
+        fixture.Connection.Asked.Clear();
+
+        await session.RefreshAllAsync(Ct);
+
+        Assert.Contains(Plain, fixture.Connection.Asked);
+        Assert.DoesNotContain(Live, fixture.Connection.Asked);
+        Assert.True(session.Snapshot.Capabilities[Live].Value.IsAbsent);
+    }
+
+    [Fact]
+    public async Task AskedForByName_ALiveReadingIsTaken()
+    {
+        (DeviceSession session, Fixture fixture) = await StartAsync();
+        fixture.Connection.Asked.Clear();
+
+        // Which is what the fast lane does, for the one device whose page is open.
+        await session.RefreshAsync([Live], Ct);
+
+        Assert.Equal([Live], fixture.Connection.Asked);
+        Assert.Equal(CapabilityValue.Of(-20), session.Snapshot.Capabilities[Live].Value);
     }
 
     [Fact]
@@ -312,7 +345,11 @@ public sealed class DeviceSessionTests
             [Ranged] = CapabilityValue.Of(9),
             [NeedsCable] = CapabilityValue.Of(1),
             [Grouped] = CapabilityValue.Numbers(1600, 1200),
+            [Live] = CapabilityValue.Of(-20),
         };
+
+        /// <summary>Every capability asked for, in order, so a test can say what was not asked.</summary>
+        public List<string> Asked { get; } = [];
 
         public IReadOnlyList<Capability> Capabilities { get; } =
         [
@@ -380,6 +417,18 @@ public sealed class DeviceSessionTests
                 Range = new CapabilityRange { Min = 200, Max = 8000 },
                 Members = [new(0, "X"), new(1, "Y")],
             },
+            new()
+            {
+                Id = Live,
+                Domain = CapabilityDomain.Microphone,
+                Primitive = CapabilityPrimitive.Readout,
+                Access = CapabilityAccess.Read,
+                Title = "Live",
+
+                // A measurement rather than a setting: reading it costs something visible
+                // to the user, so it must never be swept up by a read of everything.
+                IsLive = true,
+            },
         ];
 
         public IReadOnlyList<TransportInfo> Transports { get; set; } =
@@ -389,6 +438,8 @@ public sealed class DeviceSessionTests
 
         public Task<CapabilityValue> ReadAsync(string capabilityId, CancellationToken cancellationToken = default)
         {
+            Asked.Add(capabilityId);
+
             CapabilityValue value = Values.GetValueOrDefault(capabilityId, CapabilityValue.Absent);
 
             // Rebuilt rather than handed back, because a real driver decodes bytes into a

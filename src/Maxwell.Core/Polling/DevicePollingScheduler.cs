@@ -11,12 +11,18 @@ using Microsoft.Extensions.Options;
 namespace Maxwell.Core.Polling;
 
 /// <summary>
-/// The only timer in the application. Reads each device as often as the policy says it
-/// is worth reading, and raises the battery alerts.
+/// The timers in the application, both of them. Reads each device as often as the policy
+/// says it is worth reading, raises the battery alerts, and keeps the fast lane going for
+/// the readings that are meaningless slow.
 ///
 /// One loop rather than a timer per device on purpose: with six devices, six
 /// independent timers wake the process six times as often for no extra information,
 /// and their reads interleave into the serialised sessions in an order nobody chose.
+///
+/// The second loop is the exception that proves it. A level meter at the ordinary pace is
+/// not a slower meter, it is a broken one — and it cannot share the sweep, whose floor is
+/// a quarter of a second and whose whole job is to be unhurried. So live readings get a
+/// lane of their own: one device, the one whose page is open, and only its live rows.
 /// </summary>
 public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordinator
 {
@@ -34,6 +40,16 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
     private static readonly TimeSpan DeviceBudget = TimeSpan.FromSeconds(12);
 
     private static readonly TimeSpan MaxSleep = TimeSpan.FromSeconds(60);
+
+    /// <summary>
+    /// How often a live reading is taken while its page is open. Sixteen a second: fast
+    /// enough that a level meter follows a voice, slow enough that the cost is a COM call
+    /// and a snapshot rather than a frame budget.
+    /// </summary>
+    private static readonly TimeSpan LiveInterval = TimeSpan.FromMilliseconds(60);
+
+    /// <summary>How often the fast lane looks up to see whether anything live is on screen.</summary>
+    private static readonly TimeSpan LiveIdle = TimeSpan.FromMilliseconds(400);
 
     private readonly IDeviceRegistry _registry;
     private readonly INotifier _notifier;
@@ -174,6 +190,24 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
         // the loop exists has nothing to wake.
         _changes?.Start();
 
+        // Side by side, not awaited: the fast lane must not be held up by a headset that
+        // takes four seconds to answer, which is the whole reason it is a separate lane.
+        Task live = LiveAsync(stoppingToken);
+
+        try
+        {
+            await SweepAsync(stoppingToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            await live.ConfigureAwait(false);
+        }
+
+        _logger.PollingStopped();
+    }
+
+    private async Task SweepAsync(CancellationToken stoppingToken)
+    {
         while (!stoppingToken.IsCancellationRequested)
         {
             TimeSpan sleep;
@@ -196,8 +230,66 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
 
             if (!await SleepAsync(sleep, stoppingToken).ConfigureAwait(false)) break;
         }
+    }
 
-        _logger.PollingStopped();
+    /// <summary>
+    /// The fast lane: the live rows of the one device whose page is open.
+    ///
+    /// Deliberately narrow. It runs only under <see cref="PollingAttention.Focused"/>,
+    /// only for that device, and only for capabilities the driver marked live — which
+    /// today is one row, a microphone's input level. Everything else keeps the ordinary
+    /// pace, because everything else is a setting rather than a measurement.
+    ///
+    /// It asks and does not insist. The session serialises a device's reads, so a live
+    /// read waits behind whatever the sweep is doing; a frame lost that way is a frame
+    /// nobody misses, and the alternative — a second channel into the device — is how two
+    /// readers end up disagreeing about the same hardware.
+    /// </summary>
+    private async Task LiveAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            TimeSpan wait = LiveIdle;
+
+            try
+            {
+                if (await LiveTickAsync(stoppingToken).ConfigureAwait(false)) wait = LiveInterval;
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+#pragma warning disable CA1031 // Same rule as the sweep: one failed reading must not end the lane.
+            catch (Exception ex)
+            {
+                _logger.PollingIterationFailed(ex);
+            }
+#pragma warning restore CA1031
+
+            try
+            {
+                await Task.Delay(wait, stoppingToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+        }
+    }
+
+    /// <summary>True when there was something live to read, which decides the next wait.</summary>
+    private async Task<bool> LiveTickAsync(CancellationToken cancellationToken)
+    {
+        (PollingAttention attention, string? focused) = Current();
+
+        if (focused is null) return false;
+        if (_registry.Session(focused) is not { } session) return false;
+
+        IReadOnlyList<string> live = PollingPolicy.Live(session.Snapshot, attention, focused);
+        if (live.Count == 0) return false;
+
+        await session.RefreshAsync(live, cancellationToken).ConfigureAwait(false);
+        return true;
     }
 
     private async Task<TimeSpan> TickAsync(CancellationToken cancellationToken)
