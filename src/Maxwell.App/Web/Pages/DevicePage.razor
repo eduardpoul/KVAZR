@@ -29,6 +29,9 @@
         @* Present is not the same as working. A Maxwell paired over Bluetooth while its
            dongle is in shows both, and painting both accent claims both are carrying the
            device — the rule for which one actually is lives in TransportActivity. *@
+        @* Transport names are the drivers' own words. The common ones translate by
+           label; anything a driver invents shows as written, which is the same rule the
+           rest of the catalogue follows. *@
         @foreach (TransportInfo transport in Vm.LiveTransports)
         {
           <span class="xport-pill @(TransportActivity.IsLive(Vm.Snapshot.Info, transport) ? "" : "idle")">
@@ -42,7 +45,7 @@
                 <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4.6" y="1.8" width="6.8" height="5" rx="1.2" /><path d="M8 6.8v6" /><circle cx="8" cy="13.6" r="1.3" /></svg>
                 break;
             }
-            <span>@transport.Label</span>
+            <span>@Maxwell.App.Localization.TransportNames.Of(transport)</span>
           </span>
         }
         @if (Vm.HasFirmware)
@@ -74,7 +77,7 @@
       <div class="hero-batt absent">
         <div class="gauge-row">
           <HeroBattery Absent="true" />
-          <div class="hero-absent">Заряд недоступен</div>
+          <div class="hero-absent">@T["device.no_battery", "Заряд недоступен"]</div>
         </div>
         <div class="caption wrap">@Vm.NoBatteryReason</div>
       </div>
@@ -85,12 +88,11 @@
   {
     <div class="notice">
       <span class="notice-dot"></span>
-      <span>Устройство подключено на уровне Windows, но не отвечает ни на один известный
-        запрос. Настраивать нечего — ниже всё, что удалось прочитать.</span>
+      <span>@T.Say("Устройство подключено на уровне Windows, но не отвечает ни на один известный запрос. Настраивать нечего — ниже всё, что удалось прочитать.")</span>
     </div>
 
     <div class="group">
-      <div class="group-head"><span class="group-heading">ЧТО УДАЛОСЬ ПРОЧИТАТЬ</span></div>
+      <div class="group-head"><span class="group-heading">@T["device.what_was_read", "ЧТО УДАЛОСЬ ПРОЧИТАТЬ"]</span></div>
       <div class="card">
         @foreach (DeviceFact fact in Vm.Facts)
         {
@@ -105,14 +107,14 @@
     @if (CanForget)
     {
       <div class="group">
-        <div class="group-head"><span class="group-heading">ДЕЙСТВИЯ</span></div>
+        <div class="group-head"><span class="group-heading">@T["device.actions", "ДЕЙСТВИЯ"]</span></div>
         <div class="card">
           <div class="cap-row">
             <div class="cap-text">
-              <div class="cap-title">Забыть устройство</div>
-              <div class="caption">Удаляет пару в системе. Понадобится — сопрягать заново</div>
+              <div class="cap-title">@T["device.forget", "Забыть устройство"]</div>
+              <div class="caption">@T["device.forget.caption", "Удаляет пару в системе. Понадобится — сопрягать заново"]</div>
             </div>
-            <button class="danger-outline" @onclick="Forget">Забыть</button>
+            <button class="danger-outline" @onclick="Forget">@T["device.forget.button", "Забыть"]</button>
           </div>
         </div>
       </div>
@@ -176,6 +178,9 @@
 </div>
 
 @code {
+  /// <summary>Redraw when the language changes.</summary>
+  protected override void OnInitialized() => Follow(T);
+
   [Parameter, EditorRequired] public ShellViewModel Shell { get; set; } = default!;
 
   [Parameter, EditorRequired] public DevicePageViewModel Vm { get; set; } = default!;

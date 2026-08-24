@@ -18,12 +18,12 @@ public static class HotkeyActions
 
     public static readonly IReadOnlyList<HotkeyAction> All =
     [
-        new(ChatMixUp, "Game / Chat Mix — в сторону чата", "Шаг 1 из 20"),
-        new(ChatMixDown, "Game / Chat Mix — в сторону игры", "Шаг 1 из 20"),
-        new(NoiseCycle, "Шумоподавление микрофона", "По кругу: выкл → низкое → высокое"),
-        new(SidetoneToggle, "Сайдтон", "Включить или выключить"),
-        new(PresetNext, "Следующий пресет эквалайзера", "По кругу из 10 слотов"),
-        new(WindowShow, "Показать окно", "Из области уведомлений"),
+        new(ChatMixUp, Maxwell.App.Localization.Localizer.Current.Say("Game / Chat Mix — в сторону чата"), Maxwell.App.Localization.Localizer.Current.Say("Шаг 1 из 20")),
+        new(ChatMixDown, Maxwell.App.Localization.Localizer.Current.Say("Game / Chat Mix — в сторону игры"), Maxwell.App.Localization.Localizer.Current.Say("Шаг 1 из 20")),
+        new(NoiseCycle, Maxwell.App.Localization.Localizer.Current.Say("Шумоподавление микрофона"), Maxwell.App.Localization.Localizer.Current.Say("По кругу: выкл → низкое → высокое")),
+        new(SidetoneToggle, Maxwell.App.Localization.Localizer.Current.Say("Сайдтон"), Maxwell.App.Localization.Localizer.Current.Say("Включить или выключить")),
+        new(PresetNext, Maxwell.App.Localization.Localizer.Current.Say("Следующий пресет эквалайзера"), Maxwell.App.Localization.Localizer.Current.Say("По кругу из 10 слотов")),
+        new(WindowShow, Maxwell.App.Localization.Localizer.Current.Say("Показать окно"), Maxwell.App.Localization.Localizer.Current.Say("Из области уведомлений")),
     ];
 
     public static HotkeyAction? ById(string id) =>

@@ -14,7 +14,7 @@
       <div class="set-row">
         <div class="cap-text">
           <div class="cap-title">@T["settings.theme", "Тема"]</div>
-          <div class="caption">Системная следует за оформлением Windows</div>
+          <div class="caption">@T.Say("Системная следует за оформлением Windows")</div>
         </div>
         <div class="segmented">
           @foreach ((string label, int index) in new[]
@@ -119,14 +119,13 @@
     <div class="card">
       <div class="set-row">
         <div class="caption wrap grow">
-          Эти устройства не показываются на дашборде, в трее и в уведомлениях. Пары в
-          Windows не тронуты: вернёте в список — данные снова начнут читаться.
+          @T.Say("Эти устройства не показываются на дашборде, в трее и в уведомлениях. Пары в Windows не тронуты: вернёте в список — данные снова начнут читаться.")
         </div>
       </div>
       <div class="set-row">
         <div class="cap-text">
           <div class="cap-title">@T["settings.hide_silent", "Скрывать непонятные устройства"]</div>
-          <div class="caption">Без класса и без данных — обычно служебные узлы, а не техника</div>
+          <div class="caption">@T.Say("Без класса и без данных — обычно служебные узлы, а не техника")</div>
         </div>
         <button class="switch @(Vm.HideSilentDevices ? "on" : "")"
                 @onclick="() => OnUi(() => Vm.HideSilentDevices = !Vm.HideSilentDevices)"><span class="knob"></span></button>
@@ -140,22 +139,19 @@
               <div class="cap-title">@hidden.DisplayName</div>
               <div class="caption">@hidden.Kind · @hidden.When</div>
             </div>
-            <button class="outline" @onclick="() => { var h = hidden; OnUi(() => h.RestoreCommand.Execute(null)); }">Вернуть</button>
+            <button class="outline" @onclick="() => { var h = hidden; OnUi(() => h.RestoreCommand.Execute(null)); }">@T.Say("Вернуть")</button>
           </div>
         }
       }
       else
       {
-        <div class="set-row"><div class="caption">Ничего не скрыто.</div></div>
+        <div class="set-row"><div class="caption">@T.Say("Ничего не скрыто.")</div></div>
       }
     </div>
   </div>
 </div>
 
 @code {
-  /// <summary>The catalogue, short enough to sit inside markup.</summary>
-  private Maxwell.App.Localization.Localizer T => Vm.Text;
-
   [Parameter, EditorRequired] public SettingsViewModel Vm { get; set; } = default!;
 
   protected override void OnInitialized()

@@ -255,7 +255,9 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
         _values = new int[Members.Count];
         _known = new bool[Members.Count];
 
-        Labels = [.. Members.Select(m => m.Label)];
+        // Band captions are the driver's — "1 к", "250 Гц" — and translated here,
+        // where they are drawn, like everything else a driver writes.
+        Labels = [.. Members.Select(m => Maxwell.App.Localization.Localizer.Current.Say(m.Label))];
         PushReadings();
 
         // The curve the page opened on is as much a baseline as any that arrives later.
@@ -594,7 +596,7 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
     /// </summary>
     private string SuggestName()
     {
-        const string Stem = "Мой пресет";
+        string Stem = Maxwell.App.Localization.Localizer.Current.Say("Мой пресет");
 
         if (Library is not { } library) return Stem;
 
@@ -737,8 +739,10 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
     /// That is a different sentence from "read, and flat".
     /// </summary>
     public string Display => Members.Count == 0
-        ? "Полосы недоступны"
-        : HasCurve ? $"{Members.Count} полос · {Describe()}" : $"{Members.Count} полос · нет данных";
+        ? Maxwell.App.Localization.Localizer.Current.Say("Полосы недоступны")
+        : HasCurve
+            ? $"{Members.Count} {Maxwell.App.Localization.Localizer.Current.Say("полос")} · {Describe()}"
+            : $"{Members.Count} {Maxwell.App.Localization.Localizer.Current.Say("полос")} · {Maxwell.App.Localization.Localizer.Current.Say("нет данных")}";
 
     /// <summary>
     /// Raised by the plot on a drag. Nothing else in the control writes, so a curve that
@@ -868,7 +872,7 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
             high = Math.Max(high, _values[i]);
         }
 
-        if (low > high) return "нет данных";
+        if (low > high) return Maxwell.App.Localization.Localizer.Current.Say("нет данных");
 
         string unit = _bounds.Unit is { } u ? $" {u}" : string.Empty;
         return low == high ? $"{low:+0;-0;0}{unit}" : $"{low:+0;-0;0}…{high:+0;-0;0}{unit}";
@@ -901,14 +905,14 @@ public sealed class LightingCapabilityViewModel : CompositeCapabilityViewModel
     /// </summary>
     private static readonly LightingSwatch[] Palette =
     [
-        new("Белый", 0xFFFFFF),
-        new("Красный", 0xE0483C),
-        new("Янтарный", 0xEAA300),
-        new("Зелёный", 0x3FA45B),
-        new("Бирюзовый", 0x2AA9B8),
-        new("Синий", 0x2C6FD1),
-        new("Фиолетовый", 0x7B4EC4),
-        new("Розовый", 0xD65DB1),
+        new(Maxwell.App.Localization.Localizer.Current.Say("Белый"), 0xFFFFFF),
+        new(Maxwell.App.Localization.Localizer.Current.Say("Красный"), 0xE0483C),
+        new(Maxwell.App.Localization.Localizer.Current.Say("Янтарный"), 0xEAA300),
+        new(Maxwell.App.Localization.Localizer.Current.Say("Зелёный"), 0x3FA45B),
+        new(Maxwell.App.Localization.Localizer.Current.Say("Бирюзовый"), 0x2AA9B8),
+        new(Maxwell.App.Localization.Localizer.Current.Say("Синий"), 0x2C6FD1),
+        new(Maxwell.App.Localization.Localizer.Current.Say("Фиолетовый"), 0x7B4EC4),
+        new(Maxwell.App.Localization.Localizer.Current.Say("Розовый"), 0xD65DB1),
     ];
 
     public LightingCapabilityViewModel(CapabilityState state, IDeviceSession? session)
@@ -1301,16 +1305,16 @@ public sealed class ProfileSetCapabilityViewModel : SlotListCapabilityViewModel
     {
     }
 
-    public override string ActiveLabel => "активен";
+    public override string ActiveLabel => Maxwell.App.Localization.Localizer.Current.Say("активен");
 
-    public override string SwitchVerb => "Применить";
+    public override string SwitchVerb => Maxwell.App.Localization.Localizer.Current.Say("Применить");
 
     /// <summary>
     /// The ellipsis is the promise of a question. Writing a profile into an empty slot
     /// still overwrites whatever the device believes is there, and the design system
     /// requires the warning before the write rather than after it.
     /// </summary>
-    public override string FillVerb => "Записать сюда…";
+    public override string FillVerb => Maxwell.App.Localization.Localizer.Current.Say("Записать сюда…");
 }
 
 /// <summary>Paired hosts, and which of them the device is talking to.</summary>
@@ -1321,11 +1325,11 @@ public sealed class HostSlotsCapabilityViewModel : SlotListCapabilityViewModel
     {
     }
 
-    public override string ActiveLabel => "сейчас";
+    public override string ActiveLabel => Maxwell.App.Localization.Localizer.Current.Say("сейчас");
 
-    public override string SwitchVerb => "Переключить";
+    public override string SwitchVerb => Maxwell.App.Localization.Localizer.Current.Say("Переключить");
 
-    public override string FillVerb => "Сопрячь…";
+    public override string FillVerb => Maxwell.App.Localization.Localizer.Current.Say("Сопрячь…");
 }
 
 /// <summary>One slot of a <see cref="SlotListCapabilityViewModel"/>.</summary>

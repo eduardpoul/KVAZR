@@ -94,6 +94,14 @@ public sealed class LocalizationTests
         text.Use("en");
 
         Assert.Equal("Equaliser", text.Capability("audio.eq_graphic", "title", "Эквалайзер"));
-        Assert.Equal("Эквалайзер", text.Capability("audio.eq_graphic", "invented", "Эквалайзер"));
+
+        // A part the catalogue does not carry falls through to the source text — and the
+        // source text is itself a key, so it still arrives in English. That is the whole
+        // point of keying by the Russian: a driver's own words are translated where they
+        // are drawn, without the driver knowing a catalogue exists.
+        Assert.Equal("Equaliser", text.Capability("audio.eq_graphic", "invented", "Эквалайзер"));
+
+        // Nothing knows this sentence, so it shows as written.
+        Assert.Equal("Выдумка", text.Capability("audio.invented", "title", "Выдумка"));
     }
 }

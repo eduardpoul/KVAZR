@@ -19,7 +19,7 @@ public sealed partial class ReadoutCapabilityViewModel : CapabilityViewModel
     private static string Format(CapabilityState state) => state.Value switch
     {
         NumberValue n => WithUnit(n.Value.ToString(), state.Range?.Unit),
-        FlagValue f => f.Value ? "да" : "нет",
+        FlagValue f => f.Value ? Maxwell.App.Localization.Localizer.Current.Say("да") : Maxwell.App.Localization.Localizer.Current.Say("нет"),
         TextValue t => t.Value,
         ChoiceValue c => state.Descriptor.Choices.FirstOrDefault(o => o.Index == c.Index)?.Label ?? $"#{c.Index}",
 
@@ -238,7 +238,10 @@ public sealed partial class ChoiceCapabilityViewModel : CapabilityViewModel
     public ChoiceCapabilityViewModel(CapabilityState state, IDeviceSession? session)
         : base(state, session)
     {
-        Options = [.. state.Descriptor.Choices];
+        // Translated here rather than in the driver: a driver is a layer below the
+        // catalogue and cannot see it, and these are the words on the buttons.
+        Options = [.. state.Descriptor.Choices.Select(
+            c => c with { Label = Text.Say(c.Label), Hint = Text.Say(c.Hint) })];
         Selected = Find(state);
     }
 
@@ -290,7 +293,7 @@ public sealed partial class ActionCapabilityViewModel : CapabilityViewModel
         : base(state, session) => _confirm = confirm;
 
     /// <summary>The ellipsis is the promise that a question is coming.</summary>
-    public string Label => NeedsConfirmation ? "Выполнить…" : "Выполнить";
+    public string Label => NeedsConfirmation ? Maxwell.App.Localization.Localizer.Current.Say("Выполнить…") : Maxwell.App.Localization.Localizer.Current.Say("Выполнить");
 
     [RelayCommand]
     private async Task InvokeAsync()

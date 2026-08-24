@@ -134,7 +134,7 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     /// </summary>
     public string Firmware =>
         Snapshot.Get(CapabilityIds.DeviceFirmware)?.Value is TextValue { Value.Length: > 0 } version
-            ? $"Прошивка {version.Value}"
+            ? $"{Maxwell.App.Localization.Localizer.Current["device.firmware", "Прошивка"]} {version.Value}"
             : string.Empty;
 
     public bool HasFirmware => Firmware.Length > 0;
@@ -153,20 +153,22 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         {
             var facts = new List<DeviceFact>();
 
-            if (Address is { } address) facts.Add(new DeviceFact("Адрес", address));
+            if (Address is { } address) facts.Add(new DeviceFact(Maxwell.App.Localization.Localizer.Current["fact.address", "Адрес"], address));
 
             facts.Add(new DeviceFact(
-                "Класс устройства",
-                Snapshot.Info.Class == DeviceClass.Unknown ? "не определён" : ClassName));
+                Maxwell.App.Localization.Localizer.Current["fact.class", "Класс устройства"],
+                Snapshot.Info.Class == DeviceClass.Unknown ? Maxwell.App.Localization.Localizer.Current.Say("не определён") : ClassName));
 
             foreach (string id in Snapshot.Info.HardwareIds.Where(i => i.StartsWith("usb:", StringComparison.Ordinal)))
             {
-                facts.Add(new DeviceFact("Идентификатор USB", id[4..].ToUpperInvariant()));
+                facts.Add(new DeviceFact(Maxwell.App.Localization.Localizer.Current["fact.usb_id", "Идентификатор USB"], id[4..].ToUpperInvariant()));
             }
 
             facts.Add(new DeviceFact(
-                "Запись в каталоге",
-                Snapshot.Info.ImageKey is { Length: > 0 } slug ? slug : "нет — показываем то, что знает система"));
+                Maxwell.App.Localization.Localizer.Current["fact.catalogue", "Запись в каталоге"],
+                Snapshot.Info.ImageKey is { Length: > 0 } slug
+                    ? slug
+                    : Maxwell.App.Localization.Localizer.Current["fact.catalogue.none", "нет — показываем то, что знает система"]));
 
             return facts;
         }
@@ -186,16 +188,20 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
 
     private string ClassName => Snapshot.Info.Class switch
     {
-        DeviceClass.Headset => "Гарнитура",
-        DeviceClass.Earbuds => "Наушники",
-        DeviceClass.Microphone => "Микрофон",
-        DeviceClass.Speaker => "Колонка",
-        DeviceClass.Mouse => "Мышь",
-        DeviceClass.Keyboard => "Клавиатура",
-        DeviceClass.Gamepad => "Геймпад",
-        DeviceClass.Receiver => "Приёмник",
-        _ => "не определён",
+        DeviceClass.Headset => Name("headset", Maxwell.App.Localization.Localizer.Current.Say("Гарнитура")),
+        DeviceClass.Earbuds => Name("earbuds", Maxwell.App.Localization.Localizer.Current.Say("Наушники")),
+        DeviceClass.Microphone => Name("microphone", Maxwell.App.Localization.Localizer.Current.Say("Микрофон")),
+        DeviceClass.Speaker => Name("speaker", Maxwell.App.Localization.Localizer.Current.Say("Колонка")),
+        DeviceClass.Mouse => Name("mouse", Maxwell.App.Localization.Localizer.Current.Say("Мышь")),
+        DeviceClass.Keyboard => Name("keyboard", Maxwell.App.Localization.Localizer.Current.Say("Клавиатура")),
+        DeviceClass.Gamepad => Name("gamepad", Maxwell.App.Localization.Localizer.Current.Say("Геймпад")),
+        DeviceClass.Receiver => Name("receiver", Maxwell.App.Localization.Localizer.Current.Say("Приёмник")),
+        _ => Name("undetermined", Maxwell.App.Localization.Localizer.Current.Say("не определён")),
     };
+
+    /// <summary>A device class in the language in force; the Russian is the fallback.</summary>
+    private static string Name(string key, string russian) =>
+        Maxwell.App.Localization.Localizer.Current[$"device.class.{key}", russian];
 
     public string? ImageKey => Snapshot.Info.ImageKey;
 
@@ -241,9 +247,9 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     /// <summary>Why the battery cell is empty, phrased for the class and the link it is on.</summary>
     public string NoBatteryReason => Snapshot.Info.Class switch
     {
-        DeviceClass.Gamepad => "Донгл рапортует «проводной, батареи нет»",
-        _ when HasDongle => "Донгл не отдаёт уровень батареи. Появится, если спарить по Bluetooth",
-        _ => "Заряд по этому подключению не читается",
+        DeviceClass.Gamepad => Maxwell.App.Localization.Localizer.Current.Say("Донгл рапортует «проводной, батареи нет»"),
+        _ when HasDongle => Maxwell.App.Localization.Localizer.Current.Say("Донгл не отдаёт уровень батареи. Появится, если спарить по Bluetooth"),
+        _ => Maxwell.App.Localization.Localizer.Current.Say("Заряд по этому подключению не читается"),
     };
 
     /// <summary>
@@ -254,8 +260,8 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     /// </summary>
     public HeroPill? Extended => Snapshot.Info.DriverId switch
     {
-        "audeze.race" => new HeroPill("Расширенный · протокол Audeze", HeroPillKind.Vendor),
-        "logitech.hidpp" => new HeroPill("Расширенный · HID++", HeroPillKind.Hidpp),
+        "audeze.race" => new HeroPill(Maxwell.App.Localization.Localizer.Current.Say("Расширенный · протокол Audeze"), HeroPillKind.Vendor),
+        "logitech.hidpp" => new HeroPill(Maxwell.App.Localization.Localizer.Current.Say("Расширенный · HID++"), HeroPillKind.Hidpp),
         _ => null,
     };
 
@@ -282,7 +288,7 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     public string? SectionNote(CapabilityDomain domain) =>
         Snapshot.Info.DriverId != "audeze.race"
             && domain is CapabilityDomain.Audio or CapabilityDomain.Microphone
-                ? "применяется сразу, без «Применить»"
+                ? Maxwell.App.Localization.Localizer.Current.Say("применяется сразу, без «Применить»")
                 : null;
 
     /// <summary>
@@ -295,19 +301,19 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     {
         "audeze.race" => null,
         "logitech.hidpp" =>
-            "У мышей других вендоров этих строк не будет: HID++ — протокол Logitech, у Razer и Glorious остаются имя, класс и подключение.",
+            Maxwell.App.Localization.Localizer.Current.Say("У мышей других вендоров этих строк не будет: HID++ — протокол Logitech, у Razer и Glorious остаются имя, класс и подключение."),
         _ => Snapshot.Info.Class switch
         {
             DeviceClass.Headset or DeviceClass.Earbuds =>
-                "Кодек Bluetooth, аппаратная громкость и заряд через донгл базовым путём не читаются — их отдаёт только вендорский протокол.",
+                Maxwell.App.Localization.Localizer.Current.Say("Кодек Bluetooth, аппаратная громкость и заряд через донгл базовым путём не читаются — их отдаёт только вендорский протокол."),
             DeviceClass.Microphone =>
-                "Диаграмма направленности, аппаратный gain и подсветка живут в протоколе вендора — на базовом уровне их нет.",
+                Maxwell.App.Localization.Localizer.Current.Say("Диаграмма направленности, аппаратный gain и подсветка живут в протоколе вендора — на базовом уровне их нет."),
             DeviceClass.Keyboard =>
-                "Через донгл клавиатура не отдаёт ни заряд, ни VIA — раскладку, слои и подсветку правят по кабелю.",
+                Maxwell.App.Localization.Localizer.Current.Say("Через донгл клавиатура не отдаёт ни заряд, ни VIA — раскладку, слои и подсветку правят по кабелю."),
             DeviceClass.Gamepad =>
-                "Заряд по XInput отдают только настоящие Xbox-контроллеры; ремап кнопок и профили — вендорский путь.",
+                Maxwell.App.Localization.Localizer.Current.Say("Заряд по XInput отдают только настоящие Xbox-контроллеры; ремап кнопок и профили — вендорский путь."),
             DeviceClass.Speaker =>
-                "Аппаратные эффекты и эквалайзер колонки — вендорский путь. Базово это та же звуковая страница, что у гарнитуры.",
+                Maxwell.App.Localization.Localizer.Current.Say("Аппаратные эффекты и эквалайзер колонки — вендорский путь. Базово это та же звуковая страница, что у гарнитуры."),
             _ => null,
         },
     };
@@ -323,14 +329,14 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         // publishes no HID service at all, so the short list of capabilities is the
         // truth about this link rather than something failing.
         { Availability: DeviceAvailability.Active, Info.ControlTransport: null } =>
-            "Подключено по Bluetooth: доступен только заряд. Настройка работает через донгл или кабель",
+            Maxwell.App.Localization.Localizer.Current.Say("Подключено по Bluetooth: доступен только заряд. Настройка работает через донгл или кабель"),
 
         _ => Snapshot.Availability switch
         {
         DeviceAvailability.Unreachable =>
-            "Наушники не отвечают. Включите их или поднесите ближе — управление работает и по донглу, и по кабелю",
+            Maxwell.App.Localization.Localizer.Current.Say("Наушники не отвечают. Включите их или поднесите ближе — управление работает и по донглу, и по кабелю"),
         DeviceAvailability.Offline =>
-            "Устройство не подключено. Показаны последние известные значения",
+            Maxwell.App.Localization.Localizer.Current.Say("Устройство не подключено. Показаны последние известные значения"),
             _ => null,
         },
     };
@@ -339,7 +345,10 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     public string? Freshness => Snapshot switch
     {
         { Availability: DeviceAvailability.Offline, LastSeenAt: { } seen } => $"последний раз — {seen:HH:mm}",
-        { UpdatedAt: { } updated } => $"обновлено {updated:HH:mm}",
+        { UpdatedAt: { } updated } => string.Format(
+            System.Globalization.CultureInfo.InvariantCulture,
+            Maxwell.App.Localization.Localizer.Current["dash.updated", "обновлено {0}"],
+            updated.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)),
         _ => null,
     };
 

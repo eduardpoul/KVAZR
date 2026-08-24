@@ -75,22 +75,27 @@ public sealed class CapabilitySectionViewModel : IDisposable
     /// The section names the design uses. Kept here rather than on the enum so the core
     /// stays free of interface language and of any one language at all.
     /// </summary>
-    public static string TitleOf(CapabilityDomain domain) => domain switch
+    public static string TitleOf(CapabilityDomain domain) =>
+        Maxwell.App.Localization.Localizer.Current[
+            $"domain.{domain}".ToLowerInvariant(), Written(domain)];
+
+    /// <summary>The Russian wording, which is the source and the catalogue's fallback.</summary>
+    private static string Written(CapabilityDomain domain) => domain switch
     {
         // "Общее" rather than "Питание": the charge is drawn in the hero, so what is left
         // here is the device's own particulars — which edition it is, its firmware, when
         // it switches itself off.
-        CapabilityDomain.Power => "Общее",
-        CapabilityDomain.Link => "Связь",
-        CapabilityDomain.Audio => "Звук",
-        CapabilityDomain.Microphone => "Микрофон",
-        CapabilityDomain.Mix => "Игра и чат",
-        CapabilityDomain.Pointing => "Указатель",
-        CapabilityDomain.Buttons => "Кнопки",
-        CapabilityDomain.Keys => "Клавиши",
-        CapabilityDomain.Light => "Подсветка",
-        CapabilityDomain.Profiles => "Профили",
-        CapabilityDomain.Maintenance => "Питание и обслуживание",
+        CapabilityDomain.Power => Maxwell.App.Localization.Localizer.Current.Say("Общее"),
+        CapabilityDomain.Link => Maxwell.App.Localization.Localizer.Current.Say("Связь"),
+        CapabilityDomain.Audio => Maxwell.App.Localization.Localizer.Current.Say("Звук"),
+        CapabilityDomain.Microphone => Maxwell.App.Localization.Localizer.Current.Say("Микрофон"),
+        CapabilityDomain.Mix => Maxwell.App.Localization.Localizer.Current.Say("Игра и чат"),
+        CapabilityDomain.Pointing => Maxwell.App.Localization.Localizer.Current.Say("Указатель"),
+        CapabilityDomain.Buttons => Maxwell.App.Localization.Localizer.Current.Say("Кнопки"),
+        CapabilityDomain.Keys => Maxwell.App.Localization.Localizer.Current.Say("Клавиши"),
+        CapabilityDomain.Light => Maxwell.App.Localization.Localizer.Current.Say("Подсветка"),
+        CapabilityDomain.Profiles => Maxwell.App.Localization.Localizer.Current.Say("Профили"),
+        CapabilityDomain.Maintenance => Maxwell.App.Localization.Localizer.Current.Say("Питание и обслуживание"),
         _ => domain.ToString(),
     };
 

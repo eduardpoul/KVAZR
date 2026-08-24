@@ -12,12 +12,11 @@
   <div class="titlebar"><div class="title">@Vm.Title</div></div>
 
   <div class="caption wrap intro">
-    Сочетания работают, пока приложение запущено, в любом окне. Действия применяются к
-    основному устройству — тому же, чьё состояние показывает знак в трее.
+    @T.Say("Сочетания работают, пока приложение запущено, в любом окне. Действия применяются к основному устройству — тому же, чьё состояние показывает знак в трее.")
   </div>
 
   <div class="group">
-    <div class="group-heading">ДЕЙСТВИЯ</div>
+    <div class="group-heading">@T.Say("ДЕЙСТВИЯ")</div>
     <div class="card">
       @foreach (HotkeyRowViewModel row in Vm.Rows)
       {
@@ -42,7 +41,7 @@
 
           @if (row.HasGesture)
           {
-            <button class="icon-clear" title="Очистить"
+            <button class="icon-clear" title="@T.Say("Очистить")"
                     @onclick="() => { var r = row; OnUi(() => Vm.ClearCommand.Execute(r)); }">
               <svg width="12" height="12" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></svg>
             </button>
@@ -58,6 +57,7 @@
 
   protected override void OnInitialized()
   {
+    Follow(T);
     Track(Vm);
     Track(Vm.Rows);
     foreach (HotkeyRowViewModel row in Vm.Rows) Track(row);

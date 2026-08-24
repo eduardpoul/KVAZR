@@ -26,7 +26,7 @@
   @if (Vm.HasFirmware)
   {
     <div class="group">
-      <div class="group-heading">ПРОШИВКИ УСТРОЙСТВ</div>
+      <div class="group-heading">@T.Say("ПРОШИВКИ УСТРОЙСТВ")</div>
       <div class="card">
         @foreach (FirmwareRow row in Vm.Firmware)
         {
@@ -44,24 +44,24 @@
   }
 
   <div class="group">
-    <div class="group-heading">ПРОЕКТ</div>
+    <div class="group-heading">@T.Say("ПРОЕКТ")</div>
     <div class="card">
       <div class="set-row">
         <div class="cap-text">
-          <div class="cap-title">Протокол устройств</div>
-          <div class="caption wrap">RACE для Audeze разобран самостоятельно. Совместимость с VIA и HID++ — по открытым описаниям протоколов</div>
+          <div class="cap-title">@T.Say("Протокол устройств")</div>
+          <div class="caption wrap">@T.Say("RACE для Audeze разобран самостоятельно. Совместимость с VIA и HID++ — по открытым описаниям протоколов")</div>
         </div>
       </div>
       <div class="set-row">
         <div class="cap-text">
-          <div class="cap-title">Изображения устройств</div>
-          <div class="caption wrap">Продуктовые снимки производителей, приведённые к общему виду. Происхождение каждого записано в Assets/Devices/images.json</div>
+          <div class="cap-title">@T.Say("Изображения устройств")</div>
+          <div class="caption wrap">@T.Say("Продуктовые снимки производителей, приведённые к общему виду. Происхождение каждого записано в Assets/Devices/images.json")</div>
         </div>
       </div>
       <div class="set-row">
         <div class="cap-text">
-          <div class="cap-title">Устройства без записи в каталоге</div>
-          <div class="caption wrap">Показываются тем, что о них знает система: имя, класс, подключение и заряд, если устройство его сообщает</div>
+          <div class="cap-title">@T.Say("Устройства без записи в каталоге")</div>
+          <div class="caption wrap">@T.Say("Показываются тем, что о них знает система: имя, класс, подключение и заряд, если устройство его сообщает")</div>
         </div>
       </div>
     </div>
@@ -75,6 +75,7 @@
 
   protected override void OnInitialized()
   {
+    Follow(T);
     Track(Vm);
     Track(Vm.Firmware);
   }

@@ -26,7 +26,13 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
 
     public string Key => Snapshot.Info.Key;
 
-    public string DisplayName => Snapshot.Info.DisplayName;
+    /// <summary>
+    /// The device's name. Routed through the catalogue for one reason only: the
+    /// development stand-ins carry "(макет)" in their model names, and a Russian word in
+    /// the middle of an English list is the sort of thing that reads as a bug. A real
+    /// device's name is its own and passes through untouched.
+    /// </summary>
+    public string DisplayName => Maxwell.App.Localization.Localizer.Current.Say(Snapshot.Info.DisplayName);
 
     public DeviceClass Class => Snapshot.Info.Class;
 
@@ -48,17 +54,21 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     /// pill under the name rather than in the row's prose, because at a glance the class
     /// is what separates two devices with similar names.
     /// </summary>
+    /// <summary>A device class in the language in force; the Russian is the fallback.</summary>
+    private static string Name(string key, string russian) =>
+        Maxwell.App.Localization.Localizer.Current[$"device.class.{key}", russian];
+
     public string Kind => Snapshot.Info.Class switch
     {
-        DeviceClass.Headset => "Гарнитура",
-        DeviceClass.Earbuds => "Наушники",
-        DeviceClass.Microphone => "Микрофон",
-        DeviceClass.Speaker => "Колонка",
-        DeviceClass.Mouse => "Мышь",
-        DeviceClass.Keyboard => "Клавиатура",
-        DeviceClass.Gamepad => "Геймпад",
-        DeviceClass.Receiver => "Приёмник",
-        _ => "Устройство",
+        DeviceClass.Headset => Name("headset", Maxwell.App.Localization.Localizer.Current.Say("Гарнитура")),
+        DeviceClass.Earbuds => Name("earbuds", Maxwell.App.Localization.Localizer.Current.Say("Наушники")),
+        DeviceClass.Microphone => Name("microphone", Maxwell.App.Localization.Localizer.Current.Say("Микрофон")),
+        DeviceClass.Speaker => Name("speaker", Maxwell.App.Localization.Localizer.Current.Say("Колонка")),
+        DeviceClass.Mouse => Name("mouse", Maxwell.App.Localization.Localizer.Current.Say("Мышь")),
+        DeviceClass.Keyboard => Name("keyboard", Maxwell.App.Localization.Localizer.Current.Say("Клавиатура")),
+        DeviceClass.Gamepad => Name("gamepad", Maxwell.App.Localization.Localizer.Current.Say("Геймпад")),
+        DeviceClass.Receiver => Name("receiver", Maxwell.App.Localization.Localizer.Current.Say("Приёмник")),
+        _ => Name("unknown", Maxwell.App.Localization.Localizer.Current.Say("Устройство")),
     };
 
     /// <summary>
@@ -70,7 +80,9 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     public IReadOnlyList<TransportPill> Transports =>
         [.. Snapshot.Info.Transports
             .Where(t => t.IsPresent)
-            .Select(t => new TransportPill(t.ShortLabel, TransportActivity.IsLive(Snapshot.Info, t)))];
+            .Select(t => new TransportPill(
+                Maxwell.App.Localization.TransportNames.Brief(t),
+                TransportActivity.IsLive(Snapshot.Info, t)))];
 
     /// <summary>
     /// The aside after the pills — what this link does or does not carry. Empty when
@@ -78,9 +90,9 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     /// </summary>
     public string Note => Snapshot.Availability switch
     {
-        DeviceAvailability.Unreachable => "не отвечает",
+        DeviceAvailability.Unreachable => Maxwell.App.Localization.Localizer.Current["device.silent", "не отвечает"],
         DeviceAvailability.Offline =>
-            Snapshot.LastSeenAt is { } seen ? $"последний раз — {seen:HH:mm}" : "не подключено",
+            Snapshot.LastSeenAt is { } seen ? $"последний раз — {seen:HH:mm}" : Maxwell.App.Localization.Localizer.Current.Say("не подключено"),
 
         // Deliberately not "только чтение" any more: on this machine that was most of the
         // list, and a label most rows carry stops being information. What a device
@@ -176,8 +188,8 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     public string Status => Snapshot.Availability switch
     {
         DeviceAvailability.Active => HasNote ? $"{Link} · {Note}" : Link,
-        DeviceAvailability.Unreachable => "Не отвечает",
-        _ => Snapshot.LastSeenAt is { } seen ? $"последний раз — {seen:HH:mm}" : "Не подключено",
+        DeviceAvailability.Unreachable => Maxwell.App.Localization.Localizer.Current["device.silent.caps", "Не отвечает"],
+        _ => Snapshot.LastSeenAt is { } seen ? $"последний раз — {seen:HH:mm}" : Maxwell.App.Localization.Localizer.Current.Say("Не подключено"),
     };
 
     /// <summary>
@@ -189,7 +201,7 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     private string Link =>
         Snapshot.Info.ControlTransport?.ShortLabel
         ?? Snapshot.Info.Transports.FirstOrDefault(t => t.IsPresent)?.ShortLabel
-        ?? "Подключено";
+        ?? Maxwell.App.Localization.Localizer.Current["device.connected", "Подключено"];
 
     public void Update(DeviceSnapshot snapshot)
     {

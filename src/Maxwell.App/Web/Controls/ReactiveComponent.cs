@@ -42,6 +42,13 @@ public abstract class ReactiveComponent : ComponentBase, IDisposable
     /// models may be written from.</summary>
     protected static void OnUi(Action action) => Avalonia.Threading.Dispatcher.UIThread.Post(action);
 
+    /// <summary>
+    /// The catalogue, short enough to sit inside markup. Every component redraws on a
+    /// language change through <see cref="Follow"/>, which the base subscribes for itself
+    /// so no page has to remember to.
+    /// </summary>
+    protected static Localization.Localizer T => Localization.Localizer.Current;
+
     private Localization.Localizer? _text;
 
     /// <summary>

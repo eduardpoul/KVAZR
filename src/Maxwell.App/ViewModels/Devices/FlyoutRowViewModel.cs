@@ -103,7 +103,7 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
     /// </summary>
     public string NothingSaid => _blocked is { Length: > 0 } reason
         ? reason
-        : "Настраивать нечего: устройство отдаёт только то, что уже в строке.";
+        : Maxwell.App.Localization.Localizer.Current.Say("Настраивать нечего: устройство отдаёт только то, что уже в строке.");
 
     /// <summary>Why the quick controls were left out, if they were.</summary>
     private string? _blocked;

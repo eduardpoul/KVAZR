@@ -30,7 +30,7 @@ public sealed class AboutViewModel : ObservableObject, IDisposable
         Refresh();
     }
 
-    public string Title => "О программе";
+    public string Title => Maxwell.App.Localization.Localizer.Current["page.about", "О программе"];
 
     public string Name => "KVAZR";
 
@@ -69,8 +69,8 @@ public sealed class AboutViewModel : ObservableObject, IDisposable
     /// else's product is not a claim to be connected with them.
     /// </summary>
     public string Disclaimer =>
-        "KVAZR не связан с Audeze, Logitech, NuPhy, HyperX и другими производителями. " +
-        "Названия устройств и торговые марки принадлежат их владельцам.";
+        Maxwell.App.Localization.Localizer.Current.Say("KVAZR не связан с Audeze, Logitech, NuPhy, HyperX и другими производителями. ") +
+        Maxwell.App.Localization.Localizer.Current.Say("Названия устройств и торговые марки принадлежат их владельцам.");
 
     private void OnDevicesChanged(object? sender, EventArgs e) => Refresh();
 

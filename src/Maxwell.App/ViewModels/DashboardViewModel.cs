@@ -98,7 +98,10 @@ public sealed class DashboardViewModel : ObservableObject
 
             if (newest == default) return string.Empty;
 
-            string stamp = $"обновлено {newest:HH:mm}";
+            string stamp = string.Format(
+                System.Globalization.CultureInfo.InvariantCulture,
+                Maxwell.App.Localization.Localizer.Current["dash.updated", "обновлено {0}"],
+                newest.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture));
 
             // How often, then how long ago — the artboard's order, and the useful one:
             // the cadence is what tells the reader whether the timestamp is stale.
@@ -117,9 +120,11 @@ public sealed class DashboardViewModel : ObservableObject
     /// only "ПОДКЛЮЧЕНЫ" makes the reader count the rows to answer a question the screen
     /// could have answered.
     /// </summary>
-    public string ConnectedHeading => $"ПОДКЛЮЧЕНЫ · {Connected.Count}";
+    public string ConnectedHeading =>
+        $"{Maxwell.App.Localization.Localizer.Current["dash.connected", "ПОДКЛЮЧЕНЫ"]} · {Connected.Count}";
 
-    public string DisconnectedHeading => $"ОТКЛЮЧЕНЫ · {Disconnected.Count}";
+    public string DisconnectedHeading =>
+        $"{Maxwell.App.Localization.Localizer.Current["dash.disconnected", "ОТКЛЮЧЕНЫ"]} · {Disconnected.Count}";
 
     private void OnDevicesChanged(object? sender, NotifyCollectionChangedEventArgs e) => Regroup();
 

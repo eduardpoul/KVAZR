@@ -15,18 +15,18 @@ public sealed record ShowcaseRow(string Title, string Subtitle, IReadOnlyList<Ca
 /// </summary>
 public sealed class CapabilityShowcaseViewModel
 {
-    private const string SilentHint = "Гарнитура не отвечает — включите её";
+    private static string SilentHint => Maxwell.App.Localization.Localizer.Current.Say("Гарнитура не отвечает — включите её");
 
     public static IReadOnlyList<string> StateNames { get; } =
     [
-        "Обычное",
-        "Недоступна сейчас",
-        "Непроверенная",
-        "Идёт запись",
-        "Ошибка записи",
-        "Изменена извне",
-        "Необратимая",
-        "Опасная",
+        Maxwell.App.Localization.Localizer.Current.Say("Обычное"),
+        Maxwell.App.Localization.Localizer.Current.Say("Недоступна сейчас"),
+        Maxwell.App.Localization.Localizer.Current.Say("Непроверенная"),
+        Maxwell.App.Localization.Localizer.Current.Say("Идёт запись"),
+        Maxwell.App.Localization.Localizer.Current.Say("Ошибка записи"),
+        Maxwell.App.Localization.Localizer.Current.Say("Изменена извне"),
+        Maxwell.App.Localization.Localizer.Current.Say("Необратимая"),
+        Maxwell.App.Localization.Localizer.Current.Say("Опасная"),
     ];
 
     public CapabilityShowcaseViewModel()
@@ -37,23 +37,23 @@ public sealed class CapabilityShowcaseViewModel
         // composites, which are taller and would otherwise push the simple rows apart.
         Rows =
         [
-            Build("Показание", "Readout · заряд, прошивка, мьют", Readout, CapabilityValue.Of(62), session),
-            Build("Переключатель", "Toggle · сайдтон, подсказки", Toggle, CapabilityValue.Of(true), session),
-            Build("Ползунок", "Range · ChatMix, громкость", Range, CapabilityValue.Of(10), session),
-            Build("Выбор", "Choice · шумоподавление, пресет", Choice, CapabilityValue.Choice(2), session),
-            Build("Действие", "Action · сброс, сопряжение", Action, CapabilityValue.Absent, session),
+            Build(Maxwell.App.Localization.Localizer.Current.Say("Показание"), Maxwell.App.Localization.Localizer.Current.Say("Readout · заряд, прошивка, мьют"), Readout, CapabilityValue.Of(62), session),
+            Build(Maxwell.App.Localization.Localizer.Current.Say("Переключатель"), Maxwell.App.Localization.Localizer.Current.Say("Toggle · сайдтон, подсказки"), Toggle, CapabilityValue.Of(true), session),
+            Build(Maxwell.App.Localization.Localizer.Current.Say("Ползунок"), Maxwell.App.Localization.Localizer.Current.Say("Range · ChatMix, громкость"), Range, CapabilityValue.Of(10), session),
+            Build(Maxwell.App.Localization.Localizer.Current.Say("Выбор"), Maxwell.App.Localization.Localizer.Current.Say("Choice · шумоподавление, пресет"), Choice, CapabilityValue.Choice(2), session),
+            Build(Maxwell.App.Localization.Localizer.Current.Say("Действие"), Maxwell.App.Localization.Localizer.Current.Say("Action · сброс, сопряжение"), Action, CapabilityValue.Absent, session),
 
-            Build("Связка ползунков", "RangeGroup · каналы, DPI по осям", Grouped, GroupedValue, session),
-            Build("График", "Curve · полосы EQ, кривая отклика", Curve, CurveValue, session),
-            Build("Схема кнопок", "ButtonMap · мышь", Buttons, ButtonsValue, session),
-            Build("Раскладка", "KeyMap · слои клавиатуры", Keys, KeysValue, session),
-            Build("Подсветка", "Lighting · зоны и цвет", Light, LightValue, session),
-            Build("Профили", "ProfileSet · onboard-слоты", Profiles, CapabilityValue.Choice(0), session),
-            Build("Хосты", "HostSlots · мультихост", Hosts, CapabilityValue.Choice(1), session),
+            Build(Maxwell.App.Localization.Localizer.Current.Say("Связка ползунков"), Maxwell.App.Localization.Localizer.Current.Say("RangeGroup · каналы, DPI по осям"), Grouped, GroupedValue, session),
+            Build(Maxwell.App.Localization.Localizer.Current.Say("График"), Maxwell.App.Localization.Localizer.Current.Say("Curve · полосы EQ, кривая отклика"), Curve, CurveValue, session),
+            Build(Maxwell.App.Localization.Localizer.Current.Say("Схема кнопок"), Maxwell.App.Localization.Localizer.Current.Say("ButtonMap · мышь"), Buttons, ButtonsValue, session),
+            Build(Maxwell.App.Localization.Localizer.Current.Say("Раскладка"), Maxwell.App.Localization.Localizer.Current.Say("KeyMap · слои клавиатуры"), Keys, KeysValue, session),
+            Build(Maxwell.App.Localization.Localizer.Current.Say("Подсветка"), Maxwell.App.Localization.Localizer.Current.Say("Lighting · зоны и цвет"), Light, LightValue, session),
+            Build(Maxwell.App.Localization.Localizer.Current.Say("Профили"), Maxwell.App.Localization.Localizer.Current.Say("ProfileSet · onboard-слоты"), Profiles, CapabilityValue.Choice(0), session),
+            Build(Maxwell.App.Localization.Localizer.Current.Say("Хосты"), Maxwell.App.Localization.Localizer.Current.Say("HostSlots · мультихост"), Hosts, CapabilityValue.Choice(1), session),
         ];
     }
 
-    public string Title => "Дизайн-система";
+    public string Title => Maxwell.App.Localization.Localizer.Current["page.showcase", "Дизайн-система"];
 
     public IReadOnlyList<ShowcaseRow> Rows { get; }
 
@@ -80,13 +80,13 @@ public sealed class CapabilityShowcaseViewModel
                 Descriptor = descriptor with
                 {
                     Requirement = RequirementKind.BoomMicrophone,
-                    RequirementHint = "Доступно при подключённом бум-микрофоне",
+                    RequirementHint = Maxwell.App.Localization.Localizer.Current.Say("Доступно при подключённом бум-микрофоне"),
                 },
                 IsAvailable = false,
             }, session),
             Cell(Base() with { Status = CapabilityStatus.Untested }, session),
             Cell(Base() with { IsWriting = true }, session),
-            Cell(Base() with { WriteError = "Устройство не приняло значение. Вернули прежнее" }, session),
+            Cell(Base() with { WriteError = Maxwell.App.Localization.Localizer.Current.Say("Устройство не приняло значение. Вернули прежнее") }, session),
             Cell(Base() with { ChangedExternally = true }, session),
             Cell(Base() with { Descriptor = descriptor with { IsReversible = false } }, session),
             Cell(Base() with { Descriptor = descriptor with { Risk = CapabilityRisk.Confirm } }, session),
@@ -105,7 +105,7 @@ public sealed class CapabilityShowcaseViewModel
         Id = CapabilityIds.PowerBattery,
         Domain = CapabilityDomain.Power,
         Primitive = CapabilityPrimitive.Readout,
-        Title = "Заряд",
+        Title = Maxwell.App.Localization.Localizer.Current.Say("Заряд"),
         Access = CapabilityAccess.Read,
         Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
     };
@@ -115,7 +115,7 @@ public sealed class CapabilityShowcaseViewModel
         Id = CapabilityIds.MicSidetone,
         Domain = CapabilityDomain.Microphone,
         Primitive = CapabilityPrimitive.Toggle,
-        Title = "Сайдтон",
+        Title = Maxwell.App.Localization.Localizer.Current.Say("Сайдтон"),
         RequirementHint = SilentHint,
     };
 
@@ -134,8 +134,8 @@ public sealed class CapabilityShowcaseViewModel
         Id = CapabilityIds.MicNoiseReduction,
         Domain = CapabilityDomain.Microphone,
         Primitive = CapabilityPrimitive.Choice,
-        Title = "Шумоподавление",
-        Choices = [new(0, "Выключено"), new(1, "Низкое"), new(2, "Высокое")],
+        Title = Maxwell.App.Localization.Localizer.Current.Say("Шумоподавление"),
+        Choices = [new(0, Maxwell.App.Localization.Localizer.Current.Say("Выключено")), new(1, Maxwell.App.Localization.Localizer.Current.Say("Низкое")), new(2, Maxwell.App.Localization.Localizer.Current.Say("Высокое"))],
         RequirementHint = SilentHint,
     };
 
@@ -144,7 +144,7 @@ public sealed class CapabilityShowcaseViewModel
         Id = CapabilityIds.MaintFactoryReset,
         Domain = CapabilityDomain.Maintenance,
         Primitive = CapabilityPrimitive.Action,
-        Title = "Сброс",
+        Title = Maxwell.App.Localization.Localizer.Current.Say("Сброс"),
         Access = CapabilityAccess.Write,
         RequirementHint = SilentHint,
     };
@@ -161,9 +161,9 @@ public sealed class CapabilityShowcaseViewModel
         Id = CapabilityIds.PointerDpiXy,
         Domain = CapabilityDomain.Pointing,
         Primitive = CapabilityPrimitive.RangeGroup,
-        Title = "Разрешение по осям",
+        Title = Maxwell.App.Localization.Localizer.Current.Say("Разрешение по осям"),
         Range = new CapabilityRange { Min = 200, Max = 8000, Step = 50, Unit = "DPI" },
-        Members = [new(0, "По X"), new(1, "По Y")],
+        Members = [new(0, Maxwell.App.Localization.Localizer.Current.Say("По X")), new(1, Maxwell.App.Localization.Localizer.Current.Say("По Y"))],
         RequirementHint = SilentHint,
     };
 
@@ -174,12 +174,12 @@ public sealed class CapabilityShowcaseViewModel
         Id = CapabilityIds.AudioEqGraphic,
         Domain = CapabilityDomain.Audio,
         Primitive = CapabilityPrimitive.Curve,
-        Title = "Полосы эквалайзера",
-        Range = new CapabilityRange { Min = -12, Max = 12, Unit = "дБ" },
+        Title = Maxwell.App.Localization.Localizer.Current.Say("Полосы эквалайзера"),
+        Range = new CapabilityRange { Min = -12, Max = 12, Unit = Maxwell.App.Localization.Localizer.Current.Say("дБ") },
         Members =
         [
-            new(0, "32 Гц"), new(1, "64 Гц"), new(2, "125 Гц"), new(3, "250 Гц"), new(4, "500 Гц"),
-            new(5, "1 кГц"), new(6, "2 кГц"), new(7, "4 кГц"), new(8, "8 кГц"), new(9, "16 кГц"),
+            new(0, Maxwell.App.Localization.Localizer.Current.Say("32 Гц")), new(1, Maxwell.App.Localization.Localizer.Current.Say("64 Гц")), new(2, Maxwell.App.Localization.Localizer.Current.Say("125 Гц")), new(3, Maxwell.App.Localization.Localizer.Current.Say("250 Гц")), new(4, Maxwell.App.Localization.Localizer.Current.Say("500 Гц")),
+            new(5, Maxwell.App.Localization.Localizer.Current.Say("1 кГц")), new(6, Maxwell.App.Localization.Localizer.Current.Say("2 кГц")), new(7, Maxwell.App.Localization.Localizer.Current.Say("4 кГц")), new(8, Maxwell.App.Localization.Localizer.Current.Say("8 кГц")), new(9, Maxwell.App.Localization.Localizer.Current.Say("16 кГц")),
         ],
         RequirementHint = SilentHint,
     };
@@ -191,20 +191,20 @@ public sealed class CapabilityShowcaseViewModel
         Id = CapabilityIds.ButtonsMap,
         Domain = CapabilityDomain.Buttons,
         Primitive = CapabilityPrimitive.ButtonMap,
-        Title = "Назначение кнопок",
+        Title = Maxwell.App.Localization.Localizer.Current.Say("Назначение кнопок"),
         Members =
         [
-            new(0, "Кнопка 4"),
-            new(1, "Кнопка 5"),
-            new(2, "Кнопка DPI") { Hint = "меняет значение извне" },
+            new(0, Maxwell.App.Localization.Localizer.Current.Say("Кнопка 4")),
+            new(1, Maxwell.App.Localization.Localizer.Current.Say("Кнопка 5")),
+            new(2, Maxwell.App.Localization.Localizer.Current.Say("Кнопка DPI")) { Hint = Maxwell.App.Localization.Localizer.Current.Say("меняет значение извне") },
         ],
         Choices =
         [
-            new(0, "Ничего"),
-            new(1, "Назад"),
-            new(2, "Вперёд"),
-            new(3, "Ступень DPI"),
-            new(4, "Смена профиля"),
+            new(0, Maxwell.App.Localization.Localizer.Current.Say("Ничего")),
+            new(1, Maxwell.App.Localization.Localizer.Current.Say("Назад")),
+            new(2, Maxwell.App.Localization.Localizer.Current.Say("Вперёд")),
+            new(3, Maxwell.App.Localization.Localizer.Current.Say("Ступень DPI")),
+            new(4, Maxwell.App.Localization.Localizer.Current.Say("Смена профиля")),
         ],
         RequirementHint = SilentHint,
     };
@@ -226,7 +226,7 @@ public sealed class CapabilityShowcaseViewModel
         Id = CapabilityIds.KeysMap,
         Domain = CapabilityDomain.Keys,
         Primitive = CapabilityPrimitive.KeyMap,
-        Title = "Раскладка",
+        Title = Maxwell.App.Localization.Localizer.Current.Say("Раскладка"),
         LayerCount = 3,
         GridColumns = 6,
         Members = [.. ShowcaseBase.Select((legend, i) => new CapabilityMember(i, legend))],
@@ -248,8 +248,8 @@ public sealed class CapabilityShowcaseViewModel
         Id = CapabilityIds.LightColor,
         Domain = CapabilityDomain.Light,
         Primitive = CapabilityPrimitive.Lighting,
-        Title = "Цвет зон",
-        Members = [new(0, "Логотип"), new(1, "Колесо")],
+        Title = Maxwell.App.Localization.Localizer.Current.Say("Цвет зон"),
+        Members = [new(0, Maxwell.App.Localization.Localizer.Current.Say("Логотип")), new(1, Maxwell.App.Localization.Localizer.Current.Say("Колесо"))],
         RequirementHint = SilentHint,
     };
 
@@ -260,12 +260,12 @@ public sealed class CapabilityShowcaseViewModel
         Id = CapabilityIds.ProfilesOnboard,
         Domain = CapabilityDomain.Profiles,
         Primitive = CapabilityPrimitive.ProfileSet,
-        Title = "Профили устройства",
+        Title = Maxwell.App.Localization.Localizer.Current.Say("Профили устройства"),
         Members =
         [
-            new(0, "Onboard 1 · Игровой") { Hint = "3200 DPI · 1000 Гц" },
-            new(1, "Onboard 2 · Работа") { Hint = "1600 DPI · 500 Гц" },
-            new(2, "Onboard 3") { Hint = "Слот пуст", IsEmpty = true },
+            new(0, Maxwell.App.Localization.Localizer.Current.Say("Onboard 1 · Игровой")) { Hint = Maxwell.App.Localization.Localizer.Current.Say("3200 DPI · 1000 Гц") },
+            new(1, Maxwell.App.Localization.Localizer.Current.Say("Onboard 2 · Работа")) { Hint = Maxwell.App.Localization.Localizer.Current.Say("1600 DPI · 500 Гц") },
+            new(2, "Onboard 3") { Hint = Maxwell.App.Localization.Localizer.Current.Say("Слот пуст"), IsEmpty = true },
         ],
         RequirementHint = SilentHint,
     };
@@ -275,12 +275,12 @@ public sealed class CapabilityShowcaseViewModel
         Id = CapabilityIds.LinkHosts,
         Domain = CapabilityDomain.Link,
         Primitive = CapabilityPrimitive.HostSlots,
-        Title = "Хосты",
+        Title = Maxwell.App.Localization.Localizer.Current.Say("Хосты"),
         Members =
         [
-            new(0, "Хост 1 · донгл") { Hint = "Ноутбук" },
-            new(1, "Хост 2 · Bluetooth") { Hint = "Этот компьютер" },
-            new(2, "Хост 3 · свободен") { Hint = "Удерживайте кнопку 3 секунды", IsEmpty = true },
+            new(0, Maxwell.App.Localization.Localizer.Current.Say("Хост 1 · донгл")) { Hint = Maxwell.App.Localization.Localizer.Current.Say("Ноутбук") },
+            new(1, Maxwell.App.Localization.Localizer.Current.Say("Хост 2 · Bluetooth")) { Hint = Maxwell.App.Localization.Localizer.Current.Say("Этот компьютер") },
+            new(2, Maxwell.App.Localization.Localizer.Current.Say("Хост 3 · свободен")) { Hint = Maxwell.App.Localization.Localizer.Current.Say("Удерживайте кнопку 3 секунды"), IsEmpty = true },
         ],
         RequirementHint = SilentHint,
     };

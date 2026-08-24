@@ -40,7 +40,27 @@ public sealed class Localizer
 
         _catalogues = Load();
         Use(store.Current.Language);
+
+        Current = this;
     }
+
+    /// <summary>Catalogues, no settings. What <see cref="Current"/> holds until the real one exists.</summary>
+    private Localizer() => _catalogues = Load();
+
+    /// <summary>
+    /// The catalogue in force, for the places that cannot be handed one.
+    ///
+    /// Ambient state, and deliberately: a capability view model is built by a factory from
+    /// a reading and a session, in four different places including a design-time preview
+    /// and the tests, and threading a catalogue through all of them to reach the twenty
+    /// lines that actually print a word is worse than saying plainly that the interface
+    /// language is a property of the process — which it is, exactly as the theme is.
+    ///
+    /// It starts as a catalogue with no settings behind it, so anything built before the
+    /// application exists — a test, a preview — gets Russian, which is the source text and
+    /// needs no catalogue at all.
+    /// </summary>
+    public static Localizer Current { get; private set; } = new();
 
     /// <summary>Raised after the language changes, on whichever thread changed it.</summary>
     public event EventHandler? Changed;
@@ -61,6 +81,28 @@ public sealed class Localizer
             : fallback;
 
     /// <summary>
+    /// One string, keyed by the Russian text itself.
+    ///
+    /// The catalogue started out keyed by invented dotted paths, and that turned out to be
+    /// the wrong shape for this application: it meant no file listed the strings, so
+    /// "translate everything" was impossible — each sentence had to be found in the code
+    /// and given a key by hand, one at a time. Keying by the source text makes the
+    /// catalogue the list: every Russian sentence in the product is a key, and translating
+    /// is one pass over one file.
+    ///
+    /// It also reaches what the dotted keys could not. Capability names, their notes and
+    /// the labels inside a choice are written in the drivers, a layer below this one that
+    /// cannot see a catalogue at all; translated here, at the point where they are drawn,
+    /// they need no change down there.
+    ///
+    /// The cost is the usual one for text keys: reword a sentence in the code and its
+    /// translation stops matching. The failure is mild — the reworded Russian shows —
+    /// and a test lists what the catalogue no longer covers.
+    /// </summary>
+    public string Say(string? russian) =>
+        russian is { Length: > 0 } text ? this[text, text] : string.Empty;
+
+    /// <summary>
     /// A capability's own words, looked up by its id — "audio.volume" with "title" gives
     /// the key "cap.audio.volume.title".
     ///
@@ -69,7 +111,7 @@ public sealed class Localizer
     /// does quietly.
     /// </summary>
     public string Capability(string id, string part, string fallback) =>
-        this[$"cap.{id}.{part}", fallback];
+        this[$"cap.{id}.{part}", Say(fallback)];
 
     /// <summary>
     /// Switches language. Anything unrecognised means Russian, including the empty string

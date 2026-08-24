@@ -14,7 +14,25 @@ using Maxwell.Race.Windows;
 namespace Maxwell.App.ViewModels;
 
 /// <summary>One entry in the application group of the navigation pane.</summary>
-public sealed record AppSection(string Title, object Page);
+/// <summary>
+/// One entry in the rail's application group.
+///
+/// The title is read from the page rather than copied at construction: copied, it froze
+/// the name in whichever language was in force when the shell was built, and a language
+/// change renamed every page except the five in this list.
+/// </summary>
+public sealed record AppSection(object Page)
+{
+    public string Title => Page switch
+    {
+        Pages.HotkeysViewModel h => h.Title,
+        Pages.SettingsViewModel s => s.Title,
+        Pages.CapabilityShowcaseViewModel c => c.Title,
+        Pages.IdentityViewModel i => i.Title,
+        Pages.AboutViewModel a => a.Title,
+        _ => string.Empty,
+    };
+}
 
 
 /// <summary>
@@ -70,11 +88,11 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
 
         AppSections =
         [
-            new AppSection(hotkeys.Title, hotkeys),
-            new AppSection(settings.Title, settings),
-            new AppSection(showcase.Title, showcase),
-            new AppSection(Identity.Title, Identity),
-            new AppSection(about.Title, about),
+            new AppSection(hotkeys),
+            new AppSection(settings),
+            new AppSection(showcase),
+            new AppSection(Identity),
+            new AppSection(about),
         ];
         Dashboard = new DashboardViewModel(this, Devices, Loading, settings);
         CurrentPage = Dashboard;
@@ -85,6 +103,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         sweep.WhenComplete(Loading.Resolve);
 
         _registry.DevicesChanged += OnDevicesChanged;
+        Text.Changed += OnLanguageChanged;
         _hidden.Changed += OnDevicesChanged;
         Sync();
     }
@@ -197,10 +216,26 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     /// </summary>
     public bool HasHeaderTitle => CurrentPage is not DevicePageViewModel;
 
+    // ---------- the rail's own words ----------
+
+    private static Localization.Localizer Text => Localization.Localizer.Current;
+
+    public string AllDevices => Text["rail.all_devices", "Все устройства"];
+
+    public string ConnectedHeader => Text["dash.connected", "ПОДКЛЮЧЕНЫ"];
+
+    public string DisconnectedHeader => Text["dash.disconnected", "ОТКЛЮЧЕНЫ"];
+
+    public string AppSectionHeader => Text["rail.application", "ПРИЛОЖЕНИЕ"];
+
+    public string SearchPlaceholder => Text["rail.search", "Поиск"];
+
+    public string SettingsLabel => Text["rail.settings", "Параметры"];
+
     public string HeaderTitle => CurrentPage switch
     {
         DevicePageViewModel device => device.Heading,
-        DashboardViewModel => "Все устройства",
+        DashboardViewModel => AllDevices,
         _ => SelectedAppSection?.Title ?? string.Empty,
     };
 
@@ -548,8 +583,8 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             Domain = CapabilityDomain.Maintenance,
             Primitive = CapabilityPrimitive.Action,
             Title = $"Забыть {device.DisplayName}?",
-            Subtitle = "Пара в Windows будет удалена. Чтобы вернуть устройство, "
-                + "его придётся сопрягать заново, как в первый раз.",
+            Subtitle = Maxwell.App.Localization.Localizer.Current.Say("Пара в Windows будет удалена. Чтобы вернуть устройство, ")
+                + Maxwell.App.Localization.Localizer.Current.Say("его придётся сопрягать заново, как в первый раз."),
             Risk = CapabilityRisk.Confirm,
             IsReversible = false,
         }).ConfigureAwait(true);
@@ -586,12 +621,30 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasHidden));
     }
 
+    /// <summary>
+    /// The rail renames itself.
+    ///
+    /// The empty notification covers the shell's own words; the section list needs more
+    /// than that, because a record raises nothing of its own and the list box is bound to
+    /// each entry's Title. Replacing the entries is the cheap way to say "all of these
+    /// changed" — there are five of them and it happens when somebody picks a language.
+    /// </summary>
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        AppSection[] again = [.. AppSections];
+        AppSections.Clear();
+        foreach (AppSection section in again) AppSections.Add(section);
+
+        OnPropertyChanged(string.Empty);
+    }
+
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
 
         _registry.DevicesChanged -= OnDevicesChanged;
+        Text.Changed -= OnLanguageChanged;
         _hidden.Changed -= OnDevicesChanged;
         Loading.Dispose();
 

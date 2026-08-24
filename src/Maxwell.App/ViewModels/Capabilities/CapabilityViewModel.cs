@@ -97,12 +97,21 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     /// </summary>
     public static string WithUnit(double value, string? unit) => WithUnit($"{value:0}", unit);
 
-    public static string WithUnit(string value, string? unit) => unit switch
+    public static string WithUnit(string value, string? unit)
     {
-        null or "" => value,
-        "%" => value + "%",
-        _ => $"{value} {unit}",
-    };
+        // Translated into a local and then used. Translating only the thing being matched
+        // on, and then printing the original, is a bug that reads as correct code: the
+        // switch picked the right branch and the branch printed "дБ" under an English
+        // interface anyway.
+        string? said = Text.Say(unit);
+
+        return said switch
+        {
+            null or "" => value,
+            "%" => value + "%",
+            _ => $"{value} {said}",
+        };
+    }
 
     private static readonly TimeSpan WriteDelay = TimeSpan.FromMilliseconds(350);
 
@@ -156,9 +165,21 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
 
     public Capability Descriptor => State.Descriptor;
 
-    public string Title => Descriptor.Title;
+    /// <summary>
+    /// The row's name, in the language in force.
+    ///
+    /// Looked up by capability id rather than by the Russian text, so rewording a driver
+    /// cannot silently drop its translation; what the driver says is the fallback, which
+    /// is why Russian needs no catalogue.
+    /// </summary>
+    public string Title => Text.Capability(Id, "title", Descriptor.Title);
 
-    public string? Subtitle => Descriptor.Subtitle;
+    public string? Subtitle => Descriptor.Subtitle is { Length: > 0 } written
+        ? Text.Capability(Id, "subtitle", written)
+        : null;
+
+    /// <summary>The catalogue in force. See <see cref="Localization.Localizer.Current"/>.</summary>
+    protected static Localization.Localizer Text => Localization.Localizer.Current;
 
     public CapabilityDomain Domain => Descriptor.Domain;
 
@@ -226,7 +247,9 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     /// right-aligned explanation stacked on three lines, and a page of those reads as a
     /// rendering fault. The reason is the only thing worth saying here.
     /// </summary>
-    public string Unreachable => Descriptor.RequirementHint ?? "недоступно сейчас";
+    public string Unreachable => Descriptor.RequirementHint is { Length: > 0 } why
+        ? Text[$"requirement.{Descriptor.Requirement}".ToLowerInvariant(), why]
+        : Text["hint.unreachable", "недоступно сейчас"];
 
     /// <summary>True when the control may be operated at all.</summary>
     public bool CanEdit => State.CanWrite && Session is not null;
@@ -243,11 +266,12 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
         // Said in the frame itself, in place of the control. Repeating it here put the
         // same sentence on the row twice.
         { IsAvailable: false } => null,
-        _ when IsWriting => "Применяется…",
-        { Status: CapabilityStatus.Unavailable } => "Функция есть, способа вызвать пока нет",
+        _ when IsWriting => Text["hint.applying", "Применяется…"],
+        { Status: CapabilityStatus.Unavailable } =>
+            Text["hint.unavailable", "Функция есть, способа вызвать пока нет"],
         { Status: CapabilityStatus.Untested } when Detail == HintDetail.Full =>
-            "Ещё не проверено на живом устройстве",
-        { ChangedExternally: true } => "Изменено на устройстве",
+            Maxwell.App.Localization.Localizer.Current.Say("Ещё не проверено на живом устройстве"),
+        { ChangedExternally: true } => Text["hint.changed_externally", "Изменено на устройстве"],
 
         // No standing sentence about the confirmation.
         //
@@ -257,7 +281,7 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
         // pressing, is a warning about a warning. A capability with something of its own
         // to say still says it, through Note.
 
-        _ => Descriptor.Note,
+        _ => Text.Say(Descriptor.Note),
     };
 
     public HintKind HintTone => State switch
@@ -295,9 +319,11 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     /// </summary>
     public CapabilityBadge? Badge => State switch
     {
-        { WriteError: not null } => new CapabilityBadge("ошибка записи", CapabilityBadgeKind.Error),
+        { WriteError: not null } =>
+            new CapabilityBadge(Text["badge.write_error", "ошибка записи"], CapabilityBadgeKind.Error),
         _ when IsWriting => null,
-        { Status: CapabilityStatus.Unavailable } => new CapabilityBadge("ждёт устройства", CapabilityBadgeKind.Pending),
+        { Status: CapabilityStatus.Unavailable } =>
+            new CapabilityBadge(Text["badge.pending", "ждёт устройства"], CapabilityBadgeKind.Pending),
         { IsAvailable: false } => null,
 
         // No amber "запись не проверена" any more.
@@ -316,7 +342,8 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
         // ever appeared on is the one with a wheel on the earcup — where the wearer just
         // turned that wheel and needs no telling. All it did was flicker beside a slider
         // that had already caught up.
-        _ when IsReadOnlyInteractive => new CapabilityBadge("только чтение", CapabilityBadgeKind.ReadOnly),
+        _ when IsReadOnlyInteractive =>
+            new CapabilityBadge(Text["badge.readonly", "только чтение"], CapabilityBadgeKind.ReadOnly),
         _ => null,
     };
 

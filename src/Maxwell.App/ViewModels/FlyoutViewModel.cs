@@ -73,7 +73,7 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
 
     public string Heading => Devices.Count switch
     {
-        0 or 1 => "Устройства",
+        0 or 1 => Maxwell.App.Localization.Localizer.Current.Say("Устройства"),
         int n => $"Устройства · {n}",
     };
 
