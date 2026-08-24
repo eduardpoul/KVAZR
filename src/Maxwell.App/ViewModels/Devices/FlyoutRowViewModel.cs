@@ -59,14 +59,19 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
         primitive is CapabilityPrimitive.Range or CapabilityPrimitive.RangeGroup ? 2 : 1;
 
     private readonly IDeviceRegistry _registry;
+    private readonly Platform.TrayExtras? _extras;
     private bool _disposed;
 
-    public FlyoutRowViewModel(DeviceSnapshot snapshot, IDeviceRegistry registry)
+    public FlyoutRowViewModel(
+        DeviceSnapshot snapshot,
+        IDeviceRegistry registry,
+        Platform.TrayExtras? extras = null)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         ArgumentNullException.ThrowIfNull(registry);
 
         _registry = registry;
+        _extras = extras;
         Device = new DeviceListItemViewModel(snapshot);
     }
 
@@ -154,9 +159,16 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
         IDeviceSession? session = _registry.Session(Key);
 
         int lines = 0;
+        var already = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (string id in QuickOrder)
+        foreach (string id in Wanted(snapshot))
         {
+            // The wanted list is built from two halves — what this kind of device leads
+            // with, and the shared order — and a control can honestly be in both. Drawing
+            // it twice is what that looks like, and a test caught a microphone with two
+            // identical switches in its row.
+            if (!already.Add(id)) continue;
+
             // Read-only capabilities are already on the row or on the page. A control
             // that cannot be moved earns nothing here and costs a line.
             if (snapshot.Get(id) is not { Descriptor.Access: not CapabilityAccess.Read } state) continue;
@@ -183,6 +195,38 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
 
         OnPropertyChanged(nameof(HasNothing));
         OnPropertyChanged(nameof(NothingSaid));
+    }
+
+    /// <summary>
+    /// What this device would put in the panel, most wanted first, before the line budget
+    /// has its say.
+    ///
+    /// The shared order is the list below; what changes per device is what leads it. On a
+    /// microphone that is the capsule's own switch and level, because they are the whole
+    /// reason its row would be opened — the same argument that puts the microphone section
+    /// first on its page. Everything else keeps the order it had, and picks up the switch
+    /// at the end where there is room for it: a headset's row is opened for ChatMix.
+    /// </summary>
+    private IEnumerable<string> Wanted(DeviceSnapshot device)
+    {
+        if (device.Info.Class == DeviceClass.Microphone)
+        {
+            yield return CapabilityIds.MicSystemOn;
+            yield return CapabilityIds.MicSystemLevel;
+
+            // The headphone socket, when this device was asked for it. Off by default:
+            // the panel is 360 pixels wide, and these two rows are half of what it can
+            // hold.
+            if (_extras?.ShowsMonitoring(Key) == true)
+            {
+                yield return CapabilityIds.AudioSystemOn;
+                yield return CapabilityIds.AudioSystemVolume;
+            }
+        }
+
+        foreach (string id in QuickOrder) yield return id;
+
+        yield return CapabilityIds.MicSystemOn;
     }
 
     [RelayCommand]

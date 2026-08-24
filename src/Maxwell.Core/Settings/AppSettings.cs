@@ -138,12 +138,25 @@ public sealed class AppSettings
     /// </summary>
     public bool HideSilentDevices { get; set; } = true;
 
+    /// <summary>
+    /// Microphones whose headphone socket the tray panel carries as well, by device key.
+    ///
+    /// Off by default and asked for per device, because it is a trade of space rather
+    /// than a preference about correctness: the panel is 360 pixels wide and every row it
+    /// gains is a row something else loses. Somebody who monitors themselves while
+    /// recording wants that slider two clicks closer than the window; somebody who has
+    /// never plugged headphones into their microphone would be giving up half the panel
+    /// for a control that does nothing.
+    /// </summary>
+    public HashSet<string> MonitoringInTray { get; set; } = new(StringComparer.Ordinal);
+
     public AppSettings Clone() => new()
     {
         ConfirmedCapabilities = ConfirmedCapabilities.ToDictionary(
             p => p.Key, p => new List<string>(p.Value), StringComparer.Ordinal),
         HiddenDevices = new Dictionary<string, DateTimeOffset>(HiddenDevices, StringComparer.Ordinal),
         HideSilentDevices = HideSilentDevices,
+        MonitoringInTray = new HashSet<string>(MonitoringInTray, StringComparer.Ordinal),
         PrimaryDeviceKey = PrimaryDeviceKey,
         Theme = Theme,
         RunAtLogin = RunAtLogin,

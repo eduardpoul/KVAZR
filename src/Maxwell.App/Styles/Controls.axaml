@@ -416,6 +416,20 @@
     <Setter Property="MinWidth" Value="0" />
   </Style>
 
+  <!-- A white knob on the accent, in both themes, because that is what the artboards
+       draw and because the pane draws it that way too.
+
+       Windows itself would put a black knob on a light accent in the dark theme — the
+       switch inherits "text on accent", which is black there — and the panel duly did,
+       beside a page whose switches were white. One product, two switches. The artboard
+       is the arbiter, and it says white. -->
+  <Styles.Resources>
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPressed" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnDisabled" Color="#FFFFFF" />
+  </Styles.Resources>
+
   <Style Selector="Button.accent">
     <Setter Property="Height" Value="34" />
     <Setter Property="Padding" Value="16,0" />

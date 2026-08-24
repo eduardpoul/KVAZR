@@ -37,6 +37,12 @@ public sealed class CapabilitySectionViewModel : IDisposable
     /// <summary>What kind of device this section belongs to. Reaches the title and nothing else.</summary>
     public DeviceClass Owner { get; }
 
+    /// <summary>
+    /// The panel switch, on the one section that offers it. Null everywhere else, and the
+    /// page simply draws nothing.
+    /// </summary>
+    public TrayToggleViewModel? Tray { get; init; }
+
     public ObservableCollection<CapabilityViewModel> Items { get; }
 
     public string Title => TitleOf(Domain, Owner);

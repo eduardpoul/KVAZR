@@ -56,7 +56,48 @@ public partial class FlyoutWindow : Window
 
         DataContext = flyout;
         _flyout = flyout;
+        _flyout.RowExpanded += OnRowExpanded;
     }
+
+    /// <summary>
+    /// Scrolls an opened row into view.
+    ///
+    /// The list is five rows tall and the panel does not grow — that is deliberate, a tray
+    /// panel the height of the screen is not a tray panel — so opening a row near the
+    /// bottom put its controls under the footer. The row visibly opened and there was
+    /// nothing to use, which reads as a broken panel rather than as a full one.
+    ///
+    /// After layout, because the row is exactly one frame taller than it was when this
+    /// runs and scrolling to where it used to end lands short.
+    /// </summary>
+    private void OnRowExpanded(object? sender, ViewModels.Devices.FlyoutRowViewModel row) =>
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                if (this.FindControl<ItemsControl>("Rows") is not { } list) return;
+                if (list.ContainerFromItem(row) is not Control container) return;
+
+                // After the row has grown, not merely after the click.
+                //
+                // The controls appear when IsOpen turns true and the row is three times
+                // taller a layout pass later; scrolling before that pass asks to see a
+                // rectangle that is still 56 pixels tall, which is already on screen, so
+                // nothing moves. Waiting for one pass is the difference between scrolling
+                // to where the row was and scrolling to where it now ends.
+                void Grown(object? sender, EventArgs e)
+                {
+                    container.LayoutUpdated -= Grown;
+
+                    // The bottom edge rather than the whole row: bringing the row into
+                    // view scrolls the least it can, which puts its title at the top of
+                    // the viewport and leaves the last of its controls under the footer.
+                    container.BringIntoView(
+                        new Rect(0, container.Bounds.Height - 1, container.Bounds.Width, 1));
+                }
+
+                container.LayoutUpdated += Grown;
+            },
+            DispatcherPriority.Loaded);
 
     /// <summary>Places the panel and shows it. Idempotent: a second call just refocuses.</summary>
     public void Present()

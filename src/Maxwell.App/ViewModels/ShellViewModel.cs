@@ -48,6 +48,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     private readonly HiddenDevices _hidden;
     private readonly PrimaryDevice _primary;
     private readonly CurvePresetLibrary _presets;
+    private readonly TrayExtras _extras;
     private readonly Dictionary<string, DevicePageViewModel> _pages = new(StringComparer.Ordinal);
 
     private bool _disposed;
@@ -62,7 +63,8 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         HotkeysViewModel hotkeys,
         AboutViewModel about,
         FirstSweep sweep,
-        CurvePresetLibrary presets)
+        CurvePresetLibrary presets,
+        TrayExtras extras)
     {
         ArgumentNullException.ThrowIfNull(registry);
         ArgumentNullException.ThrowIfNull(polling);
@@ -74,6 +76,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         ArgumentNullException.ThrowIfNull(about);
         ArgumentNullException.ThrowIfNull(sweep);
         ArgumentNullException.ThrowIfNull(presets);
+        ArgumentNullException.ThrowIfNull(extras);
 
         _registry = registry;
         _polling = polling;
@@ -81,6 +84,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         _hidden = hidden;
         _primary = primary;
         _presets = presets;
+        _extras = extras;
 
         // Shortcuts are shelved, not deleted: the page, its view model and the coordinator
         // all still build and their tests still run — the entry is simply not offered. Put
@@ -455,7 +459,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
 
         if (_registry.Session(deviceKey) is not { } session) return null;
 
-        page = new DevicePageViewModel(session, _polling, _confirm, _presets);
+        page = new DevicePageViewModel(session, _polling, _confirm, _presets, _extras);
         _pages[deviceKey] = page;
         return page;
     }

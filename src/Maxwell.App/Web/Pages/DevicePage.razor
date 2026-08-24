@@ -175,6 +175,27 @@
             <CapRow Vm="cap" Joined="@(cap.State.Id == CapabilityIds.AudioGainRight && previous == CapabilityIds.AudioGainLeft)" />
             previous = cap.State.Id;
           }
+          @* Last, and inside the card: it is a switch about these rows, so it belongs
+             under them rather than three screens away in the settings. Not a capability
+             — the device knows nothing about our tray — which is why it draws itself
+             rather than going through CapRow. *@
+          @if (section.Tray is { } tray)
+          {
+            <div class="cap-row">
+              <div class="cap-text">
+                <div class="cap-title-row"><span class="cap-title">@tray.Title</span></div>
+                <div class="caption wrap">@tray.Subtitle</div>
+              </div>
+              <div class="cap-control">
+                <div class="cap-line">
+                  <button class="switch @(tray.IsOn ? "on" : "")"
+                          @onclick="() => { var t = tray; OnUi(() => t.IsOn = !t.IsOn); }">
+                    <span class="knob"></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
         </div>
       }
       @foreach (CapabilityViewModel cap in section.Items.OfType<CurveCapabilityViewModel>())

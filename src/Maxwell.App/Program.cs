@@ -62,7 +62,18 @@ internal static class Program
 
         // A panel that only appears on a tray click cannot be looked at while working
         // on it; --flyout presents it at startup.
-        App.PresentFlyoutOnStart = Array.IndexOf(args, "--flyout") >= 0;
+        // A panel that only appears on a tray click cannot be looked at while working on
+        // it. The name after it opens one row, for the same reason --open takes one: the
+        // rows are ordered by name and a click is not available to a capture.
+        if (Array.IndexOf(args, "--flyout") is var panel and >= 0)
+        {
+            App.PresentFlyoutOnStart = true;
+
+            if (panel + 1 < args.Length && !args[panel + 1].StartsWith('-'))
+            {
+                App.OpenFlyoutRowNamed = args[panel + 1];
+            }
+        }
 
         // The splash is gone within a second of the shell appearing, which is right for
         // a user and useless for looking at it. These hold it up instead.
@@ -234,6 +245,7 @@ internal static class Program
         builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<AboutViewModel>();
         builder.Services.AddSingleton<Platform.HiddenDevices>();
+        builder.Services.AddSingleton<Platform.TrayExtras>();
         builder.Services.AddSingleton<ShellViewModel>();
         builder.Services.AddSingleton<FlyoutViewModel>();
         builder.Services.AddSingleton<FlyoutWindow>();

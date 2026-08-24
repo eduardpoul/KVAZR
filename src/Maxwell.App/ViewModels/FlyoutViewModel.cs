@@ -28,6 +28,7 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
     private readonly IDeviceRegistry _registry;
     private readonly HiddenDevices _hidden;
     private readonly IPollingCoordinator _polling;
+    private readonly TrayExtras _extras;
 
     private bool _disposed;
 
@@ -35,16 +36,19 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
         IDeviceRegistry registry,
         IPollingCoordinator polling,
         HiddenDevices hidden,
-        FirstSweep sweep)
+        FirstSweep sweep,
+        TrayExtras extras)
     {
         ArgumentNullException.ThrowIfNull(registry);
         ArgumentNullException.ThrowIfNull(polling);
         ArgumentNullException.ThrowIfNull(hidden);
         ArgumentNullException.ThrowIfNull(sweep);
+        ArgumentNullException.ThrowIfNull(extras);
 
         _registry = registry;
         _polling = polling;
         _hidden = hidden;
+        _extras = extras;
 
         // Its own gate rather than the shell's: the panel can be opened before the
         // window has ever been built, and a gate that starts when the window is
@@ -54,6 +58,11 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
 
         _registry.DevicesChanged += OnDevicesChanged;
         _hidden.Changed += OnDevicesChanged;
+
+        // The switch that decides this is on a device's page, and the panel is a different
+        // surface entirely. Without this an open row would go on showing what the setting
+        // said when it was opened.
+        _extras.Changed += OnExtrasChanged;
         Sync();
     }
 
@@ -63,8 +72,26 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
     /// <summary>Raised with a device key when the user asks for that device's page.</summary>
     public event EventHandler<string>? DeviceRequested;
 
+    /// <summary>
+    /// Raised with the row that has just opened, so the window can bring it into view.
+    ///
+    /// The list is five rows tall and the panel does not grow, so opening the fourth row
+    /// puts its controls under the footer — visible enough to know something happened and
+    /// not enough to use. Only the window can scroll; only the panel knows what opened.
+    /// </summary>
+    public event EventHandler<FlyoutRowViewModel>? RowExpanded;
+
     /// <summary>Every visible device, in the order the registry gives them.</summary>
     public ObservableCollection<FlyoutRowViewModel> Devices { get; } = [];
+
+    /// <summary>
+    /// A row to open by a piece of its name, held until it exists.
+    ///
+    /// The development flag arrives moments after start-up and the list arrives a minute
+    /// later, once discovery has finished; opening whatever was there at the time meant
+    /// opening nothing at all. Same reason the shell holds a pending device page.
+    /// </summary>
+    public string? PendingOpenName { get; set; }
 
     /// <summary>Whether the first sweep has answered. Drives the placeholder rows.</summary>
     internal LoadingState Loading { get; } = new();
@@ -134,6 +161,29 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void OpenSettings() => SettingsRequested?.Invoke(this, EventArgs.Empty);
 
+    private void TryOpenPending()
+    {
+        if (PendingOpenName is not { Length: > 0 } wanted) return;
+
+        FlyoutRowViewModel? row = Devices.FirstOrDefault(
+            d => d.Device.DisplayName.Contains(wanted, StringComparison.CurrentCultureIgnoreCase));
+
+        // A device turns up in the list before it has been described: discovery publishes
+        // it, the session connects a moment later and publishes again with what it can
+        // do. Opening on the first of those gives a row with nothing in it, which is what
+        // the flag was written to look at.
+        if (row is null || row.Device.Snapshot.Capabilities.Count == 0) return;
+
+        PendingOpenName = null;
+        row.ToggleCommand.Execute(null);
+    }
+
+    /// <summary>An open row is rebuilt by closing it: its controls are made when it opens.</summary>
+    private void OnExtrasChanged(object? sender, EventArgs e) => Dispatcher.UIThread.Post(() =>
+    {
+        foreach (FlyoutRowViewModel row in Devices) row.Close();
+    });
+
     private void OnDevicesChanged(object? sender, EventArgs e) => Dispatcher.UIThread.Post(() =>
     {
         Loading.Resolve();
@@ -154,7 +204,7 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
                 continue;
             }
 
-            var row = new FlyoutRowViewModel(snapshot, _registry);
+            var row = new FlyoutRowViewModel(snapshot, _registry, _extras);
             row.Expanded += OnRowExpanded;
             row.PageRequested += OnPageRequested;
             Devices.Add(row);
@@ -167,6 +217,7 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
         }
 
         Reorder(visible);
+        TryOpenPending();
 
         OnPropertyChanged(nameof(HasDevices));
         OnPropertyChanged(nameof(Heading));
@@ -208,6 +259,7 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
         }
 
         _polling.RequestRefresh(opened.Key);
+        RowExpanded?.Invoke(this, opened);
     }
 
     private void OnPageRequested(object? sender, string key) => DeviceRequested?.Invoke(this, key);
@@ -226,6 +278,7 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
 
         _registry.DevicesChanged -= OnDevicesChanged;
         _hidden.Changed -= OnDevicesChanged;
+        _extras.Changed -= OnExtrasChanged;
         Loading.Dispose();
 
         foreach (FlyoutRowViewModel row in Devices) Retire(row);

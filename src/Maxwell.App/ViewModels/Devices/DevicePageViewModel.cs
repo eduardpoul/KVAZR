@@ -30,6 +30,12 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     /// previews and the tests, which build a page with no application around it.
     /// </summary>
     private readonly CurvePresetLibrary? _presets;
+
+    /// <summary>
+    /// What the tray panel carries beyond its usual rows. Null in the previews and the
+    /// tests, which have no settings behind them and no panel to fill.
+    /// </summary>
+    private readonly Platform.TrayExtras? _extras;
     private readonly Dictionary<string, CapabilityViewModel> _byId = new(StringComparer.Ordinal);
 
     /// <summary>
@@ -49,7 +55,8 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         IDeviceSession session,
         IPollingCoordinator? polling = null,
         IConfirmationPrompt? confirm = null,
-        CurvePresetLibrary? presets = null)
+        CurvePresetLibrary? presets = null,
+        Platform.TrayExtras? extras = null)
     {
         ArgumentNullException.ThrowIfNull(session);
 
@@ -57,6 +64,7 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         _polling = polling;
         _confirm = confirm;
         _presets = presets;
+        _extras = extras;
 
         Snapshot = session.Snapshot;
         Rebuild(session.Snapshot);
@@ -470,6 +478,20 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         _ => null,
     };
 
+    /// <summary>
+    /// Which section may ask to be carried in the panel.
+    ///
+    /// One today: a microphone's headphone socket, whose two rows are half of what the
+    /// panel can hold and which are worth that to somebody who monitors themselves and
+    /// nothing at all to somebody who has never used the socket. The rows the panel
+    /// always carries are not a question and are not asked about.
+    /// </summary>
+    private static bool OffersTraySwitch(CapabilityDomain domain, DeviceClass owner) =>
+        domain == CapabilityDomain.Audio && owner == DeviceClass.Microphone;
+
+    private void OnTrayChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e) =>
+        OnPropertyChanged(nameof(Sections));
+
     private void Rebuild(DeviceSnapshot snapshot)
     {
         // Everything is built off to the side and published in one go at the end.
@@ -511,7 +533,12 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
 
             if (items.Count > 0)
             {
-                built.Add(new CapabilitySectionViewModel(domain, items, snapshot.Info.Class));
+                built.Add(new CapabilitySectionViewModel(domain, items, snapshot.Info.Class)
+                {
+                    Tray = OffersTraySwitch(domain, snapshot.Info.Class) && _extras is { } extras
+                        ? new TrayToggleViewModel(extras, snapshot.Info.Key)
+                        : null,
+                });
             }
         }
 
@@ -547,12 +574,25 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
             built = [.. built.OrderBy(s => s.Domain == first ? 0 : 1)];
         }
 
-        foreach (CapabilitySectionViewModel section in Sections) section.Dispose();
+        foreach (CapabilitySectionViewModel section in Sections)
+        {
+            if (section.Tray is { } gone) gone.PropertyChanged -= OnTrayChanged;
+            section.Dispose();
+        }
         Sections.Clear();
         _byId.Clear();
 
         foreach ((string id, CapabilityViewModel vm) in byId) _byId[id] = vm;
-        foreach (CapabilitySectionViewModel section in built) Sections.Add(section);
+        foreach (CapabilitySectionViewModel section in built)
+        {
+            // The page redraws on this object's notifications, and the tray switch is not
+            // this object — it is a small view model of its own hanging off a section. Its
+            // change was reaching the setting and nothing else, so the switch moved in the
+            // file and stayed put on the screen.
+            if (section.Tray is { } tray) tray.PropertyChanged += OnTrayChanged;
+
+            Sections.Add(section);
+        }
 
         _shape.Clear();
         foreach (string id in snapshot.Capabilities.Keys) _shape.Add(id);
@@ -594,7 +634,12 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
 
         _session.SnapshotChanged -= OnSnapshotChanged;
 
-        foreach (CapabilitySectionViewModel section in Sections) section.Dispose();
+        foreach (CapabilitySectionViewModel section in Sections)
+        {
+            if (section.Tray is { } tray) tray.PropertyChanged -= OnTrayChanged;
+            section.Dispose();
+        }
+
         Sections.Clear();
         _byId.Clear();
         _shape.Clear();

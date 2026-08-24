@@ -274,7 +274,7 @@
       <ScrollViewer MaxHeight="{DynamicResource FlyoutListHeight}"
                     VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Disabled">
-        <ItemsControl ItemsSource="{Binding Devices}" Margin="{DynamicResource FlyoutListPadding}">
+        <ItemsControl x:Name="Rows" ItemsSource="{Binding Devices}" Margin="{DynamicResource FlyoutListPadding}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="devices:FlyoutRowViewModel">
 
@@ -431,7 +431,14 @@
                         <Style Selector="Slider.quick">
                           <Setter Property="MinHeight" Value="0" />
                           <Setter Property="Padding" Value="0" />
-                          <Setter Property="Margin" Value="0,-14" />
+
+                          <!-- Ten pixels in from each end, which is half the thumb.
+                               Fluent centres the thumb on the ends of its track, so a
+                               slider at either extreme hung half outside the panel's
+                               content — visibly past the value printed above it and into
+                               the scrollbar. The artboard's own slider pulls the thumb
+                               inside at 100% for the same reason. -->
+                          <Setter Property="Margin" Value="10,-14" />
                           <Setter Property="VerticalAlignment" Value="Center" />
                         </Style>
                       </ItemsControl.Styles>

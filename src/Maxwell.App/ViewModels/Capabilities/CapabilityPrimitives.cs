@@ -257,6 +257,12 @@ public sealed partial class RangeCapabilityViewModel : CapabilityViewModel
 
         OnPropertyChanged(nameof(Display));
         OnPropertyChanged(nameof(QuickValue));
+
+        // And whether there is one to print. The tray row hides the number until the
+        // first reading lands, and without this it went on hiding it afterwards — so a
+        // row opened before the device had answered kept a slider with no value beside
+        // it, while one opened a second later had both.
+        OnPropertyChanged(nameof(HasQuickValue));
     }
 
     /// <summary>

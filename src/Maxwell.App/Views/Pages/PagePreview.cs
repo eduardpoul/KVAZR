@@ -209,7 +209,8 @@ internal static class PagePreview
         var sweep = new FirstSweep(registry, NullLoggerFactory.Instance);
         sweep.Begin();
 
-        var vm = new FlyoutViewModel(registry, new PreviewPolling(), new HiddenDevices(store), sweep);
+        var vm = new FlyoutViewModel(
+            registry, new PreviewPolling(), new HiddenDevices(store), sweep, new TrayExtras(store));
 
         // The panel spends its first moments showing placeholders on purpose, and both
         // the sweep and the gate that ends that spell finish on the dispatcher — which an

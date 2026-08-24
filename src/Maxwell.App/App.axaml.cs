@@ -23,6 +23,9 @@ public partial class App : Application, IDisposable
     /// <summary>Development affordance: show the tray panel as soon as the app is up.</summary>
     internal static bool PresentFlyoutOnStart { get; set; }
 
+    /// <summary>Development affordance: open one row of the panel, by a piece of its name.</summary>
+    internal static string? OpenFlyoutRowNamed { get; set; }
+
     /// <summary>Development affordance: show the connect announcement without a connect.</summary>
 
     /// <summary>Development affordance: open a device page without a synthetic click.</summary>
@@ -399,6 +402,13 @@ public partial class App : Application, IDisposable
     private void ShowFlyout()
     {
         _flyout?.Present();
+
+        if (OpenFlyoutRowNamed is not { Length: > 0 } named || _services is null) return;
+
+        // Handed over rather than done here: the rows are built as discovery lands, which
+        // is a minute after the panel goes up, so the panel is the only thing that can
+        // know when the wanted row exists.
+        _services.GetRequiredService<FlyoutViewModel>().PendingOpenName = named;
     }
 
     private void ShowWindow()
