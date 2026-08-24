@@ -99,7 +99,40 @@ public sealed class PollingPolicyTests
     [Fact]
     public void AnOpenPage_ReadsItsLiveRows()
     {
-        Assert.Equal([Level], PollingPolicy.Live(Microphone(), PollingAttention.Focused, Mic));
+        Assert.Contains(Level, PollingPolicy.Live(Microphone(), PollingAttention.Focused, Mic));
+    }
+
+    /// <summary>
+    /// The switch a live row hangs from is read on the same lane as the row, and this is
+    /// correctness rather than thrift.
+    ///
+    /// A microphone's level and the switch above it are two readings of one thing: the
+    /// switch is off when the capsule is silent, and the capsule is what the level is
+    /// measuring. Reading one of them sixteen times a second while the other waited for
+    /// the ordinary sweep put a moving meter above a switch that said the microphone was
+    /// off, a second at a time.
+    /// </summary>
+    [Fact]
+    public void TheSwitchALiveRowHangsFrom_IsReadAsOftenAsTheRow()
+    {
+        Assert.Contains(Switch, PollingPolicy.Live(Microphone(), PollingAttention.Focused, Mic));
+    }
+
+    [Fact]
+    public void NothingIsReadTwice_ThoughSeveralRowsMayShareAGate()
+    {
+        IReadOnlyList<string> live = PollingPolicy.Live(Microphone(), PollingAttention.Focused, Mic);
+
+        Assert.Equal(live.Count, live.Distinct(StringComparer.Ordinal).Count());
+    }
+
+    [Fact]
+    public void AGateThatIsNotThere_IsNotInvented()
+    {
+        // A driver may name a switch this device does not publish — the level of a
+        // microphone whose mute is not exposed. Asking for it would read a capability
+        // nothing can answer, once per frame.
+        Assert.DoesNotContain("mic.absent_switch", PollingPolicy.Live(Microphone(gate: "mic.absent_switch"), PollingAttention.Focused, Mic));
     }
 
     [Fact]
@@ -134,8 +167,9 @@ public sealed class PollingPolicyTests
 
     private const string Mic = "system:quadcast";
     private const string Level = "mic.system_peak";
+    private const string Switch = "mic.system_on";
 
-    private static DeviceSnapshot Microphone(bool present = true, bool canControl = true)
+    private static DeviceSnapshot Microphone(bool present = true, bool canControl = true, string? gate = Switch)
     {
         var info = new DeviceInfo
         {
@@ -168,6 +202,18 @@ public sealed class PollingPolicyTests
                         Access = CapabilityAccess.Read,
                         Title = "Input level",
                         IsLive = true,
+                        EnabledBy = gate,
+                    },
+                },
+                [Switch] = new()
+                {
+                    Descriptor = new Capability
+                    {
+                        Id = Switch,
+                        Domain = CapabilityDomain.Microphone,
+                        Primitive = CapabilityPrimitive.Toggle,
+                        Title = "Microphone",
+                        IsVolatile = true,
                     },
                 },
                 [CapabilityIds.MicSystemLevel] = new()

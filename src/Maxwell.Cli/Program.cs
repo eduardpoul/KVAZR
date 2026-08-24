@@ -42,6 +42,16 @@ if (args.Contains("--meter"))
     int seconds = int.TryParse(ValueAfter(args, "--meter"), out int held) ? held : 6;
     return await MeterProbe.RunAsync(seconds).ConfigureAwait(false);
 }
+if (args.Contains("--blindspot"))
+{
+    int seconds = int.TryParse(ValueAfter(args, "--blindspot"), out int span) ? span : 12;
+    return await BlindSpotProbe.RunAsync(seconds, ValueAfter(args, "--name")).ConfigureAwait(false);
+}
+if (args.Contains("--witness"))
+{
+    int seconds = int.TryParse(ValueAfter(args, "--witness"), out int watched) ? watched : 30;
+    return await WitnessProbe.RunAsync(seconds, ValueAfter(args, "--name")).ConfigureAwait(false);
+}
 if (args.Contains("--desk")) return DeskProbe.Run(args);
 if (args.Contains("--timing")) return await TimingProbe.RunAsync().ConfigureAwait(false);
 if (args.Contains("--devchange")) return DeviceChangeProbe.Run(TimeSpan.FromSeconds(20));
@@ -66,7 +76,10 @@ if (args.Contains("--eqpush"))
 
 if (args.Contains("--eq")) return await EqProbe.RunAsync().ConfigureAwait(false);
 if (args.Contains("--airpods")) return AirPodsProbe.Run();
-if (args.Contains("--live")) return LiveProbe.Run();
+if (args.Contains("--live"))
+{
+    return LiveProbe.Run(int.TryParse(ValueAfter(args, "--live"), out int held) ? held : 30);
+}
 
 var enumerator = new WindowsHidEnumerator();
 IReadOnlyList<MaxwellInterface> all = enumerator.Enumerate();

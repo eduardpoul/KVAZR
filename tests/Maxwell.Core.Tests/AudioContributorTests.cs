@@ -175,6 +175,239 @@ public sealed class AudioContributorTests
         Assert.Equal(CapabilityValue.Of(true), await connection.ReadAsync(CapabilityIds.MicSystemOn, Ct));
     }
 
+    // ---------- the capsule's own button, seen through the stream ----------
+
+    /// <summary>
+    /// The complaint this answers: muting a QuadCast at its touch panel changed nothing
+    /// on its page. The button does not reach Core Audio and does not move Windows' mute
+    /// — that was measured twice, and once more on the vendor HID page, where the device
+    /// does announce it and where a driver for one manufacturer would have to go to hear
+    /// it.
+    ///
+    /// The stream says the same thing for nothing: a muted capsule sends exact zeroes.
+    /// </summary>
+    [Fact]
+    public async Task AMutedCapsule_TurnsTheSwitchOffWithoutWindowsKnowing()
+    {
+        Fixture fixture = Desk();
+        IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
+
+        FakeMeter meter = await ListenAsync(connection, fixture);
+
+        // Windows still says the endpoint is not muted, and it is right — it is not.
+        Assert.False(fixture.Audio.Channels["quad-in"].Mute);
+
+        await SilenceAsync(connection, meter, packets: 40);
+
+        Assert.Equal(CapabilityValue.Of(false), await connection.ReadAsync(CapabilityIds.MicSystemOn, Ct));
+    }
+
+    [Fact]
+    public async Task ALiveCapsule_LeavesTheSwitchAlone()
+    {
+        Fixture fixture = Desk();
+        IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
+
+        FakeMeter meter = await ListenAsync(connection, fixture);
+        meter.PacketsPerRead = 40;
+
+        await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct);
+
+        Assert.Equal(CapabilityValue.Of(true), await connection.ReadAsync(CapabilityIds.MicSystemOn, Ct));
+    }
+
+    /// <summary>
+    /// A quarter of a second of nothing is a dropout, not a decision. Flipping the switch
+    /// on the first empty packet would have it blinking through every frame the machine
+    /// ran long, which is worse than the fault this fixes.
+    /// </summary>
+    [Fact]
+    public async Task AMomentOfSilence_IsNotEnoughToCallItMuted()
+    {
+        Fixture fixture = Desk();
+        IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
+
+        FakeMeter meter = await ListenAsync(connection, fixture);
+
+        await SilenceAsync(connection, meter, packets: 5);
+
+        Assert.Equal(CapabilityValue.Of(true), await connection.ReadAsync(CapabilityIds.MicSystemOn, Ct));
+    }
+
+    /// <summary>
+    /// Nobody is listening, so there is nothing to go on — and "no evidence" must not be
+    /// read as "muted". Otherwise every switch in the tray would show off, because the
+    /// tray never opens a stream.
+    /// </summary>
+    [Fact]
+    public async Task WithNothingStreaming_TheSwitchIsJustTheEndpoint()
+    {
+        Fixture fixture = Desk();
+        IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
+
+        Assert.Empty(fixture.Audio.Listening);
+        Assert.Equal(CapabilityValue.Of(true), await connection.ReadAsync(CapabilityIds.MicSystemOn, Ct));
+    }
+
+    /// <summary>
+    /// The headphone socket on the microphone's base has no capsule and no stream, and a
+    /// silent one must never reach across to it.
+    /// </summary>
+    [Fact]
+    public async Task TheHeadphoneSocket_IsNotJudgedByTheCapsule()
+    {
+        Fixture fixture = Desk();
+        IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
+
+        FakeMeter meter = await ListenAsync(connection, fixture);
+        await SilenceAsync(connection, meter, packets: 40);
+
+        Assert.Equal(CapabilityValue.Of(true), await connection.ReadAsync(CapabilityIds.AudioSystemOn, Ct));
+    }
+
+    /// <summary>
+    /// The one that was got wrong. Muting the endpoint in Windows puts a QuadCast's light
+    /// out, because the device answers the flag in hardware; press the button on the
+    /// device afterwards and the capsule comes back while the flag stays set. Asking the
+    /// flag first drew a switch that said off above a meter reading 52%.
+    ///
+    /// The stream is the ground truth about whether a microphone is passing sound. The
+    /// flag is a request somebody made earlier.
+    /// </summary>
+    [Fact]
+    public async Task SoundComingThrough_BeatsWhateverTheMuteFlagSays()
+    {
+        Fixture fixture = Desk();
+        IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
+
+        FakeMeter meter = await ListenAsync(connection, fixture);
+
+        // Muted in Windows, and passing sound all the same.
+        Assert.True(fixture.Audio.Channels["quad-in"].SetMute(true));
+        meter.PacketsPerRead = 40;
+        await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct);
+
+        Assert.Equal(CapabilityValue.Of(true), await connection.ReadAsync(CapabilityIds.MicSystemOn, Ct));
+    }
+
+    /// <summary>
+    /// Windows' own mute zeroes the capture stream too, so packets that arrived while it
+    /// was on say nothing about the capsule. Keeping that verdict past the unmute left the
+    /// switch reading off for a moment after the click that turned it on.
+    /// </summary>
+    [Fact]
+    public async Task TurningItBackOn_DoesNotArgueWithTheClick()
+    {
+        Fixture fixture = Desk();
+        IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
+
+        FakeMeter meter = await ListenAsync(connection, fixture);
+        await SilenceAsync(connection, meter, packets: 40);
+
+        Assert.True(await connection.WriteAsync(CapabilityIds.MicSystemOn, CapabilityValue.Of(true), Ct));
+
+        Assert.Equal(CapabilityValue.Of(true), await connection.ReadAsync(CapabilityIds.MicSystemOn, Ct));
+    }
+
+    /// <summary>
+    /// The fault that made the switch unusable. With the capsule live and Windows' flag
+    /// already set to muted — which is where the device's own button leaves them —
+    /// asking for "off" wrote the flag the value it already held, the device was sent
+    /// nothing, and the switch sprang back on.
+    ///
+    /// A pulse through the opposite value gives the device a transition to follow. The
+    /// value it passes through is the one the microphone is already in, so nothing is
+    /// exposed on the way.
+    /// </summary>
+    [Fact]
+    public async Task AFlagAlreadyWhereItIsAsked_IsPulsedSoTheDeviceHearsIt()
+    {
+        Fixture fixture = Desk();
+        IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
+
+        FakeMeter meter = await ListenAsync(connection, fixture);
+        FakeChannel capsule = fixture.Audio.Channels["quad-in"];
+
+        // Muted in Windows, live at the device: the state the button leaves behind.
+        _ = capsule.SetMute(true);
+        meter.PacketsPerRead = 40;
+        await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct);
+        capsule.Mutes.Clear();
+
+        Assert.True(await connection.WriteAsync(CapabilityIds.MicSystemOn, CapabilityValue.Of(false), Ct));
+
+        Assert.Equal([false, true], capsule.Mutes);
+        Assert.True(capsule.Mute);
+    }
+
+    /// <summary>
+    /// For the moment after a click, the click wins. The packets in flight describe the
+    /// microphone as it was — seventy milliseconds of them, measured — and the verdict
+    /// waits a quarter of a second of silence before it will call anything muted, so a
+    /// switch that believed the stream at that moment argued with the hand that moved it.
+    /// </summary>
+    [Fact]
+    public async Task RightAfterAClick_TheSwitchShowsWhatWasClicked()
+    {
+        Fixture fixture = Desk();
+        IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
+
+        FakeMeter meter = await ListenAsync(connection, fixture);
+        meter.PacketsPerRead = 40;
+        await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct);
+
+        Assert.True(await connection.WriteAsync(CapabilityIds.MicSystemOn, CapabilityValue.Of(false), Ct));
+
+        // The stream has not caught up and says so, loudly: forty packets of sound.
+        await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct);
+
+        Assert.Equal(CapabilityValue.Of(false), await connection.ReadAsync(CapabilityIds.MicSystemOn, Ct));
+    }
+
+    /// <summary>
+    /// And it ends the moment the stream agrees, rather than running the clock down: a
+    /// switch that worked has to feel immediate.
+    /// </summary>
+    [Fact]
+    public async Task OnceTheStreamAgrees_TheHoldIsOver()
+    {
+        Fixture fixture = Desk();
+        IDeviceConnection connection = await AttachAsync(fixture, QuadCastInfo);
+
+        FakeMeter meter = await ListenAsync(connection, fixture);
+
+        Assert.True(await connection.WriteAsync(CapabilityIds.MicSystemOn, CapabilityValue.Of(false), Ct));
+
+        await SilenceAsync(connection, meter, packets: 40);
+        Assert.Equal(CapabilityValue.Of(false), await connection.ReadAsync(CapabilityIds.MicSystemOn, Ct));
+
+        // The device is switched back on at its own button, and the switch follows without
+        // waiting out the hold that has already been satisfied.
+        meter.Empty = false;
+        meter.Level = 0.1;
+        await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct);
+
+        Assert.Equal(CapabilityValue.Of(true), await connection.ReadAsync(CapabilityIds.MicSystemOn, Ct));
+    }
+
+    /// <summary>Opens the stream and returns the meter behind it.</summary>
+    private static async Task<FakeMeter> ListenAsync(IDeviceConnection connection, Fixture fixture)
+    {
+        await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct);
+
+        return Assert.Single(fixture.Audio.Listening);
+    }
+
+    /// <summary>Delivers a run of packets with nothing in them, in one read.</summary>
+    private static async Task SilenceAsync(IDeviceConnection connection, FakeMeter meter, int packets)
+    {
+        meter.PacketsPerRead = packets;
+        meter.Empty = true;
+        meter.Level = 0;
+
+        await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct);
+    }
+
     // ---------- the level, and what listening costs ----------
 
     [Fact]
@@ -408,13 +641,31 @@ public sealed class AudioContributorTests
         /// <summary>What the next read answers. Null stands for a stream that has died.</summary>
         public double? Level { get; set; } = 0.1;
 
+        /// <summary>
+        /// How many packets a read drains, and whether they carry anything.
+        ///
+        /// A muted capsule is not a quiet one: the stream keeps running and every packet
+        /// in it is exact zeroes. Measured on a QuadCast — fifty packets a half-second,
+        /// all of them empty — and it is the only thing that separates a microphone
+        /// switched off at its own button from a silent room.
+        /// </summary>
+        public int PacketsPerRead { get; set; } = 1;
+
+        public bool Empty { get; set; }
+
+        private long _packets;
+        private long _empty;
+
         public string Format => "48 kHz · 32-bit float · 1 ch";
 
-        public (long Packets, long Silent) Tally => (Reads, 0);
+        public (long Packets, long Silent) Tally => (_packets, _empty);
 
         public double? Read()
         {
             Reads++;
+            _packets += PacketsPerRead;
+            if (Empty) _empty += PacketsPerRead;
+
             return Level;
         }
 
@@ -441,8 +692,13 @@ public sealed class AudioContributorTests
             return true;
         }
 
+        /// <summary>Every mute written, in order. A device that is already where the flag
+        /// says needs a transition rather than a repeat, and the order is the evidence.</summary>
+        public List<bool> Mutes { get; } = [];
+
         public bool SetMute(bool mute)
         {
+            Mutes.Add(mute);
             Mute = mute;
             return true;
         }

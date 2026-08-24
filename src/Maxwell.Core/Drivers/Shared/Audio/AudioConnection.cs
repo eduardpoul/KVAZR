@@ -127,13 +127,7 @@ internal sealed class AudioConnection : IDeviceConnection
                 ? CapabilityValue.Of(percent)
                 : CapabilityValue.Absent,
 
-            // Inverted here and nowhere else. Core Audio's knob is a mute; the row is a
-            // switch that says whether the thing is on, because that is what a person
-            // reading the page is asking. One negation, at the boundary, rather than a
-            // page full of double negatives.
-            AudioControl.OnOff => binding.Channel.Mute is { } muted
-                ? CapabilityValue.Of(!muted)
-                : CapabilityValue.Absent,
+            AudioControl.OnOff => OnOff(binding),
 
             AudioControl.Peak => Level(binding.EndpointId),
 
@@ -144,6 +138,25 @@ internal sealed class AudioConnection : IDeviceConnection
     }
 
     /// <summary>
+    /// Whether the endpoint is passing sound.
+    ///
+    /// Where there is a stream, the stream decides. Core Audio's mute is a flag, and the
+    /// row is its opposite — the knob is "muted", the question a person is asking is
+    /// "is it on" — but the flag is only a request, and on this desk the device answers
+    /// it in hardware: muting the QuadCast's endpoint puts the light on its body out.
+    /// Press the button on the device afterwards and the capsule comes back while the
+    /// flag stays exactly where it was. Reading the flag first showed a microphone
+    /// switched off with its own meter at 52% beside it.
+    ///
+    /// So the flag is the fallback, for the endpoints nothing is listening to: every
+    /// playback endpoint, and a microphone whose level is not being read.
+    /// </summary>
+    private CapabilityValue OnOff(Binding binding) =>
+        Capsule(binding.EndpointId) is { } passing ? CapabilityValue.Of(passing)
+        : binding.Channel.Mute is { } muted ? CapabilityValue.Of(!muted)
+        : CapabilityValue.Absent;
+
+    /// <summary>
     /// Asking for the level is what starts the microphone, and the asking is the timer:
     /// stop asking and the watchdog puts it out.
     /// </summary>
@@ -151,6 +164,17 @@ internal sealed class AudioConnection : IDeviceConnection
         _listeners.TryGetValue(endpointId, out Listener? listener) && listener.Read() is { } fraction
             ? CapabilityValue.Of(AudioCapabilities.Decibels(fraction))
             : CapabilityValue.Absent;
+
+    /// <summary>
+    /// What the stream says about the capsule, or null where there is no stream to ask —
+    /// every playback endpoint, and a microphone whose level nobody is reading.
+    ///
+    /// Null rather than true on purpose. "Nobody is listening" is not evidence that the
+    /// microphone is on, and turning it into evidence would flip the switch every time a
+    /// page closed.
+    /// </summary>
+    private bool? Capsule(string endpointId) =>
+        _listeners.TryGetValue(endpointId, out Listener? listener) ? listener.Capsule : null;
 
     private void CloseIdleListeners()
     {
@@ -169,11 +193,42 @@ internal sealed class AudioConnection : IDeviceConnection
         bool accepted = (binding.Control, value) switch
         {
             (AudioControl.Volume, NumberValue number) => binding.Channel.SetVolume(number.Value),
-            (AudioControl.OnOff, FlagValue flag) => binding.Channel.SetMute(!flag.Value),
+            (AudioControl.OnOff, FlagValue flag) => Switch(binding, flag.Value),
             _ => false,
         };
 
         return Task.FromResult(accepted);
+    }
+
+    /// <summary>
+    /// Turns the endpoint on or off, and holds the switch where the click put it.
+    ///
+    /// Two things had to be got right here, and the first one is not obvious. Windows'
+    /// flag can already be at the value about to be written while the microphone is in
+    /// the other state {d} the device carries its own mute, the button on its body moves
+    /// it, and the flag stays where it was. Writing the same value again sends the device
+    /// nothing at all, so the switch sprang straight back and the microphone could not be
+    /// turned on or off from the page.
+    ///
+    /// So the flag is pulsed through the opposite value first, which gives the device a
+    /// transition to follow. That costs nothing and exposes nothing: the value it passes
+    /// through is the one the microphone is already in.
+    ///
+    /// Then the stream is told what to expect. For the moment after a click the click
+    /// wins {d} the packets still arriving describe the microphone as it was, and a
+    /// control that argued with the hand that moved it would be unusable.
+    /// </summary>
+    private bool Switch(Binding binding, bool on)
+    {
+        bool mute = !on;
+
+        if (binding.Channel.Mute == mute) _ = binding.Channel.SetMute(on);
+
+        if (!binding.Channel.SetMute(mute)) return false;
+
+        if (_listeners.TryGetValue(binding.EndpointId, out Listener? listener)) listener.Expect(on);
+
+        return true;
     }
 
     public void Dispose()
@@ -211,9 +266,27 @@ internal sealed class AudioConnection : IDeviceConnection
     {
         private readonly object _lock = new();
 
+        /// <summary>
+        /// How many empty packets in a row it takes to call the capsule silent — about a
+        /// quarter of a second, at the ten milliseconds a packet covers.
+        ///
+        /// Asymmetric, and deliberately: one packet with anything in it turns the
+        /// microphone back on at once, because that is the moment somebody has just
+        /// pressed the button and is watching for the answer. Going the other way is a
+        /// slower claim to make, so it is made slowly.
+        /// </summary>
+        private const int MutedAfter = 25;
+
         private IAudioLevelMeter? _meter;
         private DateTimeOffset _asked;
         private bool _refused;
+
+        private long _seenPackets;
+        private long _seenEmpty;
+        private long _run;
+        private bool? _capsule;
+        private bool? _wanted;
+        private DateTimeOffset _until;
 
         /// <summary>The stream's own account of itself, for a log or a page that wants to explain a flat meter.</summary>
         public (long Packets, long Silent) Tally
@@ -223,6 +296,69 @@ internal sealed class AudioConnection : IDeviceConnection
                 lock (_lock) return _meter?.Tally ?? (0, 0);
             }
         }
+
+        /// <summary>
+        /// Whether the capsule is passing sound, or null while nothing is streaming and
+        /// there is therefore nothing to go on.
+        ///
+        /// Measured rather than asked, because there is nothing to ask: a microphone muted
+        /// by its own button reports it on a vendor page or not at all. What it does do is
+        /// send exact zeroes — not a quiet room, zeroes — and that is the whole signal.
+        /// Sixty seconds of a QuadCast: every live half-second carried about fifty packets
+        /// and none of them empty, every muted one carried fifty and all of them empty,
+        /// and the quietest live window still measured −57 dBFS. The two states are
+        /// not neighbours on a scale, which is why no threshold in decibels appears here:
+        /// the meter's own floor is −60, so a quiet room and a dead capsule draw alike.
+        /// </summary>
+        public bool? Capsule
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    if (_wanted is { } wanted)
+                    {
+                        if (_capsule == wanted || DateTimeOffset.Now >= _until) _wanted = null;
+                        else return wanted;
+                    }
+
+                    return _capsule;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Says what the microphone has just been told to do, and holds the answer there
+        /// until the stream agrees or the wait runs out.
+        ///
+        /// Both halves matter. The packets already in flight describe the microphone as
+        /// it was a moment ago {d} about seventy milliseconds of them, measured {d} and the
+        /// verdict needs a quarter of a second of silence before it will call anything
+        /// muted, so for a third of a second after a click the stream is still arguing
+        /// for the old state.
+        ///
+        /// It ends the moment the stream agrees rather than running the clock down, so a
+        /// switch that worked feels immediate; and it ends on the clock if it never
+        /// agrees, because a device that refused is something the page has to admit
+        /// rather than paper over.
+        /// </summary>
+        public void Expect(bool on)
+        {
+            lock (_lock)
+            {
+                _capsule = null;
+                _run = 0;
+                (_seenPackets, _seenEmpty) = _meter?.Tally ?? (0, 0);
+
+                _wanted = on;
+                _until = DateTimeOffset.Now + Patience;
+            }
+        }
+
+        /// <summary>How long a click outranks the stream. Long enough to cover the packets
+        /// in flight and the run of silence the verdict waits for, and short enough that a
+        /// device which ignored the write is found out while the hand is still there.</summary>
+        private static readonly TimeSpan Patience = TimeSpan.FromSeconds(1);
 
         public double? Read()
         {
@@ -250,12 +386,42 @@ internal sealed class AudioConnection : IDeviceConnection
 
                 double? level = _meter.Read();
 
+                Follow();
+
                 // The stream died under us — unplugged, or taken exclusively. Let go of it
                 // so the next glance can try again from scratch.
                 if (level is null) Close();
 
                 return level;
             }
+        }
+
+        /// <summary>
+        /// Reads the packets that arrived during the last <see cref="Read"/> and moves the
+        /// verdict. Called under the lock, straight after the drain that produced them.
+        /// </summary>
+        private void Follow()
+        {
+            if (_meter is null) return;
+
+            (long packets, long empty) = _meter.Tally;
+            long arrived = packets - _seenPackets;
+            long blank = empty - _seenEmpty;
+            (_seenPackets, _seenEmpty) = (packets, empty);
+
+            // Nothing came. That says nothing either way, and reading it as silence would
+            // mute the row every time a frame ran long.
+            if (arrived <= 0) return;
+
+            if (blank < arrived)
+            {
+                _run = 0;
+                _capsule = true;
+                return;
+            }
+
+            _run += blank;
+            if (_run >= MutedAfter) _capsule = false;
         }
 
         public void CloseIfIdle(DateTimeOffset now, TimeSpan linger)
@@ -276,6 +442,15 @@ internal sealed class AudioConnection : IDeviceConnection
         {
             _meter?.Dispose();
             _meter = null;
+
+            // Back to knowing nothing. A verdict kept past the end of the stream is a
+            // claim about a microphone nobody is listening to any more, and the switch
+            // would go on showing it for as long as the device stayed attached.
+            _capsule = null;
+            _wanted = null;
+            _run = 0;
+            _seenPackets = 0;
+            _seenEmpty = 0;
         }
     }
 }

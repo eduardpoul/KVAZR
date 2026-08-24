@@ -114,7 +114,13 @@ internal static class AudioCapabilities
                     Domain = domain,
                     Primitive = CapabilityPrimitive.Toggle,
                     Title = onTitle,
-                    Subtitle = several ? endpoint.Name : null,
+
+                    // A capture switch reports what is actually coming through, not what
+                    // Windows was last asked for, and the sentence says so — otherwise a
+                    // switch that moves on its own has no explanation anywhere on the page.
+                    Subtitle = several ? endpoint.Name
+                        : render ? null
+                        : "Follows the microphone itself, including its own mute button",
                     IsVolatile = true,
                 }));
 
@@ -160,6 +166,11 @@ internal static class AudioCapabilities
                     Subtitle = "Measured while this page is open, so Windows shows the microphone as in use",
                     Range = new CapabilityRange { Min = MinimumDecibels, Max = 0, Unit = "dB" },
                     IsLive = true,
+
+                    // The meter measures what the switch governs, so it greys with it —
+                    // and, less obviously, this is what keeps the switch as fresh as the
+                    // meter: the fast lane reads a live row's gate along with the row.
+                    EnabledBy = Numbered(onId, i),
                 }));
         }
     }

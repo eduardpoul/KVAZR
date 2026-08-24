@@ -26,11 +26,15 @@ internal static class LiveProbe
             || i.UsagePage == 0x000B                          // telephony: the mute of headsets
             || i.UsagePage == 0x000C);                        // consumer: media keys, knobs
 
-    public static int Run()
+    /// <param name="seconds">
+    /// How long to hold the ear open. Thirty was hard-coded and it is not enough when
+    /// the person who has to press the button is reading about it in another window.
+    /// </param>
+    public static int Run(int seconds = 30)
     {
         List<HidInterface> targets = [.. new WindowsHidEnumerator().EnumerateAll().Where(Interesting)];
 
-        Console.WriteLine("Слушаю 30 секунд. Действуйте:");
+        Console.WriteLine($"Слушаю {seconds} секунд. Действуйте:");
         Console.WriteLine("  · тапните mute на QuadCast, покрутите ручку gain");
         Console.WriteLine("  · снимите геймпад с дока (или поставьте)");
         Console.WriteLine("  · понажимайте клавиши на Air96, покрутите её колесо");
@@ -43,7 +47,7 @@ internal static class LiveProbe
 
         Console.WriteLine();
 
-        var stop = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        var stop = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         var console = new object();
         var last = new ConcurrentDictionary<string, string>();
 
@@ -83,7 +87,7 @@ internal static class LiveProbe
 
         try
         {
-            Task.WaitAll([.. ears], TimeSpan.FromSeconds(35));
+            Task.WaitAll([.. ears], TimeSpan.FromSeconds(seconds + 5));
         }
         catch (AggregateException)
         {

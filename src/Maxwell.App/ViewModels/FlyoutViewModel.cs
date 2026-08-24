@@ -98,6 +98,14 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
 
     public bool HasDevices => Devices.Count > 0;
 
+    /// <summary>
+    /// Whether any row is open, which is what the list's height turns on.
+    ///
+    /// An opened row is taller than the five-row list the panel is otherwise held to, and
+    /// the part that fell off the bottom was the row's own way to the device page.
+    /// </summary>
+    public bool HasOpenRow => Devices.Any(d => d.IsOpen);
+
     public string Heading => Devices.Count switch
     {
         0 or 1 => Maxwell.App.Localization.Localizer.Current.Say("Devices"),
@@ -207,6 +215,10 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
             var row = new FlyoutRowViewModel(snapshot, _registry, _extras);
             row.Expanded += OnRowExpanded;
             row.PageRequested += OnPageRequested;
+
+            // Opening raises Expanded; closing raises nothing, and a row closes itself
+            // when it is clicked a second time. Watching the property catches both ends.
+            row.PropertyChanged += OnRowChanged;
             Devices.Add(row);
         }
 
@@ -264,10 +276,16 @@ public sealed partial class FlyoutViewModel : ObservableObject, IDisposable
 
     private void OnPageRequested(object? sender, string key) => DeviceRequested?.Invoke(this, key);
 
+    private void OnRowChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(FlyoutRowViewModel.IsOpen)) OnPropertyChanged(nameof(HasOpenRow));
+    }
+
     private void Retire(FlyoutRowViewModel row)
     {
         row.Expanded -= OnRowExpanded;
         row.PageRequested -= OnPageRequested;
+        row.PropertyChanged -= OnRowChanged;
         row.Dispose();
     }
 

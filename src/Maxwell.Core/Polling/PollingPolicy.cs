@@ -112,12 +112,35 @@ public static class PollingPolicy
         if (!string.Equals(device.Info.Key, focusedDeviceKey, StringComparison.Ordinal)) return [];
         if (!device.IsPresent || !device.CanControl) return [];
 
-        return
-        [
-            .. device.Capabilities.Values
-                .Where(c => c.Descriptor.IsLive && c.Descriptor.IsReadable)
-                .Select(c => c.Id),
-        ];
+        var wanted = new List<string>();
+        var already = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (CapabilityState live in device.Capabilities.Values
+                     .Where(c => c.Descriptor.IsLive && c.Descriptor.IsReadable))
+        {
+            if (already.Add(live.Id)) wanted.Add(live.Id);
+        }
+
+        // The switch a live row hangs from is read on the same lane as the row.
+        //
+        // Not an optimisation — a correctness rule. A microphone's level and the switch
+        // above it are two readings of one thing, and reading one of them sixteen times a
+        // second while the other waits for the ordinary sweep puts a moving meter above a
+        // switch that says the microphone is off, for a second at a time.
+        foreach (string gate in wanted
+                     .Select(id => device.Capabilities[id].Descriptor.EnabledBy)
+                     .OfType<string>()
+                     .ToList())
+        {
+            if (device.Capabilities.TryGetValue(gate, out CapabilityState? state)
+                && state.Descriptor.IsReadable
+                && already.Add(gate))
+            {
+                wanted.Add(gate);
+            }
+        }
+
+        return wanted;
     }
 
     public static PollPlan Plan(

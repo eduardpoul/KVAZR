@@ -85,6 +85,30 @@
       <Setter Property="BorderThickness" Value="1" />
     </Style>
 
+    <!--
+      Five rows closed, and as much as one opened row needs while one is open.
+
+      The height is set here rather than on the element because a local value beats a
+      style setter, and the open state has to be able to raise it.
+
+      284 is the artboard's list: five rows of 56 and the padding. It was applied to the
+      opened row as well, and an opened row does not fit in it — measured on this desk,
+      the QuadCast's came to about 295, so its own "Open the device page" was sliced in
+      half by the edge of the scroll area with its descenders cut off. Scrolling cannot
+      help: the row is taller than the viewport, so bringing its foot into view takes its
+      name out of it, and the name is the half worth keeping.
+
+      The panel still does not grow with the number of devices, which is what the rule
+      was for. It grows by one row's worth while a row is open, and shrinks back when it
+      closes.
+    -->
+    <Style Selector="ScrollViewer.rows">
+      <Setter Property="MaxHeight" Value="{DynamicResource FlyoutListHeight}" />
+    </Style>
+    <Style Selector="ScrollViewer.rows.expanded">
+      <Setter Property="MaxHeight" Value="380" />
+    </Style>
+
     <!-- A row of text that happens to be clickable, but still a row: Fluent gives a list
          item 32 pixels and a 4-pixel radius, and a hover that hugs the glyphs instead of
          filling the row reads as a rendering fault rather than as a target. -->
@@ -271,7 +295,7 @@
       <!-- Top, not stretched: the panel is only as tall as its rows, and a list that
            filled the space would push the footer to the bottom of the screen. -->
       <Panel VerticalAlignment="Top" IsVisible="{Binding Loading.ShowContent}">
-      <ScrollViewer MaxHeight="{DynamicResource FlyoutListHeight}"
+      <ScrollViewer Classes="rows" Classes.expanded="{Binding HasOpenRow}"
                     VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Disabled">
         <ItemsControl x:Name="Rows" ItemsSource="{Binding Devices}" Margin="{DynamicResource FlyoutListPadding}">
@@ -504,8 +528,12 @@
                           </Grid>
                         </DataTemplate>
 
+                        <!-- More room under a switch than over it, because of what
+                             follows one: a switch in this list is the condition of the
+                             slider beneath it, and at the even spacing of the stack the
+                             two read as one control with a stray label between them. -->
                         <DataTemplate DataType="cap:ToggleCapabilityViewModel">
-                          <Grid ColumnDefinitions="*,Auto" Height="30">
+                          <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
                             <TextBlock Grid.Column="0" Classes="caption" FontSize="12" VerticalAlignment="Center"
                                        Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
                             <ToggleSwitch Grid.Column="1"
