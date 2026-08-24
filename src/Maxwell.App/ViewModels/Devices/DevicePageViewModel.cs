@@ -116,7 +116,7 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
 
     /// <summary>
     /// Through the catalogue like the same name in the device list, and for the same
-    /// reason: the stand-ins carry "(макет)" in their model names, and a page headed in
+    /// reason: the stand-ins carry "(mock)" in their model names, and a page headed in
     /// one language above a list that used the other looked like two different devices.
     /// </summary>
     public string Title => Maxwell.App.Localization.Localizer.Current.Say(Snapshot.Info.DisplayName);
@@ -139,7 +139,7 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     /// </summary>
     public string Firmware =>
         Snapshot.Get(CapabilityIds.DeviceFirmware)?.Value is TextValue { Value.Length: > 0 } version
-            ? $"{Maxwell.App.Localization.Localizer.Current["device.firmware", "Прошивка"]} {version.Value}"
+            ? $"{Maxwell.App.Localization.Localizer.Current["device.firmware", "Firmware"]} {version.Value}"
             : string.Empty;
 
     public bool HasFirmware => Firmware.Length > 0;
@@ -158,22 +158,22 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         {
             var facts = new List<DeviceFact>();
 
-            if (Address is { } address) facts.Add(new DeviceFact(Maxwell.App.Localization.Localizer.Current["fact.address", "Адрес"], address));
+            if (Address is { } address) facts.Add(new DeviceFact(Maxwell.App.Localization.Localizer.Current["fact.address", "Address"], address));
 
             facts.Add(new DeviceFact(
-                Maxwell.App.Localization.Localizer.Current["fact.class", "Класс устройства"],
-                Snapshot.Info.Class == DeviceClass.Unknown ? Maxwell.App.Localization.Localizer.Current.Say("не определён") : ClassName));
+                Maxwell.App.Localization.Localizer.Current["fact.class", "Device class"],
+                Snapshot.Info.Class == DeviceClass.Unknown ? Maxwell.App.Localization.Localizer.Current.Say("not established") : ClassName));
 
             foreach (string id in Snapshot.Info.HardwareIds.Where(i => i.StartsWith("usb:", StringComparison.Ordinal)))
             {
-                facts.Add(new DeviceFact(Maxwell.App.Localization.Localizer.Current["fact.usb_id", "Идентификатор USB"], id[4..].ToUpperInvariant()));
+                facts.Add(new DeviceFact(Maxwell.App.Localization.Localizer.Current["fact.usb_id", "USB identifier"], id[4..].ToUpperInvariant()));
             }
 
             facts.Add(new DeviceFact(
-                Maxwell.App.Localization.Localizer.Current["fact.catalogue", "Запись в каталоге"],
+                Maxwell.App.Localization.Localizer.Current["fact.catalogue", "Catalogue entry"],
                 Snapshot.Info.ImageKey is { Length: > 0 } slug
                     ? slug
-                    : Maxwell.App.Localization.Localizer.Current["fact.catalogue.none", "нет — показываем то, что знает система"]));
+                    : Maxwell.App.Localization.Localizer.Current["fact.catalogue.none", "none — showing what the system knows"]));
 
             return facts;
         }
@@ -193,20 +193,20 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
 
     private string ClassName => Snapshot.Info.Class switch
     {
-        DeviceClass.Headset => Name("headset", Maxwell.App.Localization.Localizer.Current.Say("Гарнитура")),
-        DeviceClass.Earbuds => Name("earbuds", Maxwell.App.Localization.Localizer.Current.Say("Наушники")),
-        DeviceClass.Microphone => Name("microphone", Maxwell.App.Localization.Localizer.Current.Say("Микрофон")),
-        DeviceClass.Speaker => Name("speaker", Maxwell.App.Localization.Localizer.Current.Say("Колонка")),
-        DeviceClass.Mouse => Name("mouse", Maxwell.App.Localization.Localizer.Current.Say("Мышь")),
-        DeviceClass.Keyboard => Name("keyboard", Maxwell.App.Localization.Localizer.Current.Say("Клавиатура")),
-        DeviceClass.Gamepad => Name("gamepad", Maxwell.App.Localization.Localizer.Current.Say("Геймпад")),
-        DeviceClass.Receiver => Name("receiver", Maxwell.App.Localization.Localizer.Current.Say("Приёмник")),
-        _ => Name("undetermined", Maxwell.App.Localization.Localizer.Current.Say("не определён")),
+        DeviceClass.Headset => Name("headset", Maxwell.App.Localization.Localizer.Current.Say("Headset")),
+        DeviceClass.Earbuds => Name("earbuds", Maxwell.App.Localization.Localizer.Current.Say("Earbuds")),
+        DeviceClass.Microphone => Name("microphone", Maxwell.App.Localization.Localizer.Current.Say("Microphone")),
+        DeviceClass.Speaker => Name("speaker", Maxwell.App.Localization.Localizer.Current.Say("Speaker")),
+        DeviceClass.Mouse => Name("mouse", Maxwell.App.Localization.Localizer.Current.Say("Mouse")),
+        DeviceClass.Keyboard => Name("keyboard", Maxwell.App.Localization.Localizer.Current.Say("Keyboard")),
+        DeviceClass.Gamepad => Name("gamepad", Maxwell.App.Localization.Localizer.Current.Say("Gamepad")),
+        DeviceClass.Receiver => Name("receiver", Maxwell.App.Localization.Localizer.Current.Say("Receiver")),
+        _ => Name("undetermined", Maxwell.App.Localization.Localizer.Current.Say("not established")),
     };
 
-    /// <summary>A device class in the language in force; the Russian is the fallback.</summary>
-    private static string Name(string key, string russian) =>
-        Maxwell.App.Localization.Localizer.Current[$"device.class.{key}", russian];
+    /// <summary>A device class in the language in force; the English is the fallback.</summary>
+    private static string Name(string key, string english) =>
+        Maxwell.App.Localization.Localizer.Current[$"device.class.{key}", english];
 
     public string? ImageKey => Snapshot.Info.ImageKey;
 
@@ -236,7 +236,7 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     /// it; nothing at all for a mains device that was never going to.
     /// </summary>
     /// <summary>
-    /// An offline device draws no battery cell at all. "Заряд недоступен" is a statement
+    /// An offline device draws no battery cell at all. "No charge reading" is a statement
     /// about a live link that will not report one, and putting it on a device that is
     /// simply not here would blame the link for the absence — the notice at the top
     /// already says what is actually going on.
@@ -252,9 +252,9 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     /// <summary>Why the battery cell is empty, phrased for the class and the link it is on.</summary>
     public string NoBatteryReason => Snapshot.Info.Class switch
     {
-        DeviceClass.Gamepad => Maxwell.App.Localization.Localizer.Current.Say("Донгл рапортует «проводной, батареи нет»"),
-        _ when HasDongle => Maxwell.App.Localization.Localizer.Current.Say("Донгл не отдаёт уровень батареи. Появится, если спарить по Bluetooth"),
-        _ => Maxwell.App.Localization.Localizer.Current.Say("Заряд по этому подключению не читается"),
+        DeviceClass.Gamepad => Maxwell.App.Localization.Localizer.Current.Say("The dongle reports \"wired, no battery\""),
+        _ when HasDongle => Maxwell.App.Localization.Localizer.Current.Say("The dongle does not give a battery level. It appears once paired over Bluetooth"),
+        _ => Maxwell.App.Localization.Localizer.Current.Say("The charge cannot be read over this link"),
     };
 
     /// <summary>
@@ -265,8 +265,8 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     /// </summary>
     public HeroPill? Extended => Snapshot.Info.DriverId switch
     {
-        "audeze.race" => new HeroPill(Maxwell.App.Localization.Localizer.Current.Say("Расширенный · протокол Audeze"), HeroPillKind.Vendor),
-        "logitech.hidpp" => new HeroPill(Maxwell.App.Localization.Localizer.Current.Say("Расширенный · HID++"), HeroPillKind.Hidpp),
+        "audeze.race" => new HeroPill(Maxwell.App.Localization.Localizer.Current.Say("Extended · Audeze protocol"), HeroPillKind.Vendor),
+        "logitech.hidpp" => new HeroPill(Maxwell.App.Localization.Localizer.Current.Say("Extended · HID++"), HeroPillKind.Hidpp),
         _ => null,
     };
 
@@ -293,7 +293,7 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     public string? SectionNote(CapabilityDomain domain) =>
         Snapshot.Info.DriverId != "audeze.race"
             && domain is CapabilityDomain.Audio or CapabilityDomain.Microphone
-                ? Maxwell.App.Localization.Localizer.Current.Say("применяется сразу, без «Применить»")
+                ? Maxwell.App.Localization.Localizer.Current.Say("applied at once, with no Apply")
                 : null;
 
     /// <summary>
@@ -306,19 +306,19 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     {
         "audeze.race" => null,
         "logitech.hidpp" =>
-            Maxwell.App.Localization.Localizer.Current.Say("У мышей других вендоров этих строк не будет: HID++ — протокол Logitech, у Razer и Glorious остаются имя, класс и подключение."),
+            Maxwell.App.Localization.Localizer.Current.Say("Mice from other makers will not have these rows: HID++ is Logitech's protocol, and a Razer or a Glorious keeps its name, class and connection."),
         _ => Snapshot.Info.Class switch
         {
             DeviceClass.Headset or DeviceClass.Earbuds =>
-                Maxwell.App.Localization.Localizer.Current.Say("Кодек Bluetooth, аппаратная громкость и заряд через донгл базовым путём не читаются — их отдаёт только вендорский протокол."),
+                Maxwell.App.Localization.Localizer.Current.Say("The Bluetooth codec, the hardware volume and the charge over a dongle cannot be read at the baseline — only the vendor's protocol gives them."),
             DeviceClass.Microphone =>
-                Maxwell.App.Localization.Localizer.Current.Say("Диаграмма направленности, аппаратный gain и подсветка живут в протоколе вендора — на базовом уровне их нет."),
+                Maxwell.App.Localization.Localizer.Current.Say("The polar pattern, the hardware gain and the lighting live in the vendor's protocol — at the baseline they do not exist."),
             DeviceClass.Keyboard =>
-                Maxwell.App.Localization.Localizer.Current.Say("Через донгл клавиатура не отдаёт ни заряд, ни VIA — раскладку, слои и подсветку правят по кабелю."),
+                Maxwell.App.Localization.Localizer.Current.Say("Over the dongle the keyboard gives neither charge nor VIA — layout, layers and lighting are edited over the cable."),
             DeviceClass.Gamepad =>
-                Maxwell.App.Localization.Localizer.Current.Say("Заряд по XInput отдают только настоящие Xbox-контроллеры; ремап кнопок и профили — вендорский путь."),
+                Maxwell.App.Localization.Localizer.Current.Say("Only genuine Xbox controllers report charge over XInput; button remapping and profiles are the vendor's own road."),
             DeviceClass.Speaker =>
-                Maxwell.App.Localization.Localizer.Current.Say("Аппаратные эффекты и эквалайзер колонки — вендорский путь. Базово это та же звуковая страница, что у гарнитуры."),
+                Maxwell.App.Localization.Localizer.Current.Say("Hardware effects and a speaker's equaliser are the vendor's own road. At the baseline this is the same sound page a headset gets."),
             _ => null,
         },
     };
@@ -334,26 +334,26 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         // publishes no HID service at all, so the short list of capabilities is the
         // truth about this link rather than something failing.
         { Availability: DeviceAvailability.Active, Info.ControlTransport: null } =>
-            Maxwell.App.Localization.Localizer.Current.Say("Подключено по Bluetooth: доступен только заряд. Настройка работает через донгл или кабель"),
+            Maxwell.App.Localization.Localizer.Current.Say("Connected over Bluetooth: only the charge is available. Settings work over the dongle or the cable"),
 
         _ => Snapshot.Availability switch
         {
         DeviceAvailability.Unreachable =>
-            Maxwell.App.Localization.Localizer.Current.Say("Наушники не отвечают. Включите их или поднесите ближе — управление работает и по донглу, и по кабелю"),
+            Maxwell.App.Localization.Localizer.Current.Say("The headset is not answering. Switch it on or bring it closer — control works over the dongle and over the cable alike"),
         DeviceAvailability.Offline =>
-            Maxwell.App.Localization.Localizer.Current.Say("Устройство не подключено. Показаны последние известные значения"),
+            Maxwell.App.Localization.Localizer.Current.Say("The device is not connected. The last known readings are shown"),
             _ => null,
         },
     };
 
-    /// <summary>"обновлено 14:41", or when the device was last seen if it is gone.</summary>
+    /// <summary>"updated 14:41", or when the device was last seen if it is gone.</summary>
     public string? Freshness => Snapshot switch
     {
         { Availability: DeviceAvailability.Offline, LastSeenAt: { } seen } => Maxwell.App.Localization.Localizer.Current.Say(
-            "последний раз — {0}", seen.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)),
+            "last seen — {0}", seen.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)),
         { UpdatedAt: { } updated } => string.Format(
             System.Globalization.CultureInfo.InvariantCulture,
-            Maxwell.App.Localization.Localizer.Current["dash.updated", "обновлено {0}"],
+            Maxwell.App.Localization.Localizer.Current["dash.updated", "updated {0}"],
             updated.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)),
         _ => null,
     };

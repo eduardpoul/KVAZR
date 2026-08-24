@@ -54,7 +54,7 @@ public static class MockCatalogs
             Id = CapabilityIds.LinkSignal,
             Domain = CapabilityDomain.Link,
             Primitive = CapabilityPrimitive.Readout,
-            Title = "Уровень сигнала",
+            Title = "Signal strength",
             Access = CapabilityAccess.Read,
             DeclaredStatus = CapabilityStatus.Untested,
             Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
@@ -67,8 +67,8 @@ public static class MockCatalogs
             Id = CapabilityIds.PointerDpi,
             Domain = CapabilityDomain.Pointing,
             Primitive = CapabilityPrimitive.Range,
-            Title = "Разрешение сенсора",
-            Subtitle = "Ступени читаются из устройства",
+            Title = "Sensor resolution",
+            Subtitle = "The steps are read from the device",
             DeclaredStatus = CapabilityStatus.Untested,
             Range = new CapabilityRange { Min = 200, Max = 8000, Step = 50, Unit = "DPI" },
         },
@@ -78,15 +78,15 @@ public static class MockCatalogs
             Id = CapabilityIds.PointerDpiXy,
             Domain = CapabilityDomain.Pointing,
             Primitive = CapabilityPrimitive.RangeGroup,
-            Title = "Разрешение по осям",
-            Subtitle = "Раздельные X и Y, для тех, кто ведёт прицел по горизонтали",
+            Title = "Resolution per axis",
+            Subtitle = "X and Y apart, for anyone who tracks horizontally",
             DeclaredStatus = CapabilityStatus.Untested,
 
             // One range for both axes rather than one each. The sensor has a single
             // scale and saying so twice would let the two copies drift apart the first
             // time a firmware moved the ceiling.
             Range = new CapabilityRange { Min = 200, Max = 8000, Step = 50, Unit = "DPI" },
-            Members = [new(0, "По X"), new(1, "По Y")],
+            Members = [new(0, "X axis"), new(1, "Y axis")],
         },
 
         new()
@@ -94,15 +94,15 @@ public static class MockCatalogs
             Id = CapabilityIds.PointerReportRate,
             Domain = CapabilityDomain.Pointing,
             Primitive = CapabilityPrimitive.Choice,
-            Title = "Частота опроса",
-            Subtitle = "Выше — отзывчивее, но батарея садится быстрее",
+            Title = "Report rate",
+            Subtitle = "Higher is more responsive and flattens the battery faster",
             DeclaredStatus = CapabilityStatus.Untested,
             Choices =
             [
-                new(0, "125 Гц"),
-                new(1, "250 Гц"),
-                new(2, "500 Гц"),
-                new(3, "1000 Гц"),
+                new(0, "125 Hz"),
+                new(1, "250 Hz"),
+                new(2, "500 Hz"),
+                new(3, "1000 Hz"),
             ],
         },
 
@@ -111,8 +111,8 @@ public static class MockCatalogs
             Id = CapabilityIds.PointerResponse,
             Domain = CapabilityDomain.Pointing,
             Primitive = CapabilityPrimitive.Curve,
-            Title = "Кривая отклика",
-            Subtitle = "Пишется в память мыши и работает без приложения",
+            Title = "Response curve",
+            Subtitle = "Written into the mouse and works without the application",
             DeclaredStatus = CapabilityStatus.Untested,
 
             // Centred on zero: a band below the line slows the pointer at that speed and
@@ -136,8 +136,8 @@ public static class MockCatalogs
             Id = CapabilityIds.ButtonsMap,
             Domain = CapabilityDomain.Buttons,
             Primitive = CapabilityPrimitive.ButtonMap,
-            Title = "Назначение кнопок",
-            Subtitle = "Раскладка пишется в память мыши",
+            Title = "Button assignment",
+            Subtitle = "The layout is written into the mouse",
             DeclaredStatus = CapabilityStatus.Untested,
 
             // The DPI button cycles steps on the device itself, so the application is
@@ -146,24 +146,24 @@ public static class MockCatalogs
 
             Members =
             [
-                new(0, "Кнопка 4"),
-                new(1, "Кнопка 5"),
-                new(2, "Колесо, нажатие"),
-                new(3, "Кнопка DPI") { Hint = "меняет значение извне" },
+                new(0, "Button 4"),
+                new(1, "Button 5"),
+                new(2, "Wheel click"),
+                new(3, "DPI button") { Hint = "moves the value from outside" },
             ],
 
             // Straight from libratbag's normalised action types, which already did the
             // work of reconciling what each vendor calls these.
             Choices =
             [
-                new(0, "Ничего"),
-                new(1, "Назад"),
-                new(2, "Вперёд"),
-                new(3, "Средняя кнопка"),
-                new(4, "Ступень DPI"),
-                new(5, "Смена профиля"),
-                new(6, "Показать заряд"),
-                new(7, "Макрос"),
+                new(0, "Nothing"),
+                new(1, "Back"),
+                new(2, "Forward"),
+                new(3, "Middle button"),
+                new(4, "DPI step"),
+                new(5, "Profile change"),
+                new(6, "Show the charge"),
+                new(7, "Macro"),
             ],
         },
 
@@ -176,10 +176,10 @@ public static class MockCatalogs
             Id = CapabilityIds.LightColor,
             Domain = CapabilityDomain.Light,
             Primitive = CapabilityPrimitive.Lighting,
-            Title = "Цвет зон",
-            Subtitle = "Две зоны, каждая своим цветом",
+            Title = "Zone colour",
+            Subtitle = "Two zones, each its own colour",
             DeclaredStatus = CapabilityStatus.Untested,
-            Members = [new(0, "Логотип"), new(1, "Колесо")],
+            Members = [new(0, "Logo"), new(1, "Wheel")],
         },
 
         new()
@@ -187,19 +187,19 @@ public static class MockCatalogs
             Id = CapabilityIds.ProfilesOnboard,
             Domain = CapabilityDomain.Profiles,
             Primitive = CapabilityPrimitive.ProfileSet,
-            Title = "Профили устройства",
+            Title = "Device profiles",
 
             // Not the same thing as the application's profiles, and the interface has to
             // keep the two apart: these live in the device and travel with it.
-            Subtitle = "Три слота в памяти мыши",
+            Subtitle = "Three slots in the mouse's memory",
             DeclaredStatus = CapabilityStatus.Untested,
             Members =
             [
-                new(0, "Onboard 1 · Игровой") { Hint = "3200 DPI · 1000 Гц · SmartShift выключен" },
-                new(1, "Onboard 2 · Работа") { Hint = "1600 DPI · 500 Гц · SmartShift включён" },
+                new(0, "Onboard 1 · Gaming") { Hint = "3200 DPI · 1000 Hz · SmartShift off" },
+                new(1, "Onboard 2 · Work") { Hint = "1600 DPI · 500 Hz · SmartShift on" },
                 new(2, "Onboard 3")
                 {
-                    Hint = "Слот читается, запись в него не подтверждена",
+                    Hint = "The slot reads; writing to it has not been confirmed",
                     IsEmpty = true,
                 },
             ],
@@ -217,11 +217,11 @@ public static class MockCatalogs
             Id = CapabilityIds.KeysMap,
             Domain = CapabilityDomain.Keys,
             Primitive = CapabilityPrimitive.KeyMap,
-            Title = "Раскладка",
+            Title = "Layout",
 
             // The distinction people care about: VIA writes the layout into the keyboard,
             // so it keeps working with the application closed and on another computer.
-            Subtitle = "Пишется в клавиатуру и работает без запущенного приложения",
+            Subtitle = "Written into the keyboard and works without the application running",
             DeclaredStatus = CapabilityStatus.Untested,
 
             // The layer moves when someone holds Fn, which the application never sees.
@@ -238,7 +238,7 @@ public static class MockCatalogs
             Id = CapabilityIds.KeysLayers,
             Domain = CapabilityDomain.Keys,
             Primitive = CapabilityPrimitive.Readout,
-            Title = "Слоёв",
+            Title = "Layers",
             Access = CapabilityAccess.Read,
             DeclaredStatus = CapabilityStatus.Untested,
         },
@@ -252,13 +252,13 @@ public static class MockCatalogs
             Id = CapabilityIds.LightColor,
             Domain = CapabilityDomain.Light,
             Primitive = CapabilityPrimitive.Lighting,
-            Title = "Цвет",
+            Title = "Colour",
 
             // Artboard 10c states the limitation as a fact about the board rather than
             // as a missing feature, and so does this line.
-            Subtitle = "Один цвет на всю плату — по клавишам не задаётся",
+            Subtitle = "One colour for the whole board — not settable per key",
             DeclaredStatus = CapabilityStatus.Untested,
-            Members = [new(0, "Вся плата")],
+            Members = [new(0, "Whole board")],
         },
 
         new()
@@ -266,14 +266,14 @@ public static class MockCatalogs
             Id = CapabilityIds.ProfilesOnboard,
             Domain = CapabilityDomain.Profiles,
             Primitive = CapabilityPrimitive.ProfileSet,
-            Title = "Профили устройства",
-            Subtitle = "Профиль — это слои, макросы и подсветка целиком",
+            Title = "Device profiles",
+            Subtitle = "A profile is the layers, the macros and the lighting, all of it",
             DeclaredStatus = CapabilityStatus.Untested,
             Members =
             [
-                new(0, "Windows") { Hint = "4 слоя · 2 макроса · статичный свет" },
-                new(1, "macOS") { Hint = "Cmd и Option переставлены · 4 слоя" },
-                new(2, "Игровой") { Hint = "Win заблокирована · подсветка WASD" },
+                new(0, "Windows") { Hint = "4 layers · 2 macros · static light" },
+                new(1, "macOS") { Hint = "Cmd and Option swapped · 4 layers" },
+                new(2, "Gaming") { Hint = "Win locked · WASD lit" },
             ],
         },
     ];
@@ -285,7 +285,7 @@ public static class MockCatalogs
         Id = CapabilityIds.PowerBattery,
         Domain = CapabilityDomain.Power,
         Primitive = CapabilityPrimitive.Readout,
-        Title = "Заряд",
+        Title = "Charge",
         Access = CapabilityAccess.Read,
         DeclaredStatus = CapabilityStatus.Untested,
         Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
@@ -296,7 +296,7 @@ public static class MockCatalogs
         Id = CapabilityIds.PowerCharging,
         Domain = CapabilityDomain.Power,
         Primitive = CapabilityPrimitive.Readout,
-        Title = "Зарядка",
+        Title = "Charging",
         Access = CapabilityAccess.Read,
         DeclaredStatus = CapabilityStatus.Untested,
     };
@@ -312,8 +312,8 @@ public static class MockCatalogs
         Id = CapabilityIds.LinkHosts,
         Domain = CapabilityDomain.Link,
         Primitive = CapabilityPrimitive.HostSlots,
-        Title = "Хосты",
-        Subtitle = "Переключается и кнопкой на днище мыши",
+        Title = "Hosts",
+        Subtitle = "Switched with the button underneath the mouse too",
         DeclaredStatus = CapabilityStatus.Untested,
 
         // The user can press the switch button on the device itself, so the app is not
@@ -322,11 +322,11 @@ public static class MockCatalogs
 
         Members =
         [
-            new(0, "Хост 1 · донгл Lightspeed") { Hint = "Этот компьютер" },
-            new(1, "Хост 2 · Bluetooth") { Hint = "Ноутбук · последний раз вчера" },
-            new(2, "Хост 3 · свободен")
+            new(0, "Host 1 · Lightspeed dongle") { Hint = "This computer" },
+            new(1, "Host 2 · Bluetooth") { Hint = "Laptop · last seen yesterday" },
+            new(2, "Host 3 · free")
             {
-                Hint = "Удерживайте кнопку на днище 3 секунды",
+                Hint = "Hold the button underneath for 3 seconds",
                 IsEmpty = true,
             },
         ],
@@ -337,18 +337,18 @@ public static class MockCatalogs
         Id = CapabilityIds.LinkHosts,
         Domain = CapabilityDomain.Link,
         Primitive = CapabilityPrimitive.HostSlots,
-        Title = "Хосты",
-        Subtitle = "Переключается и с клавиатуры — Fn + 1…3",
+        Title = "Hosts",
+        Subtitle = "Switched from the keyboard too — Fn + 1…3",
         DeclaredStatus = CapabilityStatus.Untested,
         IsVolatile = true,
 
         Members =
         [
-            new(0, "Хост 1 · Bluetooth") { Hint = "Рабочий ноутбук" },
-            new(1, "Хост 2 · Bluetooth") { Hint = "Этот компьютер · подключено 3 часа" },
-            new(2, "Хост 3 · свободен")
+            new(0, "Host 1 · Bluetooth") { Hint = "Work laptop" },
+            new(1, "Host 2 · Bluetooth") { Hint = "This computer · connected for 3 hours" },
+            new(2, "Host 3 · free")
             {
-                Hint = "Fn + 3 удерживать 3 секунды для сопряжения",
+                Hint = "Hold Fn + 3 for 3 seconds to pair",
                 IsEmpty = true,
             },
         ],
@@ -359,7 +359,7 @@ public static class MockCatalogs
         Id = CapabilityIds.LightOn,
         Domain = CapabilityDomain.Light,
         Primitive = CapabilityPrimitive.Toggle,
-        Title = "Подсветка",
+        Title = "Lighting",
         DeclaredStatus = CapabilityStatus.Untested,
     };
 
@@ -368,7 +368,7 @@ public static class MockCatalogs
         Id = CapabilityIds.LightBrightness,
         Domain = CapabilityDomain.Light,
         Primitive = CapabilityPrimitive.Range,
-        Title = "Яркость подсветки",
+        Title = "Lighting brightness",
         DeclaredStatus = CapabilityStatus.Untested,
         Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
     };
@@ -378,14 +378,14 @@ public static class MockCatalogs
         Id = CapabilityIds.LightEffect,
         Domain = CapabilityDomain.Light,
         Primitive = CapabilityPrimitive.Choice,
-        Title = "Эффект",
+        Title = "Effect",
         DeclaredStatus = CapabilityStatus.Untested,
         Choices =
         [
-            new(0, "Выключен"),
-            new(1, "Постоянный"),
-            new(2, "Дыхание"),
-            new(3, "Цикл"),
+            new(0, "Off"),
+            new(1, "Steady"),
+            new(2, "Breathing"),
+            new(3, "Cycle"),
         ],
     };
 
@@ -399,7 +399,7 @@ public static class MockCatalogs
     /// decision of its own — see docs/CAPABILITIES.md §9.
     /// </summary>
     private static IReadOnlyList<CapabilityMember> KeyPositions =>
-        [.. BaseLayer.Select((legend, i) => new CapabilityMember(i, $"Ряд {(i / 12) + 1}, {legend}"))];
+        [.. BaseLayer.Select((legend, i) => new CapabilityMember(i, $"Row {(i / 12) + 1}, {legend}"))];
 
     /// <summary>What a selected key may be reassigned to. Short, and short on purpose.</summary>
     private static IReadOnlyList<CapabilityChoice> Keycodes =>

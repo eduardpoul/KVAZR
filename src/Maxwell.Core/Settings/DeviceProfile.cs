@@ -11,7 +11,7 @@ namespace Maxwell.Core.Settings;
 /// </summary>
 public sealed class DeviceProfile
 {
-    public string Name { get; set; } = "Новый профиль";
+    public string Name { get; set; } = "New profile";
 
     /// <summary>Executable name that activates this profile, without a path. Empty means manual only.</summary>
     public string TriggerProcess { get; set; } = "";

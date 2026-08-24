@@ -159,7 +159,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     public bool IsDashboard => CurrentPage is DashboardViewModel;
 
     /// <summary>
-    /// The pinned "Параметры" at the foot of the pane. Absent on the application's own
+    /// The pinned "Settings" at the foot of the pane. Absent on the application's own
     /// pages, where the same entry is already in the list above it.
     /// </summary>
     public bool ShowsSettingsShortcut => !ShowsAppSections;
@@ -214,17 +214,17 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
 
     private static Localization.Localizer Text => Localization.Localizer.Current;
 
-    public string AllDevices => Text["rail.all_devices", "Все устройства"];
+    public string AllDevices => Text["rail.all_devices", "All devices"];
 
-    public string ConnectedHeader => Text["dash.connected", "ПОДКЛЮЧЕНЫ"];
+    public string ConnectedHeader => Text["dash.connected", "CONNECTED"];
 
-    public string DisconnectedHeader => Text["dash.disconnected", "ОТКЛЮЧЕНЫ"];
+    public string DisconnectedHeader => Text["dash.disconnected", "DISCONNECTED"];
 
-    public string AppSectionHeader => Text["rail.application", "ПРИЛОЖЕНИЕ"];
+    public string AppSectionHeader => Text["rail.application", "APPLICATION"];
 
-    public string SearchPlaceholder => Text["rail.search", "Поиск"];
+    public string SearchPlaceholder => Text["rail.search", "Search"];
 
-    public string SettingsLabel => Text["rail.settings", "Параметры"];
+    public string SettingsLabel => Text["rail.settings", "Settings"];
 
     public string HeaderTitle => CurrentPage switch
     {
@@ -292,7 +292,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Opens a named device, for the tray panel's "открыть страницу устройства". By key
+    /// Opens a named device, for the tray panel's "open the device page". By key
     /// rather than by position: the two lists are ordered independently, and a device's
     /// place in either of them moves whenever something else connects.
     /// </summary>
@@ -558,9 +558,9 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             Id = "device.forget",
             Domain = CapabilityDomain.Maintenance,
             Primitive = CapabilityPrimitive.Action,
-            Title = Maxwell.App.Localization.Localizer.Current.Say("Забыть {0}?", device.DisplayName),
-            Subtitle = Maxwell.App.Localization.Localizer.Current.Say("Пара в Windows будет удалена. Чтобы вернуть устройство, ")
-                + Maxwell.App.Localization.Localizer.Current.Say("его придётся сопрягать заново, как в первый раз."),
+            Title = Maxwell.App.Localization.Localizer.Current.Say("Forget {0}?", device.DisplayName),
+            Subtitle = Maxwell.App.Localization.Localizer.Current.Say("The Windows pairing will be removed. To use the device again, ")
+                + Maxwell.App.Localization.Localizer.Current.Say("it has to be paired afresh, as the first time."),
             Risk = CapabilityRisk.Confirm,
             IsReversible = false,
         }).ConfigureAwait(true);

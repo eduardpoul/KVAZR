@@ -51,7 +51,7 @@ public sealed class HotkeysPageTests
         // has to say the absence is deliberate.
         using HotkeysViewModel page = Build(out _, out _);
 
-        Assert.Equal("Не назначено", page.Rows[0].Label);
+        Assert.Equal("Unassigned", page.Rows[0].Label);
         Assert.False(page.Rows[0].HasProblem);
     }
 
@@ -68,7 +68,7 @@ public sealed class HotkeysPageTests
         List<HotkeyRowViewModel> clashing = [.. page.Rows.Where(r => r.IsConflicting)];
 
         Assert.Equal(2, clashing.Count);
-        Assert.All(clashing, r => Assert.Equal("Это сочетание уже назначено другому действию", r.Problem));
+        Assert.All(clashing, r => Assert.Equal("That combination is already assigned to another action", r.Problem));
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public sealed class HotkeysPageTests
         page.Capture("Ctrl+Alt+N");
 
         Assert.True(row.IsRejected);
-        Assert.Equal("Сочетание занято другим приложением", row.Problem);
+        Assert.Equal("Another application has that combination", row.Problem);
     }
 
     [Fact]

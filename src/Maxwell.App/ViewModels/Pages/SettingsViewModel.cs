@@ -62,7 +62,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IDisposable
         RefreshHidden();
     }
 
-    public string Title => _text["page.settings", Maxwell.App.Localization.Localizer.Current.Say("Параметры")];
+    public string Title => _text["page.settings", Maxwell.App.Localization.Localizer.Current.Say("Settings")];
 
     /// <summary>The catalogue, for the screen that draws this.</summary>
     public Localizer Text => _text;
@@ -77,9 +77,10 @@ public sealed partial class SettingsViewModel : ObservableObject, IDisposable
 
     /// <summary>
     /// Each language named in itself. "Russian" under an English interface is the kind of
-    /// thing that leaves somebody who does not read English unable to find their way back.
+    /// thing that leaves somebody who does not read English unable to find their way
+    /// back to it.
     /// </summary>
-    public IReadOnlyList<string> Languages { get; } = ["Русский", "English"];
+    public IReadOnlyList<string> Languages { get; } = ["English", "Русский"];
 
     public int LanguageIndex
     {
@@ -100,10 +101,10 @@ public sealed partial class SettingsViewModel : ObservableObject, IDisposable
     /// <summary>The intervals, in the language in use.</summary>
     public IReadOnlyList<string> PollIntervalLabels =>
     [
-        _text["poll.10s", Maxwell.App.Localization.Localizer.Current.Say("Каждые 10 с")],
-        _text["poll.30s", Maxwell.App.Localization.Localizer.Current.Say("Каждые 30 с")],
-        _text["poll.1m", Maxwell.App.Localization.Localizer.Current.Say("Каждую минуту")],
-        _text["poll.5m", Maxwell.App.Localization.Localizer.Current.Say("Каждые 5 минут")],
+        _text["poll.10s", Maxwell.App.Localization.Localizer.Current.Say("Every 10 s")],
+        _text["poll.30s", Maxwell.App.Localization.Localizer.Current.Say("Every 30 s")],
+        _text["poll.1m", Maxwell.App.Localization.Localizer.Current.Say("Every minute")],
+        _text["poll.5m", Maxwell.App.Localization.Localizer.Current.Say("Every 5 minutes")],
     ];
 
     // ---------- start and tray ----------
@@ -209,23 +210,23 @@ public sealed partial class SettingsViewModel : ObservableObject, IDisposable
     /// battery is going flat faster than it used to.
     /// </summary>
     /// <summary>
-    /// The Russian wording, kept as the fallback the catalogue falls back to. The screen
+    /// The source wording, which is what the catalogue is keyed by. The screen
     /// draws <see cref="PollIntervalLabels"/>, which is this list run through it.
     /// </summary>
     public IReadOnlyList<string> PollIntervals { get; } =
-        [Maxwell.App.Localization.Localizer.Current.Say("Каждые 10 с"), Maxwell.App.Localization.Localizer.Current.Say("Каждые 30 с"), Maxwell.App.Localization.Localizer.Current.Say("Каждую минуту"), Maxwell.App.Localization.Localizer.Current.Say("Каждые 5 минут")];
+        [Maxwell.App.Localization.Localizer.Current.Say("Every 10 s"), Maxwell.App.Localization.Localizer.Current.Say("Every 30 s"), Maxwell.App.Localization.Localizer.Current.Say("Every minute"), Maxwell.App.Localization.Localizer.Current.Say("Every 5 minutes")];
 
     private static readonly int[] PollSeconds = [10, 30, 60, 300];
 
     /// <summary>
-    /// The cadence as the dashboard's header says it — "Опрос каждые 30 с". Built from
+    /// The cadence as the dashboard's header says it — "Polling every 30 s". Built from
     /// the same list the setting itself offers, so the two can never drift apart and say
     /// different things about the same number.
     /// </summary>
     public string PollCadence =>
         string.Format(
             System.Globalization.CultureInfo.InvariantCulture,
-            _text["poll.cadence", Maxwell.App.Localization.Localizer.Current.Say("Опрос {0}")],
+            _text["poll.cadence", Maxwell.App.Localization.Localizer.Current.Say("Polling {0}")],
             PollIntervalLabels[Math.Clamp(PollIntervalIndex, 0, PollIntervalLabels.Count - 1)]
                 .ToLowerInvariant());
 
@@ -251,7 +252,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IDisposable
     {
         get
         {
-            string word = _text["settings.hidden", Maxwell.App.Localization.Localizer.Current.Say("СКРЫТЫЕ")];
+            string word = _text["settings.hidden", Maxwell.App.Localization.Localizer.Current.Say("HIDDEN")];
             return Hidden.Count > 0 ? $"{word} · {Hidden.Count}" : word;
         }
     }
@@ -342,13 +343,13 @@ public sealed partial class HiddenDeviceViewModel : ObservableObject
 
     public string DisplayName => Maxwell.App.Localization.Localizer.Current.Say(Device.Info.DisplayName);
 
-    public string Kind => Device.Info.Class == DeviceClass.Unknown ? Maxwell.App.Localization.Localizer.Current.Say("Класс не определён") : Device.Info.Class.ToString();
+    public string Kind => Device.Info.Class == DeviceClass.Unknown ? Maxwell.App.Localization.Localizer.Current.Say("Class not established") : Device.Info.Class.ToString();
 
     /// <summary>
-    /// "скрыто 18 августа". A date rather than "3 days ago", because the list is read
+    /// "hidden 18 August". A date rather than "3 days ago", because the list is read
     /// months later and a relative time turns into arithmetic the reader has to do.
     /// </summary>
-    public string When => Maxwell.App.Localization.Localizer.Current.Say("скрыто {0:d MMMM}", HiddenAt);
+    public string When => Maxwell.App.Localization.Localizer.Current.Say("hidden {0:d MMMM}", HiddenAt);
 
     [RelayCommand]
     private async Task RestoreAsync() => await _hidden.ShowAsync(Device.Info.Key).ConfigureAwait(true);

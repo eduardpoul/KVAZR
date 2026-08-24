@@ -66,11 +66,11 @@ internal static class AudioCapabilities
             string? label = several ? Distinguish(endpoint.Name, device) : null;
 
             string volumeTitle = Titled(
-                monitoring ? "Громкость мониторинга" : render ? "Громкость Windows" : "Уровень записи",
+                monitoring ? "Monitoring volume" : render ? "Windows volume" : "Recording level",
                 label);
 
             string muteTitle = Titled(
-                monitoring ? "Мониторинг выключен" : render ? "Звук выключен" : "Микрофон выключен",
+                monitoring ? "Monitoring off" : render ? "Sound off" : "Microphone off",
                 label);
 
             // The subtitle says whose number this is. A headset with its own amplifier
@@ -79,8 +79,8 @@ internal static class AudioCapabilities
             string? source = several
                 ? endpoint.Name
                 : render
-                    ? monitoring ? "Выход на наушники в микрофоне" : "Системная громкость, не аппаратная"
-                    : "Уровень записи в Windows";
+                    ? monitoring ? "The headphone output on the microphone" : "The system volume, not the hardware one"
+                    : "The recording level in Windows";
 
             rows.Add(new AudioRow(
                 Numbered(volumeId, i),

@@ -153,11 +153,11 @@
                    Fill="{DynamicResource StatusUntestedBrush}" />
           <TextBlock TextWrapping="Wrap" MaxWidth="620" LineHeight="19.5"
                      FontSize="{DynamicResource NoticeTextSize}"
-                     Text="Устройство подключено на уровне Windows, но не отвечает ни на один известный запрос. Настраивать нечего — ниже всё, что удалось прочитать." />
+                     Text="Windows sees the device, but it answers none of the requests we know. There is nothing to set — below is everything that could be read." />
         </StackPanel>
       </Border>
 
-      <TextBlock Classes="sectionHeading" Text="ЧТО УДАЛОСЬ ПРОЧИТАТЬ" />
+      <TextBlock Classes="sectionHeading" Text="WHAT COULD BE READ" />
       <Border Classes="sectionCard">
         <ItemsControl ItemsSource="{Binding Facts}">
           <ItemsControl.ItemTemplate>
@@ -188,19 +188,19 @@
       <StackPanel Spacing="8"
                   IsVisible="{Binding $parent[Window].((vm:ShellViewModel)DataContext).SelectedDevice.CanForget,
                                       FallbackValue=False}">
-        <TextBlock Classes="sectionHeading" Text="ДЕЙСТВИЯ" />
+        <TextBlock Classes="sectionHeading" Text="ACTIONS" />
         <Border Classes="sectionCard">
           <Grid ColumnDefinitions="*,Auto" Margin="{DynamicResource PageRowPadding}"
                 MinHeight="{DynamicResource PageRowHeight}">
             <StackPanel Grid.Column="0" VerticalAlignment="Center"
                         Margin="{DynamicResource PageRowGapRight}">
-              <TextBlock FontSize="{DynamicResource PageRowTitleSize}" Text="Забыть устройство" />
+              <TextBlock FontSize="{DynamicResource PageRowTitleSize}" Text="Forget the device" />
               <TextBlock Classes="caption" TextWrapping="Wrap"
-                         Text="Удаляет пару в системе. Понадобится — сопрягать заново" />
+                         Text="Removes the pairing in the system. To use it again, pair it afresh" />
             </StackPanel>
 
             <Button Grid.Column="1" Classes="danger" VerticalAlignment="Center"
-                    Content="Забыть"
+                    Content="Forget"
                     Command="{Binding $parent[Window].((vm:ShellViewModel)DataContext).ForgetDeviceCommand}"
                     CommandParameter="{Binding $parent[Window].((vm:ShellViewModel)DataContext).SelectedDevice}" />
           </Grid>

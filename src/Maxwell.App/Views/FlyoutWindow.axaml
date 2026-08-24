@@ -329,7 +329,7 @@
 
                       <!--
                         Three readings, not one string: Turn 12 prints a percentage at
-                        full weight, "от кабеля" small and grey for a device that runs off
+                        full weight, "from the cable" small and grey for a device that runs off
                         the wire, and a dash for one that ought to report and does not.
                         They are different sizes and colours because they carry different
                         amounts of news — the number is what the row is for, the other two
@@ -353,7 +353,7 @@
                                  VerticalAlignment="Center"
                                  Foreground="{DynamicResource TextTertiaryBrush}"
                                  IsVisible="{Binding Device.ShowsMains}"
-                                 Text="от кабеля" />
+                                 Text="from the cable" />
 
                       <!-- Nothing at all where there is no reading. A dash in a column of
                            numbers reads as a value the device gave, and it gave none. -->
@@ -542,7 +542,7 @@
                       <Grid ColumnDefinitions="*,Auto">
                         <TextBlock Grid.Column="0" FontSize="12" VerticalAlignment="Center"
                                    Foreground="{DynamicResource TextTertiaryBrush}"
-                                   Text="Открыть страницу устройства" />
+                                   Text="Open the device page" />
                         <Path Grid.Column="1" Width="10" Height="10" VerticalAlignment="Center"
                               Stroke="{DynamicResource TextTertiaryBrush}"
                               StrokeThickness="1.6" StrokeLineCap="Round" StrokeJoin="Round"

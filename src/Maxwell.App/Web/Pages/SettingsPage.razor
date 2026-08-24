@@ -9,19 +9,19 @@
   <div class="titlebar"><div class="title">@Vm.Title</div></div>
 
   <div class="group">
-    <div class="group-heading">@T["settings.appearance", "ВНЕШНИЙ ВИД"]</div>
+    <div class="group-heading">@T["settings.appearance", "APPEARANCE"]</div>
     <div class="card">
       <div class="set-row">
         <div class="cap-text">
-          <div class="cap-title">@T["settings.theme", "Тема"]</div>
-          <div class="caption">@T.Say("Системная следует за оформлением Windows")</div>
+          <div class="cap-title">@T["settings.theme", "Theme"]</div>
+          <div class="caption">@T.Say("System follows the Windows appearance")</div>
         </div>
         <div class="segmented">
           @foreach ((string label, int index) in new[]
           {
-            (T["settings.theme.system", "Системная"], 0),
-            (T["settings.theme.light", "Светлая"], 1),
-            (T["settings.theme.dark", "Тёмная"], 2),
+            (T["settings.theme.system", "System"], 0),
+            (T["settings.theme.light", "Light"], 1),
+            (T["settings.theme.dark", "Dark"], 2),
           })
           {
             <button class="@(Vm.ThemeIndex == index ? "sel" : "")"
@@ -31,8 +31,8 @@
       </div>
       <div class="set-row">
         <div class="cap-text">
-          <div class="cap-title">@T["settings.language", "Язык"]</div>
-          <div class="caption">@T["settings.language.caption", "Меняется сразу, без перезапуска"]</div>
+          <div class="cap-title">@T["settings.language", "Language"]</div>
+          <div class="caption">@T["settings.language.caption", "Takes effect at once, no restart"]</div>
         </div>
         @* Each language named in itself: "Russian" under an English interface leaves
            somebody who does not read English unable to find the way back. *@
@@ -44,25 +44,25 @@
   </div>
 
   <div class="group">
-    <div class="group-heading">@T["settings.startup", "ЗАПУСК И ТРЕЙ"]</div>
+    <div class="group-heading">@T["settings.startup", "STARTUP AND TRAY"]</div>
     <div class="card">
       <div class="set-row">
-        <div class="cap-title grow">@T["settings.run_at_login", "Запускать при входе в Windows"]</div>
+        <div class="cap-title grow">@T["settings.run_at_login", "Start with Windows"]</div>
         <button class="switch @(Vm.RunAtLogin ? "on" : "")"
                 @onclick="() => OnUi(() => Vm.RunAtLogin = !Vm.RunAtLogin)"><span class="knob"></span></button>
       </div>
       <div class="set-row @(Vm.CanStartMinimised ? "" : "inactive")">
         <div class="cap-text">
-          <div class="cap-title">@T["settings.start_minimised", "Запускать сразу в трее"]</div>
+          <div class="cap-title">@T["settings.start_minimised", "Start straight to the tray"]</div>
           <div class="caption">@(Vm.CanStartMinimised
-            ? T["settings.start_minimised.on", "Окно не откроется, значок появится в трее"]
-            : T["settings.start_minimised.off", "Доступно, когда включён запуск при входе"])</div>
+            ? T["settings.start_minimised.on", "The window stays shut; the tray icon appears"]
+            : T["settings.start_minimised.off", "Available once starting with Windows is on"])</div>
         </div>
         <button class="switch @(Vm.StartMinimised ? "on" : "")" disabled="@(!Vm.CanStartMinimised)"
                 @onclick="() => OnUi(() => Vm.StartMinimised = !Vm.StartMinimised)"><span class="knob"></span></button>
       </div>
       <div class="set-row">
-        <div class="cap-title grow">@T["settings.minimise_on_close", "Закрытие окна свёртывает в трей"]</div>
+        <div class="cap-title grow">@T["settings.minimise_on_close", "Closing the window hides it in the tray"]</div>
         <button class="switch @(Vm.MinimiseOnClose ? "on" : "")"
                 @onclick="() => OnUi(() => Vm.MinimiseOnClose = !Vm.MinimiseOnClose)"><span class="knob"></span></button>
       </div>
@@ -70,17 +70,17 @@
   </div>
 
   <div class="group">
-    <div class="group-heading">@T["settings.notifications", "УВЕДОМЛЕНИЯ И ОПРОС"]</div>
+    <div class="group-heading">@T["settings.notifications", "NOTIFICATIONS AND POLLING"]</div>
     <div class="card">
       <div class="set-row">
-        <div class="cap-title grow">@T["settings.notify_low", "Предупреждать о низком заряде"]</div>
+        <div class="cap-title grow">@T["settings.notify_low", "Warn about a low battery"]</div>
         <button class="switch @(Vm.NotifyLowBattery ? "on" : "")"
                 @onclick="() => OnUi(() => Vm.NotifyLowBattery = !Vm.NotifyLowBattery)"><span class="knob"></span></button>
       </div>
       <div class="set-row @(Vm.CanSetThreshold ? "" : "inactive")">
         <div class="cap-text">
-          <div class="cap-title">@T["settings.low_threshold", "Порог низкого заряда"]</div>
-          <div class="caption">@T["settings.low_threshold.caption", "Уведомление показывается один раз на разряд"]</div>
+          <div class="cap-title">@T["settings.low_threshold", "Low battery threshold"]</div>
+          <div class="caption">@T["settings.low_threshold.caption", "Said once per discharge"]</div>
         </div>
         <div class="range slider-fixed">
           <input type="range" min="5" max="50" step="5" value="@Vm.LowBatteryThreshold"
@@ -91,22 +91,22 @@
       </div>
       <div class="set-row">
         <div class="cap-text">
-          <div class="cap-title">@T["settings.poll", "Частота опроса устройств"]</div>
-          <div class="caption">@T["settings.poll.caption", "Чаще — точнее заряд, выше расход батареи устройства"]</div>
+          <div class="cap-title">@T["settings.poll", "How often devices are asked"]</div>
+          <div class="caption">@T["settings.poll.caption", "More often means a fresher reading and a flatter battery"]</div>
         </div>
         <Dropdown Items="@Vm.PollIntervalLabels" Width="160"
                   SelectedIndex="@Vm.PollIntervalIndex"
                   SelectedIndexChanged="i => OnUi(() => Vm.PollIntervalIndex = i)" />
       </div>
       <div class="set-row">
-        <div class="cap-title grow">@T["settings.notify_charged", "Сообщать о полной зарядке"]</div>
+        <div class="cap-title grow">@T["settings.notify_charged", "Say when charging finishes"]</div>
         <button class="switch @(Vm.NotifyChargeComplete ? "on" : "")"
                 @onclick="() => OnUi(() => Vm.NotifyChargeComplete = !Vm.NotifyChargeComplete)"><span class="knob"></span></button>
       </div>
       <div class="set-row">
         <div class="cap-text">
-          <div class="cap-title">@T["settings.firmware", "Проверять обновления прошивки"]</div>
-          <div class="caption">@T["settings.firmware.caption", "Раз в неделю, у Audeze. Прошивает их приложение, не это"]</div>
+          <div class="cap-title">@T["settings.firmware", "Check for firmware updates"]</div>
+          <div class="caption">@T["settings.firmware.caption", "Weekly, with Audeze. Their application does the flashing, not this one"]</div>
         </div>
         <button class="switch @(Vm.CheckFirmwareUpdates ? "on" : "")"
                 @onclick="() => OnUi(() => Vm.CheckFirmwareUpdates = !Vm.CheckFirmwareUpdates)"><span class="knob"></span></button>
@@ -119,13 +119,13 @@
     <div class="card">
       <div class="set-row">
         <div class="caption wrap grow">
-          @T.Say("Эти устройства не показываются на дашборде, в трее и в уведомлениях. Пары в Windows не тронуты: вернёте в список — данные снова начнут читаться.")
+          @T.Say("These devices are absent from the dashboard, the tray and the notifications. The Windows pairings are untouched: put one back in the list and its readings resume.")
         </div>
       </div>
       <div class="set-row">
         <div class="cap-text">
-          <div class="cap-title">@T["settings.hide_silent", "Скрывать непонятные устройства"]</div>
-          <div class="caption">@T.Say("Без класса и без данных — обычно служебные узлы, а не техника")</div>
+          <div class="cap-title">@T["settings.hide_silent", "Hide devices we cannot name"]</div>
+          <div class="caption">@T.Say("No class and no readings — usually system nodes rather than hardware")</div>
         </div>
         <button class="switch @(Vm.HideSilentDevices ? "on" : "")"
                 @onclick="() => OnUi(() => Vm.HideSilentDevices = !Vm.HideSilentDevices)"><span class="knob"></span></button>
@@ -139,13 +139,13 @@
               <div class="cap-title">@hidden.DisplayName</div>
               <div class="caption">@hidden.Kind · @hidden.When</div>
             </div>
-            <button class="outline" @onclick="() => { var h = hidden; OnUi(() => h.RestoreCommand.Execute(null)); }">@T.Say("Вернуть")</button>
+            <button class="outline" @onclick="() => { var h = hidden; OnUi(() => h.RestoreCommand.Execute(null)); }">@T.Say("Restore")</button>
           </div>
         }
       }
       else
       {
-        <div class="set-row"><div class="caption">@T.Say("Ничего не скрыто.")</div></div>
+        <div class="set-row"><div class="caption">@T.Say("Nothing is hidden.")</div></div>
       }
     </div>
   </div>

@@ -53,11 +53,11 @@
     <StackPanel Spacing="12" MaxWidth="520">
       <TextBlock FontSize="{DynamicResource EmptyTitleSize}" FontWeight="SemiBold"
                  LetterSpacing="-0.5"
-                 Text="Подключите устройство" />
+                 Text="Plug a device in" />
       <TextBlock FontSize="{DynamicResource EmptyBodySize}"
                  Foreground="{DynamicResource TextSecondaryBrush}"
                  TextWrapping="Wrap" LineHeight="22"
-                 Text="KVAZR показывает заряд в трее и настраивает беспроводную периферию разных производителей — без вендорских комбайнов. Подключите гарнитуру кабелем или донглом, мышь или клавиатуру — они появятся здесь сами." />
+                 Text="KVAZR shows the charge in the tray and sets up wireless peripherals from several makers — without a vendor suite each. Plug a headset in by cable or dongle, a mouse or a keyboard, and they turn up here by themselves." />
     </StackPanel>
 
     <Grid ColumnDefinitions="*,*,*">
@@ -65,9 +65,9 @@
         <StackPanel Spacing="12">
           <Path Classes="introGlyph"
                 Data="M9 30V24a15 15 0 0 1 30 0v6 M6 29h5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-9Z M42 29h-5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2v-9Z" />
-          <TextBlock Classes="introTitle" Text="Гарнитуры" />
+          <TextBlock Classes="introTitle" Text="Headsets" />
           <TextBlock Classes="introBody"
-                     Text="Audeze Maxwell по USB-C и донглу. Заряд, звук, микрофон, ChatMix" />
+                     Text="Audeze Maxwell over USB-C and the dongle. Charge, sound, microphone, ChatMix" />
         </StackPanel>
       </Border>
 
@@ -75,9 +75,9 @@
         <StackPanel Spacing="12">
           <Path Classes="introGlyph"
                 Data="M24 5c-7 0-11 5-11 12v14c0 7 4 12 11 12s11-5 11-12V17c0-7-4-12-11-12Z M24 11v9" />
-          <TextBlock Classes="introTitle" Text="Мыши" />
+          <TextBlock Classes="introTitle" Text="Mice" />
           <TextBlock Classes="introBody"
-                     Text="Logitech по донглу и Bluetooth. DPI, частота опроса, кнопки" />
+                     Text="Logitech over the dongle and Bluetooth. DPI, report rate, buttons" />
         </StackPanel>
       </Border>
 
@@ -85,18 +85,18 @@
         <StackPanel Spacing="12">
           <Path Classes="introGlyph"
                 Data="M4 13h40v22H4z M11 20h2M18 20h2M25 20h2M32 20h2M11 27h26" />
-          <TextBlock Classes="introTitle" Text="Клавиатуры" />
+          <TextBlock Classes="introTitle" Text="Keyboards" />
           <TextBlock Classes="introBody"
-                     Text="NuPhy и совместимые с VIA. Слои, макросы, подсветка" />
+                     Text="NuPhy and anything VIA-compatible. Layers, macros, lighting" />
         </StackPanel>
       </Border>
     </Grid>
 
     <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-      <Button Classes="accent" Content="Искать устройства"
+      <Button Classes="accent" Content="Look for devices"
               Command="{Binding RediscoverCommand}" />
       <TextBlock Classes="caption" VerticalAlignment="Center"
-                 Text="Приложение продолжит следить за подключениями в фоне" />
+                 Text="The application keeps watching for connections in the background" />
     </StackPanel>
 
   </StackPanel>

@@ -17,7 +17,7 @@ public enum BatteryDisplay
 
     /// <summary>
     /// A device that runs off the wire and was never going to have a battery: a USB
-    /// microphone, a desk speaker. "От кабеля" is the whole story, and a dash here would
+    /// microphone, a desk speaker. "From the cable" is the whole story, and a dash here would
     /// invite the reader to go looking for a number that does not exist.
     /// </summary>
     Mains,

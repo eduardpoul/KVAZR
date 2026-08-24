@@ -9,9 +9,9 @@ namespace Maxwell.App.Tests;
 /// <summary>
 /// The catalogue, and the one way it fails silently.
 ///
-/// MSBuild reads "Strings.en.json" as a culture-tagged resource, the way it reads
-/// "Form1.en.resx", and routes it into a satellite assembly. The build stays green, the
-/// file ships into an en\ folder beside the executable, and the lookup finds nothing — so
+/// MSBuild reads "Strings.ru.json" as a culture-tagged resource, the way it reads
+/// "Form1.ru.resx", and routes it into a satellite assembly. The build stays green, the
+/// file ships into a ru\ folder beside the executable, and the lookup finds nothing — so
 /// the language switch appears to do nothing at all and there is no error anywhere to
 /// explain it. That cost a debugging session; this is the test that will not let it
 /// happen twice.
@@ -19,41 +19,41 @@ namespace Maxwell.App.Tests;
 public sealed class LocalizationTests
 {
     [Fact]
-    public void TheEnglishCatalogueIsInsideTheAssembly()
+    public void ATranslationIsInsideTheAssembly()
     {
         var text = new Localizer(new Store());
 
-        text.Use("en");
+        text.Use("ru");
 
-        Assert.Equal("en", text.Culture);
-        Assert.NotEmpty(text.Keys("en"));
+        Assert.Equal("ru", text.Culture);
+        Assert.NotEmpty(text.Keys("ru"));
 
         // A real string rather than a count, so a catalogue that loaded but is full of
         // blanks fails too.
-        Assert.Equal("Settings", text["page.settings", "Параметры"]);
+        Assert.Equal("Параметры", text["rail.settings", "Settings"]);
     }
 
     [Fact]
-    public void RussianIsTheSourceAndNeedsNoCatalogue()
+    public void EnglishIsTheSourceAndNeedsNoCatalogue()
     {
         var text = new Localizer(new Store());
 
-        // Nothing is stored for Russian, by design: the strings are already in the code,
+        // Nothing is stored for English, by design: the strings are already in the code,
         // and a second copy of every sentence is a second thing to keep true.
-        Assert.Equal("ru", text.Culture);
-        Assert.Empty(text.Keys("ru"));
-        Assert.Equal("Параметры", text["page.settings", "Параметры"]);
+        Assert.Equal("en", text.Culture);
+        Assert.Empty(text.Keys("en"));
+        Assert.Equal("Settings", text["rail.settings", "Settings"]);
     }
 
     [Fact]
-    public void AKeyTheCatalogueDoesNotCarryShowsTheRussianRatherThanNothing()
+    public void AKeyTheCatalogueDoesNotCarryShowsTheSourceRatherThanNothing()
     {
         var text = new Localizer(new Store());
-        text.Use("en");
+        text.Use("ru");
 
         // An empty control or a bare "settings.invented" would both be worse than the
         // sentence the code already has.
-        Assert.Equal("Что-то по-русски", text["settings.invented", "Что-то по-русски"]);
+        Assert.Equal("Something in English", text["settings.invented", "Something in English"]);
     }
 
     [Fact]
@@ -63,9 +63,9 @@ public sealed class LocalizationTests
         int announced = 0;
         text.Changed += (_, _) => announced++;
 
-        text.Use("en");
-        text.Use("en");
         text.Use("ru");
+        text.Use("ru");
+        text.Use("en");
 
         // Twice, not three times: setting the language to what it already is redraws
         // every open page for nothing.
@@ -73,35 +73,35 @@ public sealed class LocalizationTests
     }
 
     [Fact]
-    public void AnUnknownLanguageIsRussian()
+    public void AnUnknownLanguageIsEnglish()
     {
         var store = new Store();
         store.Current.Language = "de-DE";
 
         var text = new Localizer(store);
 
-        Assert.Equal("ru", text.Culture);
+        Assert.Equal("en", text.Culture);
     }
 
     /// <summary>
-    /// The capability lookup is keyed by id, so a wording change in the driver cannot
-    /// silently drop the translation the way a text-keyed catalogue would.
+    /// A capability can be translated by its id as well as by its words, so a translator
+    /// can separate two capabilities that happen to share a name in English without the
+    /// drivers knowing anything about it.
     /// </summary>
     [Fact]
-    public void ACapabilityIsLookedUpByItsId()
+    public void ACapabilityIsLookedUpByItsIdAndThenByItsWords()
     {
         var text = new Localizer(new Store());
-        text.Use("en");
+        text.Use("ru");
 
-        Assert.Equal("Equaliser", text.Capability("audio.eq_graphic", "title", "Эквалайзер"));
-
-        // A part the catalogue does not carry falls through to the source text — and the
-        // source text is itself a key, so it still arrives in English. That is the whole
-        // point of keying by the Russian: a driver's own words are translated where they
-        // are drawn, without the driver knowing a catalogue exists.
-        Assert.Equal("Equaliser", text.Capability("audio.eq_graphic", "invented", "Эквалайзер"));
+        // No entry for this id, which is the ordinary case — so it falls through to the
+        // source text, and the source text is itself a key. That is the whole point of
+        // keying by it: a driver's own words are translated where they are drawn, without
+        // the driver knowing a catalogue exists.
+        Assert.Equal("Эквалайзер", text.Capability("audio.eq_graphic", "title", "Equaliser"));
+        Assert.Equal("Эквалайзер", text.Capability("audio.eq_graphic", "invented", "Equaliser"));
 
         // Nothing knows this sentence, so it shows as written.
-        Assert.Equal("Выдумка", text.Capability("audio.invented", "title", "Выдумка"));
+        Assert.Equal("An invention", text.Capability("audio.invented", "title", "An invention"));
     }
 }

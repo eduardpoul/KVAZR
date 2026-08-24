@@ -18,12 +18,12 @@ public static class HotkeyActions
 
     public static readonly IReadOnlyList<HotkeyAction> All =
     [
-        new(ChatMixUp, Maxwell.App.Localization.Localizer.Current.Say("Game / Chat Mix — в сторону чата"), Maxwell.App.Localization.Localizer.Current.Say("Шаг 1 из 20")),
-        new(ChatMixDown, Maxwell.App.Localization.Localizer.Current.Say("Game / Chat Mix — в сторону игры"), Maxwell.App.Localization.Localizer.Current.Say("Шаг 1 из 20")),
-        new(NoiseCycle, Maxwell.App.Localization.Localizer.Current.Say("Шумоподавление микрофона"), Maxwell.App.Localization.Localizer.Current.Say("По кругу: выкл → низкое → высокое")),
-        new(SidetoneToggle, Maxwell.App.Localization.Localizer.Current.Say("Сайдтон"), Maxwell.App.Localization.Localizer.Current.Say("Включить или выключить")),
-        new(PresetNext, Maxwell.App.Localization.Localizer.Current.Say("Следующий пресет эквалайзера"), Maxwell.App.Localization.Localizer.Current.Say("По кругу из 10 слотов")),
-        new(WindowShow, Maxwell.App.Localization.Localizer.Current.Say("Показать окно"), Maxwell.App.Localization.Localizer.Current.Say("Из области уведомлений")),
+        new(ChatMixUp, Maxwell.App.Localization.Localizer.Current.Say("Game / Chat Mix — towards the chat"), Maxwell.App.Localization.Localizer.Current.Say("Step 1 of 20")),
+        new(ChatMixDown, Maxwell.App.Localization.Localizer.Current.Say("Game / Chat Mix — towards the game"), Maxwell.App.Localization.Localizer.Current.Say("Step 1 of 20")),
+        new(NoiseCycle, Maxwell.App.Localization.Localizer.Current.Say("Microphone noise reduction"), Maxwell.App.Localization.Localizer.Current.Say("Round: off → low → high")),
+        new(SidetoneToggle, Maxwell.App.Localization.Localizer.Current.Say("Sidetone"), Maxwell.App.Localization.Localizer.Current.Say("Turn on or off")),
+        new(PresetNext, Maxwell.App.Localization.Localizer.Current.Say("Next equaliser preset"), Maxwell.App.Localization.Localizer.Current.Say("Round the ten slots")),
+        new(WindowShow, Maxwell.App.Localization.Localizer.Current.Say("Show the window"), Maxwell.App.Localization.Localizer.Current.Say("From the notification area")),
     ];
 
     public static HotkeyAction? ById(string id) =>

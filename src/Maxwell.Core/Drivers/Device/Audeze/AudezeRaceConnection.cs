@@ -122,7 +122,7 @@ internal sealed class AudezeRaceConnection : IDeviceConnection
     /// <summary>
     /// Turns the headset's seconds into the option that matches it. A timeout set by some
     /// other application to a value not on this list reads as absent rather than being
-    /// rounded to a neighbour — showing "30 минут" for a device holding 25 would be a
+    /// rounded to a neighbour — showing "30 minutes" for a device holding 25 would be a
     /// quiet lie, and the next write would make it true.
     /// </summary>
     private static CapabilityValue AutoOffChoice(int seconds)

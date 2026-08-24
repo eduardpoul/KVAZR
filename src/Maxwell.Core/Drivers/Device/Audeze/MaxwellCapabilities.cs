@@ -18,7 +18,7 @@ public static class MaxwellCapabilities
     /// <summary>
     /// Why a control is out of reach, and it is not the lead.
     ///
-    /// This said "Настройка доступна по кабелю" for a long time and it was simply untrue:
+    /// This said "Available over the cable" for a long time and it was simply untrue:
     /// the requirement these rows carry is <see cref="RequirementKind.ControlChannel"/>,
     /// which asks that the headset be answering — and it answers over the dongle exactly
     /// as it does over USB-C. Measured on both: the same twenty-five sub-commands reply,
@@ -26,7 +26,7 @@ public static class MaxwellCapabilities
     /// carrying the sound. The equaliser, the gains and the balance were all driven over
     /// the dongle for a day while this sentence claimed they could not be.
     /// </summary>
-    private const string SilentHint = "Гарнитура не отвечает — включите её";
+    private const string SilentHint = "The headset is not answering — switch it on";
 
     public static IReadOnlyList<Capability> All { get; } = Build();
 
@@ -39,7 +39,7 @@ public static class MaxwellCapabilities
             Id = CapabilityIds.PowerBattery,
             Domain = CapabilityDomain.Power,
             Primitive = CapabilityPrimitive.Readout,
-            Title = "Заряд",
+            Title = "Charge",
             Access = CapabilityAccess.Read,
             Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
         },
@@ -49,8 +49,8 @@ public static class MaxwellCapabilities
             Id = CapabilityIds.PowerCharging,
             Domain = CapabilityDomain.Power,
             Primitive = CapabilityPrimitive.Readout,
-            Title = "Зарядка",
-            Subtitle = "Выводится по росту заряда — прямого флага в протоколе не найдено",
+            Title = "Charging",
+            Subtitle = "Inferred from the charge rising — the protocol has no flag for it",
             Access = CapabilityAccess.Read,
             DeclaredStatus = CapabilityStatus.Untested,
         },
@@ -60,8 +60,8 @@ public static class MaxwellCapabilities
             Id = CapabilityIds.PowerAutoOff,
             Domain = CapabilityDomain.Maintenance,
             Primitive = CapabilityPrimitive.Choice,
-            Title = "Таймер автовыключения",
-            Subtitle = "Через сколько тишины наушники выключатся сами",
+            Title = "Auto power-off",
+            Subtitle = "How much silence before the headset switches itself off",
 
             // Real seconds, taken from the device rather than guessed. The headset stores
             // a sixteen-bit count — 1800 when this was recovered, which is the half hour
@@ -70,15 +70,15 @@ public static class MaxwellCapabilities
             // and could not write at all; both faults had the same cause.
             Choices =
             [
-                new(0, "Выключен"),
-                new(1, "1 минута"),
-                new(2, "5 минут"),
-                new(3, "10 минут"),
-                new(4, "15 минут"),
-                new(5, "20 минут"),
-                new(6, "30 минут"),
-                new(7, "45 минут"),
-                new(8, "60 минут"),
+                new(0, "Off"),
+                new(1, "1 minute"),
+                new(2, "5 minutes"),
+                new(3, "10 minutes"),
+                new(4, "15 minutes"),
+                new(5, "20 minutes"),
+                new(6, "30 minutes"),
+                new(7, "45 minutes"),
+                new(8, "60 minutes"),
             ],
             Requirement = RequirementKind.ControlChannel,
             RequirementHint = SilentHint,
@@ -89,8 +89,8 @@ public static class MaxwellCapabilities
             Id = CapabilityIds.DeviceEdition,
             Domain = CapabilityDomain.Maintenance,
             Primitive = CapabilityPrimitive.Readout,
-            Title = "Версия",
-            Subtitle = "Определяется по идентификатору USB",
+            Title = "Edition",
+            Subtitle = "Read from the USB identifier",
             Access = CapabilityAccess.Read,
         },
 
@@ -99,7 +99,7 @@ public static class MaxwellCapabilities
             Id = CapabilityIds.DeviceFirmware,
             Domain = CapabilityDomain.Maintenance,
             Primitive = CapabilityPrimitive.Readout,
-            Title = "Прошивка",
+            Title = "Firmware",
             Access = CapabilityAccess.Read,
             Requirement = RequirementKind.ControlChannel,
             RequirementHint = SilentHint,
@@ -112,13 +112,13 @@ public static class MaxwellCapabilities
             Id = CapabilityIds.AudioVolume,
             Domain = CapabilityDomain.Audio,
             Primitive = CapabilityPrimitive.Range,
-            Title = "Общая громкость",
+            Title = "Master volume",
 
             // The scale stops at the safe ceiling rather than running to the hardware's
             // full range with a warning line drawn across it: a limit that cannot be
             // crossed beats one the reader is merely advised about, and the gain write
             // latches irreversibly.
-            Subtitle = "Шкала кончается на 150 — выше можно повредить излучатель",
+            Subtitle = "The scale stops at 150 — above that the driver can be damaged",
 
             // The mirror register latches on the first gain write and only a factory
             // reset puts it back, so no gain write is truly undoable.
@@ -133,7 +133,7 @@ public static class MaxwellCapabilities
             Id = CapabilityIds.AudioGainLeft,
             Domain = CapabilityDomain.Audio,
             Primitive = CapabilityPrimitive.Range,
-            Title = "Левый канал",
+            Title = "Left earcup",
             IsReversible = false,
             Range = new CapabilityRange { Min = 0, Max = RaceCommands.MaxGain },
             Requirement = RequirementKind.ControlChannel,
@@ -145,7 +145,7 @@ public static class MaxwellCapabilities
             Id = CapabilityIds.AudioGainRight,
             Domain = CapabilityDomain.Audio,
             Primitive = CapabilityPrimitive.Range,
-            Title = "Правый канал",
+            Title = "Right earcup",
             IsReversible = false,
             Range = new CapabilityRange { Min = 0, Max = RaceCommands.MaxGain },
             Requirement = RequirementKind.ControlChannel,
@@ -157,8 +157,8 @@ public static class MaxwellCapabilities
             Id = CapabilityIds.AudioBalance,
             Domain = CapabilityDomain.Audio,
             Primitive = CapabilityPrimitive.Range,
-            Title = "Баланс чашек",
-            Subtitle = "128 — ровно центр, ход около ±6",
+            Title = "Earcup balance",
+            Subtitle = "128 is dead centre; the travel is about ±6",
             Range = new CapabilityRange { Min = 122, Max = 134, Detents = [128] },
             Requirement = RequirementKind.ControlChannel,
             RequirementHint = SilentHint,
@@ -175,8 +175,8 @@ public static class MaxwellCapabilities
             Id = CapabilityIds.AudioEqGraphic,
             Domain = CapabilityDomain.Audio,
             Primitive = CapabilityPrimitive.Curve,
-            Title = "Эквалайзер",
-            Subtitle = "Полоса до ±12 дБ, применяется сразу",
+            Title = "Equaliser",
+            Subtitle = "Up to ±12 dB a band, applied at once",
             DeclaredStatus = CapabilityStatus.Untested,
 
             // Writable only where the coefficients can be produced. The maths lives in a
@@ -186,7 +186,7 @@ public static class MaxwellCapabilities
             Access = AirohaPeqBridge.Available ? CapabilityAccess.ReadWrite : CapabilityAccess.Read,
 
             // Centred on zero, and the range the wearer's own presets are drawn on.
-            Range = new CapabilityRange { Min = -12, Max = 12, Unit = "дБ" },
+            Range = new CapabilityRange { Min = -12, Max = 12, Unit = "dB" },
             Members =
             [
                 new(0, "32"),
@@ -194,11 +194,11 @@ public static class MaxwellCapabilities
                 new(2, "125"),
                 new(3, "250"),
                 new(4, "500"),
-                new(5, "1 к"),
-                new(6, "2 к"),
-                new(7, "4 к"),
-                new(8, "8 к"),
-                new(9, "16 к"),
+                new(5, "1 k"),
+                new(6, "2 k"),
+                new(7, "4 k"),
+                new(8, "8 k"),
+                new(9, "16 k"),
             ],
             Requirement = RequirementKind.ControlChannel,
             RequirementHint = SilentHint,
@@ -211,8 +211,8 @@ public static class MaxwellCapabilities
             Id = CapabilityIds.AudioEqPreset,
             Domain = CapabilityDomain.Audio,
             Primitive = CapabilityPrimitive.Choice,
-            Title = "Пресет эквалайзера",
-            Subtitle = "10 слотов: 6 встроенных, 4 пользовательских",
+            Title = "Equaliser preset",
+            Subtitle = "Ten slots: six built in, four the wearer's",
             DeclaredStatus = CapabilityStatus.Untested,
             // The four user slots are left out.
             //
@@ -245,7 +245,7 @@ public static class MaxwellCapabilities
         // The owner checked Audeze HQ itself against the same movement: nothing there
         // changes either. So the mute happens inside the headset, the USB stream simply
         // carries silence, and no software on this side can know. A row that says
-        // "подключите бум-микрофон" to somebody whose boom is plugged in is worse than no
+        // "plug the boom microphone in" to somebody whose boom is plugged in is worse than no
         // row at all.
         //
         // Kept as a note rather than deleted from history: if the firmware or the headset
@@ -256,7 +256,7 @@ public static class MaxwellCapabilities
             Id = CapabilityIds.MicNoiseReduction,
             Domain = CapabilityDomain.Microphone,
             Primitive = CapabilityPrimitive.Choice,
-            Title = "Шумоподавление",
+            Title = "Noise reduction",
 
             // The headset changes this on its own — there is a control on it for exactly
             // that, and the owner used it while the page was open and watched the page go
@@ -268,13 +268,13 @@ public static class MaxwellCapabilities
             // Processing applied to the outgoing voice, not noise cancelling for the
             // wearer. The Maxwell has no ANC at all, and wording that blurs the two
             // sends people looking for a feature the hardware does not have.
-            Subtitle = "Обработка голоса в микрофоне",
+            Subtitle = "Voice processing inside the microphone",
             DeclaredStatus = CapabilityStatus.Untested,
             Choices =
             [
-                new((int)NoiseReductionMode.Off, "Выключено"),
-                new((int)NoiseReductionMode.Low, "Низкое"),
-                new((int)NoiseReductionMode.High, "Высокое"),
+                new((int)NoiseReductionMode.Off, "Off"),
+                new((int)NoiseReductionMode.Low, "Low"),
+                new((int)NoiseReductionMode.High, "High"),
             ],
             Requirement = RequirementKind.ControlChannel,
             RequirementHint = SilentHint,
@@ -285,8 +285,8 @@ public static class MaxwellCapabilities
             Id = CapabilityIds.MicSidetone,
             Domain = CapabilityDomain.Microphone,
             Primitive = CapabilityPrimitive.Toggle,
-            Title = "Сайдтон",
-            Subtitle = "Самослышимость в наушниках",
+            Title = "Sidetone",
+            Subtitle = "Hearing yourself in the headphones",
             DeclaredStatus = CapabilityStatus.Untested,
             Requirement = RequirementKind.ControlChannel,
             RequirementHint = SilentHint,
@@ -297,7 +297,7 @@ public static class MaxwellCapabilities
             Id = CapabilityIds.MicSidetoneLevel,
             Domain = CapabilityDomain.Microphone,
             Primitive = CapabilityPrimitive.Range,
-            Title = "Уровень сайдтона",
+            Title = "Sidetone level",
             DeclaredStatus = CapabilityStatus.Untested,
 
             // The ceiling lives in its own register. Hard-coding 31 would misbehave the
@@ -319,12 +319,12 @@ public static class MaxwellCapabilities
             IsSupporting = true,
             Domain = CapabilityDomain.Microphone,
             Primitive = CapabilityPrimitive.Readout,
-            Title = "Потолок сайдтона",
+            Title = "Sidetone ceiling",
             Access = CapabilityAccess.Read,
         },
 
         // ChatMix sits in Audio rather than in a section of its own. It is a balance
-        // between two volumes and belongs beside them; alone in "Игра и чат" it was a
+        // between two volumes and belongs beside them; alone in "Game and chat" it was a
         // heading, a card and a single row for one slider.
         new()
         {
@@ -332,7 +332,7 @@ public static class MaxwellCapabilities
             Domain = CapabilityDomain.Audio,
             Primitive = CapabilityPrimitive.Range,
             Title = "ChatMix",
-            Subtitle = "Шкала 0–20, значение может измениться на устройстве",
+            Subtitle = "A 0–20 scale; the value can move on the device itself",
 
             // There is a physical wheel on the earcup driving the same value, so the app
             // is not the only writer and must not treat its own copy as authoritative.
@@ -352,8 +352,8 @@ public static class MaxwellCapabilities
             Id = CapabilityIds.MaintFactoryReset,
             Domain = CapabilityDomain.Maintenance,
             Primitive = CapabilityPrimitive.Action,
-            Title = "Сброс к заводским настройкам",
-            Subtitle = "Стирает все настройки, включая исправленный баланс",
+            Title = "Factory reset",
+            Subtitle = "Erases every setting, the corrected balance among them",
             Access = CapabilityAccess.Write,
             DeclaredStatus = CapabilityStatus.Untested,
             Risk = CapabilityRisk.Hidden,

@@ -14,7 +14,7 @@ public enum CapabilityDomain
     Mix,
 
     // Named "Pointing" rather than "Pointer" only because the latter collides with a
-    // framework type name and the analyzer rejects it. The section is "Указатель".
+    // framework type name and the analyzer rejects it. The section is "Pointer".
     Pointing,
 
     Buttons,

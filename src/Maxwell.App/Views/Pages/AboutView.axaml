@@ -58,7 +58,7 @@
       </StackPanel>
     </Grid>
 
-    <TextBlock Classes="sectionHeading" Text="ПРОШИВКИ УСТРОЙСТВ"
+    <TextBlock Classes="sectionHeading" Text="DEVICE FIRMWARE"
                IsVisible="{Binding HasFirmware}" />
     <Border Classes="sectionCard" IsVisible="{Binding HasFirmware}">
       <ItemsControl ItemsSource="{Binding Firmware}">
@@ -82,16 +82,16 @@
       </ItemsControl>
     </Border>
 
-    <TextBlock Classes="sectionHeading" Text="ПРОЕКТ" />
+    <TextBlock Classes="sectionHeading" Text="PROJECT" />
     <Border Classes="sectionCard">
       <StackPanel>
         <Border Classes="rule">
           <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
             <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
                         Margin="{DynamicResource PageRowGapRight}">
-              <TextBlock Classes="rowTitle" Text="Протокол устройств" />
+              <TextBlock Classes="rowTitle" Text="Device protocol" />
               <TextBlock Classes="caption" TextWrapping="Wrap"
-                         Text="RACE для Audeze разобран самостоятельно. Совместимость с VIA и HID++ — по открытым описаниям протоколов" />
+                         Text="Audeze's RACE was reverse-engineered here. VIA and HID++ compatibility follows the published protocol descriptions" />
             </StackPanel>
           </Grid>
         </Border>
@@ -105,9 +105,9 @@
           <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
             <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
                         Margin="{DynamicResource PageRowGapRight}">
-              <TextBlock Classes="rowTitle" Text="Изображения устройств" />
+              <TextBlock Classes="rowTitle" Text="Device images" />
               <TextBlock Classes="caption" TextWrapping="Wrap"
-                         Text="Продуктовые снимки производителей, приведённые к общему виду. Происхождение каждого записано в Assets/Devices/images.json" />
+                         Text="Makers' product shots, brought to a common look. Where each came from is recorded in Assets/Devices/images.json" />
             </StackPanel>
           </Grid>
         </Border>
@@ -115,9 +115,9 @@
         <Grid Classes="settingRow" ColumnDefinitions="*,Auto">
           <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center"
                       Margin="{DynamicResource PageRowGapRight}">
-            <TextBlock Classes="rowTitle" Text="Устройства без записи в каталоге" />
+            <TextBlock Classes="rowTitle" Text="Devices with no catalogue entry" />
             <TextBlock Classes="caption" TextWrapping="Wrap"
-                       Text="Показываются тем, что о них знает система: имя, класс, подключение и заряд, если устройство его сообщает" />
+                       Text="Shown with what the system knows about them: name, class, connection and charge, if the device reports one" />
           </StackPanel>
         </Grid>
       </StackPanel>

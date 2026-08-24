@@ -434,14 +434,14 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
             case BatteryAlert.LowBattery when settings.NotifyLowBattery:
                 await _notifier.NotifyAsync(
                     device.Info.DisplayName,
-                    $"Низкий заряд — осталось {percent}%",
+                    $"Low battery — {percent}% left",
                     cancellationToken).ConfigureAwait(false);
                 break;
 
             case BatteryAlert.ChargeComplete when settings.NotifyChargeComplete:
                 await _notifier.NotifyAsync(
                     device.Info.DisplayName,
-                    "Заряжено полностью",
+                    "Fully charged",
                     cancellationToken).ConfigureAwait(false);
                 break;
 

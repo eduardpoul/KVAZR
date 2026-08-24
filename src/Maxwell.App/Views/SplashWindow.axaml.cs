@@ -45,7 +45,7 @@ internal sealed partial class SplashWindow : Window
         InitializeComponent();
 
         Version.Text = ProductVersion();
-        Caption.Text = Maxwell.App.Localization.Localizer.Current.Say("Поиск устройств");
+        Caption.Text = Maxwell.App.Localization.Localizer.Current.Say("Looking for devices");
 
         _hold.Tick += (_, _) =>
         {

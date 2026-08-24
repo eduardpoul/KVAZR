@@ -20,8 +20,8 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
         Id = CapabilityIds.PowerBattery,
         Domain = CapabilityDomain.Power,
         Primitive = CapabilityPrimitive.Readout,
-        Title = "Заряд",
-        Subtitle = "По HID++ через приёмник",
+        Title = "Charge",
+        Subtitle = "Over HID++ through the receiver",
         Access = CapabilityAccess.Read,
         Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
     };
@@ -49,8 +49,8 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
         Id = CapabilityIds.PowerCharging,
         Domain = CapabilityDomain.Power,
         Primitive = CapabilityPrimitive.Readout,
-        Title = "Зарядка",
-        Subtitle = "По HID++ — прямой флаг, не догадка",
+        Title = "Charging",
+        Subtitle = "Over HID++ — a real flag, not a guess",
         Access = CapabilityAccess.Read,
     };
 

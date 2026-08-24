@@ -41,10 +41,10 @@ public sealed class MockDeviceDriver : IDeviceDriver
     /// <summary>Filler for the crowded cases. Same shapes, different names.</summary>
     private static DeviceInfo[] Extras =>
     [
-        Crowd("mock:mouse2", "Logitech", "G Pro X (макет)", DeviceClass.Mouse),
-        Crowd("mock:keyboard2", "Keychron", "K2 (макет)", DeviceClass.Keyboard),
-        Crowd("mock:headset2", "SteelSeries", "Arctis Nova (макет)", DeviceClass.Headset),
-        Crowd("mock:mouse3", "Razer", "Viper (макет)", DeviceClass.Mouse),
+        Crowd("mock:mouse2", "Logitech", "G Pro X (mock)", DeviceClass.Mouse),
+        Crowd("mock:keyboard2", "Keychron", "K2 (mock)", DeviceClass.Keyboard),
+        Crowd("mock:headset2", "SteelSeries", "Arctis Nova (mock)", DeviceClass.Headset),
+        Crowd("mock:mouse3", "Razer", "Viper (mock)", DeviceClass.Mouse),
     ];
 
     private static DeviceInfo Crowd(string key, string vendor, string model, DeviceClass kind) => new()
@@ -76,9 +76,9 @@ public sealed class MockDeviceDriver : IDeviceDriver
         Key = MouseKey,
         DriverId = Id,
         Vendor = "Logitech",
-        Model = "MX Master (макет)",
+        Model = "MX Master (mock)",
         Class = DeviceClass.Mouse,
-        Transports = [Wireless("Приёмник Lightspeed")],
+        Transports = [Wireless("Lightspeed receiver")],
     };
 
     private static DeviceInfo Keyboard => new()
@@ -86,9 +86,9 @@ public sealed class MockDeviceDriver : IDeviceDriver
         Key = KeyboardKey,
         DriverId = Id,
         Vendor = "NuPhy",
-        Model = "Air75 (макет)",
+        Model = "Air75 (mock)",
         Class = DeviceClass.Keyboard,
-        Transports = [Wireless("Bluetooth, хост 1")],
+        Transports = [Wireless("Bluetooth, host 1")],
     };
 
     private static TransportInfo Wireless(string label) => new()

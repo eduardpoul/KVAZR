@@ -8,7 +8,7 @@
 <div class="content">
 
   <div class="titlebar">
-    <div class="title">@T["rail.all_devices", "Все устройства"]</div>
+    <div class="title">@T["rail.all_devices", "All devices"]</div>
     @if (Shell.HasHeaderMeta)
     {
       <div class="meta">@Shell.HeaderMeta</div>
@@ -36,30 +36,30 @@
   else if (Vm.IsEmpty)
   {
     <div class="welcome">
-      <div class="welcome-title">@T["dash.welcome", "Подключите устройство"]</div>
+      <div class="welcome-title">@T["dash.welcome", "Plug a device in"]</div>
       <div class="welcome-text">
-        @T["dash.blurb", "KVAZR показывает заряд в трее и настраивает беспроводную периферию разных производителей — без вендорских комбайнов. Подключите гарнитуру кабелем или донглом, мышь или клавиатуру — они появятся здесь сами."]
+        @T["dash.blurb", "KVAZR shows the charge in the tray and sets up wireless peripherals from several makers — without a vendor suite each. Plug a headset in by cable or dongle, a mouse or a keyboard, and they turn up here by themselves."]
       </div>
       <div class="welcome-cards">
         <div class="welcome-card">
           <div class="welcome-icon">@((MarkupString)FluentIcons.Svg("headset"))</div>
-          <div class="welcome-card-title">@T["dash.headsets", "Гарнитуры"]</div>
-          <div class="welcome-card-text">@T["dash.headsets.text", "Audeze Maxwell по USB-C и донглу. Заряд, звук, микрофон, ChatMix"]</div>
+          <div class="welcome-card-title">@T["dash.headsets", "Headsets"]</div>
+          <div class="welcome-card-text">@T["dash.headsets.text", "Audeze Maxwell over USB-C and the dongle. Charge, sound, microphone, ChatMix"]</div>
         </div>
         <div class="welcome-card">
           <div class="welcome-icon">@((MarkupString)FluentIcons.Svg("mouse-gaming"))</div>
-          <div class="welcome-card-title">@T["dash.mice", "Мыши"]</div>
-          <div class="welcome-card-text">@T["dash.mice.text", "Logitech по донглу и Bluetooth. DPI, частота опроса, кнопки"]</div>
+          <div class="welcome-card-title">@T["dash.mice", "Mice"]</div>
+          <div class="welcome-card-text">@T["dash.mice.text", "Logitech over the dongle and Bluetooth. DPI, report rate, buttons"]</div>
         </div>
         <div class="welcome-card">
           <div class="welcome-icon">@((MarkupString)FluentIcons.Svg("keyboard-compact"))</div>
-          <div class="welcome-card-title">@T["dash.keyboards", "Клавиатуры"]</div>
-          <div class="welcome-card-text">@T["dash.keyboards.text", "NuPhy и совместимые с VIA. Слои, макросы, подсветка"]</div>
+          <div class="welcome-card-title">@T["dash.keyboards", "Keyboards"]</div>
+          <div class="welcome-card-text">@T["dash.keyboards.text", "NuPhy and anything VIA-compatible. Layers, macros, lighting"]</div>
         </div>
       </div>
       <div class="welcome-actions">
-        <button class="accent" @onclick="() => OnUi(() => Shell.RediscoverCommand.Execute(null))">@T["dash.search", "Искать устройства"]</button>
-        <span class="caption">@T["dash.watching", "Приложение продолжит следить за подключениями в фоне"]</span>
+        <button class="accent" @onclick="() => OnUi(() => Shell.RediscoverCommand.Execute(null))">@T["dash.search", "Look for devices"]</button>
+        <span class="caption">@T["dash.watching", "The application keeps watching for connections in the background"]</span>
       </div>
     </div>
   }
@@ -94,7 +94,7 @@
               <div class="batt-block">
                 @if (device.IsBatteryPending)
                 {
-                  <span class="pending-dot" title="@T["dash.reading", "Читаем…"]"></span>
+                  <span class="pending-dot" title="@T["dash.reading", "Reading…"]"></span>
                 }
                 else if (device.BatteryPercent is not null)
                 {
@@ -138,8 +138,8 @@
     @if (Shell.HasHidden)
     {
       <div class="hidden-strip">
-        <span class="caption">@T["dash.hidden", "Скрыто"]: @Shell.HiddenCount</span>
-        <button @onclick="() => OnUi(() => Shell.ShowHiddenCommand.Execute(null))">@T["settings.show_all", "Показать все"]</button>
+        <span class="caption">@T["dash.hidden", "Hidden"]: @Shell.HiddenCount</span>
+        <button @onclick="() => OnUi(() => Shell.ShowHiddenCommand.Execute(null))">@T["settings.show_all", "Show all"]</button>
       </div>
     }
   }
@@ -150,13 +150,13 @@
   {
     <div class="menu-backdrop" @onclick="CloseMenu" @oncontextmenu="CloseMenu" @oncontextmenu:preventDefault></div>
     <div class="menu" style="left:@(_menuX)px;top:@(_menuY)px">
-      <button @onclick="() => { CloseMenu(); Open(target); }">@T["dash.open_device", "Открыть страницу"]</button>
-      <button @onclick="() => Run(target, Shell.ShowInTrayCommand)">@T["dash.show_in_tray", "Показывать в трее"]</button>
-      <button @onclick="() => Run(target, Shell.HideDeviceCommand)">@T["dash.hide_device", "Скрыть устройство"]</button>
+      <button @onclick="() => { CloseMenu(); Open(target); }">@T["dash.open_device", "Open the page"]</button>
+      <button @onclick="() => Run(target, Shell.ShowInTrayCommand)">@T["dash.show_in_tray", "Show in the tray"]</button>
+      <button @onclick="() => Run(target, Shell.HideDeviceCommand)">@T["dash.hide_device", "Hide the device"]</button>
       @if (target.CanForget)
       {
         <div class="menu-rule"></div>
-        <button class="danger" @onclick="() => Run(target, Shell.ForgetDeviceCommand)">@T["dash.forget", "Забыть в системе"]</button>
+        <button class="danger" @onclick="() => Run(target, Shell.ForgetDeviceCommand)">@T["dash.forget", "Forget in the system"]</button>
       }
     </div>
   }

@@ -21,7 +21,7 @@ public static class DeviceIcon
         return info.Class switch
         {
             DeviceClass.Headset => "headset",
-            DeviceClass.Earbuds when Has(name, "CASE", Maxwell.App.Localization.Localizer.Current.Say("КЕЙС")) => "earbuds-case",
+            DeviceClass.Earbuds when Has(name, "CASE", Maxwell.App.Localization.Localizer.Current.Say("CASE")) => "earbuds-case",
             DeviceClass.Earbuds => "earbuds",
             DeviceClass.Speaker when Has(name, "SOUNDBAR") => "soundbar",
             DeviceClass.Speaker => "speaker",
@@ -30,7 +30,7 @@ public static class DeviceIcon
             DeviceClass.Mouse when Has(name, "VERTICAL", "MX VERTICAL") => "mouse-ergo",
             DeviceClass.Mouse when Has(name, "GAMING", "SUPERLIGHT", "VIPER", "DEATHADDER", "G PRO") => "mouse-gaming",
             DeviceClass.Mouse => "mouse",
-            DeviceClass.Keyboard when Has(name, "NUMPAD", Maxwell.App.Localization.Localizer.Current.Say("ЦИФРОВОЙ")) => "numpad",
+            DeviceClass.Keyboard when Has(name, "NUMPAD", Maxwell.App.Localization.Localizer.Current.Say("DIGITAL")) => "numpad",
             DeviceClass.Keyboard when Has(name, "60%", "MINI") => "keyboard-60",
             DeviceClass.Keyboard when Has(name, "65", "75", "AIR75", "AIR60", "COMPACT") => "keyboard-compact",
             DeviceClass.Keyboard when Has(name, "TKL", "87") => "keyboard-tkl",
@@ -39,11 +39,11 @@ public static class DeviceIcon
             DeviceClass.Gamepad when Has(name, "SWITCH", "JOY-CON") => "gamepad-switch",
             DeviceClass.Gamepad when Has(name, "XBOX", "FLYDIGI", "APEX") => "gamepad-xbox",
             DeviceClass.Gamepad => "gamepad-generic",
-            DeviceClass.Receiver when Has(name, "DONGLE", Maxwell.App.Localization.Localizer.Current.Say("ДОНГЛ")) => "dongle",
+            DeviceClass.Receiver when Has(name, "DONGLE", Maxwell.App.Localization.Localizer.Current.Say("DONGLE")) => "dongle",
             DeviceClass.Receiver => "receiver",
-            _ when Has(name, "DOCK", "CHARGER", Maxwell.App.Localization.Localizer.Current.Say("ДОК")) => "dock",
-            _ when Has(name, "WEBCAM", "CAMERA", Maxwell.App.Localization.Localizer.Current.Say("КАМЕР")) => "webcam",
-            _ when Has(name, "WATCH", Maxwell.App.Localization.Localizer.Current.Say("ЧАСЫ")) => "watch",
+            _ when Has(name, "DOCK", "CHARGER", Maxwell.App.Localization.Localizer.Current.Say("DOCK")) => "dock",
+            _ when Has(name, "WEBCAM", "CAMERA", Maxwell.App.Localization.Localizer.Current.Say("CAMERA")) => "webcam",
+            _ when Has(name, "WATCH", Maxwell.App.Localization.Localizer.Current.Say("WATCH")) => "watch",
             _ => "unknown",
         };
     }

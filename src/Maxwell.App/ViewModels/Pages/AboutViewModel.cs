@@ -30,7 +30,7 @@ public sealed class AboutViewModel : ObservableObject, IDisposable
         Refresh();
     }
 
-    public string Title => Maxwell.App.Localization.Localizer.Current["page.about", "О программе"];
+    public string Title => Maxwell.App.Localization.Localizer.Current["page.about", "About"];
 
     public string Name => "KVAZR";
 
@@ -55,7 +55,7 @@ public sealed class AboutViewModel : ObservableObject, IDisposable
             if (plus > 0) version = version[..plus];
 
             return Maxwell.App.Localization.Localizer.Current.Say(
-                "Версия {0} · .NET {1} · Avalonia", version, Environment.Version.Major);
+                "Version {0} · .NET {1} · Avalonia", version, Environment.Version.Major);
         }
     }
 
@@ -70,8 +70,8 @@ public sealed class AboutViewModel : ObservableObject, IDisposable
     /// else's product is not a claim to be connected with them.
     /// </summary>
     public string Disclaimer =>
-        Maxwell.App.Localization.Localizer.Current.Say("KVAZR не связан с Audeze, Logitech, NuPhy, HyperX и другими производителями. ") +
-        Maxwell.App.Localization.Localizer.Current.Say("Названия устройств и торговые марки принадлежат их владельцам.");
+        Maxwell.App.Localization.Localizer.Current.Say("KVAZR is not affiliated with Audeze, Logitech, NuPhy, HyperX or any other maker. ") +
+        Maxwell.App.Localization.Localizer.Current.Say("Device names and trademarks belong to their owners.");
 
     private void OnDevicesChanged(object? sender, EventArgs e) => Refresh();
 
@@ -90,7 +90,7 @@ public sealed class AboutViewModel : ObservableObject, IDisposable
                 Maxwell.App.Localization.Localizer.Current.Say(device.Info.DisplayName),
                 version.Value,
                 device.UpdatedAt is { } at
-                    ? Maxwell.App.Localization.Localizer.Current.Say("проверено {0}", at.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture))
+                    ? Maxwell.App.Localization.Localizer.Current.Say("checked at {0}", at.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture))
                     : string.Empty));
         }
 

@@ -43,7 +43,7 @@ public sealed partial class HotkeysViewModel : ObservableObject, IDisposable
         Revalidate();
     }
 
-    public string Title => Maxwell.App.Localization.Localizer.Current["page.hotkeys", "Горячие клавиши"];
+    public string Title => Maxwell.App.Localization.Localizer.Current["page.hotkeys", "Shortcuts"];
 
     public ObservableCollection<HotkeyRowViewModel> Rows { get; } = [];
 
@@ -190,19 +190,19 @@ public sealed partial class HotkeyRowViewModel : ObservableObject
     public bool HasGesture => Gesture.Length > 0;
 
     /// <summary>
-    /// What the button shows. "Не назначено" rather than an empty button, because an
+    /// What the button shows. "Unassigned" rather than an empty button, because an
     /// empty button on a row of filled ones reads as a rendering fault rather than as a
     /// deliberate absence.
     /// </summary>
-    public string Label => IsRecording ? Maxwell.App.Localization.Localizer.Current.Say("Нажмите сочетание…") : HasGesture ? Gesture : Maxwell.App.Localization.Localizer.Current.Say("Не назначено");
+    public string Label => IsRecording ? Maxwell.App.Localization.Localizer.Current.Say("Press a combination…") : HasGesture ? Gesture : Maxwell.App.Localization.Localizer.Current.Say("Unassigned");
 
     /// <summary>
     /// What is wrong, if anything. Empty when the binding is fine, which is most of them.
     /// </summary>
     public string Problem => (IsRejected, IsConflicting) switch
     {
-        (true, _) => Maxwell.App.Localization.Localizer.Current.Say("Сочетание занято другим приложением"),
-        (_, true) => Maxwell.App.Localization.Localizer.Current.Say("Это сочетание уже назначено другому действию"),
+        (true, _) => Maxwell.App.Localization.Localizer.Current.Say("Another application has that combination"),
+        (_, true) => Maxwell.App.Localization.Localizer.Current.Say("That combination is already assigned to another action"),
         _ => string.Empty,
     };
 

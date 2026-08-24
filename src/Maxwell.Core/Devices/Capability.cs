@@ -9,7 +9,7 @@ public sealed record CapabilityRange
 
     public int Step { get; init; } = 1;
 
-    /// <summary>Suffix shown next to the number, e.g. "%", "Гц", "мин".</summary>
+    /// <summary>Suffix shown next to the number, e.g. "%", "Hz", "min".</summary>
     public string? Unit { get; init; }
 
     /// <summary>
@@ -53,7 +53,7 @@ public sealed record CapabilityChoice(int Index, string Label)
 /// that skips a number would silently shift every member after it against the values it
 /// reported, so the catalog tests enforce it.
 /// </param>
-/// <param name="Label">What the part is called on the device: "Левый", "1 кГц", "Кнопка 4".</param>
+/// <param name="Label">What the part is called on the device: "Left", "1 kHz", "Button 4".</param>
 public sealed record CapabilityMember(int Index, string Label)
 {
     /// <summary>Secondary line: what the slot holds, or why it is empty.</summary>
@@ -168,7 +168,7 @@ public sealed record Capability
     /// Read for another row's sake, and never shown as one of its own.
     ///
     /// The sidetone ceiling is the case: the level slider takes its maximum from it, so it
-    /// has to be read and kept — but printing "Потолок сайдтона  31" under a slider that
+    /// has to be read and kept — but printing "Sidetone ceiling  31" under a slider that
     /// already reads "9 / 31" is the same number twice, and the second one looks like a
     /// setting because it is sitting in a list of settings.
     /// </summary>

@@ -41,7 +41,7 @@ public sealed record CatalogueEntry
     /// <summary>
     /// Which usb ids are the model's dock or charging stand. Same idea as the dongle
     /// list: the accessory's container folds into the device it belongs to, and the row
-    /// grows a "Док" chip instead of the accessory pretending to be hardware of its own.
+    /// grows a "Dock" chip instead of the accessory pretending to be hardware of its own.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("dock")]
     public IReadOnlyList<string> DockUsb { get; init; } = [];

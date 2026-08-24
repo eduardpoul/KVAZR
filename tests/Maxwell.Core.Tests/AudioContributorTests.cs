@@ -39,8 +39,8 @@ public sealed class AudioContributorTests
 
         string[] titles = [.. connection.Capabilities.Select(c => c.Title)];
 
-        Assert.Contains("Громкость Windows · Chat", titles);
-        Assert.Contains("Громкость Windows · Game", titles);
+        Assert.Contains("Windows volume · Chat", titles);
+        Assert.Contains("Windows volume · Game", titles);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public sealed class AudioContributorTests
 
         // Windows calls it "Speakers (HyperX QuadCast S)" because Windows has no word for
         // the socket on the base of a microphone. The page has one.
-        Assert.Equal("Громкость мониторинга", playback.Title);
+        Assert.Equal("Monitoring volume", playback.Title);
     }
 
     [Fact]
@@ -140,8 +140,8 @@ public sealed class AudioContributorTests
 
         string[] titles = [.. connection.Capabilities.Select(c => c.Title)];
 
-        Assert.Contains("Громкость Windows · Game", titles);
-        Assert.DoesNotContain("Громкость Windows · Chat", titles);
+        Assert.Contains("Windows volume · Game", titles);
+        Assert.DoesNotContain("Windows volume · Chat", titles);
     }
 
     [Fact]

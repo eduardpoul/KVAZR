@@ -13,7 +13,7 @@ namespace Maxwell.Core.Drivers.Logitech;
 /// A class driver, not a vendor one in spirit: one protocol covers a decade of Logitech
 /// peripherals, found by usage page rather than by model. It exists because the system
 /// tier can only ever show the receiver — "USB Receiver", no battery, no name — while
-/// one ping and three reads turn that into "PRO X 2, мышь, 45%".
+/// one ping and three reads turn that into "PRO X 2, mouse, 45%".
 ///
 /// Read-only throughout. A wrong write to a receiver can unpair the device driving the
 /// cursor, and everything this driver is for is available without writing anything.
@@ -157,7 +157,7 @@ public sealed class HidPlusPlusDriver : IDeviceDriver
                 new TransportInfo
                 {
                     Kind = direct ? TransportKind.UsbCable : TransportKind.Dongle,
-                    Label = direct ? "USB" : "USB-донгл",
+                    Label = direct ? "USB" : "USB dongle",
                     IsPresent = true,
                     CarriesControl = true,
                 },

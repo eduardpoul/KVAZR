@@ -11,7 +11,7 @@ using Maxwell.App.ViewModels.Pages;
 namespace Maxwell.App.ViewModels;
 
 /// <summary>
-/// The "Все устройства" page.
+/// The "All devices" page.
 ///
 /// Shares the shell's list rather than copying it, so the dashboard and the navigation
 /// pane can never disagree about what is attached, and splits that one list into the two
@@ -100,7 +100,7 @@ public sealed class DashboardViewModel : ObservableObject
 
             string stamp = string.Format(
                 System.Globalization.CultureInfo.InvariantCulture,
-                Maxwell.App.Localization.Localizer.Current["dash.updated", "обновлено {0}"],
+                Maxwell.App.Localization.Localizer.Current["dash.updated", "updated {0}"],
                 newest.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture));
 
             // How often, then how long ago — the artboard's order, and the useful one:
@@ -117,14 +117,14 @@ public sealed class DashboardViewModel : ObservableObject
 
     /// <summary>
     /// The counts sit in the headings, as the artboard has them. A heading that says
-    /// only "ПОДКЛЮЧЕНЫ" makes the reader count the rows to answer a question the screen
+    /// only "CONNECTED" makes the reader count the rows to answer a question the screen
     /// could have answered.
     /// </summary>
     public string ConnectedHeading =>
-        $"{Maxwell.App.Localization.Localizer.Current["dash.connected", "ПОДКЛЮЧЕНЫ"]} · {Connected.Count}";
+        $"{Maxwell.App.Localization.Localizer.Current["dash.connected", "CONNECTED"]} · {Connected.Count}";
 
     public string DisconnectedHeading =>
-        $"{Maxwell.App.Localization.Localizer.Current["dash.disconnected", "ОТКЛЮЧЕНЫ"]} · {Disconnected.Count}";
+        $"{Maxwell.App.Localization.Localizer.Current["dash.disconnected", "DISCONNECTED"]} · {Disconnected.Count}";
 
     private void OnDevicesChanged(object? sender, NotifyCollectionChangedEventArgs e) => Regroup();
 

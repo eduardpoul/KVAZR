@@ -51,7 +51,7 @@ internal static class SystemDeviceProfile
         nodes.FirstOrDefault(n => n.IsDeviceRoot && !string.IsNullOrWhiteSpace(n.Name))?.Name
         ?? nodes.Select(n => n.BusReportedName).FirstOrDefault(n => !string.IsNullOrWhiteSpace(n))
         ?? nodes.Select(n => n.Name).FirstOrDefault(n => !string.IsNullOrWhiteSpace(n))
-        ?? "Неопознанное устройство";
+        ?? "Unidentified device";
 
     /// <summary>
     /// What kind of thing this is, from what the device says about itself rather than
@@ -170,7 +170,7 @@ internal static class SystemDeviceProfile
             transports.Add(new TransportInfo
             {
                 Kind = TransportKind.Dongle,
-                Label = viaDongle ? "USB-донгл" : "Приёмник",
+                Label = viaDongle ? "USB dongle" : "Receiver",
                 IsPresent = true,
                 CarriesControl = false,
                 CarriesAudio = audio,
@@ -193,7 +193,7 @@ internal static class SystemDeviceProfile
             transports.Add(new TransportInfo
             {
                 Kind = TransportKind.UsbCable,
-                Label = "Док",
+                Label = "Dock",
                 IsPresent = true,
                 CarriesControl = false,
                 CarriesAudio = false,
@@ -213,7 +213,7 @@ internal static class SystemDeviceProfile
                 {
                     SystemDeviceLink.Bluetooth => "Bluetooth",
                     SystemDeviceLink.BluetoothLe => "Bluetooth LE",
-                    _ => "Неизвестно",
+                    _ => "Unknown",
                 },
                 IsPresent = true,
 

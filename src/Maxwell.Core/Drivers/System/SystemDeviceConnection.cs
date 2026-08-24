@@ -24,8 +24,8 @@ internal sealed class SystemDeviceConnection : IDeviceConnection
         Id = CapabilityIds.PowerBattery,
         Domain = CapabilityDomain.Power,
         Primitive = CapabilityPrimitive.Readout,
-        Title = "Заряд",
-        Subtitle = "Сообщает сама система",
+        Title = "Charge",
+        Subtitle = "The system reports it itself",
         Access = CapabilityAccess.Read,
         Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
     };

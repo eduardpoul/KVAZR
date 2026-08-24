@@ -82,6 +82,14 @@ internal static class Program
             };
         }
 
+        // Same argument for the language, and one more: checking a translation used to
+        // mean editing the user's settings file, starting the application, and putting the
+        // file back — three chances to leave somebody else's configuration changed.
+        if (Array.IndexOf(args, "--lang") is var lang and >= 0 && lang + 1 < args.Length)
+        {
+            App.LanguageOnStart = args[lang + 1];
+        }
+
         // A page taller than the window can only be reviewed a third at a time, and
         // scrolling it means driving the mouse, which takes the cursor away from
         // whoever is sitting at the machine. Resizing the window costs nobody anything.

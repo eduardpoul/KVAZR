@@ -77,7 +77,7 @@
       <div class="hero-batt absent">
         <div class="gauge-row">
           <HeroBattery Absent="true" />
-          <div class="hero-absent">@T["device.no_battery", "Заряд недоступен"]</div>
+          <div class="hero-absent">@T["device.no_battery", "No charge reading"]</div>
         </div>
         <div class="caption wrap">@Vm.NoBatteryReason</div>
       </div>
@@ -88,11 +88,11 @@
   {
     <div class="notice">
       <span class="notice-dot"></span>
-      <span>@T.Say("Устройство подключено на уровне Windows, но не отвечает ни на один известный запрос. Настраивать нечего — ниже всё, что удалось прочитать.")</span>
+      <span>@T.Say("Windows sees the device, but it answers none of the requests we know. There is nothing to set — below is everything that could be read.")</span>
     </div>
 
     <div class="group">
-      <div class="group-head"><span class="group-heading">@T["device.what_was_read", "ЧТО УДАЛОСЬ ПРОЧИТАТЬ"]</span></div>
+      <div class="group-head"><span class="group-heading">@T["device.what_was_read", "WHAT COULD BE READ"]</span></div>
       <div class="card">
         @foreach (DeviceFact fact in Vm.Facts)
         {
@@ -107,14 +107,14 @@
     @if (CanForget)
     {
       <div class="group">
-        <div class="group-head"><span class="group-heading">@T["device.actions", "ДЕЙСТВИЯ"]</span></div>
+        <div class="group-head"><span class="group-heading">@T["device.actions", "ACTIONS"]</span></div>
         <div class="card">
           <div class="cap-row">
             <div class="cap-text">
-              <div class="cap-title">@T["device.forget", "Забыть устройство"]</div>
-              <div class="caption">@T["device.forget.caption", "Удаляет пару в системе. Понадобится — сопрягать заново"]</div>
+              <div class="cap-title">@T["device.forget", "Forget the device"]</div>
+              <div class="caption">@T["device.forget.caption", "Removes the pairing in the system. To use it again, pair it afresh"]</div>
             </div>
-            <button class="danger-outline" @onclick="Forget">@T["device.forget.button", "Забыть"]</button>
+            <button class="danger-outline" @onclick="Forget">@T["device.forget.button", "Forget"]</button>
           </div>
         </div>
       </div>

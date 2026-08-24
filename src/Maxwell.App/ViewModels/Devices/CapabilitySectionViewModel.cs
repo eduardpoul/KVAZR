@@ -79,23 +79,23 @@ public sealed class CapabilitySectionViewModel : IDisposable
         Maxwell.App.Localization.Localizer.Current[
             $"domain.{domain}".ToLowerInvariant(), Written(domain)];
 
-    /// <summary>The Russian wording, which is the source and the catalogue's fallback.</summary>
+    /// <summary>The source wording, which is what the catalogue is keyed by.</summary>
     private static string Written(CapabilityDomain domain) => domain switch
     {
-        // "Общее" rather than "Питание": the charge is drawn in the hero, so what is left
+        // "General" rather than "Power": the charge is drawn in the hero, so what is left
         // here is the device's own particulars — which edition it is, its firmware, when
         // it switches itself off.
-        CapabilityDomain.Power => Maxwell.App.Localization.Localizer.Current.Say("Общее"),
-        CapabilityDomain.Link => Maxwell.App.Localization.Localizer.Current.Say("Связь"),
-        CapabilityDomain.Audio => Maxwell.App.Localization.Localizer.Current.Say("Звук"),
-        CapabilityDomain.Microphone => Maxwell.App.Localization.Localizer.Current.Say("Микрофон"),
-        CapabilityDomain.Mix => Maxwell.App.Localization.Localizer.Current.Say("Игра и чат"),
-        CapabilityDomain.Pointing => Maxwell.App.Localization.Localizer.Current.Say("Указатель"),
-        CapabilityDomain.Buttons => Maxwell.App.Localization.Localizer.Current.Say("Кнопки"),
-        CapabilityDomain.Keys => Maxwell.App.Localization.Localizer.Current.Say("Клавиши"),
-        CapabilityDomain.Light => Maxwell.App.Localization.Localizer.Current.Say("Подсветка"),
-        CapabilityDomain.Profiles => Maxwell.App.Localization.Localizer.Current.Say("Профили"),
-        CapabilityDomain.Maintenance => Maxwell.App.Localization.Localizer.Current.Say("Питание и обслуживание"),
+        CapabilityDomain.Power => Maxwell.App.Localization.Localizer.Current.Say("General"),
+        CapabilityDomain.Link => Maxwell.App.Localization.Localizer.Current.Say("Connection"),
+        CapabilityDomain.Audio => Maxwell.App.Localization.Localizer.Current.Say("Sound"),
+        CapabilityDomain.Microphone => Maxwell.App.Localization.Localizer.Current.Say("Microphone"),
+        CapabilityDomain.Mix => Maxwell.App.Localization.Localizer.Current.Say("Game and chat"),
+        CapabilityDomain.Pointing => Maxwell.App.Localization.Localizer.Current.Say("Pointer"),
+        CapabilityDomain.Buttons => Maxwell.App.Localization.Localizer.Current.Say("Buttons"),
+        CapabilityDomain.Keys => Maxwell.App.Localization.Localizer.Current.Say("Keys"),
+        CapabilityDomain.Light => Maxwell.App.Localization.Localizer.Current.Say("Lighting"),
+        CapabilityDomain.Profiles => Maxwell.App.Localization.Localizer.Current.Say("Profiles"),
+        CapabilityDomain.Maintenance => Maxwell.App.Localization.Localizer.Current.Say("Power and maintenance"),
         _ => domain.ToString(),
     };
 

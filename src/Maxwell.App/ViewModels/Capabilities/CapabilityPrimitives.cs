@@ -19,7 +19,7 @@ public sealed partial class ReadoutCapabilityViewModel : CapabilityViewModel
     private static string Format(CapabilityState state) => state.Value switch
     {
         NumberValue n => WithUnit(n.Value.ToString(), state.Range?.Unit),
-        FlagValue f => f.Value ? Maxwell.App.Localization.Localizer.Current.Say("да") : Maxwell.App.Localization.Localizer.Current.Say("нет"),
+        FlagValue f => f.Value ? Maxwell.App.Localization.Localizer.Current.Say("yes") : Maxwell.App.Localization.Localizer.Current.Say("no"),
         TextValue t => t.Value,
         ChoiceValue c => state.Descriptor.Choices.FirstOrDefault(o => o.Index == c.Index)?.Label ?? $"#{c.Index}",
 
@@ -293,7 +293,7 @@ public sealed partial class ActionCapabilityViewModel : CapabilityViewModel
         : base(state, session) => _confirm = confirm;
 
     /// <summary>The ellipsis is the promise that a question is coming.</summary>
-    public string Label => NeedsConfirmation ? Maxwell.App.Localization.Localizer.Current.Say("Выполнить…") : Maxwell.App.Localization.Localizer.Current.Say("Выполнить");
+    public string Label => NeedsConfirmation ? Maxwell.App.Localization.Localizer.Current.Say("Run…") : Maxwell.App.Localization.Localizer.Current.Say("Run");
 
     [RelayCommand]
     private async Task InvokeAsync()

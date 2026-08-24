@@ -34,16 +34,16 @@ public enum HintKind
 /// </summary>
 public enum CapabilityBadgeKind
 {
-    /// <summary>Amber "запись не проверена": a write the hardware has never confirmed.</summary>
+    /// <summary>Amber "write not verified": a write the hardware has never confirmed.</summary>
     Untested,
 
-    /// <summary>Grey "только чтение": a control-shaped value the device will not let us set.</summary>
+    /// <summary>Grey "read only": a control-shaped value the device will not let us set.</summary>
     ReadOnly,
 
-    /// <summary>Dashed grey "ждёт устройства": the driver is ready, the device has not answered.</summary>
+    /// <summary>Dashed grey "waiting for the device": the driver is ready, the device has not answered.</summary>
     Pending,
 
-    /// <summary>Blue "изменено на устройстве": the value moved under us, at the device itself.</summary>
+    /// <summary>Blue "changed on the device": the value moved under us, at the device itself.</summary>
     Accent,
 
     /// <summary>Red: the last write came back with an error.</summary>
@@ -101,7 +101,7 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     {
         // Translated into a local and then used. Translating only the thing being matched
         // on, and then printing the original, is a bug that reads as correct code: the
-        // switch picked the right branch and the branch printed "дБ" under an English
+        // switch picked the right branch and the branch printed the source unit under a
         // interface anyway.
         string? said = Text.Say(unit);
 
@@ -192,8 +192,8 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     ///
     /// Not the raw flag. A write to the headset takes about six hundred milliseconds, and
     /// announcing each one turned every slider nudge into a badge that arrived and left
-    /// before it could be read — measured on the equaliser as "не сохранено" at 479 ms,
-    /// "применяется" at 892 ms and "не сохранено" again at 1509 ms, all from one drag.
+    /// before it could be read — measured on the equaliser as "unsaved" at 479 ms,
+    /// "applying" at 892 ms and "unsaved" again at 1509 ms, all from one drag.
     /// Nobody is waiting on that: the value is on screen already and the device agrees a
     /// moment later. What is worth a word is a write that does not come back — a headset
     /// carried out of range mid-write — so the indicator holds its tongue for
@@ -213,12 +213,12 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     /// Both of these are claims about writing, so neither applies to a value that is only
     /// ever read. Ungated, the battery percentage carried "the first write cannot be
     /// undone" next to it, which is not a caution but a puzzle. Artboard 2a says the same
-    /// thing in its own words: against the indicator row it prints "не применяется".
+    /// thing in its own words: against the indicator row it prints "does not apply".
     /// </summary>
     /// <summary>
     /// The warning belongs to the act of writing, so it appears when a write is actually
     /// possible. A headset asleep on its dongle was carrying a warning triangle and
-    /// "первая запись необратима" beside a slider that could do nothing at all — a
+    /// "the first write cannot be undone" beside a slider that could do nothing at all — a
     /// caution about an action nobody could take.
     /// </summary>
     /// <summary>
@@ -249,7 +249,7 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     /// </summary>
     public string Unreachable => Descriptor.RequirementHint is { Length: > 0 } why
         ? Text[$"requirement.{Descriptor.Requirement}".ToLowerInvariant(), why]
-        : Text["hint.unreachable", "недоступно сейчас"];
+        : Text["hint.unreachable", "not available now"];
 
     /// <summary>True when the control may be operated at all.</summary>
     public bool CanEdit => State.CanWrite && Session is not null;
@@ -266,16 +266,16 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
         // Said in the frame itself, in place of the control. Repeating it here put the
         // same sentence on the row twice.
         { IsAvailable: false } => null,
-        _ when IsWriting => Text["hint.applying", "Применяется…"],
+        _ when IsWriting => Text["hint.applying", "Applying…"],
         { Status: CapabilityStatus.Unavailable } =>
-            Text["hint.unavailable", "Функция есть, способа вызвать пока нет"],
+            Text["hint.unavailable", "The device has it; no way to ask for it yet"],
         { Status: CapabilityStatus.Untested } when Detail == HintDetail.Full =>
-            Maxwell.App.Localization.Localizer.Current.Say("Ещё не проверено на живом устройстве"),
-        { ChangedExternally: true } => Text["hint.changed_externally", "Изменено на устройстве"],
+            Maxwell.App.Localization.Localizer.Current.Say("Not yet confirmed on live hardware"),
+        { ChangedExternally: true } => Text["hint.changed_externally", "Changed on the device"],
 
         // No standing sentence about the confirmation.
         //
-        // "Спросим подтверждение с описанием последствий" was printed in amber beside
+        // "We will ask first, and say what it does" was printed in amber beside
         // every risky control, permanently, to say that pressing it would ask first.
         // That is what the confirmation is for; saying so in advance, on a row nobody is
         // pressing, is a warning about a warning. A capability with something of its own
@@ -320,13 +320,13 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     public CapabilityBadge? Badge => State switch
     {
         { WriteError: not null } =>
-            new CapabilityBadge(Text["badge.write_error", "ошибка записи"], CapabilityBadgeKind.Error),
+            new CapabilityBadge(Text["badge.write_error", "write failed"], CapabilityBadgeKind.Error),
         _ when IsWriting => null,
         { Status: CapabilityStatus.Unavailable } =>
-            new CapabilityBadge(Text["badge.pending", "ждёт устройства"], CapabilityBadgeKind.Pending),
+            new CapabilityBadge(Text["badge.pending", "waiting for the device"], CapabilityBadgeKind.Pending),
         { IsAvailable: false } => null,
 
-        // No amber "запись не проверена" any more.
+        // No amber "write not verified" any more.
         //
         // It was on most of a Maxwell's rows, because most of this protocol came out of a
         // disassembly and had never been confirmed against hardware. A caution that sits
@@ -343,7 +343,7 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
         // turned that wheel and needs no telling. All it did was flicker beside a slider
         // that had already caught up.
         _ when IsReadOnlyInteractive =>
-            new CapabilityBadge(Text["badge.readonly", "только чтение"], CapabilityBadgeKind.ReadOnly),
+            new CapabilityBadge(Text["badge.readonly", "read only"], CapabilityBadgeKind.ReadOnly),
         _ => null,
     };
 

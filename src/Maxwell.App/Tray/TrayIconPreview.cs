@@ -22,12 +22,12 @@ internal static class TrayIconPreview
 
     private static readonly (string Label, KvazrMarkState State)[] States =
     [
-        (Maxwell.App.Localization.Localizer.Current.Say("всё подключено"), KvazrMarkState.AllConnected),
-        (Maxwell.App.Localization.Localizer.Current.Say("идёт поиск"), KvazrMarkState.Searching),
-        (Maxwell.App.Localization.Localizer.Current.Say("обновление прошивки"), KvazrMarkState.FirmwareUpdating),
-        (Maxwell.App.Localization.Localizer.Current.Say("нет устройств"), KvazrMarkState.NoDevices),
-        (Maxwell.App.Localization.Localizer.Current.Say("низкий заряд"), KvazrMarkState.LowBattery),
-        (Maxwell.App.Localization.Localizer.Current.Say("ошибка связи"), KvazrMarkState.LinkError),
+        (Maxwell.App.Localization.Localizer.Current.Say("all connected"), KvazrMarkState.AllConnected),
+        (Maxwell.App.Localization.Localizer.Current.Say("searching"), KvazrMarkState.Searching),
+        (Maxwell.App.Localization.Localizer.Current.Say("firmware update"), KvazrMarkState.FirmwareUpdating),
+        (Maxwell.App.Localization.Localizer.Current.Say("no devices"), KvazrMarkState.NoDevices),
+        (Maxwell.App.Localization.Localizer.Current.Say("low battery"), KvazrMarkState.LowBattery),
+        (Maxwell.App.Localization.Localizer.Current.Say("connection error"), KvazrMarkState.LinkError),
     ];
 
     /// <summary>Writes the grid to <paramref name="path"/>, magnified so pixels are visible.</summary>
@@ -86,7 +86,7 @@ internal static class TrayIconPreview
         int blockHeight = (States.Length * rowHeight) + captionHeight + 16;
         context.DrawRectangle(new SolidColorBrush(background), null, new Rect(0, y, width, blockHeight));
 
-        Text(context, $"ЗНАК · {(panel == TrayPanel.Dark ? "тёмная панель" : "светлая панель")}",
+        Text(context, $"MARK · {(panel == TrayPanel.Dark ? "dark panel" : "light panel")}",
             new Point(gutter, y + 8), ink, 13);
 
         int rowY = y + captionHeight + 8;
@@ -135,13 +135,13 @@ internal static class TrayIconPreview
         int blockHeight = (2 * rowHeight) + captionHeight + 16;
         context.DrawRectangle(new SolidColorBrush(background), null, new Rect(0, y, width, blockHeight));
 
-        Text(context, Maxwell.App.Localization.Localizer.Current.Say("ПЛИТКА · 128 / 48 / 32 / 16"), new Point(gutter, y + 8), ink, 13);
+        Text(context, Maxwell.App.Localization.Localizer.Current.Say("TILE · 128 / 48 / 32 / 16"), new Point(gutter, y + 8), ink, 13);
 
         int rowY = y + captionHeight + 8;
 
         foreach (KvazrSurface surface in new[] { KvazrSurface.Dark, KvazrSurface.Light })
         {
-            Text(context, surface == KvazrSurface.Dark ? Maxwell.App.Localization.Localizer.Current.Say("тёмная плитка") : Maxwell.App.Localization.Localizer.Current.Say("светлая плитка"),
+            Text(context, surface == KvazrSurface.Dark ? Maxwell.App.Localization.Localizer.Current.Say("dark tile") : Maxwell.App.Localization.Localizer.Current.Say("light tile"),
                 new Point(gutter, rowY + (cell / 2.0) - 8), ink, 13);
 
             int x = labelWidth;

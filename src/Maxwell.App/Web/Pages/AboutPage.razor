@@ -26,7 +26,7 @@
   @if (Vm.HasFirmware)
   {
     <div class="group">
-      <div class="group-heading">@T.Say("ПРОШИВКИ УСТРОЙСТВ")</div>
+      <div class="group-heading">@T.Say("DEVICE FIRMWARE")</div>
       <div class="card">
         @foreach (FirmwareRow row in Vm.Firmware)
         {
@@ -44,24 +44,24 @@
   }
 
   <div class="group">
-    <div class="group-heading">@T.Say("ПРОЕКТ")</div>
+    <div class="group-heading">@T.Say("PROJECT")</div>
     <div class="card">
       <div class="set-row">
         <div class="cap-text">
-          <div class="cap-title">@T.Say("Протокол устройств")</div>
-          <div class="caption wrap">@T.Say("RACE для Audeze разобран самостоятельно. Совместимость с VIA и HID++ — по открытым описаниям протоколов")</div>
+          <div class="cap-title">@T.Say("Device protocol")</div>
+          <div class="caption wrap">@T.Say("Audeze's RACE was reverse-engineered here. VIA and HID++ compatibility follows the published protocol descriptions")</div>
         </div>
       </div>
       <div class="set-row">
         <div class="cap-text">
-          <div class="cap-title">@T.Say("Изображения устройств")</div>
-          <div class="caption wrap">@T.Say("Продуктовые снимки производителей, приведённые к общему виду. Происхождение каждого записано в Assets/Devices/images.json")</div>
+          <div class="cap-title">@T.Say("Device images")</div>
+          <div class="caption wrap">@T.Say("Makers' product shots, brought to a common look. Where each came from is recorded in Assets/Devices/images.json")</div>
         </div>
       </div>
       <div class="set-row">
         <div class="cap-text">
-          <div class="cap-title">@T.Say("Устройства без записи в каталоге")</div>
-          <div class="caption wrap">@T.Say("Показываются тем, что о них знает система: имя, класс, подключение и заряд, если устройство его сообщает")</div>
+          <div class="cap-title">@T.Say("Devices with no catalogue entry")</div>
+          <div class="caption wrap">@T.Say("Shown with what the system knows about them: name, class, connection and charge, if the device reports one")</div>
         </div>
       </div>
     </div>

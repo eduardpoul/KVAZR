@@ -22,11 +22,12 @@ public sealed class AppSettings
     public bool StartMinimised { get; set; } = true;
 
     /// <summary>
-    /// Interface language as a culture name. Empty means follow the system. Applied
-    /// without a restart, which is worth saying on the screen because most applications
-    /// that offer this ask for one.
+    /// Interface language as a culture name. English by default, and English for anything
+    /// unrecognised: it is the language the product is written in, so it is the one thing
+    /// that is always complete. Applied without a restart, which is worth saying on the
+    /// screen because most applications that offer this ask for one.
     /// </summary>
-    public string Language { get; set; } = string.Empty;
+    public string Language { get; set; } = "en";
 
     /// <summary>
     /// Closing the window puts it in the tray instead of quitting. On by default, because
@@ -114,7 +115,7 @@ public sealed class AppSettings
     /// <summary>
     /// The device the tray icon and the global shortcuts act on, chosen by hand.
     ///
-    /// Artboard 4c settles what was a rule: "основное — выбранное вручную устройство".
+    /// Artboard 4c settles what was a rule: "the primary is the device chosen by hand".
     /// A rule that picks the first controllable device is right about as often as it is
     /// wrong, and it changes its mind when something else connects — which is the worst
     /// property for the one device a shortcut acts on. Empty means fall back to the rule.

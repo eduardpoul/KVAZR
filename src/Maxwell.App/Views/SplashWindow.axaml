@@ -68,7 +68,7 @@
                      Foreground="#E8EEF5"
                      HorizontalAlignment="Center" />
           <TextBlock x:Name="Caption"
-                     Text="Поиск устройств"
+                     Text="Looking for devices"
                      FontSize="12" LetterSpacing="0.48"
                      Foreground="#6E8098"
                      HorizontalAlignment="Center" />

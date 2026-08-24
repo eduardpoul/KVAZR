@@ -44,7 +44,7 @@ public sealed record DeviceSnapshot
     public IReadOnlyDictionary<string, CapabilityState> Capabilities { get; init; } =
         new Dictionary<string, CapabilityState>();
 
-    /// <summary>When the last successful reading came in. Shown as "обновлено 14:41".</summary>
+    /// <summary>When the last successful reading came in. Shown as "updated 14:41".</summary>
     public DateTimeOffset? UpdatedAt { get; init; }
 
     /// <summary>When the device was last present, for the dimmed row in the device list.</summary>

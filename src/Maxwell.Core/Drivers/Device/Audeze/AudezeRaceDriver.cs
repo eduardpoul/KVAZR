@@ -216,7 +216,7 @@ public sealed class AudezeRaceDriver : IDeviceDriver
                 // Named for a person, not for a bus analyser: the product id said
                 // nothing a user could act on, and it is still on the facts card for
                 // whoever does want it.
-                Label = i.IsDongle ? "USB-донгл" : "USB-C",
+                Label = i.IsDongle ? "USB dongle" : "USB-C",
                 IsPresent = true,
 
                 // Both. The dongle was marked audio-only on a premise that turned out

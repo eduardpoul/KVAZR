@@ -37,6 +37,9 @@ public partial class App : Application, IDisposable
     /// <summary>Forces a theme for the session, for putting a render beside a light artboard.</summary>
     internal static AppTheme? ThemeOnStart { get; set; }
 
+    /// <summary>Forces a language for the session, for looking at a translation.</summary>
+    internal static string? LanguageOnStart { get; set; }
+
     internal static int? OpenAppSectionOnStart { get; set; }
 
     internal static int? OpenSectionOnStart { get; set; }
@@ -102,9 +105,17 @@ public partial class App : Application, IDisposable
             ThemeOnStart = null;
 
             // Resolved for its side effect: the constructor makes this instance the
-            // ambient catalogue. Anything built before it says its words in the fallback
-            // language, which is Russian whatever the user has chosen.
-            _services.GetRequiredService<Localization.Localizer>();
+            // ambient catalogue. Anything built before it says its words in the source
+            // language whatever the user has chosen.
+            var text = _services.GetRequiredService<Localization.Localizer>();
+
+            // The development flag, and like the theme's it expires at once so it cannot
+            // outrank the setting for the rest of the session.
+            if (LanguageOnStart is { Length: > 0 } wanted)
+            {
+                text.Use(wanted);
+                LanguageOnStart = null;
+            }
 
             // Still before discovery. The splash exists to cover the interval between
             // here and the shell being on screen, and one put up after that work has
@@ -131,7 +142,7 @@ public partial class App : Application, IDisposable
             FlyoutViewModel flyout = _services.GetRequiredService<FlyoutViewModel>();
             flyout.SettingsRequested += (_, _) => Dispatcher.UIThread.Post(ShowWindow);
 
-            // "Открыть страницу устройства" has to do both halves. Raising the window
+            // "Open the device page" has to do both halves. Raising the window
             // alone lands the user on whatever page was open last, which is the one
             // thing they did not ask for.
             flyout.DeviceRequested += (_, key) => Dispatcher.UIThread.Post(() =>
@@ -264,16 +275,16 @@ public partial class App : Application, IDisposable
         // device layer keeps working and the window is still reachable.
         try
         {
-            var open = new NativeMenuItem(Maxwell.App.Localization.Localizer.Current.Say("Открыть KVAZR"));
+            var open = new NativeMenuItem(Maxwell.App.Localization.Localizer.Current.Say("Open KVAZR"));
             open.Click += (_, _) => ShowWindow();
 
-            var quit = new NativeMenuItem(Maxwell.App.Localization.Localizer.Current.Say("Выход"));
+            var quit = new NativeMenuItem(Maxwell.App.Localization.Localizer.Current.Say("Quit"));
             quit.Click += (_, _) => Shutdown();
 
             _tray = new TrayIcon
             {
                 Icon = TrayIconRenderer.Render(KvazrMarkState.Searching),
-                ToolTipText = Maxwell.App.Localization.Localizer.Current.Say("KVAZR — поиск устройств…"),
+                ToolTipText = Maxwell.App.Localization.Localizer.Current.Say("KVAZR — looking for devices…"),
                 IsVisible = true,
                 Menu = [open, new NativeMenuItemSeparator(), quit],
             };
@@ -359,7 +370,7 @@ public partial class App : Application, IDisposable
         List<DeviceSnapshot> devices =
             [.. (_registry?.Devices ?? []).Where(d => d.IsPresent && _hidden?.IsVisible(d) != false)];
 
-        if (devices.Count == 0) return Maxwell.App.Localization.Localizer.Current.Say("KVAZR — устройств не найдено");
+        if (devices.Count == 0) return Maxwell.App.Localization.Localizer.Current.Say("KVAZR — no devices found");
 
         List<string> lines =
         [
@@ -370,7 +381,7 @@ public partial class App : Application, IDisposable
                 .Select(d => $"{Maxwell.App.Localization.Localizer.Current.Say(d.Info.DisplayName)} — {d.BatteryPercent}%"),
         ];
 
-        if (lines.Count == 0) return Maxwell.App.Localization.Localizer.Current.Say("KVAZR — устройств: {0}", devices.Count);
+        if (lines.Count == 0) return Maxwell.App.Localization.Localizer.Current.Say("KVAZR — {0} devices", devices.Count);
 
         return string.Join(Environment.NewLine, lines);
     }

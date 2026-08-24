@@ -58,9 +58,9 @@
   <StackPanel Spacing="8" MaxWidth="820" HorizontalAlignment="Left">
 
     <TextBlock Classes="caption" TextWrapping="Wrap" MaxWidth="620"
-               Text="Сочетания работают, пока приложение запущено, в любом окне. Действия применяются к основному устройству — тому же, чьё состояние показывает знак в трее." />
+               Text="The shortcuts work while the application is running, in any window. They act on the primary device — the one whose state the tray mark shows." />
 
-    <TextBlock Classes="sectionHeading" Text="ДЕЙСТВИЯ" />
+    <TextBlock Classes="sectionHeading" Text="ACTIONS" />
     <Border Classes="sectionCard">
       <ItemsControl ItemsSource="{Binding Rows}">
         <ItemsControl.ItemTemplate>
@@ -88,7 +88,7 @@
                         Content="{Binding Label}" />
 
                 <Button Grid.Column="2" Margin="8,0,0,0"
-                        Content="Очистить"
+                        Content="Clear"
                         IsVisible="{Binding HasGesture}"
                         Command="{Binding $parent[ItemsControl].((pages:HotkeysViewModel)DataContext).ClearCommand}"
                         CommandParameter="{Binding}" />

@@ -71,7 +71,7 @@
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
 
-  <!-- Small status pill, used for "Отсоединён", "Под вопросом" and similar. -->
+  <!-- Small status pill, used for "Not connected", "Not answering" and similar. -->
   <Style Selector="Border.pill">
     <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
     <Setter Property="Padding" Value="8,3" />
@@ -125,7 +125,7 @@
     Sized by their labels, not by a fixed width. The widths in artboard 7a — 84 and 72 —
     are what its three labels come to at this size plus this padding, and lifting the
     numbers instead of the rule clipped any label longer than the theme names: the
-    microphone's "Выключено · Низкое · Высокое" lost half its last word.
+    microphone's "Off · Low · High" lost half its last word.
   -->
   <Style Selector="ListBox.segmented ListBoxItem">
     <Setter Property="MinWidth" Value="56" />

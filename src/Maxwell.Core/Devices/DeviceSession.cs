@@ -12,7 +12,7 @@ namespace Maxwell.Core.Devices;
 public sealed class DeviceSession : IDeviceSession, IDisposable
 {
     /// <summary>Wording comes from the design system, where this string is specified.</summary>
-    private const string WriteRefused = "Устройство не приняло значение. Вернули прежнее";
+    private const string WriteRefused = "The device refused the value. The previous one is back";
 
     private readonly IDeviceDriver _driver;
     private readonly IReadOnlyList<ICapabilityContributor> _contributors;

@@ -75,7 +75,7 @@ public partial class MainWindow : Window
 
 
     /// <summary>
-    /// Development affordance, alongside --open and --identity. A page taller than the
+    /// Development affordance, alongside --open and --lang. A page taller than the
     /// screen can only be photographed a screenful at a time, and scrolling it any
     /// other way means driving the mouse — which takes the cursor away from whoever is
     /// sitting at the machine.

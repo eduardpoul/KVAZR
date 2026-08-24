@@ -56,7 +56,7 @@
                    to come back to. Crossed out while silent, and the track goes quiet
                    with it — still showing where it will return to. *@
                 <button class="slider-icon" disabled="@(!range.CanEdit)"
-                        title="@(range.IsMuted ? "Включить звук" : "Заглушить")"
+                        title="@(range.IsMuted ? "Unmute" : "Mute")"
                         @onclick="() => OnUi(() => range.ToggleMuteCommand.Execute(null))">
                   @if (range.IsMuted)
                   {
@@ -140,16 +140,16 @@
                 <span class="curve-reading">@curve.Display</span>
                 @if (curve.IsWriting)
                 {
-                  <span class="badge pending busy">@T["curve.applying", "применяется"]</span>
+                  <span class="badge pending busy">@T["curve.applying", "applying"]</span>
                 }
                 else if (curve.IsDirty)
                 {
-                  <span class="badge warn">@T["curve.unsaved", "не сохранено"]</span>
+                  <span class="badge warn">@T["curve.unsaved", "unsaved"]</span>
                 }
                 <span class="curve-tools">
                   @if (curve.IsDirty)
                   {
-                    <button class="icon-btn" title="@T["curve.revert", "Вернуть кривую пресета"]"
+                    <button class="icon-btn" title="@T["curve.revert", "Put the preset curve back"]"
                             @onclick="() => OnUi(() => curve.RevertCommand.Execute(null))">
                       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M2.5 8a5.5 5.5 0 1 0 1.7-4"/>
@@ -163,7 +163,7 @@
                        and no amount of reading the stylesheet explained it; a solid shape
                        needs neither a stroke width nor a fill rule to survive whatever was
                        eating it. *@
-                    <button class="icon-btn accent" title="@T["curve.save", "Сохранить пресет"]"
+                    <button class="icon-btn accent" title="@T["curve.save", "Save preset"]"
                             @onclick="() => OnUi(() => curve.BeginSaveCommand.Execute(null))">
                       <svg class="solid" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
                         <path d="M2 2h8.2L14 5.8V14H2V2zm3 .8v3.4h4.2V2.8H5zm-.4 10.4V9.4h6.8v3.8H4.6z"/>
@@ -172,7 +172,7 @@
                   }
                   @if (curve.CanDelete)
                   {
-                    <button class="icon-btn danger" title="@T["curve.delete", "Удалить пресет"]"
+                    <button class="icon-btn danger" title="@T["curve.delete", "Delete preset"]"
                             @onclick="() => OnUi(() => curve.DeletePresetCommand.Execute(null))">
                       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 4.5h10M6.5 4.5v-2h3v2M4.5 4.5l.7 9a1 1 0 0 0 1 .9h3.6a1 1 0 0 0 1-.9l.7-9"/>
@@ -193,25 +193,25 @@
               </div>
               @if (curve.IsNaming)
               {
-                @* Artboard "Сохранить пресет": a dialog over the window, with a title, a
+                @* Artboard "Save preset": a dialog over the window, with a title, a
                    sentence saying where the curve goes, one labelled field and the two
                    buttons bottom right. It was a row inside the card first, which is not
                    what the artboard draws and not what the reader expects of a name they
                    are being asked for. *@
                 <div class="scrim" @onclick="() => OnUi(() => curve.CancelSaveCommand.Execute(null))"></div>
                 <div class="dialog" role="dialog" aria-modal="true">
-                  <h2>@T["dialog.save_title", "Сохранить пресет"]</h2>
-                  <p>@T["dialog.save_body", "Настройки десяти полос сохранятся в этом приложении под выбранным именем."]</p>
-                  <label for="preset-name">@T["dialog.name_label", "Имя пресета"]</label>
-                  <input id="preset-name" @ref="_nameField" placeholder="@T["dialog.name_placeholder", "Например, Ночной"]"
+                  <h2>@T["dialog.save_title", "Save preset"]</h2>
+                  <p>@T["dialog.save_body", "The ten bands will be kept in this application under the name you choose."]</p>
+                  <label for="preset-name">@T["dialog.name_label", "Preset name"]</label>
+                  <input id="preset-name" @ref="_nameField" placeholder="@T["dialog.name_placeholder", "For example, Night"]"
                          value="@curve.PendingName"
                          @oninput="e => { var c = curve; OnUi(() => c.PendingName = e.Value?.ToString() ?? string.Empty); }"
                          @onkeydown="e => { var c = curve; OnUi(() => NameKey(c, e)); }" />
                   <div class="dialog-actions">
                     <button class="outline"
-                            @onclick="() => OnUi(() => curve.CancelSaveCommand.Execute(null))">@T["dialog.cancel", "Отмена"]</button>
+                            @onclick="() => OnUi(() => curve.CancelSaveCommand.Execute(null))">@T["dialog.cancel", "Cancel"]</button>
                     <button class="accent" disabled="@(string.IsNullOrWhiteSpace(curve.PendingName))"
-                            @onclick="() => OnUi(() => curve.ConfirmSaveCommand.Execute(null))">@T["dialog.save", "Сохранить"]</button>
+                            @onclick="() => OnUi(() => curve.ConfirmSaveCommand.Execute(null))">@T["dialog.save", "Save"]</button>
                   </div>
                 </div>
               }
@@ -368,7 +368,7 @@
               }
               else
               {
-                <div class="caption">@T.Say("Слой ещё не прочитан")</div>
+                <div class="caption">@T.Say("The layer has not been read yet")</div>
               }
             </div>
             break;
@@ -434,12 +434,12 @@
 
   /// <summary>
   /// Where the curve came from, said in the row rather than in a separate list. "Audeze"
-  /// is one the headset ships with; "мой" is one saved here, and the distinction matters
+  /// is one the headset ships with; "mine" is one saved here, and the distinction matters
   /// because only the second can be deleted and only the first survives this application
   /// being uninstalled.
   /// </summary>
   private static string PresetLabel(CurvePresetOption option) =>
-      $"{option.Label}  ·  {(option.IsSaved ? T["curve.preset.mine", "мой"] : T["curve.preset.vendor", "Audeze"])}";
+      $"{option.Label}  ·  {(option.IsSaved ? T["curve.preset.mine", "mine"] : T["curve.preset.vendor", "Audeze"])}";
 
 
   [Parameter, EditorRequired] public CapabilityViewModel Vm { get; set; } = default!;

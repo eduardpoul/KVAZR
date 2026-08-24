@@ -27,11 +27,11 @@ public partial class ConfirmDialog : Window
 
         Title = capability.Title;
         TitleText.Text = capability.Title;
-        ConfirmButton.Content = Maxwell.App.Localization.Localizer.Current.Say("Выполнить");
-        CancelButton.Content = Maxwell.App.Localization.Localizer.Current.Say("Отмена");
+        ConfirmButton.Content = Maxwell.App.Localization.Localizer.Current.Say("Run");
+        CancelButton.Content = Maxwell.App.Localization.Localizer.Current.Say("Cancel");
 
         Add(capability.Subtitle);
-        if (!capability.IsReversible) Add(Maxwell.App.Localization.Localizer.Current.Say("Это действие нельзя отменить."));
+        if (!capability.IsReversible) Add(Maxwell.App.Localization.Localizer.Current.Say("This cannot be undone."));
         Add(capability.Note);
 
         // Focus lands on the way out, not on the way through.

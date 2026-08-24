@@ -173,7 +173,7 @@ public sealed class DeviceCatalogueTests
 
         DeviceInfo device = Assert.Single(devices);
         Assert.Equal("Flydigi APEX 5", device.DisplayName);
-        Assert.Contains(device.Transports, t => t.Label == "Док");
+        Assert.Contains(device.Transports, t => t.Label == "Dock");
     }
 
     [Fact]

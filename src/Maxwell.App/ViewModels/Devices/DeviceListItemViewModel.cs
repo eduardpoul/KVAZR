@@ -28,9 +28,9 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
 
     /// <summary>
     /// The device's name. Routed through the catalogue for one reason only: the
-    /// development stand-ins carry "(макет)" in their model names, and a Russian word in
-    /// the middle of an English list is the sort of thing that reads as a bug. A real
-    /// device's name is its own and passes through untouched.
+    /// development stand-ins carry "(mock)" in their model names, and that word is worth
+    /// translating with the rest of the interface. A real device's name is its own and
+    /// passes through untouched.
     /// </summary>
     public string DisplayName => Maxwell.App.Localization.Localizer.Current.Say(Snapshot.Info.DisplayName);
 
@@ -54,21 +54,21 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     /// pill under the name rather than in the row's prose, because at a glance the class
     /// is what separates two devices with similar names.
     /// </summary>
-    /// <summary>A device class in the language in force; the Russian is the fallback.</summary>
-    private static string Name(string key, string russian) =>
-        Maxwell.App.Localization.Localizer.Current[$"device.class.{key}", russian];
+    /// <summary>A device class in the language in force; the English is the fallback.</summary>
+    private static string Name(string key, string english) =>
+        Maxwell.App.Localization.Localizer.Current[$"device.class.{key}", english];
 
     public string Kind => Snapshot.Info.Class switch
     {
-        DeviceClass.Headset => Name("headset", Maxwell.App.Localization.Localizer.Current.Say("Гарнитура")),
-        DeviceClass.Earbuds => Name("earbuds", Maxwell.App.Localization.Localizer.Current.Say("Наушники")),
-        DeviceClass.Microphone => Name("microphone", Maxwell.App.Localization.Localizer.Current.Say("Микрофон")),
-        DeviceClass.Speaker => Name("speaker", Maxwell.App.Localization.Localizer.Current.Say("Колонка")),
-        DeviceClass.Mouse => Name("mouse", Maxwell.App.Localization.Localizer.Current.Say("Мышь")),
-        DeviceClass.Keyboard => Name("keyboard", Maxwell.App.Localization.Localizer.Current.Say("Клавиатура")),
-        DeviceClass.Gamepad => Name("gamepad", Maxwell.App.Localization.Localizer.Current.Say("Геймпад")),
-        DeviceClass.Receiver => Name("receiver", Maxwell.App.Localization.Localizer.Current.Say("Приёмник")),
-        _ => Name("unknown", Maxwell.App.Localization.Localizer.Current.Say("Устройство")),
+        DeviceClass.Headset => Name("headset", Maxwell.App.Localization.Localizer.Current.Say("Headset")),
+        DeviceClass.Earbuds => Name("earbuds", Maxwell.App.Localization.Localizer.Current.Say("Earbuds")),
+        DeviceClass.Microphone => Name("microphone", Maxwell.App.Localization.Localizer.Current.Say("Microphone")),
+        DeviceClass.Speaker => Name("speaker", Maxwell.App.Localization.Localizer.Current.Say("Speaker")),
+        DeviceClass.Mouse => Name("mouse", Maxwell.App.Localization.Localizer.Current.Say("Mouse")),
+        DeviceClass.Keyboard => Name("keyboard", Maxwell.App.Localization.Localizer.Current.Say("Keyboard")),
+        DeviceClass.Gamepad => Name("gamepad", Maxwell.App.Localization.Localizer.Current.Say("Gamepad")),
+        DeviceClass.Receiver => Name("receiver", Maxwell.App.Localization.Localizer.Current.Say("Receiver")),
+        _ => Name("unknown", Maxwell.App.Localization.Localizer.Current.Say("Device")),
     };
 
     /// <summary>
@@ -90,11 +90,11 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     /// </summary>
     public string Note => Snapshot.Availability switch
     {
-        DeviceAvailability.Unreachable => Maxwell.App.Localization.Localizer.Current["device.silent", "не отвечает"],
+        DeviceAvailability.Unreachable => Maxwell.App.Localization.Localizer.Current["device.silent", "not answering"],
         DeviceAvailability.Offline =>
-            Snapshot.LastSeenAt is { } seen ? LastSeen(seen) : Maxwell.App.Localization.Localizer.Current.Say("не подключено"),
+            Snapshot.LastSeenAt is { } seen ? LastSeen(seen) : Maxwell.App.Localization.Localizer.Current.Say("not connected"),
 
-        // Deliberately not "только чтение" any more: on this machine that was most of the
+        // Deliberately not "read only" any more: on this machine that was most of the
         // list, and a label most rows carry stops being information. What a device
         // cannot do is the page's business, said where the missing control would be.
         _ => string.Empty,
@@ -103,7 +103,7 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     public bool HasNote => Note.Length > 0;
 
     /// <summary>
-    /// Whether "забыть в системе" means anything for this device. A pairing is something
+    /// Whether "forget in the system" means anything for this device. A pairing is something
     /// only a wireless link has; offering it for a device on a cable would be offering to
     /// undo something that was never done.
     /// </summary>
@@ -121,7 +121,7 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
 
     /// <summary>
     /// The tray row's three power states, per Turn 12: a percentage for a device that
-    /// reports one, the words "от кабеля" for one that runs off the wire, and a dash for
+    /// reports one, the words "from the cable" for one that runs off the wire, and a dash for
     /// one that ought to report and does not. Three separate readings rather than one
     /// string because they are not the same size or colour — the number carries the row,
     /// the other two step back out of the way.
@@ -169,7 +169,7 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
 
             // The maker is stripped first and the rest translated, not the other way
             // round: the catalogue is keyed on what the driver wrote, and "MX Master
-            // (макет)" is a key while "Master (макет)" is nothing.
+            // (mock)" is a key while "Master (mock)" is nothing.
             if (vendor.Length > 0 && model.StartsWith(vendor, StringComparison.CurrentCultureIgnoreCase))
             {
                 model = model[vendor.Length..].TrimStart();
@@ -180,12 +180,12 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     }
 
     /// <summary>
-    /// "последний раз — 14:41", said in one piece. The time is invariant and the words
+    /// "last seen — 14:41", said in one piece. The time is invariant and the words
     /// around it are not, which is why the key is the whole sentence.
     /// </summary>
     private static string LastSeen(DateTimeOffset seen) =>
         Maxwell.App.Localization.Localizer.Current.Say(
-            "последний раз — {0}",
+            "last seen — {0}",
             seen.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture));
 
     /// <summary>
@@ -193,27 +193,27 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     /// mode of use.
     ///
     /// Channel first, then whatever else is worth saying about it, joined the way the
-    /// artboard joins them: "USB-C · звук по донглу". The channel alone left the panel
+    /// artboard joins them: "USB-C · sound over the dongle". The channel alone left the panel
     /// repeating what the icon already showed, and the note alone left it unclear which
     /// of two links the note was about.
     /// </summary>
     public string Status => Snapshot.Availability switch
     {
         DeviceAvailability.Active => HasNote ? $"{Link} · {Note}" : Link,
-        DeviceAvailability.Unreachable => Maxwell.App.Localization.Localizer.Current["device.silent.caps", "Не отвечает"],
-        _ => Snapshot.LastSeenAt is { } seen ? LastSeen(seen) : Maxwell.App.Localization.Localizer.Current.Say("Не подключено"),
+        DeviceAvailability.Unreachable => Maxwell.App.Localization.Localizer.Current["device.silent.caps", "Not answering"],
+        _ => Snapshot.LastSeenAt is { } seen ? LastSeen(seen) : Maxwell.App.Localization.Localizer.Current.Say("Not connected"),
     };
 
     /// <summary>
     /// How the device is attached. The channel that carries settings is named first
     /// because it is the one that decides what the page can do, but a device with no
     /// such channel still says how it is connected: falling back to the bare word
-    /// "Подключено" told the user nothing they could not already see from the row.
+    /// "Connected" told the user nothing they could not already see from the row.
     /// </summary>
     private string Link =>
         Snapshot.Info.ControlTransport?.ShortLabel
         ?? Snapshot.Info.Transports.FirstOrDefault(t => t.IsPresent)?.ShortLabel
-        ?? Maxwell.App.Localization.Localizer.Current["device.connected", "Подключено"];
+        ?? Maxwell.App.Localization.Localizer.Current["device.connected", "Connected"];
 
     public void Update(DeviceSnapshot snapshot)
     {

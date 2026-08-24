@@ -127,7 +127,7 @@
 
     <TextBlock Classes="secondary"
                IsVisible="{Binding Loading.ShowError}"
-               Text="Опрос не отвечает. Проверьте, что устройство включено." />
+               Text="The poll is not answering. Check that the device is switched on." />
 
     <StackPanel Spacing="8" IsVisible="{Binding HasConnected}">
       <TextBlock Classes="groupHeading" Text="{Binding ConnectedHeading}" />
@@ -144,20 +144,20 @@
                 -->
                 <Border.ContextMenu>
                   <ContextMenu>
-                    <MenuItem Header="Открыть страницу"
+                    <MenuItem Header="Open the page"
                               Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).Shell.OpenDeviceCommand}"
                               CommandParameter="{Binding}" />
-                    <MenuItem Header="Показывать в трее"
+                    <MenuItem Header="Show in the tray"
                               Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).Shell.ShowInTrayCommand}"
                               CommandParameter="{Binding}" />
                     <Separator />
-                    <MenuItem Header="Скрыть устройство"
+                    <MenuItem Header="Hide the device"
                               Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).Shell.HideDeviceCommand}"
                               CommandParameter="{Binding}" />
 
                     <!-- Red, last, and only where a pairing exists. It is the one item
                          here that cannot be undone from this menu. -->
-                    <MenuItem Header="Забыть в системе"
+                    <MenuItem Header="Forget in the system"
                               Foreground="{DynamicResource DangerBrush}"
                               IsVisible="{Binding CanForget}"
                               Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).Shell.ForgetDeviceCommand}"
@@ -325,8 +325,8 @@
     -->
     <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding Shell.HasHidden}">
       <TextBlock Classes="caption" VerticalAlignment="Center"
-                 Text="{Binding Shell.HiddenCount, StringFormat='Скрыто: {0}'}" />
-      <Button Content="Показать все" Command="{Binding Shell.ShowHiddenCommand}" />
+                 Text="{Binding Shell.HiddenCount, StringFormat='Hidden: {0}'}" />
+      <Button Content="Show all" Command="{Binding Shell.ShowHiddenCommand}" />
     </StackPanel>
 
   </StackPanel>

@@ -25,7 +25,7 @@
     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,8,0,0">
       <!-- Cancel first and focused: the dangerous path is the one that takes a
            deliberate press, not the one Enter lands on. -->
-      <Button x:Name="CancelButton" Content="Отмена" Click="OnCancel" IsCancel="True" MinWidth="96" />
+      <Button x:Name="CancelButton" Content="Cancel" Click="OnCancel" IsCancel="True" MinWidth="96" />
       <Button x:Name="ConfirmButton" Classes="danger" Click="OnConfirm" MinWidth="120" />
     </StackPanel>
   </StackPanel>

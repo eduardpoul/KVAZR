@@ -263,7 +263,7 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
         _values = new int[Members.Count];
         _known = new bool[Members.Count];
 
-        // Band captions are the driver's — "1 к", "250 Гц" — and translated here,
+        // Band captions are the driver's — "1 k", "250 Hz" — and translated here,
         // where they are drawn, like everything else a driver writes.
         Labels = [.. Members.Select(m => Maxwell.App.Localization.Localizer.Current.Say(m.Label))];
         PushReadings();
@@ -599,12 +599,12 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
 
     /// <summary>
     /// A name nobody has used yet. Numbered rather than dated, because a person choosing
-    /// between their own presets recognises "Мой пресет 2" and does not recognise a
+    /// between their own presets recognises "My preset 2" and does not recognise a
     /// timestamp.
     /// </summary>
     private string SuggestName()
     {
-        string Stem = Maxwell.App.Localization.Localizer.Current.Say("Мой пресет");
+        string Stem = Maxwell.App.Localization.Localizer.Current.Say("My preset");
 
         if (Library is not { } library) return Stem;
 
@@ -713,7 +713,7 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
     public IReadOnlyList<string> AxisTicks =>
         [.. Enumerable.Range(0, 5).Select(i => Signed((int)Math.Round(_bounds.Max - ((_bounds.Max - _bounds.Min) * i / 4.0))))];
 
-    // No "250 Гц · +4.5 дБ" beside the title any more.
+    // No "250 Hz · +4.5 dB" beside the title any more.
     //
     // It repeated, in a second place and a beat later, a number the plot prints over the
     // band being dragged — and it repeated it for whichever band the eye last landed on,
@@ -724,7 +724,7 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
     /// <summary>
     /// One band's value with its sign and unit, as printed above its rail.
     ///
-    /// With the unit, and it was briefly without: ten captions each ending in "дБ" looked
+    /// With the unit, and it was briefly without: ten captions each ending in "dB" looked
     /// like the unit said ten times over, and the artboard prints bare numbers. Taking it
     /// off was wrong and nobody had asked for it — "+8" beside "+6" is a number with no
     /// name on a control whose whole scale the reader is being asked to judge, and the
@@ -747,10 +747,10 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
     /// That is a different sentence from "read, and flat".
     /// </summary>
     public string Display => Members.Count == 0
-        ? Maxwell.App.Localization.Localizer.Current.Say("Полосы недоступны")
+        ? Maxwell.App.Localization.Localizer.Current.Say("No bands available")
         : HasCurve
-            ? $"{Members.Count} {Maxwell.App.Localization.Localizer.Current.Say("полос")} · {Describe()}"
-            : $"{Members.Count} {Maxwell.App.Localization.Localizer.Current.Say("полос")} · {Maxwell.App.Localization.Localizer.Current.Say("нет данных")}";
+            ? $"{Members.Count} {Maxwell.App.Localization.Localizer.Current.Say("bands")} · {Describe()}"
+            : $"{Members.Count} {Maxwell.App.Localization.Localizer.Current.Say("bands")} · {Maxwell.App.Localization.Localizer.Current.Say("нет данных")}";
 
     /// <summary>
     /// Raised by the plot on a drag. Nothing else in the control writes, so a curve that
@@ -880,7 +880,7 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
             high = Math.Max(high, _values[i]);
         }
 
-        if (low > high) return Maxwell.App.Localization.Localizer.Current.Say("нет данных");
+        if (low > high) return Maxwell.App.Localization.Localizer.Current.Say("no data");
 
         string unit = _bounds.Unit is { } u ? $" {u}" : string.Empty;
         return low == high ? $"{low:+0;-0;0}{unit}" : $"{low:+0;-0;0}…{high:+0;-0;0}{unit}";
@@ -913,14 +913,14 @@ public sealed class LightingCapabilityViewModel : CompositeCapabilityViewModel
     /// </summary>
     private static readonly LightingSwatch[] Palette =
     [
-        new(Maxwell.App.Localization.Localizer.Current.Say("Белый"), 0xFFFFFF),
-        new(Maxwell.App.Localization.Localizer.Current.Say("Красный"), 0xE0483C),
-        new(Maxwell.App.Localization.Localizer.Current.Say("Янтарный"), 0xEAA300),
-        new(Maxwell.App.Localization.Localizer.Current.Say("Зелёный"), 0x3FA45B),
-        new(Maxwell.App.Localization.Localizer.Current.Say("Бирюзовый"), 0x2AA9B8),
-        new(Maxwell.App.Localization.Localizer.Current.Say("Синий"), 0x2C6FD1),
-        new(Maxwell.App.Localization.Localizer.Current.Say("Фиолетовый"), 0x7B4EC4),
-        new(Maxwell.App.Localization.Localizer.Current.Say("Розовый"), 0xD65DB1),
+        new(Maxwell.App.Localization.Localizer.Current.Say("White"), 0xFFFFFF),
+        new(Maxwell.App.Localization.Localizer.Current.Say("Red"), 0xE0483C),
+        new(Maxwell.App.Localization.Localizer.Current.Say("Amber"), 0xEAA300),
+        new(Maxwell.App.Localization.Localizer.Current.Say("Green"), 0x3FA45B),
+        new(Maxwell.App.Localization.Localizer.Current.Say("Teal"), 0x2AA9B8),
+        new(Maxwell.App.Localization.Localizer.Current.Say("Blue"), 0x2C6FD1),
+        new(Maxwell.App.Localization.Localizer.Current.Say("Purple"), 0x7B4EC4),
+        new(Maxwell.App.Localization.Localizer.Current.Say("Pink"), 0xD65DB1),
     ];
 
     public LightingCapabilityViewModel(CapabilityState state, IDeviceSession? session)
@@ -1105,14 +1105,14 @@ public sealed partial class ButtonAssignmentViewModel : ObservableObject
 /// <summary>
 /// One tab above the layout. Carries the number and nothing else: the word beside it is
 /// looked up when it is drawn, so switching language renames the tabs like everything
-/// else. The catalogue key is the whole sentence with its hole in it — "Слой {0}" — and
+/// else. The catalogue key is the whole sentence with its hole in it — "Layer {0}" — and
 /// not the bare word, because where the number goes is part of the translation.
 /// </summary>
 public sealed record KeyLayer(int Index)
 {
     public string Label => string.Format(
         System.Globalization.CultureInfo.InvariantCulture,
-        Localizer.Current.Say("Слой {0}"),
+        Localizer.Current.Say("Layer {0}"),
         Index);
 }
 
@@ -1309,13 +1309,13 @@ public abstract partial class SlotListCapabilityViewModel : CapabilityViewModel
 
     public IReadOnlyList<CapabilitySlotViewModel> Slots { get; }
 
-    /// <summary>The badge on the live slot: "активен", "сейчас".</summary>
+    /// <summary>The badge on the live slot: "active", "now".</summary>
     public abstract string ActiveLabel { get; }
 
-    /// <summary>The button on a slot that holds something: "Применить", "Переключить".</summary>
+    /// <summary>The button on a slot that holds something: "Apply", "Switch".</summary>
     public abstract string SwitchVerb { get; }
 
-    /// <summary>The button on a free slot: "Записать сюда…", "Сопрячь…".</summary>
+    /// <summary>The button on a free slot: "Write here…", "Pair…".</summary>
     public abstract string FillVerb { get; }
 
     protected override void OnStateApplied(CapabilityState state) => Sync(state);
@@ -1341,16 +1341,16 @@ public sealed class ProfileSetCapabilityViewModel : SlotListCapabilityViewModel
     {
     }
 
-    public override string ActiveLabel => Maxwell.App.Localization.Localizer.Current.Say("активен");
+    public override string ActiveLabel => Maxwell.App.Localization.Localizer.Current.Say("active");
 
-    public override string SwitchVerb => Maxwell.App.Localization.Localizer.Current.Say("Применить");
+    public override string SwitchVerb => Maxwell.App.Localization.Localizer.Current.Say("Apply");
 
     /// <summary>
     /// The ellipsis is the promise of a question. Writing a profile into an empty slot
     /// still overwrites whatever the device believes is there, and the design system
     /// requires the warning before the write rather than after it.
     /// </summary>
-    public override string FillVerb => Maxwell.App.Localization.Localizer.Current.Say("Записать сюда…");
+    public override string FillVerb => Maxwell.App.Localization.Localizer.Current.Say("Record here…");
 }
 
 /// <summary>Paired hosts, and which of them the device is talking to.</summary>
@@ -1361,11 +1361,11 @@ public sealed class HostSlotsCapabilityViewModel : SlotListCapabilityViewModel
     {
     }
 
-    public override string ActiveLabel => Maxwell.App.Localization.Localizer.Current.Say("сейчас");
+    public override string ActiveLabel => Maxwell.App.Localization.Localizer.Current.Say("now");
 
-    public override string SwitchVerb => Maxwell.App.Localization.Localizer.Current.Say("Переключить");
+    public override string SwitchVerb => Maxwell.App.Localization.Localizer.Current.Say("Toggle");
 
-    public override string FillVerb => Maxwell.App.Localization.Localizer.Current.Say("Сопрячь…");
+    public override string FillVerb => Maxwell.App.Localization.Localizer.Current.Say("Pair…");
 }
 
 /// <summary>One slot of a <see cref="SlotListCapabilityViewModel"/>.</summary>
