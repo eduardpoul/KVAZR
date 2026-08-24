@@ -325,12 +325,6 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     };
 
     /// <summary>
-    /// A control-shaped value that is nonetheless read-only — a slider for the ChatMix
-    /// wheel, a reading the device owns and we can only watch. The plain Readout and the
-    /// Action are excluded: a value with no control needs no "read only" beside it, and a
-    /// button is not a value at all.
-    /// </summary>
-    /// <summary>
     /// The reading printed opposite the name in the tray panel, or null when the control
     /// already shows its own value. A slider needs it — a bare track says nothing about
     /// where it sits — while a dropdown's face is the value, and printing it twice on a
@@ -340,9 +334,23 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
 
     public bool HasQuickValue => !string.IsNullOrEmpty(QuickValue);
 
+    /// <summary>
+    /// A control-shaped value that is nonetheless read-only — a slider for the ChatMix
+    /// wheel, a reading the device owns and we can only watch.
+    ///
+    /// The plain Readout and the Action are excluded, and the rule is about what the row
+    /// looks like rather than about what it is: a value with no control beside it needs
+    /// no word saying it cannot be operated, and a button is not a value at all.
+    ///
+    /// A choice the device will not take joins them for the same reason. It used to be
+    /// drawn as a dropdown that would not open, which is a control offering something it
+    /// cannot do and does need the word; now it is drawn as its own value, and the badge
+    /// beside it was saying the obvious twice.
+    /// </summary>
     public bool IsReadOnlyInteractive =>
         !Descriptor.IsWritable
-        && Descriptor.Primitive is not (CapabilityPrimitive.Readout or CapabilityPrimitive.Action);
+        && Descriptor.Primitive is not (
+            CapabilityPrimitive.Readout or CapabilityPrimitive.Action or CapabilityPrimitive.Choice);
 
     /// <summary>
     /// The inline badge beside the title — Turn 14/15's way of naming a row's state in a

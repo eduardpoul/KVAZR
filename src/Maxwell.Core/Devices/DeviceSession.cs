@@ -626,38 +626,68 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
     /// The probe may land on a contributor, and that is correct: a device whose only
     /// reader is the HID battery usage is answering, and calling it unreachable because
     /// its owning driver has nothing to ask would be a lie about working hardware.
+    ///
+    /// Several questions rather than one, and that is the correction that matters. It
+    /// asked exactly one capability and read an absent answer as a dead device — so a
+    /// single row that is legitimately empty condemned everything beside it. A QuadCast
+    /// put "the headset is not answering" over a page of working sliders, because the
+    /// first readable row it found was a polar selector, and that one says nothing at all
+    /// until a hand turns it. One silent row is not evidence; every row silent is.
     /// </summary>
     private async Task<bool> AnswersAsync(CancellationToken cancellationToken)
     {
-        string? probe = _owner.ContainsKey(CapabilityIds.PowerBattery)
-            ? CapabilityIds.PowerBattery
-            : _states.Values.FirstOrDefault(s => s.Descriptor.IsReadable && _owner.ContainsKey(s.Id))?.Id;
+        // The battery first: every device has one and it is the cheapest read.
+        List<string> probes =
+        [
+            .. _states.Values
+                .Where(s => s.Descriptor.IsReadable && _owner.ContainsKey(s.Id))
+                .OrderBy(s => s.Id == CapabilityIds.PowerBattery ? 0 : 1)
+                .Select(s => s.Id)
+                .Take(Probes),
+        ];
 
         // Nothing readable to ask. Being open is the best evidence available.
-        if (probe is null) return true;
+        if (probes.Count == 0) return true;
 
-        IDeviceConnection source = _owner[probe];
+        bool asked = false;
 
-        try
+        foreach (string probe in probes)
         {
-            CapabilityValue value = await source.ReadAsync(probe, cancellationToken).ConfigureAwait(false);
-            if (value.IsAbsent) return false;
+            IDeviceConnection source = _owner[probe];
 
-            if (_states.TryGetValue(probe, out CapabilityState? state))
+            try
             {
-                _states[probe] = state with { Value = value };
-                _updatedAt = DateTimeOffset.Now;
-            }
+                CapabilityValue value = await source.ReadAsync(probe, cancellationToken).ConfigureAwait(false);
+                asked = true;
 
-            return true;
+                if (value.IsAbsent) continue;
+
+                if (_states.TryGetValue(probe, out CapabilityState? state))
+                {
+                    _states[probe] = state with { Value = value };
+                    _updatedAt = DateTimeOffset.Now;
+                }
+
+                return true;
+            }
+            catch (IOException ex)
+            {
+                _logger.DeviceReadFailed(ex, _info.Key);
+                Drop(source);
+            }
         }
-        catch (IOException ex)
-        {
-            _logger.DeviceReadFailed(ex, _info.Key);
-            Drop(source);
-            return false;
-        }
+
+        // Every question asked and every answer empty. A device that will not say one
+        // true thing about itself is what unreachable means.
+        return !asked;
     }
+
+    /// <summary>
+    /// How many questions the liveness probe is allowed. A sweep runs this per device on
+    /// every pass, so it is a handful rather than the whole page — and if a device has
+    /// answered none of four, the fifth was not going to change the verdict.
+    /// </summary>
+    private const int Probes = 4;
 
     private static bool IsRequirementMet(Capability descriptor, DeviceAvailability availability) =>
         descriptor.Requirement switch

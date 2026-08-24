@@ -355,7 +355,7 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
             DeviceClass.Headset or DeviceClass.Earbuds =>
                 Maxwell.App.Localization.Localizer.Current.Say("The Bluetooth codec, the hardware volume and the charge over a dongle cannot be read at the baseline — only the vendor's protocol gives them."),
             DeviceClass.Microphone =>
-                Maxwell.App.Localization.Localizer.Current.Say("The polar pattern, the hardware gain and the lighting live in the vendor's protocol — at the baseline they do not exist."),
+                Maxwell.App.Localization.Localizer.Current.Say("The hardware gain is analogue: it works before the converter, and nothing on the machine can read it."),
             DeviceClass.Keyboard =>
                 Maxwell.App.Localization.Localizer.Current.Say("Over the dongle the keyboard gives neither charge nor VIA — layout, layers and lighting are edited over the cable."),
             DeviceClass.Gamepad =>
@@ -508,6 +508,11 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         {
             List<CapabilityViewModel> items = [];
 
+            // Rows whose driver asked for a heading of their own, kept aside by it. A
+            // dictionary rather than a second pass over the snapshot, so the order the
+            // driver published them in survives.
+            var labelled = new Dictionary<string, List<CapabilityViewModel>>(StringComparer.Ordinal);
+
             foreach (CapabilityState state in snapshot.InDomain(domain))
             {
                 // Already drawn at the top of the page, in a size that can be read across
@@ -528,6 +533,17 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
                 // row beneath it, so it is handed over and skipped here.
                 if (state.Id == CapabilityIds.AudioEqPreset) continue;
 
+                if (state.Descriptor.Section is { Length: > 0 } heading)
+                {
+                    if (!labelled.TryGetValue(heading, out List<CapabilityViewModel>? group))
+                    {
+                        labelled[heading] = group = [];
+                    }
+
+                    group.Add(vm);
+                    continue;
+                }
+
                 items.Add(vm);
             }
 
@@ -538,6 +554,17 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
                     Tray = OffersTraySwitch(domain, snapshot.Info.Class) && _extras is { } extras
                         ? new TrayToggleViewModel(extras, snapshot.Info.Key)
                         : null,
+                });
+            }
+
+            // After the domain's own rows, because they are the ones the device is
+            // usually opened for: a recording level is reached for far more often than
+            // the selector on the back, whatever else is true about where each came from.
+            foreach ((string heading, List<CapabilityViewModel> group) in labelled)
+            {
+                built.Add(new CapabilitySectionViewModel(domain, group, snapshot.Info.Class)
+                {
+                    Label = heading,
                 });
             }
         }

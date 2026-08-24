@@ -64,6 +64,13 @@ internal sealed class HyperXConnection : IDeviceConnection
             Access = CapabilityAccess.Read,
             Title = "Polar pattern",
 
+            // Its own heading rather than filed under Microphone with the recording
+            // level. Not because of which tier it came from — that is this application's
+            // business and not the user's — but because it is a control on the body of
+            // this particular microphone, and reading it next to a Windows slider
+            // suggests Windows has an opinion about it.
+            Section = "HyperX",
+
             // The sentence has to carry two facts, and the second one is unusual enough
             // to be worth the words: this is read from the microphone rather than from
             // Windows, and it is not known until the selector moves.

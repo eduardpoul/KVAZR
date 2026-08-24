@@ -30,6 +30,12 @@ internal static class PlatformServices
 #if WINDOWS
         services.AddSingleton<IHidEnumerator, WindowsHidEnumerator>();
         services.AddSingleton<IHidTransportFactory, WindowsHidTransportFactory>();
+
+        // An ear, as distinct from the transport above: some devices answer when asked
+        // and some only announce. A module that needs one checks for it and registers
+        // nothing without it, which is why leaving this out cost a row that worked
+        // everywhere except in the application.
+        services.AddSingleton<IHidListenerFactory, Maxwell.Race.Windows.WindowsHidListenerFactory>();
         services.AddSingleton<IAutostart, WindowsAutostart>();
         services.AddSingleton<INotifier, WindowsNotifier>();
         services.AddSingleton<IBluetoothMonitor, Maxwell.Race.Windows.WindowsBluetoothMonitor>();

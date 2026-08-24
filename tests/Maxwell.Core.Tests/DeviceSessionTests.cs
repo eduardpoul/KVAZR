@@ -112,6 +112,43 @@ public sealed class DeviceSessionTests
         Assert.Equal(CapabilityValue.Of(3), session.Snapshot.Capabilities[Plain].Value);
     }
 
+    /// <summary>
+    /// The liveness probe asked one capability and read an absent answer as a dead
+    /// device, so a single row that is legitimately empty condemned every working row
+    /// beside it. A QuadCast showed "the headset is not answering" over a page of live
+    /// sliders because the first readable row it found was a polar selector, which says
+    /// nothing at all until a hand turns it.
+    /// </summary>
+    [Fact]
+    public async Task OneRowWithNothingToSay_DoesNotMakeTheDeviceUnreachable()
+    {
+        var fixture = new Fixture();
+        DeviceSession session = fixture.CreateSession();
+
+        // Absent, and honestly so: nothing has happened to it yet.
+        fixture.Connection.Values.Remove(Plain);
+
+        await session.MarkPresentAsync(fixture.Info, Ct);
+
+        Assert.Equal(DeviceAvailability.Active, session.Snapshot.Availability);
+        Assert.True(session.Snapshot.CanControl);
+    }
+
+    [Fact]
+    public async Task EveryRowSilent_IsWhatUnreachableMeans()
+    {
+        var fixture = new Fixture();
+        DeviceSession session = fixture.CreateSession();
+
+        fixture.Connection.Values.Clear();
+
+        // A device that will not say one true thing about itself. The probe is bounded,
+        // so this holds however many rows it declares.
+        await session.MarkPresentAsync(fixture.Info, Ct);
+
+        Assert.Equal(DeviceAvailability.Unreachable, session.Snapshot.Availability);
+    }
+
     [Fact]
     public async Task WhenTheDeviceDoesNotAnswer_ItIsVisibleAndItsControlsAreNot()
     {

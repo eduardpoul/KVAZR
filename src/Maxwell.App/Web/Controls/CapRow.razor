@@ -110,6 +110,14 @@
             </div>
             break;
 
+          @* A choice nobody can change is a reading, and it is drawn as one. A dropdown
+             that will not open is a control offering something it cannot do: the polar
+             selector on a QuadCast is a mechanical dial, and putting a dead combo box
+             beside it invites a click that can never work. *@
+          case ChoiceCapabilityViewModel { Descriptor.Access: CapabilityAccess.Read } reading:
+            <div class="value">@(reading.Selected?.Label ?? "—")</div>
+            break;
+
           case ChoiceCapabilityViewModel choice:
             <Dropdown Items="@([.. choice.Options.Select(o => o.Label)])"
                       Disabled="@(!choice.CanEdit)"

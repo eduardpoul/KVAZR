@@ -38,6 +38,13 @@ public sealed class CapabilitySectionViewModel : IDisposable
     public DeviceClass Owner { get; }
 
     /// <summary>
+    /// A heading given by the driver instead of the domain's own. Set for rows that exist
+    /// only because a device was recognised, so they read as belonging to it rather than
+    /// as part of what Windows supplies.
+    /// </summary>
+    public string? Label { get; init; }
+
+    /// <summary>
     /// The panel switch, on the one section that offers it. Null everywhere else, and the
     /// page simply draws nothing.
     /// </summary>
@@ -45,7 +52,7 @@ public sealed class CapabilitySectionViewModel : IDisposable
 
     public ObservableCollection<CapabilityViewModel> Items { get; }
 
-    public string Title => TitleOf(Domain, Owner);
+    public string Title => Label is { Length: > 0 } named ? named : TitleOf(Domain, Owner);
 
     /// <summary>
     /// The label above the section's card. Upper case because the artboard has it that

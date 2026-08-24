@@ -154,6 +154,21 @@ public sealed record Capability
     /// </summary>
     public bool IsReversible { get; init; } = true;
 
+    /// <summary>
+    /// A heading of this row's own, when the domain is not where it belongs on screen.
+    ///
+    /// Sections are domains, which is right nearly always: a volume and a mute are both
+    /// sound whoever supplies them. What it does not fit is a row that only exists
+    /// because a particular device was recognised — a polar selector, a lighting mode —
+    /// which shares a domain with the baseline rows and would otherwise be filed among
+    /// them as though Windows had known about it all along.
+    ///
+    /// The label is the driver's to choose and it is drawn as given. Nothing here says
+    /// which tier a row came from, because that is a fact about this application's
+    /// insides and not about the user's microphone.
+    /// </summary>
+    public string? Section { get; init; }
+
     public RequirementKind Requirement { get; init; } = RequirementKind.None;
 
     /// <summary>
