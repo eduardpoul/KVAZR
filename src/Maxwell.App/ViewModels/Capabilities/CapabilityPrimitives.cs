@@ -38,7 +38,23 @@ public sealed partial class ToggleCapabilityViewModel : CapabilityViewModel
     [ObservableProperty]
     public partial bool IsOn { get; set; }
 
-    protected override void OnStateApplied(CapabilityState state) => IsOn = state.Value.AsFlag();
+    /// <summary>
+    /// A reading that arrives while our own write is still travelling is older than the
+    /// hand on the control — the same rule the slider follows, and it was missing here.
+    ///
+    /// It matters more on a switch than on a slider, because the session publishes the
+    /// value from before the write the instant the write begins, and it does so on this
+    /// very thread. The option therefore flipped back to the old one inside the same
+    /// dispatcher turn that set the new one, before the page had drawn either — so the
+    /// control did not move at all until the headset answered. Measured on the noise
+    /// reduction: clicked at 0 ms, moved at 810 ms.
+    /// </summary>
+    protected override void OnStateApplied(CapabilityState state)
+    {
+        if (WriteInFlight) return;
+
+        IsOn = state.Value.AsFlag();
+    }
 
     partial void OnIsOnChanged(bool value) => WriteNow(CapabilityValue.Of(value));
 }
@@ -238,7 +254,13 @@ public sealed partial class ChoiceCapabilityViewModel : CapabilityViewModel
     [ObservableProperty]
     public partial CapabilityChoice? Selected { get; set; }
 
-    protected override void OnStateApplied(CapabilityState state) => Selected = Find(state);
+    /// <inheritdoc cref="ToggleCapabilityViewModel.OnStateApplied"/>
+    protected override void OnStateApplied(CapabilityState state)
+    {
+        if (WriteInFlight) return;
+
+        Selected = Find(state);
+    }
 
     partial void OnSelectedChanged(CapabilityChoice? value)
     {

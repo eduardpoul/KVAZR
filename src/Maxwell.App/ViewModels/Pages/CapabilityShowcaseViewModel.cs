@@ -15,7 +15,7 @@ public sealed record ShowcaseRow(string Title, string Subtitle, IReadOnlyList<Ca
 /// </summary>
 public sealed class CapabilityShowcaseViewModel
 {
-    private const string CableHint = "Настройка доступна по кабелю";
+    private const string SilentHint = "Гарнитура не отвечает — включите её";
 
     public static IReadOnlyList<string> StateNames { get; } =
     [
@@ -116,7 +116,7 @@ public sealed class CapabilityShowcaseViewModel
         Domain = CapabilityDomain.Microphone,
         Primitive = CapabilityPrimitive.Toggle,
         Title = "Сайдтон",
-        RequirementHint = CableHint,
+        RequirementHint = SilentHint,
     };
 
     private static Capability Range => new()
@@ -126,7 +126,7 @@ public sealed class CapabilityShowcaseViewModel
         Primitive = CapabilityPrimitive.Range,
         Title = "ChatMix",
         Range = new CapabilityRange { Min = 0, Max = 20, Detents = [0, 10, 20] },
-        RequirementHint = CableHint,
+        RequirementHint = SilentHint,
     };
 
     private static Capability Choice => new()
@@ -136,7 +136,7 @@ public sealed class CapabilityShowcaseViewModel
         Primitive = CapabilityPrimitive.Choice,
         Title = "Шумоподавление",
         Choices = [new(0, "Выключено"), new(1, "Низкое"), new(2, "Высокое")],
-        RequirementHint = CableHint,
+        RequirementHint = SilentHint,
     };
 
     private static Capability Action => new()
@@ -146,7 +146,7 @@ public sealed class CapabilityShowcaseViewModel
         Primitive = CapabilityPrimitive.Action,
         Title = "Сброс",
         Access = CapabilityAccess.Write,
-        RequirementHint = CableHint,
+        RequirementHint = SilentHint,
     };
 
     // ---------- the seven composites ----------
@@ -164,7 +164,7 @@ public sealed class CapabilityShowcaseViewModel
         Title = "Разрешение по осям",
         Range = new CapabilityRange { Min = 200, Max = 8000, Step = 50, Unit = "DPI" },
         Members = [new(0, "По X"), new(1, "По Y")],
-        RequirementHint = CableHint,
+        RequirementHint = SilentHint,
     };
 
     private static CapabilityValue GroupedValue => CapabilityValue.Numbers(1600, 1200);
@@ -181,7 +181,7 @@ public sealed class CapabilityShowcaseViewModel
             new(0, "32 Гц"), new(1, "64 Гц"), new(2, "125 Гц"), new(3, "250 Гц"), new(4, "500 Гц"),
             new(5, "1 кГц"), new(6, "2 кГц"), new(7, "4 кГц"), new(8, "8 кГц"), new(9, "16 кГц"),
         ],
-        RequirementHint = CableHint,
+        RequirementHint = SilentHint,
     };
 
     private static CapabilityValue CurveValue => CapabilityValue.Numbers(5, 3, 0, -2, -3, -1, 2, 4, 3, 1);
@@ -206,7 +206,7 @@ public sealed class CapabilityShowcaseViewModel
             new(3, "Ступень DPI"),
             new(4, "Смена профиля"),
         ],
-        RequirementHint = CableHint,
+        RequirementHint = SilentHint,
     };
 
     private static CapabilityValue ButtonsValue => CapabilityValue.Vector(
@@ -231,7 +231,7 @@ public sealed class CapabilityShowcaseViewModel
         GridColumns = 6,
         Members = [.. ShowcaseBase.Select((legend, i) => new CapabilityMember(i, legend))],
         Choices = [new(0, "—"), new(1, "Esc"), new(2, "Fn"), new(3, "Ctrl"), new(4, "⇧")],
-        RequirementHint = CableHint,
+        RequirementHint = SilentHint,
     };
 
     private static CapabilityValue KeysValue => CapabilityValue.Vector(
@@ -250,7 +250,7 @@ public sealed class CapabilityShowcaseViewModel
         Primitive = CapabilityPrimitive.Lighting,
         Title = "Цвет зон",
         Members = [new(0, "Логотип"), new(1, "Колесо")],
-        RequirementHint = CableHint,
+        RequirementHint = SilentHint,
     };
 
     private static CapabilityValue LightValue => CapabilityValue.Numbers(0x2C6FD1, 0x7B4EC4);
@@ -267,7 +267,7 @@ public sealed class CapabilityShowcaseViewModel
             new(1, "Onboard 2 · Работа") { Hint = "1600 DPI · 500 Гц" },
             new(2, "Onboard 3") { Hint = "Слот пуст", IsEmpty = true },
         ],
-        RequirementHint = CableHint,
+        RequirementHint = SilentHint,
     };
 
     private static Capability Hosts => new()
@@ -282,7 +282,7 @@ public sealed class CapabilityShowcaseViewModel
             new(1, "Хост 2 · Bluetooth") { Hint = "Этот компьютер" },
             new(2, "Хост 3 · свободен") { Hint = "Удерживайте кнопку 3 секунды", IsEmpty = true },
         ],
-        RequirementHint = CableHint,
+        RequirementHint = SilentHint,
     };
 }
 

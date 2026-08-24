@@ -31,6 +31,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     private readonly IConfirmationPrompt _confirm;
     private readonly HiddenDevices _hidden;
     private readonly PrimaryDevice _primary;
+    private readonly CurvePresetLibrary _presets;
     private readonly Dictionary<string, DevicePageViewModel> _pages = new(StringComparer.Ordinal);
 
     private bool _disposed;
@@ -45,7 +46,8 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         SettingsViewModel settings,
         HotkeysViewModel hotkeys,
         AboutViewModel about,
-        FirstSweep sweep)
+        FirstSweep sweep,
+        CurvePresetLibrary presets)
     {
         ArgumentNullException.ThrowIfNull(registry);
         ArgumentNullException.ThrowIfNull(polling);
@@ -57,12 +59,14 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         ArgumentNullException.ThrowIfNull(hotkeys);
         ArgumentNullException.ThrowIfNull(about);
         ArgumentNullException.ThrowIfNull(sweep);
+        ArgumentNullException.ThrowIfNull(presets);
 
         _registry = registry;
         _polling = polling;
         _confirm = confirm;
         _hidden = hidden;
         _primary = primary;
+        _presets = presets;
 
         AppSections =
         [
@@ -396,7 +400,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
 
         if (_registry.Session(deviceKey) is not { } session) return null;
 
-        page = new DevicePageViewModel(session, _polling, _confirm);
+        page = new DevicePageViewModel(session, _polling, _confirm, _presets);
         _pages[deviceKey] = page;
         return page;
     }

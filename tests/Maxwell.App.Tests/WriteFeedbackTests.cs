@@ -18,6 +18,43 @@ namespace Maxwell.App.Tests;
 public sealed class WriteFeedbackTests
 {
     [Fact]
+    public void ASwitchShowsWhatWasPickedRatherThanWhatTheDeviceStillReports()
+    {
+        Bind();
+
+        var session = new Recorder();
+        var vm = (ChoiceCapabilityViewModel)CapabilityViewModelFactory.Create(
+            Presets(0, "Выключено", "Низкое", "Высокое"), session);
+        Pump();
+
+        vm.Selected = vm.Options[1];
+
+        // What the session publishes the instant the write starts, on this very thread:
+        // still the option from before.
+        vm.Apply(Presets(0, "Выключено", "Низкое", "Высокое") with { IsWriting = true });
+        Pump();
+
+        Assert.Equal("Низкое", vm.Selected!.Label);
+    }
+
+    [Fact]
+    public void AToggleShowsWhatWasPickedRatherThanWhatTheDeviceStillReports()
+    {
+        Bind();
+
+        var session = new Recorder();
+        var vm = (ToggleCapabilityViewModel)CapabilityViewModelFactory.Create(Toggle(false), session);
+        Pump();
+
+        vm.IsOn = true;
+
+        vm.Apply(Toggle(false) with { IsWriting = true });
+        Pump();
+
+        Assert.True(vm.IsOn);
+    }
+
+    [Fact]
     public void AnOrdinaryWriteIsNotWorthAnnouncing()
     {
         Bind();

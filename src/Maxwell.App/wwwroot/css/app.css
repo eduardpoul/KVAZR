@@ -6,6 +6,14 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* None of this is prose to be taken away.
+   It is a control surface, and a drag that starts a millimetre off a slider used to sweep
+   the row into a blue highlight and then drag that instead of the control — visible as
+   the equaliser refusing to move under a finger that had strayed. Fields are the
+   exception: one you cannot select is one you cannot correct. */
+* { user-select: none; -webkit-user-select: none; }
+input, textarea { user-select: text; -webkit-user-select: text; }
+
 html, body, #app, .page { height: 100%; }
 
 body {
@@ -496,12 +504,51 @@ input[type="range"]::-webkit-slider-thumb {
 
 .curve-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .curve-reading { font-size: 12px; color: var(--text-secondary); }
-.curve-band { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-primary); }
-.curve-band-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-hover); flex: none; }
 
 /* The header's right-hand group: the slot picker, and whichever of save or delete the
    current state calls for. Pushed away from the title so the two never crowd. */
 .curve-tools { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+
+/* The dialog the "Сохранить пресет" artboard draws: a scrim over everything, a card in
+   the middle of it, and the two buttons bottom right with the affirmative one last. */
+.scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, 0.45); }
+
+.dialog {
+  position: fixed; z-index: 41;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: min(430px, calc(100vw - 48px));
+  padding: 24px;
+  display: flex; flex-direction: column; gap: 10px;
+  background: var(--layer-card);
+  border: 1px solid var(--stroke-subtle);
+  border-radius: 8px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+.dialog h2 { margin: 0; font-size: 20px; font-weight: 600; color: var(--text-primary); }
+.dialog p { margin: 0 0 6px; font-size: 13px; line-height: 1.45; color: var(--text-secondary); }
+.dialog label { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+
+.dialog input {
+  height: 32px; padding: 0 10px;
+  font: inherit; font-size: 13px;
+  color: var(--text-primary);
+  background: var(--surface-raised);
+  border: 1px solid var(--stroke-default);
+  border-bottom-width: 1px;
+  border-radius: 4px;
+}
+
+/* Fluent puts the focus on the bottom edge rather than round the whole box. */
+.dialog input:focus { outline: none; border-bottom: 2px solid var(--accent-primary); }
+.dialog input::placeholder { color: var(--text-tertiary); }
+
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+
+/* A save with nothing to save it under. Greyed rather than hidden, so the shape of the
+   dialog does not change under the hand that is still typing. */
+button.accent:disabled { background: var(--track-empty); color: var(--text-tertiary); cursor: default; }
+button.accent:disabled:hover { background: var(--track-empty); }
 
 /* Icon-only on purpose. Captions on these two cost more width than the plot can spare,
    and both actions are ones you reach for knowing what you want. */
@@ -564,45 +611,65 @@ input[type="range"]::-webkit-slider-thumb {
    centred so the ten stay together instead of drifting apart. */
 .band { flex: 1 1 0; max-width: 48px; height: 100%; position: relative; cursor: ns-resize; touch-action: none; }
 
-/* A drag is a drag, not a text selection. Without this, pulling a band downwards sweeps
-   the decibel captions and the frequency row into a highlight, and the pointer ends up
-   dragging that instead of the curve. */
-.plot, .plot-frame, .curve-head { user-select: none; -webkit-user-select: none; }
-.band:hover { background: var(--accent-subtle); }
+/* The rail each band sits on, drawn full height behind everything else.
+   An equaliser is ten sliders stood on end, and the artboard draws it that way. Built as
+   a filled column instead, it read as the other thing entirely — a bar chart, ten
+   quantities to compare against one another — when what it shows is ten controls each
+   parked somewhere on its own travel. Same 4px track and 18px knob as the horizontal
+   sliders on this page, so the two are recognisably one control turned on its side. */
+.band::before {
+  content: "";
+  position: absolute; top: 0; bottom: 0; left: 50%;
+  width: 4px; margin-left: -2px;
+  border-radius: 2px;
+  background: var(--track-empty);
+  pointer-events: none;
+}
+
+/* The hit area is the whole column and has to say so, but tinting all 48px of it put the
+   wide bar back on the screen the moment the pointer crossed it. The rail answers
+   instead. */
+.band:hover::before { background: var(--stroke-strong); }
 
 .band-bar {
-  position: absolute; left: 50%; margin-left: -13px;
-  width: 26px; min-height: 2px;
-  border-radius: 4px 4px 0 0;
+  position: absolute; left: 50%; margin-left: -2px;
+  width: 4px; min-height: 0;
+  border-radius: 2px;
   background: var(--accent-primary);
   pointer-events: none;
 }
 
-/* A band sitting exactly on the zero line is a hairline, not a bar: "unchanged" has to
-   look like nothing at all. */
-.band-bar.flat { height: 2px !important; margin-bottom: -1px; border-radius: 1px; background: var(--accent-border); }
+/* A band sitting exactly on the zero line shows nothing at all. "Unchanged" has to look
+   like nothing, and with a rail behind it the knob alone already says where it sits. */
+.band-bar.flat { height: 0 !important; }
 
 .band-knob {
-  position: absolute; left: 50%; margin-left: -7px;
-  width: 14px; height: 14px;
+  position: absolute; left: 50%; margin-left: -9px;
+  width: 18px; height: 18px;
   border-radius: 50%;
-  background: var(--layer-card);
-  border: 2px solid var(--accent-primary);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
+  background: #FFFFFF;
+  background-image: radial-gradient(circle, var(--accent-primary) 0 4px, transparent 4.5px);
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
   pointer-events: none;
 }
 
-.band-value {
-  position: absolute; left: 0; right: 0; top: 2px;
+/* The row of readings above the plot, and the row of frequencies below it, are the same
+   ten columns as the bands — same width, same ceiling, same centring — so a caption sits
+   over its own rail however wide the card gets. */
+.plot-values { flex: 1; min-width: 0; display: flex; justify-content: center; padding: 0 6px; }
+
+.plot-values .band-value {
+  flex: 1 1 0; max-width: 48px;
   text-align: center;
   font-size: 10px; font-weight: 600;
   color: var(--text-tertiary);
-  pointer-events: none;
 }
 
+.plot-values .band-value.sel { color: var(--accent-hover); }
+
 .band.sel .band-bar { background: var(--accent-hover); }
-.band.sel .band-knob { border-color: var(--accent-hover); box-shadow: 0 0 0 4px var(--accent-subtle); }
-.band.sel .band-value { color: var(--accent-hover); }
+.band.sel .band-knob { box-shadow: 0 0 0 5px var(--accent-subtle); }
 
 .plot-labels { flex: 1; min-width: 0; display: flex; justify-content: center; padding: 0 6px; }
 .plot-labels span { flex: 1 1 0; max-width: 48px; text-align: center; font-size: 10px; color: var(--text-tertiary); }
@@ -853,35 +920,6 @@ button.gesture.recording { border-color: var(--accent-primary); outline: 1px sol
   flex: none;
 }
 
-/* the collapsed sensitive section */
-details.adv summary {
-  cursor: pointer;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  font-size: var(--page-row-title-size);
-  background: var(--layer-card);
-  border: 1px solid var(--stroke-subtle);
-  border-radius: 8px;
-  padding: 10px 16px;
-  list-style: none;
-}
-
-/* A drawn chevron. The text glyphs (⌄ ⌃) sit on the font's own baseline and looked
-   broken next to everything else this page draws itself. */
-details.adv summary::after {
-  content: "";
-  margin-left: auto;
-  width: 8px; height: 8px;
-  border-right: 1.5px solid var(--text-tertiary);
-  border-bottom: 1.5px solid var(--text-tertiary);
-  transform: rotate(45deg) translateY(-2px);
-  transition: transform 0.12s ease;
-}
-
-details.adv[open] summary { border-radius: 8px 8px 0 0; }
-details.adv[open] summary::after { transform: rotate(225deg) translateY(-2px); }
-details.adv .card { border-radius: 0 0 8px 8px; border-top: none; }
 
 /* ==================================================================================== */
 /* Turn 14/15: the class page and the extended page.                                    */

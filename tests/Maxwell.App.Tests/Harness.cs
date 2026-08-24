@@ -1,6 +1,7 @@
 using System.Reflection;
 using Avalonia.Threading;
 using Maxwell.Core.Devices;
+using Maxwell.Core.Settings;
 
 namespace Maxwell.App.Tests;
 
@@ -42,6 +43,26 @@ internal static class Harness
         }
     }
 
+    /// <summary>Settings that never reach a disk. Counts the saves, so a test can tell
+    /// "written" from "changed in memory and forgotten".</summary>
+    internal sealed class Store : ISettingsStore
+    {
+        public AppSettings Current { get; } = new();
+
+        public int Saves { get; private set; }
+
+        public event EventHandler<AppSettings>? Changed;
+
+        public Task LoadAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task SaveAsync(CancellationToken cancellationToken = default)
+        {
+            Saves++;
+            Changed?.Invoke(this, Current);
+            return Task.CompletedTask;
+        }
+    }
+
     internal static CapabilityState Curve(params int[] gains) => new()
     {
         Descriptor = new Capability
@@ -55,6 +76,35 @@ internal static class Harness
             Members = [.. Enumerable.Range(0, gains.Length).Select(i => new CapabilityMember(i, $"{i}"))],
         },
         Value = CapabilityValue.Vector([.. gains.Select(CapabilityValue.Of)]),
+    };
+
+    /// <summary>The headset's own preset list, as the equaliser's picker reads it.</summary>
+    internal static CapabilityState Presets(int selected, params string[] names) => new()
+    {
+        Descriptor = new Capability
+        {
+            Id = CapabilityIds.AudioEqPreset,
+            Domain = CapabilityDomain.Audio,
+            Primitive = CapabilityPrimitive.Choice,
+            Access = CapabilityAccess.ReadWrite,
+            Title = "Пресет эквалайзера",
+            Choices = [.. names.Select((name, i) => new CapabilityChoice(i, name))],
+        },
+        Value = CapabilityValue.Choice(selected),
+    };
+
+    /// <summary>A plain on/off, such as the sidetone switch.</summary>
+    internal static CapabilityState Toggle(bool on) => new()
+    {
+        Descriptor = new Capability
+        {
+            Id = CapabilityIds.MicSidetone,
+            Domain = CapabilityDomain.Microphone,
+            Primitive = CapabilityPrimitive.Toggle,
+            Access = CapabilityAccess.ReadWrite,
+            Title = "Сайдтон",
+        },
+        Value = CapabilityValue.Of(on),
     };
 
     internal static CapabilityState Range(int value) => new()

@@ -61,12 +61,15 @@ public sealed class CapabilitySectionViewModel : IDisposable
                 .Select(i => i.Descriptor.RequirementHint)
                 .FirstOrDefault(r => !string.IsNullOrEmpty(r)) ?? string.Empty;
 
-    /// <summary>
-    /// True when the section holds something buried on purpose — a factory reset, a
-    /// re-pairing. Such a section is collapsed behind an expander, because the design
-    /// asks for these to be dug for rather than stumbled into.
-    /// </summary>
-    public bool IsSensitive => Items.Any(i => i.Descriptor.Risk == CapabilityRisk.Hidden);
+    // No "is this section sensitive" any more.
+    //
+    // It was true when the section held a factory reset or a re-pairing, and it collapsed
+    // the whole section behind an expander so those would be dug for rather than stumbled
+    // into. What it actually buried was the auto-off timer and the firmware version, which
+    // shared a section with the reset and are not dangerous at all — and it took the
+    // section's heading with them, so the block did not look like the others on the page.
+    // The row that is dangerous still says so and still asks before it acts, which is
+    // where that protection belongs.
 
     /// <summary>
     /// The section names the design uses. Kept here rather than on the enum so the core

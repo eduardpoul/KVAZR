@@ -44,10 +44,19 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
     ];
 
     /// <summary>
-    /// Three at most, and the ceiling is the panel's width rather than an opinion: at
-    /// 360 px a fourth slider pushes the row that opened it past the height that fits.
+    /// What an opened row may spend, in lines.
+    ///
+    /// Counting controls was the rule before, and it stopped at three because three
+    /// sliders is what fits in a 360-pixel panel. But a slider is two lines — its caption
+    /// and the track under it — while a dropdown or a segmented switch is one, and
+    /// refusing those on the same count left the panel with room it would not use. Six
+    /// lines is the same height, spent on whatever the device actually offers.
     /// </summary>
-    private const int QuickCount = 3;
+    private const int QuickLines = 6;
+
+    /// <summary>Two lines for a control with a track under it, one for everything else.</summary>
+    private static int LinesFor(CapabilityPrimitive primitive) =>
+        primitive is CapabilityPrimitive.Range or CapabilityPrimitive.RangeGroup ? 2 : 1;
 
     private readonly IDeviceRegistry _registry;
     private bool _disposed;
@@ -144,19 +153,24 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
         DeviceSnapshot snapshot = Device.Snapshot;
         IDeviceSession? session = _registry.Session(Key);
 
+        int lines = 0;
+
         foreach (string id in QuickOrder)
         {
-            if (Quick.Count == QuickCount) break;
-
             // Read-only capabilities are already on the row or on the page. A control
             // that cannot be moved earns nothing here and costs a line.
             if (snapshot.Get(id) is not { Descriptor.Access: not CapabilityAccess.Read } state) continue;
 
-            // Out of reach over this link. A Maxwell on its dongle carries its whole audio
-            // section and not one control in it can be moved without a cable — and a
-            // control that cannot be drawn leaves its name standing alone, which is what
-            // made an opened row read as a column of dead labels. The panel shows what the
-            // device gives; the reason goes in the sentence underneath instead.
+            if (lines + LinesFor(state.Descriptor.Primitive) > QuickLines) break;
+
+            // Out of reach. A control that cannot be drawn leaves its name standing
+            // alone, which is what made an opened row read as a column of dead labels;
+            // the panel shows what the device gives, and the reason goes in the sentence
+            // underneath instead.
+            //
+            // This comment used to say a Maxwell on its dongle could not move one control
+            // in its audio section without a cable. That was never measured and is not
+            // true — the same sub-commands answer over both leads.
             if (!state.IsAvailable)
             {
                 _blocked ??= state.Descriptor.RequirementHint;
@@ -164,6 +178,7 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
             }
 
             Quick.Add(CapabilityViewModelFactory.Create(state, session, HintDetail.Terse));
+            lines += LinesFor(state.Descriptor.Primitive);
         }
 
         OnPropertyChanged(nameof(HasNothing));

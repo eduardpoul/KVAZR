@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Maxwell.App.Infrastructure;
 using Maxwell.App.ViewModels.Capabilities;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -23,6 +24,12 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     private readonly IDeviceSession _session;
     private readonly IPollingCoordinator? _polling;
     private readonly IConfirmationPrompt? _confirm;
+
+    /// <summary>
+    /// The wearer's saved equaliser curves, or null where nothing has any — the design
+    /// previews and the tests, which build a page with no application around it.
+    /// </summary>
+    private readonly CurvePresetLibrary? _presets;
     private readonly Dictionary<string, CapabilityViewModel> _byId = new(StringComparer.Ordinal);
 
     /// <summary>
@@ -41,13 +48,15 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     public DevicePageViewModel(
         IDeviceSession session,
         IPollingCoordinator? polling = null,
-        IConfirmationPrompt? confirm = null)
+        IConfirmationPrompt? confirm = null,
+        CurvePresetLibrary? presets = null)
     {
         ArgumentNullException.ThrowIfNull(session);
 
         _session = session;
         _polling = polling;
         _confirm = confirm;
+        _presets = presets;
 
         Snapshot = session.Snapshot;
         Rebuild(session.Snapshot);
@@ -411,6 +420,10 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
                 // already answered.
                 if (DrawnInHero.Contains(state.Id)) continue;
 
+                // Read, kept, and not drawn. It exists to give another control its
+                // bounds, and the snapshot still carries it for that.
+                if (state.Descriptor.IsSupporting) continue;
+
                 CapabilityViewModel vm = CapabilityViewModelFactory.Create(
                     state, _session, HintDetail.Normal, _confirm);
                 byId[state.Id] = vm;
@@ -425,10 +438,15 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
             if (items.Count > 0) built.Add(new CapabilitySectionViewModel(domain, items));
         }
 
-        if (byId.GetValueOrDefault(CapabilityIds.AudioEqGraphic) is CurveCapabilityViewModel curve
-            && byId.GetValueOrDefault(CapabilityIds.AudioEqPreset) is ChoiceCapabilityViewModel slots)
+        if (byId.GetValueOrDefault(CapabilityIds.AudioEqGraphic) is CurveCapabilityViewModel curve)
         {
-            curve.Slots = slots;
+            if (byId.GetValueOrDefault(CapabilityIds.AudioEqPreset) is ChoiceCapabilityViewModel slots)
+            {
+                curve.Slots = slots;
+            }
+
+            // After the slots, so the picker is built once with both halves in it.
+            curve.Library = _presets;
         }
 
         foreach (CapabilitySectionViewModel section in Sections) section.Dispose();

@@ -146,10 +146,6 @@
                 {
                   <span class="badge warn">не сохранено</span>
                 }
-                @if (curve.HasCurve && !string.IsNullOrEmpty(curve.SelectedSummary))
-                {
-                  <span class="curve-band"><span class="curve-band-dot"></span>@curve.SelectedSummary</span>
-                }
                 <span class="curve-tools">
                   @if (curve.IsDirty)
                   {
@@ -161,40 +157,78 @@
                       </svg>
                     </button>
                   }
-                  @if (curve.IsDirty)
+                  @if (curve.CanSave)
                   {
                     @* Filled rather than stroked. The outlined version drew nothing here
                        and no amount of reading the stylesheet explained it; a solid shape
                        needs neither a stroke width nor a fill rule to survive whatever was
                        eating it. *@
-                    <button class="icon-btn accent" disabled="@(!curve.CanEdit)" title="Сохранить пресет">
+                    <button class="icon-btn accent" title="Сохранить пресет"
+                            @onclick="() => OnUi(() => curve.BeginSaveCommand.Execute(null))">
                       <svg class="solid" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
                         <path d="M2 2h8.2L14 5.8V14H2V2zm3 .8v3.4h4.2V2.8H5zm-.4 10.4V9.4h6.8v3.8H4.6z"/>
                       </svg>
                     </button>
                   }
-                  else if (curve.CanDelete)
+                  @if (curve.CanDelete)
                   {
-                    <button class="icon-btn danger" title="Удалить пресет">
+                    <button class="icon-btn danger" title="Удалить пресет"
+                            @onclick="() => OnUi(() => curve.DeletePresetCommand.Execute(null))">
                       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 4.5h10M6.5 4.5v-2h3v2M4.5 4.5l.7 9a1 1 0 0 0 1 .9h3.6a1 1 0 0 0 1-.9l.7-9"/>
                       </svg>
                     </button>
                   }
-                  @if (curve.Slots is { } picker)
+                  @if (curve.Presets.Count > 0)
                   {
                     @* The application's own dropdown, not a native select: the operating
                        system draws that one and will not take the page's palette, so its
                        list came out grey on grey and read as disabled. *@
-                    <Dropdown Items="@([.. picker.Options.Select(SlotLabel)])"
-                              Disabled="@(!picker.CanEdit)"
-                              SelectedIndex="@(picker.Selected is { } slot ? IndexIn(picker.Options, slot) : -1)"
-                              SelectedIndexChanged="i => OnUi(() => picker.Selected = picker.Options.ElementAtOrDefault(i))" />
+                    <Dropdown Items="@([.. curve.Presets.Select(PresetLabel)])"
+                              Disabled="@(!curve.CanEdit)"
+                              SelectedIndex="@curve.SelectedPresetIndex"
+                              SelectedIndexChanged="i => OnUi(() => curve.ChoosePresetCommand.Execute(i))" />
                   }
                 </span>
               </div>
+              @if (curve.IsNaming)
+              {
+                @* Artboard "Сохранить пресет": a dialog over the window, with a title, a
+                   sentence saying where the curve goes, one labelled field and the two
+                   buttons bottom right. It was a row inside the card first, which is not
+                   what the artboard draws and not what the reader expects of a name they
+                   are being asked for. *@
+                <div class="scrim" @onclick="() => OnUi(() => curve.CancelSaveCommand.Execute(null))"></div>
+                <div class="dialog" role="dialog" aria-modal="true">
+                  <h2>Сохранить пресет</h2>
+                  <p>Настройки десяти полос сохранятся в этом приложении под выбранным именем.</p>
+                  <label for="preset-name">Имя пресета</label>
+                  <input id="preset-name" @ref="_nameField" placeholder="Например, Ночной"
+                         value="@curve.PendingName"
+                         @oninput="e => { var c = curve; OnUi(() => c.PendingName = e.Value?.ToString() ?? string.Empty); }"
+                         @onkeydown="e => { var c = curve; OnUi(() => NameKey(c, e)); }" />
+                  <div class="dialog-actions">
+                    <button class="outline"
+                            @onclick="() => OnUi(() => curve.CancelSaveCommand.Execute(null))">Отмена</button>
+                    <button class="accent" disabled="@(string.IsNullOrWhiteSpace(curve.PendingName))"
+                            @onclick="() => OnUi(() => curve.ConfirmSaveCommand.Execute(null))">Сохранить</button>
+                  </div>
+                </div>
+              }
               @if (curve.HasCurve)
               {
+                @* The readings go above the frame, as the artboard has them, and not inside
+                   it. Printed over the plot they landed on top of the rails the moment the
+                   rails became full height — a caption with a track running through it. *@
+                <div class="plot-frame values">
+                  <div class="plot-axis"></div>
+                  <div class="plot-values">
+                    @for (int i = 0; i < curve.Values.Count; i++)
+                    {
+                      <span class="band-value @(curve.SelectedBand == i ? "sel" : "")">@curve.BandText(i)</span>
+                    }
+                  </div>
+                </div>
                 <div class="plot-frame">
                   <div class="plot-axis">
                     @foreach (string tick in curve.AxisTicks)
@@ -216,10 +250,9 @@
                       <div class="band @(active ? "sel" : "")"
                            @onpointerdown="e => Move(curve, band, e)"
                            @onpointermove="e => { if (e.Buttons == 1) Move(curve, band, e); }">
-                        <span class="band-value">@curve.BandText(band)</span>
                         <span class="band-bar @(Math.Abs(point - zero) < 0.005 ? "flat" : "")"
                               style="bottom:@Pct(Math.Min(point, zero));height:@Pct(Math.Abs(point - zero))"></span>
-                        <span class="band-knob" style="bottom:calc(@Pct(point) - 7px)"></span>
+                        <span class="band-knob" style="bottom:calc(@Pct(point) - 9px)"></span>
                       </div>
                     }
                   </div>
@@ -366,8 +399,47 @@
   /// beside six the headset ships with, they are edited and deleted quite differently,
   /// and the numbers alone do not say which is which.
   /// </summary>
-  private static string SlotLabel(CapabilityChoice option) =>
-      $"{option.Label}  ·  {(option.Hint is null ? "default" : "user")}";
+  private ElementReference _nameField;
+  private bool _focusedName;
+
+  /// <summary>
+  /// Puts the caret in the name field as the dialog opens.
+  ///
+  /// Not the autofocus attribute: the browser honours that for elements present when the
+  /// document loads, and this one is inserted long afterwards. A dialog whose only field
+  /// has to be clicked before it can be typed into is a dialog that has wasted the click
+  /// that opened it.
+  /// </summary>
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    bool naming = Vm is CurveCapabilityViewModel { IsNaming: true };
+
+    if (!naming) { _focusedName = false; return; }
+    if (_focusedName) return;
+
+    _focusedName = true;
+    await _nameField.FocusAsync();
+  }
+
+  /// <summary>
+  /// Enter saves, Escape gives up. A method rather than a lambda in the attribute: a
+  /// razor attribute is delimited by double quotes and the key names are strings, and
+  /// those two facts cannot both hold on one line.
+  /// </summary>
+  private static void NameKey(CurveCapabilityViewModel curve, KeyboardEventArgs e)
+  {
+    if (e.Key == "Enter") curve.ConfirmSaveCommand.Execute(null);
+    else if (e.Key == "Escape") curve.CancelSaveCommand.Execute(null);
+  }
+
+  /// <summary>
+  /// Where the curve came from, said in the row rather than in a separate list. "Audeze"
+  /// is one the headset ships with; "мой" is one saved here, and the distinction matters
+  /// because only the second can be deleted and only the first survives this application
+  /// being uninstalled.
+  /// </summary>
+  private static string PresetLabel(CurvePresetOption option) =>
+      $"{option.Label}  ·  {(option.IsSaved ? "мой" : "Audeze")}";
 
 
   [Parameter, EditorRequired] public CapabilityViewModel Vm { get; set; } = default!;

@@ -1,7 +1,9 @@
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Maxwell.App.Infrastructure;
 using Maxwell.Core.Devices;
+using Maxwell.Core.Settings;
 
 namespace Maxwell.App.ViewModels.Capabilities;
 
@@ -280,6 +282,8 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
             if (_slots is not null) _slots.PropertyChanged -= OnSlotChanged;
             _slots = value;
             if (_slots is not null) _slots.PropertyChanged += OnSlotChanged;
+
+            RebuildPresets();
         }
     }
 
@@ -297,6 +301,13 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
 
         IsEditing = false;
         IsDirty = false;
+
+        // A preset picked on the headset decides the shape from here, so whichever saved
+        // curve was loaded is no longer what is playing and the picker must stop saying
+        // it is.
+        _savedName = null;
+        OnPropertyChanged(nameof(SelectedPresetIndex));
+        OnPropertyChanged(nameof(CanDelete));
 
         try
         {
@@ -346,11 +357,283 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
         WriteAll([.. _values.Select(CapabilityValue.Of)]);
     }
 
+    // ---------- the wearer's own curves ----------
+
     /// <summary>
-    /// True when the selected slot holds a curve the wearer put there, which is the only
-    /// kind that can be thrown away. The six the headset ships with have no delete.
+    /// The curves the wearer has saved. Handed over by the page rather than resolved
+    /// here, for the same reason <see cref="Slots"/> is: a view model that reaches into
+    /// application services is a view model that cannot be built in a test.
     /// </summary>
-    public bool CanDelete => Slots?.Selected?.Hint is not null;
+    public CurvePresetLibrary? Library
+    {
+        get => _library;
+        set
+        {
+            if (ReferenceEquals(_library, value)) return;
+
+            if (_library is not null) _library.Changed -= OnLibraryChanged;
+            _library = value;
+            if (_library is not null) _library.Changed += OnLibraryChanged;
+
+            RebuildPresets();
+        }
+    }
+
+    private CurvePresetLibrary? _library;
+
+    /// <summary>The saved curve the plot is showing, or null when none is.</summary>
+    private string? _savedName;
+
+    /// <summary>
+    /// What the headset preset underneath holds, kept from before a saved curve took over
+    /// as the baseline. Deleting the saved curve has to be able to get back to it, and by
+    /// then the ordinary baseline is the curve being deleted.
+    /// </summary>
+    private int[] _presetBaseline = [];
+
+    private void OnLibraryChanged(object? sender, EventArgs e) => RebuildPresets();
+
+    /// <summary>
+    /// One list for the picker: what the headset ships with, then what the wearer has
+    /// saved. Two dropdowns side by side was the alternative and it is worse — a person
+    /// choosing a sound does not care which side of the USB cable it is kept on, and
+    /// making them pick a list before they pick a curve is asking them to know.
+    /// </summary>
+    [ObservableProperty]
+    public partial IReadOnlyList<CurvePresetOption> Presets { get; private set; } = [];
+
+    /// <summary>Which row of <see cref="Presets"/> is showing, or -1 for none of them.</summary>
+    public int SelectedPresetIndex
+    {
+        get
+        {
+            for (int i = 0; i < Presets.Count; i++)
+            {
+                CurvePresetOption option = Presets[i];
+
+                if (_savedName is { } saved)
+                {
+                    if (option.IsSaved && string.Equals(option.Label, saved, StringComparison.Ordinal)) return i;
+                    continue;
+                }
+
+                if (Slots?.Selected is { } device && ReferenceEquals(option.Device, device)) return i;
+            }
+
+            return -1;
+        }
+    }
+
+    /// <summary>
+    /// True when there is a curve to save and somewhere to put it. The button also needs
+    /// <see cref="IsDirty"/> before it appears.
+    ///
+    /// It was briefly shown whenever there was a curve at all, to get out of a dead end:
+    /// deleting a preset left the headset playing a shape with no name and no edit
+    /// against it, unsaveable until a band was nudged and put back. Deleting now returns
+    /// the curve to the headset's own first preset, so that shape no longer exists — and
+    /// a save button standing lit over an untouched preset is an offer to save nothing.
+    /// </summary>
+    public bool CanSave => HasCurve && IsDirty && Library is not null;
+
+    /// <summary>
+    /// True when a saved curve is showing, which is the only kind that can be thrown
+    /// away. What the headset ships with is not ours to delete.
+    /// </summary>
+    public bool CanDelete => _savedName is not null && Library is not null;
+
+    /// <summary>Set while the name box is up, which is the only thing that draws it.</summary>
+    [ObservableProperty]
+    public partial bool IsNaming { get; private set; }
+
+    /// <summary>What is in the name box. Settable, so the field can be typed into.</summary>
+    [ObservableProperty]
+    public partial string PendingName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Picks a row of the merged list. A headset preset is set on the headset and read
+    /// back; a saved curve is ten bands sent exactly the way a drag sends them, because
+    /// the headset has never heard of it.
+    /// </summary>
+    [RelayCommand]
+    private void ChoosePreset(int index)
+    {
+        if (Presets.ElementAtOrDefault(index) is not { } option) return;
+
+        if (option.Device is { } device)
+        {
+            _savedName = null;
+            if (Slots is { } slots) slots.Selected = device;
+
+            OnPropertyChanged(nameof(SelectedPresetIndex));
+            OnPropertyChanged(nameof(CanDelete));
+            return;
+        }
+
+        ApplySaved(option.Label);
+    }
+
+    private void ApplySaved(string name)
+    {
+        if (Library?.Find(name) is not { } preset || !CanEdit) return;
+        if (preset.Bands.Count != _values.Length) return;
+
+        for (int i = 0; i < _values.Length; i++)
+        {
+            _values[i] = Math.Clamp(preset.Bands[i], _bounds.Min, _bounds.Max);
+        }
+
+        Array.Fill(_known, true);
+
+        // The saved curve is what "unchanged" means from here: revert comes back to it,
+        // and the row must not announce an edit nobody made. What the headset preset held
+        // is put aside first, because that is where deleting this curve has to land.
+        if (_savedName is null) _presetBaseline = [.. _baseline];
+
+        _savedName = preset.Name;
+        _baseline = [.. _values];
+        IsEditing = false;
+
+        Republish(force: true);
+        WriteAll([.. _values.Select(CapabilityValue.Of)]);
+
+        OnPropertyChanged(nameof(SelectedPresetIndex));
+        OnPropertyChanged(nameof(CanDelete));
+    }
+
+    /// <summary>Opens the name box, prefilled with something worth pressing Enter on.</summary>
+    [RelayCommand]
+    private void BeginSave()
+    {
+        if (!CanSave) return;
+
+        PendingName = _savedName ?? SuggestName();
+        IsNaming = true;
+    }
+
+    [RelayCommand]
+    private void CancelSave() => IsNaming = false;
+
+    /// <summary>
+    /// Stores the curve under the typed name. Saving over the name already loaded is
+    /// allowed, and is the ordinary way of editing a preset.
+    /// </summary>
+    [RelayCommand]
+    private void ConfirmSave()
+    {
+        if (Library is not { } library) return;
+
+        string name = PendingName.Trim();
+        if (name.Length == 0) return;
+
+        library.Save(name, [.. _values]);
+
+        if (_savedName is null) _presetBaseline = [.. _baseline];
+
+        _savedName = name;
+        _baseline = [.. _values];
+        IsEditing = false;
+        IsNaming = false;
+
+        Republish(force: true);
+        RebuildPresets();
+    }
+
+    [RelayCommand]
+    private void DeletePreset()
+    {
+        if (Library is not { } library || _savedName is not { } name) return;
+
+        library.Delete(name);
+        _savedName = null;
+
+        // Back to the headset's own first preset.
+        //
+        // Two earlier answers to this were wrong. Leaving the deleted shape playing left
+        // the picker naming a preset while the drivers played a curve that existed nowhere
+        // any more. Falling back to whichever preset the saved curve had been written over
+        // was no better: a saved curve is ten absolute gains, it carries no memory of what
+        // was underneath, and landing on Bass Boost because that happened to be selected
+        // the day it was saved is a preset nobody chose. The first option is the one the
+        // headset ships on, and going there is a decision the wearer can read off the
+        // picker afterwards.
+        if (Slots is { Options.Count: > 0 } slots && !ReferenceEquals(slots.Selected, slots.Options[0]))
+        {
+            // Writes the preset and re-reads the curve, through the same path as picking
+            // it by hand — so the headset genuinely reloads that filter rather than being
+            // handed ten numbers we believe belong to it.
+            slots.Selected = slots.Options[0];
+            RebuildPresets();
+            return;
+        }
+
+        // Already on the first preset, or a curve with no presets at all. Selecting what
+        // is selected writes nothing, so the curve it held goes back the way an edit does.
+        if (_presetBaseline.Length == _values.Length)
+        {
+            Array.Copy(_presetBaseline, _values, _values.Length);
+            Array.Fill(_known, true);
+            _baseline = [.. _values];
+            IsEditing = false;
+
+            Republish(force: true);
+            WriteAll([.. _values.Select(CapabilityValue.Of)]);
+        }
+        else
+        {
+            Republish(force: true);
+        }
+
+        RebuildPresets();
+    }
+
+    /// <summary>
+    /// A name nobody has used yet. Numbered rather than dated, because a person choosing
+    /// between their own presets recognises "Мой пресет 2" and does not recognise a
+    /// timestamp.
+    /// </summary>
+    private string SuggestName()
+    {
+        const string Stem = "Мой пресет";
+
+        if (Library is not { } library) return Stem;
+
+        IReadOnlyList<EqCurvePreset> saved = library.For(_values.Length);
+        if (!saved.Any(p => string.Equals(p.Name, Stem, StringComparison.OrdinalIgnoreCase))) return Stem;
+
+        for (int n = 2; n < 100; n++)
+        {
+            string candidate = $"{Stem} {n}";
+
+            if (!saved.Any(p => string.Equals(p.Name, candidate, StringComparison.OrdinalIgnoreCase)))
+            {
+                return candidate;
+            }
+        }
+
+        return Stem;
+    }
+
+    private void RebuildPresets()
+    {
+        List<CurvePresetOption> built = [];
+
+        if (Slots is { } slots)
+        {
+            built.AddRange(slots.Options.Select(o => new CurvePresetOption(o.Label, false, o)));
+        }
+
+        if (Library is { } library)
+        {
+            built.AddRange(library.For(_values.Length).Select(p => new CurvePresetOption(p.Name, true, null)));
+        }
+
+        Presets = built;
+
+        OnPropertyChanged(nameof(SelectedPresetIndex));
+        OnPropertyChanged(nameof(CanSave));
+        OnPropertyChanged(nameof(CanDelete));
+    }
 
     /// <summary>Frequency captions under the plot.</summary>
     public IReadOnlyList<string> Labels { get; }
@@ -420,19 +703,23 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
     public IReadOnlyList<string> AxisTicks =>
         [.. Enumerable.Range(0, 5).Select(i => Signed((int)Math.Round(_bounds.Max - ((_bounds.Max - _bounds.Min) * i / 4.0))))];
 
-    /// <summary>"250 Гц · +4.5 дБ" — what the header says about the band under the eye.</summary>
-    public string SelectedSummary
-    {
-        get
-        {
-            if (SelectedBand < 0 || SelectedBand >= Labels.Count) return string.Empty;
+    // No "250 Гц · +4.5 дБ" beside the title any more.
+    //
+    // It repeated, in a second place and a beat later, a number the plot prints over the
+    // band being dragged — and it repeated it for whichever band the eye last landed on,
+    // which after a drag across four of them is not a question anyone was asking. The
+    // owner of the headset put it plainly: you move a slider and the other numbers move
+    // too, so a single one pulled out beside the title says nothing the row does not.
 
-            string value = Values.Count > SelectedBand ? BandText(SelectedBand) : "—";
-            return $"{Labels[SelectedBand]} · {value}";
-        }
-    }
-
-    /// <summary>One band's value with its sign and unit, as printed over its bar.</summary>
+    /// <summary>
+    /// One band's value with its sign and unit, as printed above its rail.
+    ///
+    /// With the unit, and it was briefly without: ten captions each ending in "дБ" looked
+    /// like the unit said ten times over, and the artboard prints bare numbers. Taking it
+    /// off was wrong and nobody had asked for it — "+8" beside "+6" is a number with no
+    /// name on a control whose whole scale the reader is being asked to judge, and the
+    /// axis down the left is far enough away to be a different thing on the page.
+    /// </summary>
     public string BandText(int index)
     {
         if (index < 0 || index >= Values.Count) return "—";
@@ -565,10 +852,9 @@ public sealed partial class CurveCapabilityViewModel : CompositeCapabilityViewMo
         HasCurve = curve;
         IsDirty = IsEditing && _baseline.Length == _values.Length && !_baseline.SequenceEqual(_values);
         OnPropertyChanged(nameof(Display));
-        OnPropertyChanged(nameof(SelectedSummary));
+        OnPropertyChanged(nameof(CanSave));
+        OnPropertyChanged(nameof(CanDelete));
     }
-
-    partial void OnSelectedBandChanged(int value) => OnPropertyChanged(nameof(SelectedSummary));
 
     private string Describe()
     {

@@ -119,59 +119,51 @@
     }
   }
 
+  @* Every section the same shape, including the one holding the factory reset.
+     That one used to be an expander with nothing but its own name on it — a titled box
+     the reader had to open to find out it held the auto-off timer and the firmware
+     version, neither of which is dangerous, and the artboard does not draw it that way
+     either. What is dangerous is one row, and that row carries its own warning and its
+     own confirmation; hiding the timer behind it protected nothing and cost the section
+     its heading. *@
   @foreach (CapabilitySectionViewModel section in Vm.VisibleSections)
   {
-    @if (section.IsSensitive)
-    {
-      <details class="adv">
-        <summary>@section.Title</summary>
-        <div class="card">
-          @foreach (CapabilityViewModel cap in section.Items)
+    <div class="group">
+      @if (Vm.IsWholeDevice)
+      {
+        <div class="group-head">
+          <span class="group-heading">@section.Heading</span>
+          @if (Vm.ProtocolFor(section.Domain) is { } proto)
           {
-            <CapRow Vm="cap" />
+            <span class="proto-pill @ProtoClass(proto.Kind)">@proto.Text</span>
+          }
+          @if (Vm.SectionNote(section.Domain) is { } note)
+          {
+            <span class="section-note">@note</span>
           }
         </div>
-      </details>
-    }
-    else
-    {
-      <div class="group">
-        @if (Vm.IsWholeDevice)
-        {
-          <div class="group-head">
-            <span class="group-heading">@section.Heading</span>
-            @if (Vm.ProtocolFor(section.Domain) is { } proto)
-            {
-              <span class="proto-pill @ProtoClass(proto.Kind)">@proto.Text</span>
-            }
-            @if (Vm.SectionNote(section.Domain) is { } note)
-            {
-              <span class="section-note">@note</span>
-            }
-          </div>
-        }
-        @* The curve gets a card to itself, as the artboard has it: a plot the width of the
-           page does not belong in a stack of one-line rows, and the slot picker and the
-           save button in its header have nowhere to sit inside one. *@
-        @if (section.Items.Any(c => c is not CurveCapabilityViewModel))
-        {
-          <div class="card">
-            @{ string? previous = null; }
-            @foreach (CapabilityViewModel cap in section.Items.Where(c => c is not CurveCapabilityViewModel))
-            {
-              <CapRow Vm="cap" Joined="@(cap.State.Id == CapabilityIds.AudioGainRight && previous == CapabilityIds.AudioGainLeft)" />
-              previous = cap.State.Id;
-            }
-          </div>
-        }
-        @foreach (CapabilityViewModel cap in section.Items.OfType<CurveCapabilityViewModel>())
-        {
-          <div class="card curve-card">
-            <CapRow Vm="cap" />
-          </div>
-        }
-      </div>
-    }
+      }
+      @* The curve gets a card to itself, as the artboard has it: a plot the width of the
+         page does not belong in a stack of one-line rows, and the slot picker and the
+         save button in its header have nowhere to sit inside one. *@
+      @if (section.Items.Any(c => c is not CurveCapabilityViewModel))
+      {
+        <div class="card">
+          @{ string? previous = null; }
+          @foreach (CapabilityViewModel cap in section.Items.Where(c => c is not CurveCapabilityViewModel))
+          {
+            <CapRow Vm="cap" Joined="@(cap.State.Id == CapabilityIds.AudioGainRight && previous == CapabilityIds.AudioGainLeft)" />
+            previous = cap.State.Id;
+          }
+        </div>
+      }
+      @foreach (CapabilityViewModel cap in section.Items.OfType<CurveCapabilityViewModel>())
+      {
+        <div class="card curve-card">
+          <CapRow Vm="cap" />
+        </div>
+      }
+    </div>
   }
 
   @if (!string.IsNullOrEmpty(Vm.LimitsNote))

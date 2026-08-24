@@ -166,9 +166,6 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
 
     public bool IsAvailable => State.IsAvailable;
 
-    /// <summary>The amber dot. Gone for good once the device has accepted a write.</summary>
-    public bool IsUntested => State.Status == CapabilityStatus.Untested;
-
     /// <summary>
     /// A write is running, and has been running long enough to be worth saying so.
     ///
@@ -252,16 +249,13 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
             "Ещё не проверено на живом устройстве",
         { ChangedExternally: true } => "Изменено на устройстве",
 
-        // Risk explained in words beside the control rather than left to the button.
-        // Only the Action control draws a mark of its own, so without this every other
-        // primitive's dangerous state was indistinguishable from its ordinary one — the
-        // user would meet the consequence for the first time in the confirmation dialog,
-        // which is later than the design system allows.
-        _ when NeedsConfirmation => Descriptor.Note ?? Descriptor.Risk switch
-        {
-            CapabilityRisk.Hidden => "Скрыто в «Дополнительно», спросим подтверждение",
-            _ => "Спросим подтверждение с описанием последствий",
-        },
+        // No standing sentence about the confirmation.
+        //
+        // "Спросим подтверждение с описанием последствий" was printed in amber beside
+        // every risky control, permanently, to say that pressing it would ask first.
+        // That is what the confirmation is for; saying so in advance, on a row nobody is
+        // pressing, is a warning about a warning. A capability with something of its own
+        // to say still says it, through Note.
 
         _ => Descriptor.Note,
     };
@@ -269,8 +263,6 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     public HintKind HintTone => State switch
     {
         { WriteError: not null } => HintKind.Error,
-        _ when NeedsConfirmation && !HasError && IsAvailable && !IsWriting =>
-            HintKind.Warning,
         _ => Hint is null ? HintKind.None : HintKind.Info,
     };
 
@@ -307,13 +299,23 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
         _ when IsWriting => null,
         { Status: CapabilityStatus.Unavailable } => new CapabilityBadge("ждёт устройства", CapabilityBadgeKind.Pending),
         { IsAvailable: false } => null,
+
+        // No amber "запись не проверена" any more.
+        //
+        // It was on most of a Maxwell's rows, because most of this protocol came out of a
+        // disassembly and had never been confirmed against hardware. A caution that sits
+        // beside nine controls out of eleven is not a caution, it is the page's
+        // background — and the owner of the headset, who is the person it was warning,
+        // asked for it gone. The fact itself is not lost: the ledger still records which
+        // capabilities the hardware has accepted, and the protocol notes still say what
+        // was guessed at.
+
         // No badge for a value that moved on the device.
         //
         // It was meant to explain a number changing on its own, but the only control it
         // ever appeared on is the one with a wheel on the earcup — where the wearer just
         // turned that wheel and needs no telling. All it did was flicker beside a slider
         // that had already caught up.
-        { Status: CapabilityStatus.Untested } => new CapabilityBadge("запись не проверена", CapabilityBadgeKind.Untested),
         _ when IsReadOnlyInteractive => new CapabilityBadge("только чтение", CapabilityBadgeKind.ReadOnly),
         _ => null,
     };
@@ -476,7 +478,6 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     protected void RaiseStateProperties()
     {
         OnPropertyChanged(nameof(IsAvailable));
-        OnPropertyChanged(nameof(IsUntested));
         OnPropertyChanged(nameof(IsWriting));
         OnPropertyChanged(nameof(HasError));
         OnPropertyChanged(nameof(ChangedExternally));
