@@ -32,7 +32,31 @@ if (args.Contains("--system")) return SystemInventory.Run(args.Contains("--raw")
 // Which class protocols this machine actually exposes. Asked before writing one.
 if (args.Contains("--hid")) return HidSurvey.Run(!args.Contains("--all"));
 
+// One vendor's collections: what they declare and what they answer with nothing
+// written. --vendor 0951 for the QuadCast.
+if (args.Contains("--vendor"))
+{
+    ushort vid = ushort.TryParse(ValueAfter(args, "--vendor"), NumberStyles.HexNumber,
+        CultureInfo.InvariantCulture, out ushort parsed) ? parsed : (ushort)0x0951;
+
+    if (args.Contains("--watch"))
+    {
+        int seconds = int.TryParse(ValueAfter(args, "--watch"), out int held) ? held : 60;
+        ushort page = ushort.TryParse(ValueAfter(args, "--page"), NumberStyles.HexNumber,
+            CultureInfo.InvariantCulture, out ushort onPage) ? onPage : (ushort)0xFF90;
+
+        return VendorSurvey.Watch(Console.Out, vid, page, seconds);
+    }
+
+    return VendorSurvey.Dump(Console.Out, vid);
+}
+
 // What is actually paired behind a Logitech receiver. Read-only.
+// The guided dig: a script of things to do to the microphone, with every channel
+// listened to and the lighting pipe polled, so each report lands under the step that
+// caused it. Passive.
+if (args.Contains("--quadcast")) return QuadCastProbe.Run(ValueAfter(args, "--log"));
+
 if (args.Contains("--hidpp")) return HidPlusPlusProbe.Run();
 if (args.Contains("--xinput")) return XInputProbe.Run();
 if (args.Contains("--audio")) return AudioProbe.Run();
