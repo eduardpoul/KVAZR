@@ -9,15 +9,20 @@
   <div class="titlebar"><div class="title">@Vm.Title</div></div>
 
   <div class="group">
-    <div class="group-heading">ВНЕШНИЙ ВИД</div>
+    <div class="group-heading">@T["settings.appearance", "ВНЕШНИЙ ВИД"]</div>
     <div class="card">
       <div class="set-row">
         <div class="cap-text">
-          <div class="cap-title">Тема</div>
+          <div class="cap-title">@T["settings.theme", "Тема"]</div>
           <div class="caption">Системная следует за оформлением Windows</div>
         </div>
         <div class="segmented">
-          @foreach ((string label, int index) in new[] { ("Системная", 0), ("Светлая", 1), ("Тёмная", 2) })
+          @foreach ((string label, int index) in new[]
+          {
+            (T["settings.theme.system", "Системная"], 0),
+            (T["settings.theme.light", "Светлая"], 1),
+            (T["settings.theme.dark", "Тёмная"], 2),
+          })
           {
             <button class="@(Vm.ThemeIndex == index ? "sel" : "")"
                     @onclick="() => OnUi(() => Vm.ThemeIndex = index)">@label</button>
@@ -26,24 +31,38 @@
       </div>
       <div class="set-row">
         <div class="cap-text">
-          <div class="cap-title">Язык</div>
-          <div class="caption">Английский перевод ещё не сделан</div>
+          <div class="cap-title">@T["settings.language", "Язык"]</div>
+          <div class="caption">@T["settings.language.caption", "Меняется сразу, без перезапуска"]</div>
         </div>
-        <Dropdown Items="@(new[] { "Русский" })" SelectedIndex="0" Disabled Width="188" />
+        @* Each language named in itself: "Russian" under an English interface leaves
+           somebody who does not read English unable to find the way back. *@
+        <Dropdown Items="@Vm.Languages" Width="188"
+                  SelectedIndex="@Vm.LanguageIndex"
+                  SelectedIndexChanged="i => OnUi(() => Vm.LanguageIndex = i)" />
       </div>
     </div>
   </div>
 
   <div class="group">
-    <div class="group-heading">ЗАПУСК И ТРЕЙ</div>
+    <div class="group-heading">@T["settings.startup", "ЗАПУСК И ТРЕЙ"]</div>
     <div class="card">
       <div class="set-row">
-        <div class="cap-title grow">Запускать при входе в Windows</div>
+        <div class="cap-title grow">@T["settings.run_at_login", "Запускать при входе в Windows"]</div>
         <button class="switch @(Vm.RunAtLogin ? "on" : "")"
                 @onclick="() => OnUi(() => Vm.RunAtLogin = !Vm.RunAtLogin)"><span class="knob"></span></button>
       </div>
+      <div class="set-row @(Vm.CanStartMinimised ? "" : "inactive")">
+        <div class="cap-text">
+          <div class="cap-title">@T["settings.start_minimised", "Запускать сразу в трее"]</div>
+          <div class="caption">@(Vm.CanStartMinimised
+            ? T["settings.start_minimised.on", "Окно не откроется, значок появится в трее"]
+            : T["settings.start_minimised.off", "Доступно, когда включён запуск при входе"])</div>
+        </div>
+        <button class="switch @(Vm.StartMinimised ? "on" : "")" disabled="@(!Vm.CanStartMinimised)"
+                @onclick="() => OnUi(() => Vm.StartMinimised = !Vm.StartMinimised)"><span class="knob"></span></button>
+      </div>
       <div class="set-row">
-        <div class="cap-title grow">Закрытие окна свёртывает в трей</div>
+        <div class="cap-title grow">@T["settings.minimise_on_close", "Закрытие окна свёртывает в трей"]</div>
         <button class="switch @(Vm.MinimiseOnClose ? "on" : "")"
                 @onclick="() => OnUi(() => Vm.MinimiseOnClose = !Vm.MinimiseOnClose)"><span class="knob"></span></button>
       </div>
@@ -51,12 +70,17 @@
   </div>
 
   <div class="group">
-    <div class="group-heading">УВЕДОМЛЕНИЯ И ОПРОС</div>
+    <div class="group-heading">@T["settings.notifications", "УВЕДОМЛЕНИЯ И ОПРОС"]</div>
     <div class="card">
       <div class="set-row">
+        <div class="cap-title grow">@T["settings.notify_low", "Предупреждать о низком заряде"]</div>
+        <button class="switch @(Vm.NotifyLowBattery ? "on" : "")"
+                @onclick="() => OnUi(() => Vm.NotifyLowBattery = !Vm.NotifyLowBattery)"><span class="knob"></span></button>
+      </div>
+      <div class="set-row @(Vm.CanSetThreshold ? "" : "inactive")">
         <div class="cap-text">
-          <div class="cap-title">Порог низкого заряда</div>
-          <div class="caption">Уведомление показывается один раз на разряд</div>
+          <div class="cap-title">@T["settings.low_threshold", "Порог низкого заряда"]</div>
+          <div class="caption">@T["settings.low_threshold.caption", "Уведомление показывается один раз на разряд"]</div>
         </div>
         <div class="range slider-fixed">
           <input type="range" min="5" max="50" step="5" value="@Vm.LowBatteryThreshold"
@@ -67,12 +91,25 @@
       </div>
       <div class="set-row">
         <div class="cap-text">
-          <div class="cap-title">Частота опроса устройств</div>
-          <div class="caption">Чаще — точнее заряд, выше расход батареи устройства</div>
+          <div class="cap-title">@T["settings.poll", "Частота опроса устройств"]</div>
+          <div class="caption">@T["settings.poll.caption", "Чаще — точнее заряд, выше расход батареи устройства"]</div>
         </div>
-        <Dropdown Items="@Vm.PollIntervals" Width="160"
+        <Dropdown Items="@Vm.PollIntervalLabels" Width="160"
                   SelectedIndex="@Vm.PollIntervalIndex"
                   SelectedIndexChanged="i => OnUi(() => Vm.PollIntervalIndex = i)" />
+      </div>
+      <div class="set-row">
+        <div class="cap-title grow">@T["settings.notify_charged", "Сообщать о полной зарядке"]</div>
+        <button class="switch @(Vm.NotifyChargeComplete ? "on" : "")"
+                @onclick="() => OnUi(() => Vm.NotifyChargeComplete = !Vm.NotifyChargeComplete)"><span class="knob"></span></button>
+      </div>
+      <div class="set-row">
+        <div class="cap-text">
+          <div class="cap-title">@T["settings.firmware", "Проверять обновления прошивки"]</div>
+          <div class="caption">@T["settings.firmware.caption", "Раз в неделю, у Audeze. Прошивает их приложение, не это"]</div>
+        </div>
+        <button class="switch @(Vm.CheckFirmwareUpdates ? "on" : "")"
+                @onclick="() => OnUi(() => Vm.CheckFirmwareUpdates = !Vm.CheckFirmwareUpdates)"><span class="knob"></span></button>
       </div>
     </div>
   </div>
@@ -88,7 +125,7 @@
       </div>
       <div class="set-row">
         <div class="cap-text">
-          <div class="cap-title">Скрывать непонятные устройства</div>
+          <div class="cap-title">@T["settings.hide_silent", "Скрывать непонятные устройства"]</div>
           <div class="caption">Без класса и без данных — обычно служебные узлы, а не техника</div>
         </div>
         <button class="switch @(Vm.HideSilentDevices ? "on" : "")"
@@ -116,11 +153,15 @@
 </div>
 
 @code {
+  /// <summary>The catalogue, short enough to sit inside markup.</summary>
+  private Maxwell.App.Localization.Localizer T => Vm.Text;
+
   [Parameter, EditorRequired] public SettingsViewModel Vm { get; set; } = default!;
 
   protected override void OnInitialized()
   {
     Track(Vm);
     Track(Vm.Hidden);
+    Follow(Vm.Text);
   }
 }

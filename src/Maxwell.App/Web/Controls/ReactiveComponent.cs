@@ -42,6 +42,23 @@ public abstract class ReactiveComponent : ComponentBase, IDisposable
     /// models may be written from.</summary>
     protected static void OnUi(Action action) => Avalonia.Threading.Dispatcher.UIThread.Post(action);
 
+    private Localization.Localizer? _text;
+
+    /// <summary>
+    /// Redraw when the language changes. Every page calls this, because every page has
+    /// text on it — and a language switch that leaves half the window in the old language
+    /// until it is navigated away from and back is worse than no switch at all.
+    /// </summary>
+    protected void Follow(Localization.Localizer? text)
+    {
+        if (text is null || ReferenceEquals(_text, text)) return;
+
+        _text = text;
+        text.Changed += OnLanguageChanged;
+    }
+
+    private void OnLanguageChanged(object? sender, EventArgs e) => Redraw();
+
     private int _pending;
 
     /// <summary>
@@ -76,6 +93,8 @@ public abstract class ReactiveComponent : ComponentBase, IDisposable
     public virtual void Dispose()
     {
         foreach (INotifyPropertyChanged source in _observed) source.PropertyChanged -= OnChanged;
+        if (_text is not null) _text.Changed -= OnLanguageChanged;
+
         foreach (INotifyCollectionChanged collection in _collections) collection.CollectionChanged -= OnCollectionChanged;
 
         _observed.Clear();

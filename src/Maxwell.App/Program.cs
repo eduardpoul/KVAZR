@@ -224,6 +224,7 @@ internal static class Program
         builder.Services.AddSingleton<IConfirmationPrompt>(sp =>
             new ModalConfirmation(sp.GetRequiredService<MainWindow>));
 
+        builder.Services.AddSingleton<Localization.Localizer>();
         builder.Services.AddSingleton<Infrastructure.CurvePresetLibrary>();
         builder.Services.AddSingleton<Infrastructure.FirstSweep>();
         builder.Services.AddSingleton<CapabilityShowcaseViewModel>();

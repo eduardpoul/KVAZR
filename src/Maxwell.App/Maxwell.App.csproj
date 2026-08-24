@@ -130,6 +130,18 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+
+    <!-- The translation catalogues. Embedded rather than copied beside the executable:
+         a file that can go missing from a published folder eventually does, and the
+         failure would be an English interface silently reverting to Russian.
+
+         WithCulture="false" is load-bearing. MSBuild reads "Strings.en.json" as a
+         culture-tagged resource, the way it reads "Form1.en.resx", and routes it into a
+         satellite assembly — so the file was built, shipped into an en\ folder beside the
+         executable, and could not be found in the assembly at all. These are one
+         dictionary per language rather than .NET resources, and the language is chosen by
+         a setting rather than by the thread's culture. -->
+    <EmbeddedResource Include="Localization\Strings.*.json" WithCulture="false" />
   </ItemGroup>
 
   <ItemGroup>

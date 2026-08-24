@@ -729,6 +729,12 @@ button.accent:disabled:hover { background: var(--track-empty); }
 
 /* ---- settings rows: artboard 7a, 52px --------------------------------------------- */
 
+/* A row whose setting has no effect yet: the switch above it is off. Dimmed rather
+   than removed, so the pair reads as one setting with a condition instead of as a row
+   that appears and disappears under the reader. */
+.set-row.inactive .cap-title, .set-row.inactive .caption, .set-row.inactive .value { opacity: 0.45; }
+.set-row.inactive input[type="range"] { opacity: 0.45; }
+
 .set-row {
   min-height: var(--settings-row-height);
   display: flex;

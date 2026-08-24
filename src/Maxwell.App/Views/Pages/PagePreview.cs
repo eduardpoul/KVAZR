@@ -93,7 +93,9 @@ internal static class PagePreview
 
         return new SettingsView
         {
-            DataContext = new SettingsViewModel(store, new PreviewAutostart(), registry, new HiddenDevices(store)),
+            DataContext = new SettingsViewModel(
+                store, new PreviewAutostart(), registry, new HiddenDevices(store),
+                new Maxwell.App.Localization.Localizer(store)),
         };
     }
 
