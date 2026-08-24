@@ -9,6 +9,8 @@ using Maxwell.Core.Abstractions;
 using Maxwell.Core.Polling;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Settings;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -57,7 +59,70 @@ internal static class Program
             return DumpPages(args[pages + 1]);
         }
 
+        // One instance, and this is not a preference.
+        //
+        // WebView2 keeps its user data in a folder owned by exactly one process, and the
+        // content pane is a WebView2. A second copy of the application therefore does not
+        // start alongside the first — it throws "the requested resource is in use"
+        // (0x800700AA) out of a component nobody here wrote, and the user is shown a
+        // .NET crash box with a Continue button that continues into a window with no
+        // content in it.
+        //
+        // That was reachable by double-clicking the shortcut of an application whose
+        // whole point is to sit in the tray, which is to say: reachable by anybody.
+        var only = new Mutex(true, @"Local\KVAZR.SingleInstance", out bool first);
+
+        if (!first)
+        {
+            RaiseTheRunningOne();
+            return 0;
+        }
+
+        using (only)
+        {
+            return Run(args);
+        }
+    }
+
+    /// <summary>
+    /// Brings the copy that is already running to the front, so a second launch does
+    /// something rather than appearing to do nothing.
+    ///
+    /// It may find nothing to raise, and that is a normal outcome: the application starts
+    /// to the tray by default and has no window until somebody asks for one. Its icon is
+    /// already there, which is the answer to "where did it go".
+    /// </summary>
+    private static void RaiseTheRunningOne()
+    {
+        using Process me = Process.GetCurrentProcess();
+
+        foreach (Process other in Process.GetProcessesByName(me.ProcessName))
+        {
+            using (other)
+            {
+                if (other.Id == me.Id || other.MainWindowHandle == IntPtr.Zero) continue;
+
+                _ = Native.ShowWindow(other.MainWindowHandle, Native.Restore);
+                _ = Native.SetForegroundWindow(other.MainWindowHandle);
+                return;
+            }
+        }
+    }
+
+    private static int Run(string[] args)
+    {
         IHost host = CreateHost(args);
+
+        // Before the host starts, because starting it starts discovery.
+        //
+        // This was done from the Avalonia side at first, where the settings file is read
+        // for the theme, and the log said what that was worth: the first sweep ran with
+        // every driver enabled and only the second one respected the switches. A library
+        // switched off had already found and opened its hardware by the time it was told
+        // not to, which for --no-vendor means opening the headset over HID — the exact
+        // thing the flag exists to avoid.
+        RestoreLibrarySwitches(host.Services, args);
+
         host.Start();
 
         // A panel that only appears on a tray click cannot be looked at while working
@@ -218,20 +283,18 @@ internal static class Program
         // The device families this build understands, listed once. A new class protocol
         // or a new deep device is one more module here and its folder under Drivers — the
         // core and the other modules do not move. See docs/ARCHITECTURE.md.
-        // --no-vendor drops the deep drivers and leaves the class protocols, so a device
-        // that has a vendor driver falls through to the shared page and that page can be
-        // looked at on real hardware. The only headset on this desk is an Audeze: without
-        // this switch the baseline headset page could be guessed at and never seen.
+        // Every module is registered, always. --no-vendor used to work by leaving the
+        // deep ones out of this list, which made it a startup-only, all-or-nothing
+        // answer to a question the developer section now answers one library at a time
+        // and while the application is running. The flag survives as a shortcut into
+        // that switchboard — see App.NoVendorOnStart — rather than as a second
+        // mechanism that can disagree with it.
         List<IDriverModule> modules =
         [
+            new Maxwell.Core.Drivers.Audeze.AudezeModule(),
             new Maxwell.Core.Drivers.Logitech.LogitechModule(),
             new Maxwell.Core.Drivers.Audio.AudioModule(),
         ];
-
-        if (Array.IndexOf(args, "--no-vendor") < 0)
-        {
-            modules.Insert(0, new Maxwell.Core.Drivers.Audeze.AudezeModule());
-        }
 
         builder.Services.AddDeviceRegistry(includeMockDevices: true, mockDeviceCount: mocks, [.. modules]);
 
@@ -252,6 +315,45 @@ internal static class Program
         builder.Services.AddSingleton<MainWindow>();
 
         return builder.Build();
+    }
+
+    /// <summary>
+    /// Puts the developer section's switches back, and applies --no-vendor through the
+    /// same set rather than as a mechanism of its own.
+    ///
+    /// The settings file is read here and again by the shell a moment later, which is two
+    /// reads of two kilobytes and buys one invariant worth more than that: nothing is
+    /// discovered before the switches are known.
+    /// </summary>
+    private static void RestoreLibrarySwitches(IServiceProvider services, string[] args)
+    {
+        var store = services.GetRequiredService<ISettingsStore>();
+        store.LoadAsync().GetAwaiter().GetResult();
+
+        var off = new HashSet<string>(store.Current.DisabledLibraries, StringComparer.Ordinal);
+
+        // Every driver that speaks one vendor's protocol, off for this run. Not written
+        // back to the file, so a launch without the flag is a build with them again.
+        if (Array.IndexOf(args, "--no-vendor") >= 0)
+        {
+            foreach (IDeviceDriver driver in services.GetServices<IDeviceDriver>())
+            {
+                if (driver.Tier == DriverTier.Vendor) off.Add(driver.DriverId);
+            }
+        }
+
+        services.GetRequiredService<DriverSwitchboard>().Replace(off);
+    }
+
+    private static class Native
+    {
+        public const int Restore = 9;
+
+        [DllImport("user32.dll")]
+        public static extern bool ShowWindow(IntPtr window, int command);
+
+        [DllImport("user32.dll")]
+        public static extern bool SetForegroundWindow(IntPtr window);
     }
 
     public static AppBuilder BuildAvaloniaApp(IServiceProvider services) =>
