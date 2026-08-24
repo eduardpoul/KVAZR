@@ -94,6 +94,11 @@ html:has(.page.dark) { color-scheme: dark; }
 
 .section-note { font-size: 12px; color: var(--text-tertiary); }
 
+/* The page's own source line, directly under the hero. Pulled up against the hero rather
+   than spaced like a section, because it belongs to the device above it and not to the
+   first card below it. */
+.page-source { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: -8px; }
+
 /* ---- cards and rows --------------------------------------------------------------- */
 
 .card {
@@ -491,6 +496,42 @@ input[type="range"]::-webkit-slider-thumb {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
   background-image: radial-gradient(circle, var(--accent-primary) 0 4px, transparent 4.5px);
 }
+
+/* The level meter, from the artboard: a run of blocks rather than a solid bar.
+
+   The segments are drawn by the background rather than by elements — five pixels lit,
+   three dark, repeating — so the lit part is the same pattern clipped to a width and its
+   blocks land exactly on top of the unlit ones. Sixty of them as elements, redrawn
+   sixteen times a second, would be sixty layout boxes a second for a picture a gradient
+   already draws.
+
+   No transition on the width. A meter that eases towards its value is not showing the
+   level, it is showing where the level was a moment ago, and the whole point of the row
+   is that it answers "is it hearing me" in the same instant. */
+.meter { display: flex; align-items: center; gap: 12px; width: var(--page-control-width); }
+
+.meter-track {
+  flex: 1;
+  height: 12px;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+  background: repeating-linear-gradient(90deg, var(--meter-empty) 0 5px, transparent 5px 8px);
+}
+
+.meter-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(90deg, var(--meter-lit) 0 5px, transparent 5px 8px);
+}
+
+/* Loud enough to be worth knowing about, and loud enough to be losing the take. */
+.meter-fill.loud { background: repeating-linear-gradient(90deg, var(--meter-loud) 0 5px, transparent 5px 8px); }
+.meter-fill.hot { background: repeating-linear-gradient(90deg, var(--meter-hot) 0 5px, transparent 5px 8px); }
+
+.meter-value { width: 44px; text-align: right; font-size: 14px; font-variant-numeric: tabular-nums; }
 
 .range-group { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
 .range-track { display: flex; align-items: center; gap: 10px; }
@@ -950,6 +991,10 @@ button.gesture.recording { border-color: var(--accent-primary); outline: 1px sol
   --gauge-empty: #9A9A9A;
   --gauge-absent-text: #5C5C5C;
   --track-empty: #DEDEDE;
+  --meter-empty: rgba(0, 0, 0, 0.14);
+  --meter-lit: #107C10;
+  --meter-loud: #9D5D00;
+  --meter-hot: #C42B1C;
   --detent: rgba(0, 0, 0, 0.30);
 }
 
@@ -969,6 +1014,10 @@ button.gesture.recording { border-color: var(--accent-primary); outline: 1px sol
   --gauge-empty: #6E6E6E;
   --gauge-absent-text: #C8C8C8;
   --track-empty: rgba(255, 255, 255, 0.16);
+  --meter-empty: rgba(255, 255, 255, 0.14);
+  --meter-lit: #6CCB5F;
+  --meter-loud: #F2C94C;
+  --meter-hot: #FF6B6B;
   --detent: rgba(255, 255, 255, 0.30);
 }
 

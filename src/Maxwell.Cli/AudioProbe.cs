@@ -182,9 +182,9 @@ internal static class AudioProbe
 
         int GetChannelVolumeLevelScalar(uint channel, out float level);
 
-        int SetMute(bool mute, ref Guid context);
+        int SetMute([MarshalAs(UnmanagedType.Bool)] bool mute, ref Guid context);
 
-        int GetMute(out bool mute);
+        int GetMute([MarshalAs(UnmanagedType.Bool)] out bool mute);
     }
 
     [ComImport, Guid("C02216F6-8C67-4B5B-9D00-D008E73E0064"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]

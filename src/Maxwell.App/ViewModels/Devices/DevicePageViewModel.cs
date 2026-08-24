@@ -289,6 +289,41 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         },
     };
 
+    /// <summary>
+    /// The one protocol this page is built on, said once at the top.
+    ///
+    /// It used to be a pill above every section, which on a microphone meant reading
+    /// "Core Audio · applied at once, with no Apply" twice on a page with two sections —
+    /// and a page with five would have said it five times. A fact about the whole page
+    /// belongs at the top of the page.
+    ///
+    /// Null when the sections disagree, and then each of them keeps its own pill: the
+    /// heading is there to say where a row came from, and a single pill over a page of
+    /// two protocols would be wrong about half of it.
+    /// </summary>
+    public ProtocolPill? PageProtocol
+    {
+        get
+        {
+            ProtocolPill[] named =
+            [
+                .. VisibleSections
+                    .Select(s => ProtocolFor(s.Domain))
+                    .Where(p => p is not null)
+                    .Select(p => p!)
+                    .Distinct(),
+            ];
+
+            return named.Length == 1 ? named[0] : null;
+        }
+    }
+
+    /// <summary>The aside that goes with <see cref="PageProtocol"/>, on the same terms.</summary>
+    public string? PageNote =>
+        PageProtocol is null
+            ? null
+            : VisibleSections.Select(s => SectionNote(s.Domain)).FirstOrDefault(n => n is not null);
+
     /// <summary>The grey aside beside a section pill: how its writes reach the device.</summary>
     public string? SectionNote(CapabilityDomain domain) =>
         Snapshot.Info.DriverId != "audeze.race"

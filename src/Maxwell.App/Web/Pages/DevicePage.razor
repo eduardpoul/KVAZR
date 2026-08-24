@@ -84,6 +84,20 @@
     }
   </div>
 
+  @* Where the settings on this page come from, said once. It was above every section
+     until a microphone page with two of them read it twice; a fact about the whole page
+     belongs at the top of it. Sections keep their own pill only when they disagree. *@
+  @if (Vm.IsWholeDevice && Vm.PageProtocol is { } source)
+  {
+    <div class="page-source">
+      <span class="proto-pill @ProtoClass(source.Kind)">@source.Text</span>
+      @if (Vm.PageNote is { } howItApplies)
+      {
+        <span class="section-note">@howItApplies</span>
+      }
+    </div>
+  }
+
   @if (Vm.HasNothingToChange)
   {
     <div class="notice">
@@ -135,13 +149,14 @@
       {
         <div class="group-head">
           <span class="group-heading">@section.Heading</span>
-          @if (Vm.ProtocolFor(section.Domain) is { } proto)
+          @if (Vm.PageProtocol is null && Vm.ProtocolFor(section.Domain) is { } proto)
           {
             <span class="proto-pill @ProtoClass(proto.Kind)">@proto.Text</span>
-          }
-          @if (Vm.SectionNote(section.Domain) is { } note)
-          {
-            <span class="section-note">@note</span>
+
+            @if (Vm.SectionNote(section.Domain) is { } note)
+            {
+              <span class="section-note">@note</span>
+            }
           }
         </div>
       }

@@ -36,6 +36,20 @@
       <div class="cap-line">
         @switch (Vm)
         {
+          case ReadoutCapabilityViewModel { IsMeter: true } meter:
+            @* Segmented, per the artboard: a run of lit blocks rather than a solid bar,
+               which is how every meter on a mixing desk has looked for fifty years and
+               therefore reads as movement even out of the corner of an eye. The lit part
+               is the same pattern in green, clipped to the level, so the blocks line up
+               exactly with the unlit ones behind them. *@
+            <div class="meter">
+              <div class="meter-track">
+                <div class="meter-fill @MeterTone(meter.Fill)" style="width:@Percent(meter.Fill)%"></div>
+              </div>
+              <span class="meter-value">@Percent(meter.Fill)%</span>
+            </div>
+            break;
+
           case ReadoutCapabilityViewModel readout:
             <span class="value">@readout.Display</span>
             break;
@@ -515,6 +529,20 @@
 
   private static string Pct(double fraction) =>
       (Math.Clamp(fraction, 0, 1) * 100).ToString("0.##", CultureInfo.InvariantCulture) + "%";
+
+  private static int Percent(double fraction) => (int)Math.Round(Math.Clamp(fraction, 0, 1) * 100);
+
+  /// <summary>
+  /// Green until the level is loud, amber where a recording starts to be at risk, red at
+  /// the top of the scale. Three colours rather than one because that is what the meter
+  /// is for: a level nobody can act on is just an animation.
+  /// </summary>
+  private static string MeterTone(double fraction) => fraction switch
+  {
+      >= 0.98 => "hot",
+      >= 0.9 => "loud",
+      _ => "",
+  };
 
   /// <summary>
   /// The plot's own height in pixels, which the pointer maths needs and CSS owns. Kept

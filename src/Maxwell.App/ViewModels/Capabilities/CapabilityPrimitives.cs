@@ -9,12 +9,53 @@ namespace Maxwell.App.ViewModels.Capabilities;
 public sealed partial class ReadoutCapabilityViewModel : CapabilityViewModel
 {
     public ReadoutCapabilityViewModel(CapabilityState state, IDeviceSession? session)
-        : base(state, session) => Display = Format(state);
+        : base(state, session)
+    {
+        Display = Format(state);
+        Fill = Position(state);
+    }
 
     [ObservableProperty]
     public partial string Display { get; private set; }
 
-    protected override void OnStateApplied(CapabilityState state) => Display = Format(state);
+    /// <summary>
+    /// A reading that moves too fast to read as a number, and is drawn as a bar instead.
+    ///
+    /// The distinction is the driver's <see cref="Capability.IsLive"/> rather than a
+    /// second primitive, because it is the same thing being said twice: a value only
+    /// worth reading while somebody watches is a value only worth drawing as movement.
+    /// </summary>
+    public bool IsMeter => Descriptor.IsLive;
+
+    /// <summary>
+    /// How much of the bar is lit, 0..1.
+    ///
+    /// Straight off the declared range, and for a level that range is in decibels — which
+    /// is what makes the bar readable. On amplitude, speech sits in the first tenth and a
+    /// quiet room is indistinguishable from silence; on decibels the same two are a
+    /// third of the bar apart.
+    /// </summary>
+    [ObservableProperty]
+    public partial double Fill { get; private set; }
+
+    protected override void OnStateApplied(CapabilityState state)
+    {
+        Display = Format(state);
+        Fill = Position(state);
+    }
+
+    /// <summary>
+    /// Where the reading sits between the ends of its range. Absent reads as the floor
+    /// rather than as nothing: an unlit meter is the honest picture of silence, and a
+    /// meter that vanished between frames would be a flicker.
+    /// </summary>
+    private static double Position(CapabilityState state)
+    {
+        if (state.Range is not { } range || range.Max <= range.Min) return 0;
+        if (state.Value is not NumberValue number) return 0;
+
+        return Math.Clamp((number.Value - range.Min) / (double)(range.Max - range.Min), 0, 1);
+    }
 
     private static string Format(CapabilityState state) => state.Value switch
     {

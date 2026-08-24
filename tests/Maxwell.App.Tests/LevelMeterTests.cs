@@ -1,0 +1,97 @@
+using Maxwell.App.ViewModels.Capabilities;
+using Maxwell.Core.Devices;
+using Xunit;
+
+namespace Maxwell.App.Tests;
+
+/// <summary>
+/// The level meter is a readout that is drawn rather than read, and the arithmetic that
+/// decides how much of it is lit is the whole of it.
+///
+/// The scale is decibels, and that is the point rather than a detail: on amplitude,
+/// ordinary speech sits in the first tenth of the bar and a quiet room is
+/// indistinguishable from a muted microphone. These cases pin the ends and the middle so
+/// that a change of unit in the driver cannot quietly turn the meter into decoration.
+/// </summary>
+public sealed class LevelMeterTests
+{
+    private static CapabilityState Level(int decibels) => new()
+    {
+        Descriptor = new Capability
+        {
+            Id = CapabilityIds.MicSystemPeak,
+            Domain = CapabilityDomain.Microphone,
+            Primitive = CapabilityPrimitive.Readout,
+            Access = CapabilityAccess.Read,
+            Title = "Input level",
+            Range = new CapabilityRange { Min = -60, Max = 0, Unit = "dB" },
+            IsLive = true,
+        },
+        // The session fills this in from the descriptor, and for a range whose ceiling
+        // comes from the device, from the reading. A hand-built state has to say it.
+        Range = new CapabilityRange { Min = -60, Max = 0, Unit = "dB" },
+        Value = CapabilityValue.Of(decibels),
+    };
+
+    [Fact]
+    public void ALiveReadout_IsDrawnAsAMeter()
+    {
+        var meter = new ReadoutCapabilityViewModel(Level(-30), null);
+
+        Assert.True(meter.IsMeter);
+    }
+
+    [Fact]
+    public void AnOrdinaryReadout_IsNot()
+    {
+        CapabilityState state = Level(-30) with
+        {
+            Descriptor = Level(-30).Descriptor with { IsLive = false },
+        };
+
+        Assert.False(new ReadoutCapabilityViewModel(state, null).IsMeter);
+    }
+
+    [Theory]
+    [InlineData(0, 1.0)]      // full scale: the loudest thing the microphone can hear
+    [InlineData(-30, 0.5)]    // halfway up the scale
+    [InlineData(-60, 0.0)]    // the floor, which is where silence sits
+    public void TheBarIsThePositionOnTheDecibelScale(int decibels, double expected)
+    {
+        var meter = new ReadoutCapabilityViewModel(Level(decibels), null);
+
+        Assert.Equal(expected, meter.Fill, 3);
+    }
+
+    [Fact]
+    public void ALevelBelowTheFloor_LightsNothingRatherThanGoingNegative()
+    {
+        // The driver clamps, but a bar with a negative width is the kind of thing that
+        // draws as a full one.
+        var meter = new ReadoutCapabilityViewModel(Level(-90), null);
+
+        Assert.Equal(0, meter.Fill);
+    }
+
+    [Fact]
+    public void AReadingThatHasNotArrived_ReadsAsSilenceRatherThanVanishing()
+    {
+        CapabilityState state = Level(0) with { Value = CapabilityValue.Absent };
+
+        // An unlit meter is the honest picture of a microphone hearing nothing; a meter
+        // that disappeared between frames would be a flicker in the page.
+        Assert.Equal(0, new ReadoutCapabilityViewModel(state, null).Fill);
+    }
+
+    [Fact]
+    public void TheBarFollowsTheReading()
+    {
+        var meter = new ReadoutCapabilityViewModel(Level(-60), null);
+
+        Assert.Equal(0, meter.Fill);
+
+        meter.Apply(Level(-15));
+
+        Assert.Equal(0.75, meter.Fill, 3);
+    }
+}
