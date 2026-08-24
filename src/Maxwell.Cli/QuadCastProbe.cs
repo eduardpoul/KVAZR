@@ -48,7 +48,26 @@ internal static class QuadCastProbe
         (8, "Nothing again — hands off. This is the settle."),
     ];
 
-    public static int Run(string? logPath)
+    /// <summary>
+    /// The second script: which icon on the selector is which value.
+    ///
+    /// By icon rather than by position on purpose. The dial's order is a fact about one
+    /// model's silkscreen and it is not the order the marketing pictures show; naming the
+    /// drawing and asking for it back removes the dial's layout from the question
+    /// entirely. Turning to a position passes through the ones between it, so the value
+    /// that counts in each step is the last one printed.
+    /// </summary>
+    private static readonly (int Seconds, string Do)[] PatternSteps =
+    [
+        (6, "Hands off — baseline."),
+        (8, "Turn the selector to the icon that is TWO FULL SEPARATE RINGS."),
+        (8, "Now to the icon that is A RING WITH A NOTCH TAKEN OUT — the Pac-Man one."),
+        (8, "Now to the icon that is ONE FULL RING."),
+        (8, "Now to the icon that is TWO INTERSECTING RINGS."),
+        (5, "Hands off. Leave it wherever you like."),
+    ];
+
+    public static int Run(string? logPath, bool patterns = false)
     {
         List<HidInterface> ears =
         [
@@ -70,7 +89,9 @@ internal static class QuadCastProbe
 
         using var log = new StreamWriter(path, append: false, Encoding.UTF8) { AutoFlush = true };
 
-        Write(log, $"QuadCast dig — {Steps.Sum(s => s.Seconds)} seconds, {ears.Count} channels, nothing written.");
+        (int Seconds, string Do)[] script = patterns ? PatternSteps : Steps;
+
+        Write(log, $"QuadCast dig — {script.Sum(s => s.Seconds)} seconds, {ears.Count} channels, nothing written.");
         Write(log, string.Empty);
 
         foreach (HidInterface ear in ears)
@@ -93,7 +114,7 @@ internal static class QuadCastProbe
 
         try
         {
-            foreach ((int seconds, string what) in Steps)
+            foreach ((int seconds, string what) in script)
             {
                 lock (gate)
                 {

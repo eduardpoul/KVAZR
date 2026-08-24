@@ -55,7 +55,10 @@ if (args.Contains("--vendor"))
 // The guided dig: a script of things to do to the microphone, with every channel
 // listened to and the lighting pipe polled, so each report lands under the step that
 // caused it. Passive.
-if (args.Contains("--quadcast")) return QuadCastProbe.Run(ValueAfter(args, "--log"));
+if (args.Contains("--quadcast"))
+{
+    return QuadCastProbe.Run(ValueAfter(args, "--log"), args.Contains("--patterns"));
+}
 
 if (args.Contains("--hidpp")) return HidPlusPlusProbe.Run();
 if (args.Contains("--xinput")) return XInputProbe.Run();

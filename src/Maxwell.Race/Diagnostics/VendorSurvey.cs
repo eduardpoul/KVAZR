@@ -92,11 +92,11 @@ public static class VendorSurvey
             try
             {
                 byte[] featureIds = Declared(writer, preparsed, HidNative.HidpFeature, "feature");
-                _ = Declared(writer, preparsed, HidNative.HidpInput, "input");
+                byte[] inputIds = Declared(writer, preparsed, HidNative.HidpInput, "input");
                 _ = Declared(writer, preparsed, HidNative.HidpOutput, "output");
 
                 ReadFeatures(writer, handle, collection, featureIds);
-                ReadInput(writer, handle, collection);
+                ReadInput(writer, handle, collection, inputIds);
             }
             finally
             {
@@ -281,18 +281,35 @@ public static class VendorSurvey
         }
     }
 
-    private static void ReadInput(TextWriter writer, IntPtr handle, HidInterface collection)
+    /// <summary>
+    /// Asks for the current contents of each input report rather than waiting for one to
+    /// be sent.
+    ///
+    /// This is the difference between a page that knows what the hardware is doing when it
+    /// opens and one that knows only what has changed since. A selector that reports on
+    /// change and nothing else leaves a row reading "unknown" until somebody turns it,
+    /// which is a bad row.
+    ///
+    /// The report id has to be right. The first version of this asked every collection for
+    /// report 0 and wrote down "refused, sends only on change" for all of them — which was
+    /// true of the question and not of the device: the mute and pattern channel numbers its
+    /// report 0x05, and report 0 does not exist there at all.
+    /// </summary>
+    private static void ReadInput(TextWriter writer, IntPtr handle, HidInterface collection, byte[] declared)
     {
         if (collection.InputReportLength == 0) return;
 
-        byte[] buffer = new byte[collection.InputReportLength];
+        byte[] ids = declared.Length > 0 ? declared : [0];
 
-        // Asking for the current input rather than waiting for one. A device that only
-        // sends on change — which is every button — answers this with what it last sent,
-        // and that is the state a page would want on the way up.
-        writer.WriteLine(HidNative.HidD_GetInputReport(handle, buffer, buffer.Length)
-            ? $"    input now    {Hex(buffer)}"
-            : "    input now    refused (sends only on change)");
+        foreach (byte id in ids)
+        {
+            byte[] buffer = new byte[collection.InputReportLength];
+            buffer[0] = id;
+
+            writer.WriteLine(HidNative.HidD_GetInputReport(handle, buffer, buffer.Length)
+                ? $"    input   0x{id:X2}   {Hex(buffer)}"
+                : $"    input   0x{id:X2}   refused");
+        }
     }
 
     /// <summary>
