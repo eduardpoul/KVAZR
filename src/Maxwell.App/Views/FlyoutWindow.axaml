@@ -106,7 +106,7 @@
       <Setter Property="MaxHeight" Value="{DynamicResource FlyoutListHeight}" />
     </Style>
     <Style Selector="ScrollViewer.rows.expanded">
-      <Setter Property="MaxHeight" Value="380" />
+      <Setter Property="MaxHeight" Value="372" />
     </Style>
 
     <!-- A row of text that happens to be clickable, but still a row: Fluent gives a list
@@ -456,19 +456,23 @@
                           <Setter Property="MinHeight" Value="0" />
                           <Setter Property="Padding" Value="0" />
 
-                          <!-- Ten pixels in from each end, which is half the thumb.
-                               Fluent centres the thumb on the ends of its track, so a
-                               slider at either extreme hung half outside the panel's
-                               content — visibly past the value printed above it and into
-                               the scrollbar. The artboard's own slider pulls the thumb
-                               inside at 100% for the same reason. -->
+                          <!-- Flush with the row, like every other control in it.
+                               It was inset ten pixels each side — half a thumb — so that
+                               a slider at either extreme kept its thumb inside the
+                               content. That solved the extreme and cost the other
+                               ninety-nine per cent of the time: the track sat visibly
+                               short of the caption above it and of the dropdown below,
+                               and one row in the list did not line up with the rest.
+                               The overhang at the ends is the cheaper of the two, and it
+                               lands in the row's own padding rather than outside the
+                               card. -->
                           <!-- Twelve, not fourteen. Fourteen each side left a box of
                                eighteen pixels for a thumb of twenty-two, so the thumb was
                                flattened top and bottom — the same fault as the switch
                                above, from the same habit of trusting a control to fit a
                                height that was measured from the artboard's drawing rather
                                than from the control. -->
-                          <Setter Property="Margin" Value="10,-12" />
+                          <Setter Property="Margin" Value="0,-12" />
                           <Setter Property="VerticalAlignment" Value="Center" />
                         </Style>
                       </ItemsControl.Styles>
@@ -532,11 +536,28 @@
                              follows one: a switch in this list is the condition of the
                              slider beneath it, and at the even spacing of the stack the
                              two read as one control with a stray label between them. -->
+                        <!--
+                          The same row as a dropdown, thirty tall, because it is the same
+                          kind of row: a name on the left and one control on the right.
+
+                          The switch is given room to overhang it rather than being told
+                          to fit, which is what the slider two templates up does and for
+                          the same reason. Fluent's switch asks for the height of a switch
+                          with a label beside it, this one has no label, and squeezing it
+                          into thirty makes the grid inside its own template clip: the pill
+                          loses its bottom edge and the knob comes out flat. Letting the
+                          row lend it six pixels each way leaves it measuring what it wants
+                          and drawn where it belongs, centred on a thirty-pixel line.
+
+                          Left alone at its natural height it is nearer forty, and the
+                          eight spare pixels showed up as a gap between a switch and the
+                          slider it governs that no other pair of rows had.
+                        -->
                         <DataTemplate DataType="cap:ToggleCapabilityViewModel">
-                          <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
+                          <Grid ColumnDefinitions="*,Auto" Height="30">
                             <TextBlock Grid.Column="0" Classes="caption" FontSize="12" VerticalAlignment="Center"
                                        Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
-                            <ToggleSwitch Grid.Column="1"
+                            <ToggleSwitch Grid.Column="1" Margin="0,-6"
                                           HorizontalAlignment="Right" VerticalAlignment="Center"
                                           IsEnabled="{Binding CanEdit}"
                                           IsChecked="{Binding IsOn, Mode=TwoWay}"

@@ -415,13 +415,19 @@
     <Setter Property="OffContent" Value="" />
     <Setter Property="MinWidth" Value="0" />
 
-    <!-- And no minimum height either.
-         Fluent's switch asks for the room a switch with a label beside it would need, and
-         this one has no label: it measured taller than the thirty-pixel row it sits in, so
-         it was arranged at thirty and clipped. What that looks like is a pill with square
-         corners and a knob touching both edges — which is exactly how it looked. -->
-    <Setter Property="MinHeight" Value="0" />
-    <Setter Property="Padding" Value="0" />
+    <!--
+      Its height is left alone, and that took three goes to get right.
+
+      Fluent's switch asks for more room than a bare pill needs, and the row it sits in
+      was fixed at thirty. Taking the minimum height off it made it fit, which is treating
+      the wrong end: the control then measured smaller than the pill it draws, and the
+      grid inside its own template clips, so the pill lost its bottom edge and the knob
+      came out flat-bottomed. That is the "square corners" the old note here described,
+      and removing the minimum was what caused it rather than what cured it.
+
+      The row was the thing that was too small. It now takes the height the control asks
+      for, here and in the panel, and the switch is drawn as its theme draws it.
+    -->
   </Style>
 
   <!-- A white knob on the accent, in both themes, because that is what the artboards
