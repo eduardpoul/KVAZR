@@ -353,6 +353,87 @@ public static class VendorSurvey
         }
     }
 
+    /// <summary>
+    /// Paints both light bars one colour, once, and then stops writing.
+    ///
+    /// The measurement this exists for: does a single frame stay put? The open
+    /// implementation of this protocol streams frames forever and so does the maker's own
+    /// software, but both are drawing animations — and an animation has to be drawn. A
+    /// steady colour might simply be the last frame the device was shown, held until
+    /// something replaces it. If it is, a colour on this page costs one write rather than
+    /// a loop that has to run for as long as the application does.
+    ///
+    /// Two packets, both of them shapes watched going past: the display header NGENUITY
+    /// sends before every frame, then eight bytes of colour as two groups of 81 R G B, one
+    /// per bar. Nothing here is stored, configured or reset — it is the same frame the
+    /// microphone is shown three times a second whenever NGENUITY is open, and unplugging
+    /// the cable undoes it.
+    /// </summary>
+    public static int Paint(TextWriter writer, ushort vendorId, byte red, byte green, byte blue)
+    {
+        ArgumentNullException.ThrowIfNull(writer);
+
+        HidInterface? found = new WindowsHidEnumerator().EnumerateAll()
+            .FirstOrDefault(i => i.VendorId == vendorId && i.UsagePage == 0xFF90 && i.FeatureReportLength > 0);
+
+        if (found is not { } collection)
+        {
+            writer.WriteLine($"No vendor pipe on 0x{vendorId:X4}.");
+            return 1;
+        }
+
+        IntPtr handle = HidNative.CreateFile(
+            collection.Path, Read | Write, HidNative.FileShareReadWrite,
+            IntPtr.Zero, HidNative.OpenExisting, 0, IntPtr.Zero);
+
+        if (handle == HidNative.InvalidHandle)
+        {
+            writer.WriteLine("Will not open for writing.");
+            return 1;
+        }
+
+        try
+        {
+            byte[] header = Packet(collection.FeatureReportLength, [0x04, 0xF2, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x01]);
+            byte[] colour = Packet(collection.FeatureReportLength, [0x81, red, green, blue, 0x81, red, green, blue]);
+
+            writer.WriteLine($"  header    {Hex(header)}");
+
+            if (!HidNative.HidD_SetFeature(handle, header, header.Length))
+            {
+                writer.WriteLine("  the device refused the header.");
+                return 2;
+            }
+
+            writer.WriteLine($"  colour    {Hex(colour)}");
+
+            if (!HidNative.HidD_SetFeature(handle, colour, colour.Length))
+            {
+                writer.WriteLine("  the device refused the colour.");
+                return 2;
+            }
+
+            writer.WriteLine();
+            writer.WriteLine("  Sent. Nothing more will be written.");
+            writer.WriteLine("  Watch the microphone: if the colour holds, a steady colour costs one write.");
+            writer.WriteLine("  If it drifts back to its own effect, it has to be painted continuously.");
+
+            return 0;
+        }
+        finally
+        {
+            HidNative.CloseHandle(handle);
+        }
+    }
+
+    /// <summary>A report-sized buffer with the payload after the report id.</summary>
+    private static byte[] Packet(int length, byte[] payload)
+    {
+        byte[] packet = new byte[length];
+        payload.CopyTo(packet, 1);
+        return packet;
+    }
+
     /// <summary>Every report of every collection that will answer a read, opened once.</summary>
     private static IEnumerable<Ear> Open(ushort vendorId)
     {

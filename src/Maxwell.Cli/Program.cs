@@ -48,6 +48,27 @@ if (args.Contains("--vendor"))
         return VendorSurvey.Watch(Console.Out, vid, seconds, everyMs, args.Contains("--quiet"));
     }
 
+    // One frame of colour, then silence, to find out whether a frame stays put.
+    if (args.Contains("--rgb"))
+    {
+        string colour = ValueAfter(args, "--rgb") ?? "00FF00";
+
+        if (colour.Length != 6
+            || !byte.TryParse(colour.AsSpan(0, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte r)
+            || !byte.TryParse(colour.AsSpan(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte g)
+            || !byte.TryParse(colour.AsSpan(4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte b))
+        {
+            Console.WriteLine("usage: --vendor 0951 --rgb RRGGBB");
+            return 1;
+        }
+
+        Console.WriteLine("Painting both light bars once. Two packets, both of them shapes");
+        Console.WriteLine("NGENUITY was watched sending. Unplugging the cable undoes it.");
+        Console.WriteLine();
+
+        return VendorSurvey.Paint(Console.Out, vid, r, g, b);
+    }
+
     // The one command this harness will send, and it is a replay of what NGENUITY was
     // watched sending: ask the microphone what its polar selector is set to.
     if (args.Contains("--ask"))
