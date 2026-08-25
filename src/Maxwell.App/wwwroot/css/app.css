@@ -758,8 +758,13 @@ button.accent:disabled:hover { background: var(--track-empty); }
   border-radius: 5px;
   -webkit-appearance: none;
   appearance: none;
-  border: 1px solid var(--stroke-subtle);
   background-size: 100% 100%;
+
+  /* An inset shadow rather than a border, and not for looks. A border grows the box while
+     the thumb centres on the content inside it, so the circles sat a pixel above the
+     track they were riding. A shadow draws the same line and moves nothing. */
+  border: none;
+  box-shadow: inset 0 0 0 1px var(--stroke-subtle);
 }
 
 .hsv .tinted::-webkit-slider-thumb {

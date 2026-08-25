@@ -26,9 +26,9 @@
       @if (Vm is LightingCapabilityViewModel modes)
       {
         <div class="segmented tiny">
-          <button class="@(modes.BySliders ? "" : "sel")"
+          <button class="@(modes.BySliders ? "" : "sel")" disabled="@(!modes.CanEdit)"
                   @onclick="() => { var m = modes; OnUi(() => m.BySliders = false); }">@T.Say("Swatches")</button>
-          <button class="@(modes.BySliders ? "sel" : "")"
+          <button class="@(modes.BySliders ? "sel" : "")" disabled="@(!modes.CanEdit)"
                   @onclick="() => { var m = modes; OnUi(() => m.BySliders = true); }">@T.Say("Sliders")</button>
         </div>
       }

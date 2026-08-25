@@ -158,6 +158,18 @@ public sealed class AppSettings
     /// tier underneath and a very effective way for anybody else to break their own
     /// installation.
     /// </summary>
+    /// <summary>
+    /// What drivers have written down about particular devices, keyed by device and then
+    /// by whatever slot the driver chose.
+    ///
+    /// Almost nothing needs this: a page is read from the hardware, which is the right way
+    /// round. The exception is a setting the hardware cannot keep — a QuadCast's lighting
+    /// has no home in the microphone at all, so a colour somebody chose exists nowhere
+    /// unless it is written here.
+    /// </summary>
+    public Dictionary<string, Dictionary<string, string>> DeviceMemory { get; set; } =
+        new(StringComparer.Ordinal);
+
     public bool DeveloperMode { get; set; }
 
     /// <summary>
@@ -180,6 +192,10 @@ public sealed class AppSettings
         HideSilentDevices = HideSilentDevices,
         MonitoringInTray = new HashSet<string>(MonitoringInTray, StringComparer.Ordinal),
         DeveloperMode = DeveloperMode,
+        DeviceMemory = DeviceMemory.ToDictionary(
+            p => p.Key,
+            p => new Dictionary<string, string>(p.Value, StringComparer.Ordinal),
+            StringComparer.Ordinal),
         DisabledLibraries = new HashSet<string>(DisabledLibraries, StringComparer.Ordinal),
         PrimaryDeviceKey = PrimaryDeviceKey,
         Theme = Theme,

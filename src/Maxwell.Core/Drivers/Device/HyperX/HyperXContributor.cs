@@ -32,12 +32,18 @@ public sealed class HyperXContributor : ICapabilityContributor
     ];
 
     private readonly IHidListenerFactory _listeners;
+    private readonly IDeviceMemory? _memory;
 
-    public HyperXContributor(IHidListenerFactory listeners)
+    public HyperXContributor(IHidListenerFactory listeners, IDeviceMemory? memory = null)
     {
         ArgumentNullException.ThrowIfNull(listeners);
 
         _listeners = listeners;
+
+        // Optional, and a build without it is a working one: the lighting then lasts as
+        // long as the application does, which is how it behaved before there was anywhere
+        // to write it down.
+        _memory = memory;
     }
 
     public string ContributorId => "hyperx";
@@ -63,6 +69,7 @@ public sealed class HyperXContributor : ICapabilityContributor
         // of the dial rather than on the way up, which is worse and still works.
         IHidVendorPipe? pipe = _listeners.OpenPipe(HyperXConnection.Vendor, HyperXConnection.PipePage);
 
-        return Task.FromResult<IDeviceConnection?>(new HyperXConnection(listener, pipe));
+        return Task.FromResult<IDeviceConnection?>(
+            new HyperXConnection(listener, pipe, _memory, device.Key));
     }
 }

@@ -140,6 +140,49 @@ public sealed class HyperXLightingTests
         Assert.False(LightingState.Default.On);
     }
 
+    // ---------- what has to survive a restart ----------
+
+    /// <summary>
+    /// The one setting on this page with nowhere else to live. The microphone forgets a
+    /// colour a second after it is shown, so if this string is wrong the lighting is wrong
+    /// and there is nothing on the device to consult about it.
+    /// </summary>
+    [Fact]
+    public void AStateWrittenDown_ComesBackTheSame()
+    {
+        LightingState was = new(true, LightingEffect.Wave, 0x12, 0xABCDEF, 40, 70);
+
+        Assert.Equal(was, LightingState.Parse(was.ToText()));
+    }
+
+    [Fact]
+    public void NothingWrittenDown_IsTheDefault()
+    {
+        Assert.Equal(LightingState.Default, LightingState.Parse(null));
+        Assert.Equal(LightingState.Default, LightingState.Parse(string.Empty));
+    }
+
+    [Theory]
+    [InlineData("nonsense")]
+    [InlineData("1;2;3")]
+    [InlineData("1;x;3;4;5;6")]
+    public void SomethingUnreadable_IsTheDefaultRatherThanAThrow(string text)
+    {
+        // A settings file edited by hand, or written by a build that arranged this
+        // differently. Neither is a reason for a microphone to stop working.
+        Assert.Equal(LightingState.Default, LightingState.Parse(text));
+    }
+
+    [Fact]
+    public void ValuesOutOfRange_AreBroughtBackIn()
+    {
+        LightingState read = LightingState.Parse("1;99;16777215;16777215;400;-30");
+
+        Assert.Equal(LightingEffect.Static, read.Effect);
+        Assert.Equal(100, read.Brightness);
+        Assert.Equal(0, read.Speed);
+    }
+
     private static IEnumerable<(int Upper, int Lower)> Times(LightingState state, int frames) =>
         Enumerable.Range(0, frames).Select(i => HyperXLighting.Compose(state, i * 0.05));
 }

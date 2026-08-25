@@ -1,3 +1,5 @@
+using System.Globalization;
+
 using Maxwell.Race.Abstractions;
 
 namespace Maxwell.Core.Drivers.HyperX;
@@ -245,6 +247,52 @@ internal readonly record struct LightingState(
     /// </summary>
     public static readonly LightingState Default =
         new(false, LightingEffect.Static, 0xFFFFFF, 0xFFFFFF, 100, 30);
+
+    /// <summary>
+    /// Six numbers, semicolon separated. Plain enough to read in the settings file and to
+    /// fix by hand, which matters for the one setting on this page that has nowhere else
+    /// to live: if this string is wrong the lighting is wrong and nothing on the device
+    /// can be consulted about it.
+    /// </summary>
+    public string ToText() => string.Join(
+        ';',
+        On ? 1 : 0,
+        (int)Effect,
+        Upper,
+        Lower,
+        Brightness,
+        Speed);
+
+    /// <summary>
+    /// The same, back. Anything unreadable gives the default rather than throwing: a
+    /// settings file edited by hand, or written by an older build, must not stop a
+    /// microphone from working.
+    /// </summary>
+    public static LightingState Parse(string? text)
+    {
+        if (text is not { Length: > 0 }) return Default;
+
+        string[] parts = text.Split(';');
+        if (parts.Length < 6) return Default;
+
+        int[] read = new int[6];
+
+        for (int i = 0; i < 6; i++)
+        {
+            if (!int.TryParse(parts[i], CultureInfo.InvariantCulture, out read[i]))
+            {
+                return Default;
+            }
+        }
+
+        return new LightingState(
+            read[0] != 0,
+            Enum.IsDefined((LightingEffect)read[1]) ? (LightingEffect)read[1] : LightingEffect.Static,
+            read[2] & 0xFFFFFF,
+            read[3] & 0xFFFFFF,
+            Math.Clamp(read[4], 0, 100),
+            Math.Clamp(read[5], 0, 100));
+    }
 }
 
 internal enum LightingEffect

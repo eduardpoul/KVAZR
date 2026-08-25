@@ -268,6 +268,11 @@ internal static class Program
 
         builder.Services.AddPlatform();
         builder.Services.AddSingleton<ISettingsStore, JsonSettingsStore>();
+
+        // Where a driver keeps what its device cannot. Beside the settings store because
+        // it writes into the same file: a colour chosen for a microphone is a preference
+        // like any other and belongs where somebody would look for it.
+        builder.Services.AddSingleton<IDeviceMemory, Platform.SettingsDeviceMemory>();
         builder.Services.AddSingleton(sp => new PrimaryDevice(
             sp.GetRequiredService<IDeviceRegistry>(),
             sp.GetRequiredService<HiddenDevices>(),

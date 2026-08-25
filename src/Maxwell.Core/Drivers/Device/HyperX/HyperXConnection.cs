@@ -68,17 +68,37 @@ internal sealed class HyperXConnection : IDeviceConnection
     private int _pattern = -1;
     private bool _disposed;
 
-    public HyperXConnection(IHidListener listener, IHidVendorPipe? pipe = null)
+    /// <summary>The slot this driver keeps its lighting under. One device, one string.</summary>
+    private const string LightingSlot = "hyperx.lighting";
+
+    private readonly IDeviceMemory? _memory;
+    private readonly string _deviceKey;
+
+    public HyperXConnection(
+        IHidListener listener,
+        IHidVendorPipe? pipe = null,
+        IDeviceMemory? memory = null,
+        string deviceKey = "")
     {
         ArgumentNullException.ThrowIfNull(listener);
 
         _listener = listener;
         _pipe = pipe;
+        _memory = memory;
+        _deviceKey = deviceKey;
 
         // Only where there is a register to write to. Without one the microphone keeps its
         // own lighting and the rows below are simply not published, which is the truth
         // rather than four controls that do nothing.
         _lighting = pipe is null ? null : new HyperXLighting(pipe);
+
+        // Whatever was chosen last time, applied the moment the microphone is found
+        // rather than when somebody opens its page. The lights are on the desk; waiting
+        // for a window to be opened before honouring a setting would be visible.
+        if (_lighting is { } lights && memory?.Recall(deviceKey, LightingSlot) is { } kept)
+        {
+            lights.Apply(LightingState.Parse(kept));
+        }
 
         Capabilities = _lighting is null ? [Selector] : [Selector, .. Lights];
 
@@ -233,7 +253,6 @@ internal sealed class HyperXConnection : IDeviceConnection
             Domain = CapabilityDomain.Light,
             Primitive = CapabilityPrimitive.Range,
             Title = "Brightness",
-            Section = "HyperX",
             EnabledBy = CapabilityIds.LightOn,
             Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
         },
@@ -306,6 +325,11 @@ internal sealed class HyperXConnection : IDeviceConnection
         if (now == was) return Task.FromResult(false);
 
         lighting.Apply(now);
+
+        // Written down on every change, because there is nowhere else it could be read
+        // back from: the microphone forgets a colour a second after it is shown.
+        _memory?.Remember(_deviceKey, LightingSlot, now.ToText());
+
         return Task.FromResult(true);
     }
 
