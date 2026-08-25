@@ -64,6 +64,10 @@ internal static class TesterProbe
         Console.WriteLine("  Move each mouse, press every button including the side ones,");
         Console.WriteLine("  turn the wheel, and tilt it if it tilts.");
         Console.WriteLine();
+        Console.WriteLine("  For the rate: whip it about as fast as you can for a second or two.");
+        Console.WriteLine("  A mouse reports when it has movement to report, so a slow hand");
+        Console.WriteLine("  measures the hand rather than the mouse.");
+        Console.WriteLine();
 
         Thread.Sleep(TimeSpan.FromSeconds(seconds));
 
@@ -96,8 +100,7 @@ internal static class TesterProbe
 
         Console.WriteLine($"  {name}");
         Console.WriteLine($"      reports   {tally.Reports}");
-        Console.WriteLine($"      rate      {tally.Peak} in the busiest second"
-                          + $"  ·  shortest gap {tally.Shortest():0.0} ms");
+        Console.WriteLine($"      rate      {tally.Peak} per second at its busiest");
 
         string pressed = string.Join(
             ", ",
@@ -117,21 +120,31 @@ internal static class TesterProbe
 
     private sealed class Tally
     {
-        private readonly Dictionary<long, int> _seconds = [];
-
-        private TimeSpan _last = TimeSpan.MinValue;
-        private double _shortest = double.MaxValue;
+        /// <summary>
+        /// Counted in tenths of a second rather than whole ones.
+        ///
+        /// Because of what is being asked of the person holding the mouse: nobody moves
+        /// one flat out for a whole second, so a whole-second bucket averages the fast
+        /// part of a flick together with the slowing down at the end of it. A tenth is
+        /// short enough to sit inside one swipe.
+        /// </summary>
+        private readonly Dictionary<long, int> _tenths = [];
 
         public int Reports { get; private set; }
 
         /// <summary>
-        /// The busiest whole second, which is the rate while the mouse was actually being
-        /// used.
+        /// The rate at its busiest, which is a floor on what the mouse can do and never a
+        /// ceiling.
         ///
-        /// It replaced an average across the span from the first report to the last, and
-        /// that average was wrong in a way that read as a plausible number: somebody moves
-        /// a mouse in bursts, the span counts the pauses between them, and a thousand-hertz
-        /// mouse comes out at forty-five. Which is not a rate anything has.
+        /// It replaced an average across the whole span, and that average was wrong in a
+        /// way that read as a plausible number: somebody moves a mouse in bursts, the span
+        /// counts the pauses, and any mouse comes out at forty-something.
+        ///
+        /// Even this is a floor, and for a reason no arithmetic fixes: a mouse sends a
+        /// report when it has movement to report. Polled a thousand times a second and
+        /// pushed gently, it answers a fraction of those polls — so what is counted here
+        /// is how fast the hand moved, until the hand moves fast enough to stop being the
+        /// limit.
         /// </summary>
         public int Peak { get; private set; }
 
@@ -149,17 +162,10 @@ internal static class TesterProbe
             Reports++;
             Flags |= report.Buttons;
 
-            long second = (long)at.TotalSeconds;
-            int inThisSecond = _seconds[second] = _seconds.GetValueOrDefault(second) + 1;
-            if (inThisSecond > Peak) Peak = inThisSecond;
+            long tenth = (long)(at.TotalSeconds * 10);
+            int inThisTenth = _tenths[tenth] = _tenths.GetValueOrDefault(tenth) + 1;
 
-            if (_last != TimeSpan.MinValue)
-            {
-                double gap = (at - _last).TotalMilliseconds;
-                if (gap > 0 && gap < _shortest) _shortest = gap;
-            }
-
-            _last = at;
+            if (inThisTenth * 10 > Peak) Peak = inThisTenth * 10;
 
             if ((report.Buttons & (Wheel | HorizontalWheel)) != 0 && report.Wheel != 0)
             {
@@ -167,12 +173,10 @@ internal static class TesterProbe
             }
         }
 
-        /// <summary>
-        /// The shortest gap between two reports, which is the other half of the answer:
-        /// the busiest second says how hard it was worked, this says how fast it can go.
-        /// A mouse polled at a thousand hertz has a millisecond here whatever anybody did
-        /// with it.
-        /// </summary>
-        public double Shortest() => _shortest == double.MaxValue ? 0 : _shortest;
+        // No "shortest gap between two reports" any more. It read 0.0 ms, and it was
+        // reading the wrong clock: the timestamp is taken when this thread pulls the
+        // message off its queue, not when the report arrived, so several delivered
+        // together are stamped at the same instant. It described the message pump and
+        // was offered as a fact about the mouse.
     }
 }
