@@ -36,6 +36,13 @@ public interface IHidVendorPipe : IDisposable
     /// it until the device replaces it, so reading immediately hands back the question.
     /// </summary>
     byte[]? Ask(byte[] command, TimeSpan within);
+
+    /// <summary>
+    /// Writes a command and does not wait for anything. For the ones that have no answer
+    /// — a frame of colour is told, not asked, and a device painted twenty times a second
+    /// must not be read from twenty times a second as well.
+    /// </summary>
+    bool Send(byte[] command);
 }
 
 /// <summary>

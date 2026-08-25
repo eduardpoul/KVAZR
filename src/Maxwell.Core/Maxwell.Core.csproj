@@ -21,4 +21,12 @@
     <EmbeddedResource Include="Catalogue/devices.json" />
   </ItemGroup>
 
+  <!-- A driver's own types are internal and stay that way: nothing outside this assembly
+       has any business constructing a lighting frame or a device's state record. The
+       arithmetic inside them is exactly what is worth checking, though — an effect is a
+       function of time, and a function of time can be checked exactly. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Maxwell.Core.Tests" />
+  </ItemGroup>
+
 </Project>

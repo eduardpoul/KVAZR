@@ -93,6 +93,21 @@ public sealed class WindowsHidListenerFactory : IHidListenerFactory
             }
         }
 
+        public bool Send(byte[] command)
+        {
+            ArgumentNullException.ThrowIfNull(command);
+
+            lock (_gate)
+            {
+                if (_handle == HidNative.InvalidHandle) return false;
+
+                byte[] written = new byte[length];
+                command.CopyTo(written, 1);
+
+                return HidNative.HidD_SetFeature(_handle, written, written.Length);
+            }
+        }
+
         public void Dispose()
         {
             lock (_gate)

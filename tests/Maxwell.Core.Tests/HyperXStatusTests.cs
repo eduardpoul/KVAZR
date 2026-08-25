@@ -61,7 +61,7 @@ public sealed class HyperXStatusTests
     {
         using IDeviceConnection connection = await AttachAsync(new FakeListeners());
 
-        Capability row = Assert.Single(connection.Capabilities);
+        Capability row = connection.Capabilities.Single(c => c.Id == CapabilityIds.MicPolarPattern);
 
         Assert.Equal(CapabilityIds.MicPolarPattern, row.Id);
         Assert.Equal(CapabilityDomain.Microphone, row.Domain);
@@ -163,7 +163,9 @@ public sealed class HyperXStatusTests
         var listeners = new FakeListeners { Answer = Answer(2) };
         using IDeviceConnection connection = await AttachAsync(listeners);
 
-        Assert.Equal(CapabilityPrimitive.Choice, connection.Capabilities.Single().Primitive);
+        Assert.Equal(
+            CapabilityPrimitive.Choice,
+            connection.Capabilities.Single(c => c.Id == CapabilityIds.MicPolarPattern).Primitive);
         Assert.IsType<ChoiceValue>(await connection.ReadAsync(CapabilityIds.MicPolarPattern, Ct));
     }
 
@@ -322,6 +324,15 @@ public sealed class HyperXStatusTests
         {
             Asked.Add(command);
             return answer;
+        }
+
+        /// <summary>Frames of colour land here. Locked because the lighting loop is its own thread.</summary>
+        public List<byte[]> Sent { get; } = [];
+
+        public bool Send(byte[] command)
+        {
+            lock (Sent) Sent.Add(command);
+            return true;
         }
 
         public void Dispose() => Disposed = true;

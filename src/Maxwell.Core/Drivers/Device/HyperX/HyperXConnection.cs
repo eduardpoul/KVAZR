@@ -61,6 +61,7 @@ internal sealed class HyperXConnection : IDeviceConnection
 
     private readonly IHidListener _listener;
     private readonly IHidVendorPipe? _pipe;
+    private readonly HyperXLighting? _lighting;
     private readonly CancellationTokenSource _stop = new();
     private readonly Task _ear;
 
@@ -73,6 +74,14 @@ internal sealed class HyperXConnection : IDeviceConnection
 
         _listener = listener;
         _pipe = pipe;
+
+        // Only where there is a register to write to. Without one the microphone keeps its
+        // own lighting and the rows below are simply not published, which is the truth
+        // rather than four controls that do nothing.
+        _lighting = pipe is null ? null : new HyperXLighting(pipe);
+
+        Capabilities = _lighting is null ? [Selector] : [Selector, .. Lights];
+
         _ear = Task.Run(Listen);
 
         // Before anything is drawn. Without it the row is empty until somebody turns the
@@ -109,9 +118,10 @@ internal sealed class HyperXConnection : IDeviceConnection
         }
     }
 
-    public IReadOnlyList<Capability> Capabilities { get; } =
-    [
-        new Capability
+    public IReadOnlyList<Capability> Capabilities { get; }
+
+    private static readonly Capability Selector =
+        new()
         {
             Id = CapabilityIds.MicPolarPattern,
             Domain = CapabilityDomain.Microphone,
@@ -141,6 +151,76 @@ internal sealed class HyperXConnection : IDeviceConnection
             // It changes under somebody's hand and never under ours, which is the whole
             // definition of volatile.
             IsVolatile = true,
+        };
+
+    /// <summary>
+    /// The lighting, as four separate rows.
+    ///
+    /// Separate because they are separate questions and a device that offered only some of
+    /// them would otherwise be undrawable: the colour is a pair of zones, the effect is a
+    /// list, the brightness is a scale, and whether any of it is ours at all is a switch.
+    /// The interface has drawn all four shapes since before this driver existed.
+    /// </summary>
+    private static readonly Capability[] Lights =
+    [
+        new Capability
+        {
+            Id = CapabilityIds.LightOn,
+            Domain = CapabilityDomain.Light,
+            Primitive = CapabilityPrimitive.Toggle,
+            Title = "Lighting",
+            Section = "HyperX",
+
+            // The sentence has to say what off means, because it is not darkness. The
+            // microphone has an effect of its own and runs it whenever nothing is
+            // overriding it, so switching this off gives the lights back rather than
+            // putting them out.
+            Subtitle = "Painted by this application while it runs. Off gives the microphone its own effect back",
+        },
+        new Capability
+        {
+            Id = CapabilityIds.LightEffect,
+            Domain = CapabilityDomain.Light,
+            Primitive = CapabilityPrimitive.Choice,
+            Title = "Effect",
+            Section = "HyperX",
+            EnabledBy = CapabilityIds.LightOn,
+            Choices =
+            [
+                new CapabilityChoice(0, "Static"),
+                new CapabilityChoice(1, "Breathing"),
+                new CapabilityChoice(2, "Blink"),
+                new CapabilityChoice(3, "Wave"),
+                new CapabilityChoice(4, "Rainbow"),
+            ],
+        },
+        new Capability
+        {
+            Id = CapabilityIds.LightColor,
+            Domain = CapabilityDomain.Light,
+            Primitive = CapabilityPrimitive.Lighting,
+            Title = "Colour",
+            Section = "HyperX",
+            EnabledBy = CapabilityIds.LightOn,
+
+            // Two bars, and they are named for where they are on the microphone rather
+            // than for anything in the protocol: whoever is choosing a colour is looking
+            // at the device, not at the frame.
+            Members =
+            [
+                new CapabilityMember(0, "Upper bar"),
+                new CapabilityMember(1, "Lower bar"),
+            ],
+        },
+        new Capability
+        {
+            Id = CapabilityIds.LightBrightness,
+            Domain = CapabilityDomain.Light,
+            Primitive = CapabilityPrimitive.Range,
+            Title = "Brightness",
+            Section = "HyperX",
+            EnabledBy = CapabilityIds.LightOn,
+            Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
         },
     ];
 
@@ -149,6 +229,11 @@ internal sealed class HyperXConnection : IDeviceConnection
 
     public Task<CapabilityValue> ReadAsync(string capabilityId, CancellationToken cancellationToken = default)
     {
+        if (_lighting is { } lighting && Light(capabilityId, lighting.State) is { } lit)
+        {
+            return Task.FromResult(lit);
+        }
+
         if (!string.Equals(capabilityId, CapabilityIds.MicPolarPattern, StringComparison.Ordinal))
         {
             return Task.FromResult(CapabilityValue.Absent);
@@ -165,13 +250,56 @@ internal sealed class HyperXConnection : IDeviceConnection
     }
 
     /// <summary>
-    /// Nothing here is writable. The selector is a mechanical dial: there is no command
-    /// that could move it, and a control that pretended otherwise would be a lie about the
+    /// The selector is never writable: it is a mechanical dial, there is no command that
+    /// could move it, and a control that pretended otherwise would be a lie about the
     /// hardware rather than a missing feature.
+    ///
+    /// The lighting is, and it is written to this application rather than to the
+    /// microphone — which cannot keep it. What reaches the device is a stream of frames
+    /// for as long as the switch is on.
     /// </summary>
     public Task<bool> WriteAsync(
-        string capabilityId, CapabilityValue value, CancellationToken cancellationToken = default) =>
-        Task.FromResult(false);
+        string capabilityId, CapabilityValue value, CancellationToken cancellationToken = default)
+    {
+        if (_lighting is not { } lighting) return Task.FromResult(false);
+
+        LightingState was = lighting.State;
+
+        LightingState now = (capabilityId, value) switch
+        {
+            (CapabilityIds.LightOn, FlagValue flag) => was with { On = flag.Value },
+
+            (CapabilityIds.LightEffect, ChoiceValue choice) when choice.Index is >= 0 and <= 4 =>
+                was with { Effect = (LightingEffect)choice.Index },
+
+            (CapabilityIds.LightBrightness, NumberValue number) =>
+                was with { Brightness = Math.Clamp(number.Value, 0, 100) },
+
+            (CapabilityIds.LightColor, VectorValue zones) when zones.Items.Count >= 2 =>
+                was with
+                {
+                    Upper = zones.Items[0].AsNumber(was.Upper),
+                    Lower = zones.Items[1].AsNumber(was.Lower),
+                },
+
+            _ => was,
+        };
+
+        if (now == was) return Task.FromResult(false);
+
+        lighting.Apply(now);
+        return Task.FromResult(true);
+    }
+
+    /// <summary>The lighting rows, read back out of the state the loop is painting from.</summary>
+    private static CapabilityValue? Light(string capabilityId, LightingState state) => capabilityId switch
+    {
+        CapabilityIds.LightOn => CapabilityValue.Of(state.On),
+        CapabilityIds.LightEffect => CapabilityValue.Choice((int)state.Effect),
+        CapabilityIds.LightBrightness => CapabilityValue.Of(state.Brightness),
+        CapabilityIds.LightColor => CapabilityValue.Numbers(state.Upper, state.Lower),
+        _ => null,
+    };
 
     private void Listen()
     {
@@ -208,6 +336,9 @@ internal sealed class HyperXConnection : IDeviceConnection
         // holds an open HID handle, and leaving it running would hold the device after the
         // session that owns it has gone.
         _ = _ear.Wait(TimeSpan.FromSeconds(2));
+
+        // Before the pipe it writes through, and before the handle underneath that.
+        _lighting?.Dispose();
 
         _listener.Dispose();
         _pipe?.Dispose();
