@@ -100,15 +100,23 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
     public bool HasNothing => Quick.Count == 0;
 
     /// <summary>
-    /// What the empty row says. "Nothing to set" and "not over this link" are different
-    /// facts and the second one is actionable: a Maxwell on its dongle is not a device
-    /// without settings, it is a device whose settings are one cable away. The reason
-    /// comes from the capability that was skipped rather than being written here, because
-    /// the driver is what knows why.
+    /// Why the row is empty, when there is a reason worth giving.
+    ///
+    /// "Not over this link" is a fact about the device and it is actionable: a Maxwell on
+    /// its dongle is not a device without settings, it is a device whose settings are one
+    /// cable away. It comes from the capability that was skipped rather than being
+    /// written here, because the driver is what knows why.
+    ///
+    /// There used to be a sentence for the other case too — "nothing to set, the device
+    /// gives only what the row already shows". That one is about this application rather
+    /// than about the device, and it was the whole content of an opened row: a person
+    /// clicked to see more and got a paragraph explaining that there is no more. The way
+    /// out of that row is the page below it, which is now offered instead.
     /// </summary>
-    public string NothingSaid => _blocked is { Length: > 0 } reason
-        ? reason
-        : Maxwell.App.Localization.Localizer.Current.Say("Nothing to set: the device gives only what the row already shows.");
+    public string NothingSaid => _blocked ?? string.Empty;
+
+    /// <summary>Whether there is a reason to give, as against simply having nothing.</summary>
+    public bool HasReason => _blocked is { Length: > 0 };
 
     /// <summary>Why the quick controls were left out, if they were.</summary>
     private string? _blocked;
@@ -195,6 +203,7 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
 
         OnPropertyChanged(nameof(HasNothing));
         OnPropertyChanged(nameof(NothingSaid));
+        OnPropertyChanged(nameof(HasReason));
     }
 
     /// <summary>

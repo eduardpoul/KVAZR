@@ -585,11 +585,12 @@
                       </ItemsControl.DataTemplates>
                     </ItemsControl>
 
-                    <!-- Said out loud rather than left blank. "Connected, and there is
-                         nothing here to set" is something a person can act on; an empty
-                         gap under an opened row reads as a fault. -->
+                    <!-- Only when there is a reason. "Not over this link" is a fact
+                         about the device and a person can act on it; "nothing to set"
+                         was a fact about this application, and it was the entire content
+                         of an opened row for any device with no quick controls. -->
                     <TextBlock Classes="secondary" FontSize="12" TextWrapping="Wrap"
-                               IsVisible="{Binding HasNothing}"
+                               IsVisible="{Binding HasReason}"
                                Text="{Binding NothingSaid}" />
 
                     <!-- A line of text with a chevron, not a filled button: the artboard
@@ -605,8 +606,7 @@
                             Margin="-8,0"
                             Command="{Binding OpenPageCommand}"
                             HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Stretch"
-                            IsVisible="{Binding !HasNothing}">
+                            HorizontalContentAlignment="Stretch">
                       <Grid ColumnDefinitions="*,Auto">
                         <TextBlock Grid.Column="0" FontSize="12" VerticalAlignment="Center"
                                    Foreground="{DynamicResource TextTertiaryBrush}"

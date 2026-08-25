@@ -204,6 +204,39 @@ public sealed class FlyoutRowTests
         Assert.DoesNotContain(CapabilityIds.LightBrightness, row.Quick.Select(q => q.Id));
     }
 
+    /// <summary>
+    /// A device with nothing to change says nothing about it.
+    ///
+    /// It used to fill the opened row with one sentence — "nothing to set, the device
+    /// gives only what the row already shows" — which is a statement about this
+    /// application, and it was the whole of what somebody got for clicking to see more.
+    /// A reason is different: "not over this link" is about the device and can be acted
+    /// on, so that one still speaks.
+    /// </summary>
+    [Fact]
+    public void ADeviceWithNothingToChange_DoesNotExplainItself()
+    {
+        var mouse = new DeviceSnapshot
+        {
+            Info = new DeviceInfo
+            {
+                Key = "system:mouse",
+                DriverId = "system",
+                Vendor = "HP",
+                Model = "Wireless Mouse",
+                Class = DeviceClass.Mouse,
+            },
+            Availability = DeviceAvailability.Active,
+        };
+
+        using var row = new FlyoutRowViewModel(mouse, new Registry());
+        row.ToggleCommand.Execute(null);
+
+        Assert.True(row.HasNothing);
+        Assert.False(row.HasReason);
+        Assert.Empty(row.NothingSaid);
+    }
+
     [Fact]
     public void WithNoSettingsBehindIt_TheRowStillOpens()
     {
