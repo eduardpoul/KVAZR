@@ -64,9 +64,17 @@ internal static class HidPlusPlusProbe
             // The receiver first. It always answers, so if this is silent the channel is
             // wrong rather than the slots being empty — and those look identical from
             // outside, which is the whole reason to ask something guaranteed to reply.
-            Receiver(channel, iface);
+            bool direct = Receiver(channel, iface);
 
-            for (byte device = 1; device <= 6; device++) Interrogate(channel, device);
+            if (direct)
+            {
+                // One device, wired, answering wherever it is asked. Its own index.
+                Interrogate(channel, HidPlusPlus.Receiver);
+            }
+            else
+            {
+                for (byte device = 1; device <= 6; device++) Interrogate(channel, device);
+            }
             Console.WriteLine();
         }
 
@@ -78,7 +86,7 @@ internal static class HidPlusPlusProbe
     /// Unifying receiver answers HID++ 1.0 register reads on the short report even when
     /// nothing at all is paired to it, which makes it the one guaranteed reply on the bus.
     /// </summary>
-    private static void Receiver(WindowsHidChannel channel, HidInterface iface)
+    private static bool Receiver(WindowsHidChannel channel, HidInterface iface)
     {
         byte[] request = new byte[iface.OutputReportLength];
 
@@ -95,6 +103,13 @@ internal static class HidPlusPlusProbe
             : string.Join(' ', reply.Take(8).Select(b => b.ToString("X2")));
 
         Console.WriteLine($"    приёмник 0xFF: {what}");
+
+        // Whether anything at all lives on index 0xFF, which is how a directly attached
+        // device is told from a receiver. Measured both ways on this desk: a receiver's
+        // long report says nothing on 0xFF, while a mouse on a cable answers there —
+        // and answers on every other index too, being the only device on the bus. Asking
+        // it six times printed the same mouse six times.
+        return reply is not null;
     }
 
     private static void Interrogate(WindowsHidChannel channel, byte device)
