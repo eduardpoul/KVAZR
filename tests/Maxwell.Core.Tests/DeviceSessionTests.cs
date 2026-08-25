@@ -265,6 +265,55 @@ public sealed class DeviceSessionTests
         Assert.Equal(0, published);
     }
 
+    /// <summary>
+    /// A handle that throws on every question is the strongest evidence a device is not
+    /// answering, and it used to be read as evidence that it was.
+    ///
+    /// The probe counted questions successfully put, and concluded that a device it could
+    /// not ask should be presumed fine — having just dropped the channel for throwing.
+    /// What that looks like is a page of dead controls coming back to life on its own,
+    /// full of the readings it took before the device went away.
+    /// </summary>
+    [Fact]
+    public async Task AHandleThatThrows_IsNotEvidenceOfLife()
+    {
+        var fixture = new Fixture { Heartbeat = Plain };
+        DeviceSession session = fixture.CreateSession();
+        await session.MarkPresentAsync(fixture.Info, Ct);
+
+        Assert.Equal(DeviceAvailability.Active, session.Snapshot.Availability);
+
+        fixture.Connection.Broken = true;
+        await session.ProbeAsync(Ct);
+
+        Assert.NotEqual(DeviceAvailability.Active, session.Snapshot.Availability);
+    }
+
+    /// <summary>
+    /// And a named heartbeat that cannot be asked is not permission to ask somebody else.
+    ///
+    /// The fallback — a few of the device's own rows, silent only when every one is — is
+    /// right for a driver that named nothing. Here it is a different device answering: a
+    /// dongle's audio endpoint is open and talkative with the headset in a drawer, and
+    /// letting it speak for the headset is the same page coming back by another route.
+    /// </summary>
+    [Fact]
+    public async Task AHeartbeatWithNoChannelLeft_IsNotAnsweredByAContributor()
+    {
+        var fixture = new Fixture { Heartbeat = Plain };
+
+        var extra = new FakeConnection();
+        DeviceSession session = fixture.CreateSession([new FakeContributor(extra)]);
+        await session.MarkPresentAsync(fixture.Info, Ct);
+
+        // The headset's own channel dies; the contributor goes on answering everything
+        // it knows, battery included.
+        fixture.Connection.Broken = true;
+        await session.ProbeAsync(Ct);
+
+        Assert.NotEqual(DeviceAvailability.Active, session.Snapshot.Availability);
+    }
+
     [Fact]
     public async Task ADriverThatSaysNothing_IsSilentHoweverLoudItsContributorsAre()
     {
@@ -647,9 +696,14 @@ public sealed class DeviceSessionTests
             new() { Kind = TransportKind.UsbCable, Label = "USB", IsPresent = true, CarriesControl = true },
         ];
 
+        /// <summary>Reads throw, the way a handle does once the device is gone.</summary>
+        public bool Broken { get; set; }
+
         public Task<CapabilityValue> ReadAsync(string capabilityId, CancellationToken cancellationToken = default)
         {
             Asked.Add(capabilityId);
+
+            if (Broken) throw new IOException("the handle is gone");
 
             CapabilityValue value = Values.GetValueOrDefault(capabilityId, CapabilityValue.Absent);
 

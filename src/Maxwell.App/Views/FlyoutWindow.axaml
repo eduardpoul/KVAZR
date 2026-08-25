@@ -557,7 +557,13 @@
                           <Grid ColumnDefinitions="*,Auto" Height="30">
                             <TextBlock Grid.Column="0" Classes="caption" FontSize="12" VerticalAlignment="Center"
                                        Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
-                            <ToggleSwitch Grid.Column="1" Margin="0,-6"
+                            <!-- Minus twelve on the right, which is measured rather than
+                                 chosen: the control arranges to 52 pixels and draws its
+                                 pill in the first 40, so aligned honestly it stops twelve
+                                 short of the edge every other row in this list reaches.
+                                 The twelve it overhangs land in the card's padding, the
+                                 same place the slider's thumb already overhangs into. -->
+                            <ToggleSwitch Grid.Column="1" Margin="0,-6,-12,-6"
                                           HorizontalAlignment="Right" VerticalAlignment="Center"
                                           IsEnabled="{Binding CanEdit}"
                                           IsChecked="{Binding IsOn, Mode=TwoWay}"

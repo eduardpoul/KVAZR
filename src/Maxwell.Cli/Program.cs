@@ -21,9 +21,18 @@ Console.WriteLine();
 // route below — with --mock there may be no Audeze hardware attached at all.
 if (args.Contains("--devices"))
 {
-    TimeSpan? watch = args.Contains("--watch") ? TimeSpan.FromSeconds(30) : null;
+    TimeSpan? watch = args.Contains("--watch")
+        ? TimeSpan.FromSeconds(int.TryParse(ValueAfter(args, "--watch"), out int held) ? held : 30)
+        : null;
+
+    // Which device gets the page-open attention. It used to be whichever one could be
+    // controlled, which quietly skipped the case the lane exists for: a headset that has
+    // stopped answering is exactly the device somebody has open and is waiting on.
     return await DeviceInventory.RunAsync(
-        args.Contains("--mock"), watch, args.Contains("--no-vendor")).ConfigureAwait(false);
+        args.Contains("--mock"),
+        watch,
+        args.Contains("--no-vendor"),
+        ValueAfter(args, "--focus")).ConfigureAwait(false);
 }
 
 // Tier zero on its own: everything the operating system knows with no driver involved.
@@ -261,13 +270,23 @@ static async Task<int> CheckAsync(RaceSession session, MaxwellInterface target, 
     if (!watch) return ok ? 0 : 2;
 
     Console.WriteLine();
-    Console.WriteLine("Watching battery every 10s. Ctrl+C to stop.");
+    Console.WriteLine("Watching every 5s. Ctrl+C to stop.");
+    Console.WriteLine();
+    Console.WriteLine("  time      battery  gain   <- the gain is the reading the application");
+    Console.WriteLine("                            takes 'the headset is awake' from, so it is");
+    Console.WriteLine("                            the one worth watching for a stray answer.");
+    Console.WriteLine();
+
     while (true)
     {
-        await Task.Delay(10_000).ConfigureAwait(false);
+        await Task.Delay(5_000).ConfigureAwait(false);
+
         int tick = await session.ReadBatteryAsync().ConfigureAwait(false);
+        int gain = await session.ReadValueAsync(MaxwellFeatures.AmpGain).ConfigureAwait(false);
         string stamp = DateTime.Now.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
-        Console.WriteLine(tick >= 0 ? $"  {stamp}  {tick}%" : $"  {stamp}  no reply");
+
+        Console.WriteLine(
+            $"  {stamp}  {(tick >= 0 ? tick + "%" : "—"),7}  {(gain >= 0 ? gain.ToString(CultureInfo.InvariantCulture) : "—"),5}");
     }
 }
 

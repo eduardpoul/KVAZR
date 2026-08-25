@@ -55,6 +55,18 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
     /// them apart is to ask.
     /// </summary>
     private bool _answers;
+
+    /// <summary>
+    /// The reading this device's own driver says means it is awake, remembered from the
+    /// moment it connected.
+    ///
+    /// Remembered rather than asked of the connection each time, because the question
+    /// matters most exactly when there is no connection to ask. A handle that has just
+    /// been dropped is the strongest evidence a device is not answering, and looking the
+    /// heartbeat up through the handle turns that into "the driver named nothing", which
+    /// is a different device's rules.
+    /// </summary>
+    private string? _heartbeat;
     private DateTimeOffset? _updatedAt;
     private DateTimeOffset? _lastSeenAt;
     private bool _disposed;
@@ -131,6 +143,7 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
                 try
                 {
                     _connection = await _driver.ConnectAsync(info, cancellationToken).ConfigureAwait(false);
+                    _heartbeat = _connection.Heartbeat;
                     Listen(_connection);
                     connected = true;
                     _answers = false;
@@ -687,56 +700,85 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
         // them is: a microphone's page is built from rows that are legitimately empty
         // until something happens to them, and one of those must not condemn the other
         // five.
+        if (_heartbeat is { Length: > 0 } beat)
+        {
+            // Named and unaskable is not permission to ask something else.
+            //
+            // The fallback below asks whatever is readable, contributors included, and
+            // that is right for a device whose driver named nothing. Here it is a
+            // different device answering: the audio endpoint a dongle presents is open
+            // and talkative with the headset in a drawer, and letting it speak for the
+            // headset is how a page of dead controls comes back to life on its own.
+            return _owner.TryGetValue(beat, out IDeviceConnection? heart)
+                && await AnsweredAsync(heart, beat, cancellationToken).ConfigureAwait(false);
+        }
+
         List<string> probes =
-            _connection?.Heartbeat is { Length: > 0 } beat && _owner.ContainsKey(beat)
-                ? [beat]
-                : [
-                    .. _states.Values
-                        .Where(s => s.Descriptor.IsReadable && _owner.ContainsKey(s.Id))
-                        .OrderBy(s => ReferenceEquals(_owner[s.Id], _connection) ? 0 : 1)
-                        .ThenBy(s => s.Id == CapabilityIds.PowerBattery ? 0 : 1)
-                        .Select(s => s.Id)
-                        .Take(Probes),
-                ];
+        [
+            .. _states.Values
+                .Where(s => s.Descriptor.IsReadable && _owner.ContainsKey(s.Id))
+                .OrderBy(s => ReferenceEquals(_owner[s.Id], _connection) ? 0 : 1)
+                .ThenBy(s => s.Id == CapabilityIds.PowerBattery ? 0 : 1)
+                .Select(s => s.Id)
+                .Take(Probes),
+        ];
 
         // Nothing readable to ask. Being open is the best evidence available.
         if (probes.Count == 0) return true;
 
-        bool asked = false;
-
         foreach (string probe in probes)
         {
-            IDeviceConnection source = _owner[probe];
-
-            try
-            {
-                CapabilityValue value = await source.ReadAsync(probe, cancellationToken).ConfigureAwait(false);
-                asked = true;
-
-                if (value.IsAbsent) continue;
-
-                // Only when it moved. The probe now runs once a second on the device
-                // whose page is open, and stamping the clock for an answer identical to
-                // the last one would republish the whole snapshot at that rate — every
-                // consumer re-rendering to be told nothing.
-                if (_states.TryGetValue(probe, out CapabilityState? state) && value != state.Value)
-                {
-                    _states[probe] = state with { Value = value };
-                    _updatedAt = DateTimeOffset.Now;
-                }
-
-                return true;
-            }
-            catch (IOException ex)
-            {
-                _logger.DeviceReadFailed(ex, _info.Key);
-                Drop(source);
-            }
+            if (await AnsweredAsync(_owner[probe], probe, cancellationToken).ConfigureAwait(false)) return true;
         }
 
         // Every question asked and every answer empty. A device that will not say one
         // true thing about itself is what unreachable means.
-        return !asked;
+        return false;
+    }
+
+    /// <summary>
+    /// Asks one channel one question, and says whether anything came back.
+    ///
+    /// A refusal and a failure both answer "no", and the failure used to answer "yes":
+    /// the loop counted only questions that were successfully put, so a handle that threw
+    /// on every one of them came out as "could not be asked, so presume it is fine" —
+    /// having just been dropped for throwing. The strongest evidence a device is not
+    /// answering was being read as evidence that it was.
+    ///
+    /// Whatever it does say is kept. Over a radio link a reading is too dear to ask for
+    /// and throw away, and the panel would otherwise sit empty until the next sweep.
+    /// </summary>
+    private async Task<bool> AnsweredAsync(
+        IDeviceConnection source,
+        string capabilityId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            CapabilityValue value =
+                await source.ReadAsync(capabilityId, cancellationToken).ConfigureAwait(false);
+
+            if (value.IsAbsent) return false;
+
+            // Only when it moved. The probe runs once a second on the device whose page
+            // is open, and stamping the clock for an answer identical to the last one
+            // would republish the whole snapshot at that rate — every consumer
+            // re-rendering to be told nothing.
+            if (_states.TryGetValue(capabilityId, out CapabilityState? state) && value != state.Value)
+            {
+                _states[capabilityId] = state with { Value = value };
+                _updatedAt = DateTimeOffset.Now;
+            }
+
+            return true;
+        }
+        catch (IOException ex)
+        {
+            _logger.DeviceReadFailed(ex, _info.Key);
+            Drop(source);
+
+            return false;
+        }
     }
 
     /// <summary>

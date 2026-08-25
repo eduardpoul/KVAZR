@@ -414,7 +414,6 @@
     <Setter Property="OnContent" Value="" />
     <Setter Property="OffContent" Value="" />
     <Setter Property="MinWidth" Value="0" />
-    <Setter Property="Padding" Value="0" />
 
     <!--
       Its height is left alone, and that took three goes to get right.
@@ -432,26 +431,16 @@
   </Style>
 
   <!--
-    The room the missing label was going to sit in.
+    A switch is twelve pixels wider than the pill it draws, and the twelve are on the
+    right. Measured, after guessing at it twice: the control arranges to 52, the pill
+    (OuterBorder) to 40 from its left edge, and the remainder is a fixed column in the
+    theme's own template — it is there with the labels emptied, with them hidden, and
+    with the padding zeroed, because it is none of those things.
 
-    Emptying OnContent and OffContent empties the words but not the space: the template
-    still lays out a presenter for each, with the gap that would have separated one from
-    the pill, so a switch aligned to the right edge of its row stopped about twenty pixels
-    short of it. Next to a slider that does reach the edge — and under a percentage that
-    does — the switch read as misaligned, which is exactly what it was.
-
-    Hidden rather than measured and cancelled out. A negative margin would need a number
-    taken from somebody else's template, and it would be wrong the day that template
-    changed; an element that is not visible occupies nothing, including its margin,
-    whatever the number was.
+    Nothing is done about it here, because it is only wrong where a switch has to line up
+    with something: the panel, where every other row reaches the right edge of the card.
+    That row cancels the twelve itself, next to the number it has to line up with.
   -->
-  <Style Selector="ToggleSwitch /template/ ContentPresenter#PART_OnContentPresenter">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
-
-  <Style Selector="ToggleSwitch /template/ ContentPresenter#PART_OffContentPresenter">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
 
   <!-- A white knob on the accent, in both themes, because that is what the artboards
        draw and because the pane draws it that way too.

@@ -25,6 +25,7 @@ internal static class DeviceInventory
         bool includeMocks,
         TimeSpan? watchFor = null,
         bool vendorless = false,
+        string? focus = null,
         CancellationToken cancellationToken = default)
     {
         List<IDeviceDriver> drivers =
@@ -62,7 +63,10 @@ internal static class DeviceInventory
         using var registry = new DeviceRegistry(
             drivers, new InMemoryCapabilityLedger(), NullLoggerFactory.Instance, contributors);
 
-        if (watchFor is { } window) return await WatchAsync(registry, window, cancellationToken).ConfigureAwait(false);
+        if (watchFor is { } window)
+        {
+            return await WatchAsync(registry, window, focus, cancellationToken).ConfigureAwait(false);
+        }
 
         await registry.DiscoverAsync(cancellationToken).ConfigureAwait(false);
 
@@ -93,6 +97,7 @@ internal static class DeviceInventory
     private static async Task<int> WatchAsync(
         DeviceRegistry registry,
         TimeSpan window,
+        string? focus,
         CancellationToken cancellationToken)
     {
         var settings = new MemorySettingsStore();
@@ -110,6 +115,11 @@ internal static class DeviceInventory
             }),
             NullLogger<DevicePollingScheduler>.Instance);
 
+        // Transitions, not every read. A pass prints six lines and the interesting
+        // event is one device changing its mind twenty seconds in; at that ratio the
+        // change is there but nobody finds it.
+        Dictionary<string, string> said = new(StringComparer.Ordinal);
+
         registry.DevicesChanged += (_, _) =>
         {
             foreach (DeviceSnapshot device in registry.Devices)
@@ -119,9 +129,14 @@ internal static class DeviceInventory
                     ? $"  chatmix {mix.Value}"
                     : string.Empty;
 
+                string line = $"{device.Availability,-12} {battery,4}{chat}";
+
+                if (said.TryGetValue(device.Info.Key, out string? before) && before == line) continue;
+
+                said[device.Info.Key] = line;
+
                 Console.WriteLine(
-                    $"  {DateTimeOffset.Now:HH:mm:ss}  {device.Info.DisplayName,-28} " +
-                    $"{device.Availability,-12} {battery,4}{chat}");
+                    $"  {DateTimeOffset.Now:HH:mm:ss}  {device.Info.DisplayName,-28} {line}");
             }
         };
 
@@ -138,7 +153,10 @@ internal static class DeviceInventory
         scheduler.SetAttention(PollingAttention.Glance);
 
         await Task.Delay(window / 3, stop.Token).ConfigureAwait(false);
-        string? first = registry.Devices.FirstOrDefault(d => d.CanControl)?.Info.Key;
+        string? first = (focus is { Length: > 0 } wanted
+            ? registry.Devices.FirstOrDefault(
+                d => d.Info.DisplayName.Contains(wanted, StringComparison.OrdinalIgnoreCase))
+            : registry.Devices.Count > 0 ? registry.Devices[0] : null)?.Info.Key;
         Console.WriteLine($"  -- page opened: {first ?? "none"} --");
         scheduler.SetAttention(PollingAttention.Focused, first);
 
