@@ -636,12 +636,20 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
     /// </summary>
     private async Task<bool> AnswersAsync(CancellationToken cancellationToken)
     {
-        // The battery first: every device has one and it is the cheapest read.
+        // The device's own driver first, and the battery first within that.
+        //
+        // The order carries a meaning that was lost when this learned to ask more than one
+        // question. "Answering" is about the thing the page is built on: a headset asleep
+        // on its dongle has a working set of Windows audio endpoints and a silent RACE
+        // channel, and asking the endpoints first calls it awake. It then gets its one
+        // full read while it is still asleep, and every row the vendor protocol supplies
+        // stays empty for as long as it stays attached.
         List<string> probes =
         [
             .. _states.Values
                 .Where(s => s.Descriptor.IsReadable && _owner.ContainsKey(s.Id))
-                .OrderBy(s => s.Id == CapabilityIds.PowerBattery ? 0 : 1)
+                .OrderBy(s => ReferenceEquals(_owner[s.Id], _connection) ? 0 : 1)
+                .ThenBy(s => s.Id == CapabilityIds.PowerBattery ? 0 : 1)
                 .Select(s => s.Id)
                 .Take(Probes),
         ];

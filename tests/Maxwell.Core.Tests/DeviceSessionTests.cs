@@ -134,6 +134,31 @@ public sealed class DeviceSessionTests
         Assert.True(session.Snapshot.CanControl);
     }
 
+    /// <summary>
+    /// A headset asleep on its dongle: still enumerated, still with a working set of
+    /// Windows audio endpoints, and a vendor channel that answers nothing.
+    ///
+    /// "Answering" is about the device's own driver, because that is what the page is
+    /// built on. Asking a contributor first calls it awake — and a device counted awake
+    /// gets its one full read while it is still asleep, so every row the vendor protocol
+    /// supplies stays empty for as long as it stays plugged in. Which is exactly what
+    /// happened: a Maxwell switched on beside a running application had no volume, no
+    /// battery and no auto-off, and unplugging the dongle was the only cure.
+    /// </summary>
+    [Fact]
+    public async Task ADriverThatSaysNothing_IsSilentHoweverLoudItsContributorsAre()
+    {
+        var fixture = new Fixture();
+        fixture.Connection.Values.Clear();
+
+        var extra = new FakeConnection();
+        DeviceSession session = fixture.CreateSession([new FakeContributor(extra)]);
+
+        await session.MarkPresentAsync(fixture.Info, Ct);
+
+        Assert.Equal(DeviceAvailability.Unreachable, session.Snapshot.Availability);
+    }
+
     [Fact]
     public async Task EveryRowSilent_IsWhatUnreachableMeans()
     {
@@ -342,10 +367,11 @@ public sealed class DeviceSessionTests
 
         public FakeDriver Driver { get; private set; } = null!;
 
-        public DeviceSession CreateSession()
+        public DeviceSession CreateSession(IReadOnlyList<ICapabilityContributor>? contributors = null)
         {
             Driver = new FakeDriver(this);
-            return new DeviceSession(Info, Driver, Ledger, NullLogger<DeviceSession>.Instance);
+            return new DeviceSession(
+                Info, Driver, Ledger, NullLogger<DeviceSession>.Instance, contributors);
         }
     }
 
@@ -369,6 +395,15 @@ public sealed class DeviceSessionTests
             Connects++;
             return Task.FromResult<IDeviceConnection>(_fixture.Connection);
         }
+    }
+
+    /// <summary>Adds a connection of its own to whatever device it is asked about.</summary>
+    private sealed class FakeContributor(IDeviceConnection connection) : ICapabilityContributor
+    {
+        public string ContributorId => "fake.extra";
+
+        public Task<IDeviceConnection?> AttachAsync(DeviceInfo device, CancellationToken cancellationToken = default) =>
+            Task.FromResult<IDeviceConnection?>(connection);
     }
 
     private sealed class FakeConnection : IDeviceConnection

@@ -345,7 +345,12 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
             // the first person to open a device found its controls empty and watched them
             // fill in a second later, which reads as a fault rather than as a policy.
             // Hidden devices are excluded — nobody is going to open one.
-            if (!device.IsPresent) ForgetIntroduction(key);
+            // Forgotten when it goes away and when it goes quiet, and the second half of
+            // that was missing. A headset switched off on its dongle is still present and
+            // still enumerated; it simply stops answering. Coming back to life it had
+            // already been introduced, so it never got another full read and every row
+            // its own protocol supplies stayed empty until the dongle was unplugged.
+            if (!device.IsPresent || !device.CanControl) ForgetIntroduction(key);
 
             bool firstSight = !hidden
                 && device.IsPresent
