@@ -196,12 +196,19 @@ public sealed class HyperXStatusTests
         Assert.True(listeners.Pipes.Single().Disposed);
     }
 
-    /// <summary>A reply with the selector where the microphone puts it.</summary>
+    /// <summary>
+    /// A reply with the selector where the microphone puts it.
+    ///
+    /// Counted from the front of the buffer, report id included, which is where the first
+    /// version of this got it wrong: the fake was built to the same off-by-one as the code
+    /// it was checking, so both agreed and the row read stereo whatever the dial said. The
+    /// bytes below are the ones a QuadCast actually sends.
+    /// </summary>
     private static byte[] Answer(byte pattern)
     {
         byte[] reply = new byte[65];
-        reply[12] = 0x01;
-        reply[16] = pattern;
+        reply[13] = 0x01;
+        reply[17] = pattern;
         return reply;
     }
 

@@ -42,8 +42,16 @@ internal sealed class HyperXConnection : IDeviceConnection
     /// <summary>"What is your state" — NGENUITY's own opening question, byte for byte.</summary>
     private static readonly byte[] AskState = [0x04, 0x58, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x01];
 
-    /// <summary>Where the selector sits in the reply. Measured against the dial at three of its four positions.</summary>
-    private const int PatternAt = 16;
+    /// <summary>
+    /// Where the selector sits in the reply, counted from the front of the buffer.
+    ///
+    /// Seventeen rather than sixteen, and the difference is the report id. Windows puts it
+    /// in the first byte and the device's own numbering starts after it, so a byte read
+    /// off a printed dump lands one place early. This was written as sixteen first: the
+    /// row then read stereo whatever the dial said, because the byte before the selector
+    /// is one of the zeroes around it and zero is a valid pattern.
+    /// </summary>
+    private const int PatternAt = 17;
 
     /// <summary>Long enough for an answer measured at four milliseconds, short enough not to hold a sweep up.</summary>
     private static readonly TimeSpan Patience = TimeSpan.FromMilliseconds(200);
