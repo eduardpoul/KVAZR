@@ -66,40 +66,15 @@ internal static class SystemDeviceProfile
     /// </summary>
     public static DeviceClass Classify(IReadOnlyList<SystemDeviceNode> nodes)
     {
-        if (nodes.Select(n => n.ClassOfDevice).FirstOrDefault(c => c.HasValue) is { } cod)
-        {
-            uint major = (cod >> 8) & 0x1F;
-            uint minor = (cod >> 2) & 0x3F;
-
-            if (major == 0x04)
-            {
-                return minor switch
-                {
-                    0x01 or 0x02 => DeviceClass.Headset,
-                    0x06 => DeviceClass.Earbuds,
-                    0x0A or 0x0B => DeviceClass.Speaker,
-                    _ => DeviceClass.Unknown,
-                };
-            }
-
-            // The peripheral minor class is two fields sharing six bits, not one value:
-            // the top two say keyboard, pointer or both, and the bottom four say what
-            // kind of thing it is. Reading it as a single number puts a gamepad — 0b0010
-            // in the lower field — nowhere at all.
-            if (major == 0x05)
-            {
-                return ((minor >> 4) & 0x03, minor & 0x0F) switch
-                {
-                    (0x03, _) => DeviceClass.Receiver,
-                    (0x01, _) => DeviceClass.Keyboard,
-                    (0x02, _) => DeviceClass.Mouse,
-                    (_, 0x01 or 0x02) => DeviceClass.Gamepad,
-                    _ => DeviceClass.Unknown,
-                };
-            }
-
-            return DeviceClass.Unknown;
-        }
+        // Evidence, not a verdict — and that distinction is a defect, not a nicety.
+        //
+        // A Class of Device that named something used to end the search, so a device that
+        // carried the field without filling it in came out as Unknown with its real
+        // evidence never consulted. Which is every low-energy device: Bluetooth LE does
+        // not use this field at all, it has an Appearance instead. A mouse that had been
+        // reading as a mouse turned into "Unknown" the day its own node was found, on the
+        // strength of a field full of zeroes.
+        if (FromClassOfDevice(nodes) is var stated && stated != DeviceClass.Unknown) return stated;
 
         // Gamepad evidence first, and this order is a lesson from a real device. The
         // Flydigi dongle emulates a keyboard and a mouse alongside its XInput function,
@@ -122,6 +97,51 @@ internal static class SystemDeviceProfile
         if (mouse && keyboard) return DeviceClass.Receiver;
         if (mouse) return DeviceClass.Mouse;
         if (keyboard) return DeviceClass.Keyboard;
+
+        return DeviceClass.Unknown;
+    }
+
+    /// <summary>
+    /// What classic Bluetooth says about itself, which is the one place a device states
+    /// its own kind to a standard. Silence — no field, or a field of zeroes — is not an
+    /// answer and must not be read as one.
+    /// </summary>
+    private static DeviceClass FromClassOfDevice(IReadOnlyList<SystemDeviceNode> nodes)
+    {
+        if (nodes.Select(n => n.ClassOfDevice).FirstOrDefault(c => c is > 0) is not { } cod)
+        {
+            return DeviceClass.Unknown;
+        }
+
+        uint major = (cod >> 8) & 0x1F;
+        uint minor = (cod >> 2) & 0x3F;
+
+        if (major == 0x04)
+        {
+            return minor switch
+            {
+                0x01 or 0x02 => DeviceClass.Headset,
+                0x06 => DeviceClass.Earbuds,
+                0x0A or 0x0B => DeviceClass.Speaker,
+                _ => DeviceClass.Unknown,
+            };
+        }
+
+        // The peripheral minor class is two fields sharing six bits, not one value: the
+        // top two say keyboard, pointer or both, and the bottom four say what kind of
+        // thing it is. Reading it as a single number puts a gamepad — 0b0010 in the lower
+        // field — nowhere at all.
+        if (major == 0x05)
+        {
+            return ((minor >> 4) & 0x03, minor & 0x0F) switch
+            {
+                (0x03, _) => DeviceClass.Receiver,
+                (0x01, _) => DeviceClass.Keyboard,
+                (0x02, _) => DeviceClass.Mouse,
+                (_, 0x01 or 0x02) => DeviceClass.Gamepad,
+                _ => DeviceClass.Unknown,
+            };
+        }
 
         return DeviceClass.Unknown;
     }

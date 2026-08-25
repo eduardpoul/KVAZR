@@ -31,13 +31,6 @@ internal static class DeviceInventory
     {
         List<IDeviceDriver> drivers =
         [
-            // The class tier: Logitech's HID++ speaks for anything behind one of their
-            // receivers, and for their Bluetooth mice too. Missing here while the
-            // application had it, which made the harness quietly disagree with the
-            // product about an entire class of device — a receiver reading as "presence
-            // only" with no mouse behind it at all.
-            new HidPlusPlusDriver(new WindowsHidEnumerator(), new DeviceCatalogue()),
-
             // Everything on the machine, understood as little as possible.
             new SystemDeviceDriver(new WindowsSystemDeviceEnumerator(), new DeviceCatalogue()),
         ];
@@ -56,6 +49,13 @@ internal static class DeviceInventory
                 new WindowsHidEnumerator(),
                 new WindowsHidTransportFactory(),
                 new WindowsBluetoothMonitor()));
+
+            // HID++ goes with them. It is a class protocol rather than one vendor's, but
+            // for the purpose of this switch that is a distinction without a difference:
+            // what --no-vendor is for is seeing what a device gives before anybody has
+            // written a protocol for it, and a Logitech mouse with HID++ in front of it
+            // is not that.
+            drivers.Insert(1, new HidPlusPlusDriver(new WindowsHidEnumerator(), new DeviceCatalogue()));
         }
 
         if (includeMocks) drivers.Add(new MockDeviceDriver());

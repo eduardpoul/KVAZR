@@ -48,6 +48,40 @@ public sealed class SystemDeviceDriverTests
             IsDeviceRoot = root,
         };
 
+    /// <summary>
+    /// A Bluetooth Low Energy mouse, which is a mouse that says nothing about itself in
+    /// the field classic Bluetooth uses — low energy has an Appearance instead and leaves
+    /// this one at zero.
+    ///
+    /// It read as a mouse until its own device node was found, and then turned into
+    /// Unknown: the field arrived, held nothing, and ended the search before the setup
+    /// class it is actually identified by could be consulted. Silence is not an answer.
+    /// </summary>
+    [Fact]
+    public void ALowEnergyMouse_IsStillAMouse()
+    {
+        Guid container = Guid.NewGuid();
+
+        Assert.Equal(
+            DeviceClass.Mouse,
+            SystemDeviceProfile.Classify(
+            [
+                Node(container, Hid, link: SystemDeviceLink.BluetoothLe, cod: 0, address: "dca525f19711"),
+                Node(container, Mouse, link: SystemDeviceLink.BluetoothLe),
+            ]));
+    }
+
+    [Fact]
+    public void AClassicHeadset_StillAnswersFromItsOwnField()
+    {
+        // The field is still the better source where it is filled in: it is a standard
+        // every classic device answers, so a headset says headset without anybody having
+        // heard of the brand.
+        Assert.Equal(
+            DeviceClass.Headset,
+            SystemDeviceProfile.Classify([Node(Guid.NewGuid(), Hid, cod: 0x240404)]));
+    }
+
     private static async Task<IReadOnlyList<DeviceInfo>> Discover(params SystemDeviceNode[] nodes) =>
         await new SystemDeviceDriver(new FakeSystemEnumerator(nodes))
             .DiscoverAsync(TestContext.Current.CancellationToken);
