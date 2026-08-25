@@ -444,14 +444,19 @@
 
     // A circle with a bite out of the bottom, which is how a heart-shaped pattern is
     // drawn on every microphone that has one.
+    //
+    // Same radius as the rest, and the bite is shallow for the same reason: the four
+    // drawings are read as a set, one after another down a dial, and one of them coming
+    // out visibly smaller reads as a different kind of thing rather than as a sibling.
+    // The first version cut a wedge to the centre and lost a third of its silhouette.
     "polar.cardioid" => @<svg class="glyph" viewBox="0 0 24 16" width="24" height="16" aria-hidden="true">
-                          <path d="M15.5 12.5 A5 5 0 1 0 8.5 12.5 L12 8 Z" fill="none"
+                          <path d="M14.5 12.33 A5 5 0 1 0 9.5 12.33 L12 10 Z" fill="none"
                                 stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
                         </svg>,
 
     // One circle: everything, from everywhere.
     "polar.omni" => @<svg class="glyph" viewBox="0 0 24 16" width="24" height="16" aria-hidden="true">
-                      <circle cx="12" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.4" />
+                      <circle cx="12" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.4" />
                     </svg>,
 
     // Two circles that overlap: the figure of eight, front and back.
