@@ -75,6 +75,16 @@ public sealed record SystemDeviceNode
     public ushort? ProductId { get; init; }
 
     /// <summary>When this node last appeared, which is when the device last connected.</summary>
+    /// <summary>
+    /// The product revision a Bluetooth device reports about itself, where it reports one.
+    ///
+    /// Out of the Device Information Service, which is a standard: a low-energy device
+    /// states its maker, its identifiers and its revision there, and Windows lays all four
+    /// out as device properties. It is the nearest thing a peripheral has to a firmware
+    /// version without anybody speaking its protocol.
+    /// </summary>
+    public ushort? Revision { get; init; }
+
     public DateTimeOffset? ArrivedAt { get; init; }
 }
 

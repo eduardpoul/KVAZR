@@ -1,3 +1,4 @@
+using System.Globalization;
 using Maxwell.Race.Abstractions;
 using Maxwell.Race.Windows;
 
@@ -48,6 +49,18 @@ internal static class SystemInventory
                 Console.WriteLine($"      {n.InstanceId}");
                 Console.WriteLine(
                     $"      container {n.ContainerId}  class {n.ClassGuid}  battery {Show(n.BatteryPercent)}");
+
+                // What the device says about itself, as against what Windows says about
+                // it: the maker's own name and identifiers, which on Bluetooth come out
+                // of the Device Information Service rather than out of an instance id.
+                if (n.VendorId is not null || n.Manufacturer is not null || n.Revision is not null)
+                {
+                    Console.WriteLine(
+                        $"      stated {n.Manufacturer ?? "—"}  "
+                        + $"{(n.VendorId is { } v ? v.ToString("x4", CultureInfo.InvariantCulture) : "—")}:"
+                        + $"{(n.ProductId is { } d ? d.ToString("x4", CultureInfo.InvariantCulture) : "—")}  "
+                        + $"rev {(n.Revision is { } r ? r.ToString(CultureInfo.InvariantCulture) : "—")}");
+                }
             }
 
             return 0;

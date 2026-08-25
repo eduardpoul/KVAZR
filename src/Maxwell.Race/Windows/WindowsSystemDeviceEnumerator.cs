@@ -101,6 +101,16 @@ public sealed class WindowsSystemDeviceEnumerator : ISystemDeviceEnumerator
 
         (ushort? vid, ushort? pid) = ParseIds(instanceId);
 
+        // What the device says about itself over the Device Information Service, which a
+        // low-energy device fills in as a standard and Windows lays out as properties.
+        //
+        // Worth reaching for because the instance id does not carry it in the form the
+        // parser above understands: a Bluetooth node writes VID&0203F0 — a source byte
+        // and then the id — where USB writes VID_046D, so a low-energy mouse arrived with
+        // no identifiers at all and could never be matched against the catalogue.
+        ushort? statedVendor = ReadUInt16(set, ref info, Native.DevPkeyBluetoothVendorId);
+        ushort? statedProduct = ReadUInt16(set, ref info, Native.DevPkeyBluetoothProductId);
+
         return new SystemDeviceNode
         {
             InstanceId = instanceId,
@@ -110,12 +120,17 @@ public sealed class WindowsSystemDeviceEnumerator : ISystemDeviceEnumerator
             IsDeviceRoot = instanceId.Contains(@"\DEV_", StringComparison.OrdinalIgnoreCase),
             Name = ReadString(set, ref info, Native.DevPkeyName),
             BusReportedName = ReadString(set, ref info, Native.DevPkeyBusReportedName),
-            Manufacturer = ReadString(set, ref info, Native.DevPkeyManufacturer),
+            // The device's own maker where it states one. The Windows property beside it
+            // names whoever wrote the driver, which for anything on the Bluetooth stack
+            // is Microsoft — true, and not what anybody means by the manufacturer.
+            Manufacturer = ReadString(set, ref info, Native.DevPkeyBluetoothManufacturer)
+                ?? ReadString(set, ref info, Native.DevPkeyManufacturer),
             BatteryPercent = ReadByte(set, ref info, Native.DevPkeyBatteryLevel),
             ClassOfDevice = ReadUInt32(set, ref info, Native.DevPkeyClassOfDevice),
             Address = ReadString(set, ref info, Native.DevPkeyBluetoothAddress),
-            VendorId = vid,
-            ProductId = pid,
+            VendorId = vid ?? statedVendor,
+            ProductId = pid ?? statedProduct,
+            Revision = ReadUInt16(set, ref info, Native.DevPkeyBluetoothProductVersion),
             ArrivedAt = ReadFileTime(set, ref info, Native.DevPkeyLastArrival),
         };
     }
@@ -157,6 +172,13 @@ public sealed class WindowsSystemDeviceEnumerator : ISystemDeviceEnumerator
     {
         byte[]? buffer = ReadRaw(set, ref info, key);
         return buffer is { Length: 16 } ? new Guid(buffer) : null;
+    }
+
+    private static ushort? ReadUInt16(IntPtr set, ref Native.SpDevInfoData info, Native.DevPropKey key)
+    {
+        byte[]? raw = ReadRaw(set, ref info, key);
+
+        return raw is { Length: >= 2 } ? BitConverter.ToUInt16(raw) : null;
     }
 
     private static uint? ReadUInt32(IntPtr set, ref Native.SpDevInfoData info, Native.DevPropKey key)
@@ -246,6 +268,25 @@ public sealed class WindowsSystemDeviceEnumerator : ISystemDeviceEnumerator
         /// <summary>DEVPKEY_Device_LastArrivalDate.</summary>
         internal static readonly DevPropKey DevPkeyLastArrival =
             new(new Guid("80497100-8c73-48b9-aad9-ce387e19c56e"), 102);
+
+        /// <summary>
+        /// The Device Information Service, as Windows lays it out. Four keys under one
+        /// formatter: the maker's name, the two identifiers and the revision.
+        /// </summary>
+        // Declared before the keys that use it, and that is load-bearing: static field
+        // initialisers run in source order, so a formatter written below the keys leaves
+        // every one of them addressing the empty guid. Which fails silently — the reads
+        // return nothing, exactly as they do for a device that has nothing to say.
+        private static readonly Guid BluetoothDeviceInfo =
+            new("2bd67d8b-8beb-48d5-87e0-6cda3428040a");
+
+        internal static readonly DevPropKey DevPkeyBluetoothManufacturer = new(BluetoothDeviceInfo, 4);
+
+        internal static readonly DevPropKey DevPkeyBluetoothVendorId = new(BluetoothDeviceInfo, 7);
+
+        internal static readonly DevPropKey DevPkeyBluetoothProductId = new(BluetoothDeviceInfo, 8);
+
+        internal static readonly DevPropKey DevPkeyBluetoothProductVersion = new(BluetoothDeviceInfo, 9);
 
         /// <summary>DEVPKEY_Bluetooth_DeviceAddress.</summary>
         internal static readonly DevPropKey DevPkeyBluetoothAddress =
