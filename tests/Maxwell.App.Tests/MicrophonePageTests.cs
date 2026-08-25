@@ -33,6 +33,8 @@ public sealed class MicrophonePageTests
 
         public Task RefreshAllAsync(CancellationToken token = default) => Task.CompletedTask;
 
+        public Task ProbeAsync(CancellationToken token = default) => Task.CompletedTask;
+
         public Task<bool> WriteAsync(string id, CapabilityValue value, CancellationToken token = default) =>
             Task.FromResult(true);
     }

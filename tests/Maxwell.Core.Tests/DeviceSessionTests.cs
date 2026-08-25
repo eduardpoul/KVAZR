@@ -193,6 +193,78 @@ public sealed class DeviceSessionTests
         Assert.Equal(DeviceAvailability.Active, session.Snapshot.Availability);
     }
 
+    /// <summary>
+    /// The same question, asked without a discovery sweep behind it.
+    ///
+    /// Discovery used to be the only thing that asked, and it comes round every twenty
+    /// seconds once anything is attached. That is what stood between switching a headset
+    /// on and the page admitting it — ten to fifteen seconds of a page insisting the
+    /// device was off while it sat there switched on.
+    /// </summary>
+    [Fact]
+    public async Task AProbe_FindsADeviceComingBack_WithoutWaitingForDiscovery()
+    {
+        var fixture = new Fixture { Heartbeat = Plain };
+        DeviceSession session = fixture.CreateSession();
+
+        fixture.Connection.Values.Remove(Plain);
+        await session.MarkPresentAsync(fixture.Info, Ct);
+        Assert.Equal(DeviceAvailability.Unreachable, session.Snapshot.Availability);
+
+        fixture.Connection.Values[Plain] = CapabilityValue.Of(3);
+        await session.ProbeAsync(Ct);
+
+        Assert.Equal(DeviceAvailability.Active, session.Snapshot.Availability);
+    }
+
+    /// <summary>
+    /// And the other direction, which no read can settle.
+    ///
+    /// A sweep is not allowed to overwrite a good reading with an empty one — that rule
+    /// is there so an unplugged boom mic does not blank the level beside it — so a device
+    /// that simply stops replying throws nothing, loses nothing, and looks exactly like a
+    /// device that is fine. The verdict has to be asked for.
+    /// </summary>
+    [Fact]
+    public async Task AProbe_FindsADeviceGoneQuiet_ThoughNoReadEverFailed()
+    {
+        var fixture = new Fixture { Heartbeat = Plain };
+        DeviceSession session = fixture.CreateSession();
+        await session.MarkPresentAsync(fixture.Info, Ct);
+
+        fixture.Connection.Values.Remove(Plain);
+        await session.RefreshAllAsync(Ct);
+
+        Assert.Equal(DeviceAvailability.Active, session.Snapshot.Availability);
+
+        await session.ProbeAsync(Ct);
+
+        Assert.Equal(DeviceAvailability.Unreachable, session.Snapshot.Availability);
+    }
+
+    /// <summary>
+    /// A probe that learns nothing publishes nothing.
+    ///
+    /// It runs once a second on the device whose page is open. Republishing the snapshot
+    /// at that rate to say "still fine" is every consumer in the application re-rendering
+    /// for no news, which is the cost that decides whether this lane can exist at all.
+    /// </summary>
+    [Fact]
+    public async Task AProbeThatLearnsNothing_PublishesNothing()
+    {
+        var fixture = new Fixture { Heartbeat = Plain };
+        DeviceSession session = fixture.CreateSession();
+        await session.MarkPresentAsync(fixture.Info, Ct);
+
+        int published = 0;
+        session.SnapshotChanged += (_, _) => published++;
+
+        await session.ProbeAsync(Ct);
+        await session.ProbeAsync(Ct);
+
+        Assert.Equal(0, published);
+    }
+
     [Fact]
     public async Task ADriverThatSaysNothing_IsSilentHoweverLoudItsContributorsAre()
     {

@@ -214,17 +214,27 @@
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="devices:CapabilitySectionViewModel">
                 <Grid ColumnDefinitions="*,Auto" Margin="12,0"
+                      ToolTip.Tip="{Binding Aside}"
                       Opacity="{Binding IsReachable, Converter={StaticResource PresenceOpacity}}">
                   <TextBlock Grid.Column="0" Text="{Binding Title}"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
 
-                  <!-- Why it is out of reach, in the rail rather than only on the page:
-                       artboard 5b puts it here so nobody walks into a page of dead
-                       controls to find out. -->
-                  <TextBlock Grid.Column="1" Classes="caption" Margin="8,0,0,0"
-                             VerticalAlignment="Center"
-                             IsVisible="{Binding !IsReachable}"
-                             Text="{Binding Reason}" TextTrimming="CharacterEllipsis" />
+                  <!-- A mark, not the sentence.
+                       Artboard 5b puts the reason here so nobody walks into a page of
+                       dead controls to find out, and the reason is a sentence: "the
+                       headset is not answering — switch it on". In an Auto column that
+                       sentence takes the whole row and trims the section's name to
+                       nothing, so the rail listed four reasons and no places to go. The
+                       name is what the rail is for. The reason is on every row of the
+                       page behind it, in the notice above them, and here on hover. -->
+                  <Path Grid.Column="1" Margin="8,0,0,0"
+                        Width="12" Height="12"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding !IsReachable}"
+                        Stroke="{DynamicResource TextSecondaryBrush}"
+                        StrokeThickness="1.3" StrokeLineCap="Round"
+                        Stretch="None"
+                        Data="M6 1.2A4.8 4.8 0 1 0 6 10.8 4.8 4.8 0 1 0 6 1.2z M2.6 2.6 9.4 9.4" />
                 </Grid>
               </DataTemplate>
             </ListBox.ItemTemplate>

@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Maxwell.App.ViewModels.Capabilities;
 using Maxwell.Core.Devices;
 
@@ -16,7 +18,7 @@ namespace Maxwell.App.ViewModels.Devices;
 /// microphone is not "sound", it is the headphone socket on its base, and the artboard
 /// calls it so.
 /// </summary>
-public sealed class CapabilitySectionViewModel : IDisposable
+public sealed class CapabilitySectionViewModel : ObservableObject, IDisposable
 {
     private bool _disposed;
 
@@ -30,6 +32,23 @@ public sealed class CapabilitySectionViewModel : IDisposable
         Domain = domain;
         Owner = owner;
         Items = [.. items];
+
+        // Whether a section can be walked into is not a property of the section: it is
+        // the rows saying whether the device answered them. They already announce that,
+        // and nothing was listening — so the rail was drawn once, when the page was
+        // built, and then kept whatever it had said. A headset switched on filled its
+        // page in while the rail beside it still read "not answering".
+        foreach (CapabilityViewModel item in Items) item.PropertyChanged += ItemChanged;
+    }
+
+    private void ItemChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // Null means "all of them", which the toolkit uses on a wholesale update.
+        if (e.PropertyName is not (null or nameof(CapabilityViewModel.IsAvailable))) return;
+
+        OnPropertyChanged(nameof(IsReachable));
+        OnPropertyChanged(nameof(Reason));
+        OnPropertyChanged(nameof(Aside));
     }
 
     public CapabilityDomain Domain { get; }
@@ -85,6 +104,12 @@ public sealed class CapabilitySectionViewModel : IDisposable
                 .Select(i => i.Descriptor.RequirementHint)
                 .FirstOrDefault(r => !string.IsNullOrEmpty(r)) ?? string.Empty;
 
+    /// <summary>
+    /// The same, or null when there is nothing to say. Bound by the rail's tooltip, which
+    /// draws an empty box for an empty string and nothing at all for null.
+    /// </summary>
+    public string? Aside => Reason is { Length: > 0 } why ? why : null;
+
     // No "is this section sensitive" any more.
     //
     // It was true when the section held a factory reset or a re-pairing, and it collapsed
@@ -139,7 +164,12 @@ public sealed class CapabilitySectionViewModel : IDisposable
         if (_disposed) return;
         _disposed = true;
 
-        foreach (CapabilityViewModel item in Items) item.Dispose();
+        foreach (CapabilityViewModel item in Items)
+        {
+            item.PropertyChanged -= ItemChanged;
+            item.Dispose();
+        }
+
         Items.Clear();
     }
 }

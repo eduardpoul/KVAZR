@@ -36,6 +36,8 @@ public sealed class DevicePageShapeTests
 
         public Task RefreshAllAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
+        public Task ProbeAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
         public Task<bool> WriteAsync(string capabilityId, CapabilityValue value, CancellationToken cancellationToken = default) =>
             Task.FromResult(true);
     }

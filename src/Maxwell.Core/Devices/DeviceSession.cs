@@ -266,6 +266,38 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
             [.. _states.Values.Where(s => s.Descriptor.IsReadable && !s.Descriptor.IsLive).Select(s => s.Id)],
             cancellationToken);
 
+    /// <summary>
+    /// Whether the device is answering — asked on its own, and settled in both directions.
+    ///
+    /// Discovery asks the same question, and used to be the only thing that did. That put
+    /// twenty seconds between switching a headset on and the page admitting it, and the
+    /// same twenty between switching one off and the page giving up its controls. Neither
+    /// is a wait anybody attributes to a polling interval; both read as the application
+    /// being broken.
+    /// </summary>
+    public async Task ProbeAsync(CancellationToken cancellationToken = default)
+    {
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            if (!_present || !HasChannel) return;
+
+            bool was = _answers;
+            DateTimeOffset? stamped = _updatedAt;
+
+            _answers = await AnswersAsync(cancellationToken).ConfigureAwait(false);
+
+            // The probe keeps whatever it managed to read — over a radio link a reading
+            // is too dear to ask for and throw away — so a pass that changed nothing
+            // about the verdict may still have brought a value home.
+            if (_answers != was || _updatedAt != stamped) Publish();
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
     public async Task RefreshAsync(
         IReadOnlyList<string> capabilityIds,
         CancellationToken cancellationToken = default)
@@ -683,7 +715,11 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
 
                 if (value.IsAbsent) continue;
 
-                if (_states.TryGetValue(probe, out CapabilityState? state))
+                // Only when it moved. The probe now runs once a second on the device
+                // whose page is open, and stamping the clock for an answer identical to
+                // the last one would republish the whole snapshot at that rate — every
+                // consumer re-rendering to be told nothing.
+                if (_states.TryGetValue(probe, out CapabilityState? state) && value != state.Value)
                 {
                     _states[probe] = state with { Value = value };
                     _updatedAt = DateTimeOffset.Now;

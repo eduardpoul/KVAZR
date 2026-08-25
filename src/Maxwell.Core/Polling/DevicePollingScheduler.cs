@@ -359,7 +359,7 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
 
             bool wantsFull = TakeFullRefreshRequest(key) || firstSight;
 
-            if (plan.Scope == PollScope.None && !wantsFull) continue;
+            if (plan.Scope == PollScope.None && !wantsFull && !plan.Probe) continue;
 
             if (!wantsFull && now < entry.NextDue)
             {
@@ -375,6 +375,7 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
             DeviceSnapshot subject = device;
             PollScope scope = plan.Scope;
             bool full = wantsFull;
+            bool probe = plan.Probe;
             Entry target = entry;
 
             // Started, not awaited.
@@ -387,7 +388,7 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
             // the others wait for it.
             if (target.InFlight is { IsCompleted: false }) continue;
 
-            target.InFlight = PollSafeAsync(subject, scope, full, target, cancellationToken);
+            target.InFlight = PollSafeAsync(subject, scope, full, probe, target, cancellationToken);
         }
 
         TimeSpan sleep = nextWake - DateTimeOffset.Now;
@@ -408,6 +409,7 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
         DeviceSnapshot device,
         PollScope scope,
         bool full,
+        bool probe,
         Entry entry,
         CancellationToken cancellationToken)
     {
@@ -424,7 +426,7 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
 
         try
         {
-            await PollAsync(device, scope, full, entry, slice.Token).ConfigureAwait(false);
+            await PollAsync(device, scope, full, probe, entry, slice.Token).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -450,17 +452,32 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
         DeviceSnapshot device,
         PollScope scope,
         bool full,
+        bool probe,
         Entry entry,
         CancellationToken cancellationToken)
     {
         IDeviceSession? session = _registry.Session(device.Info.Key);
         if (session is null) return;
 
+        if (probe)
+        {
+            await session.ProbeAsync(cancellationToken).ConfigureAwait(false);
+
+            // Back from the dead, and this is the second somebody is watching for. Its
+            // page holds either nothing or what it read before the device went quiet, so
+            // the full read is asked for now rather than at the next tick — which is a
+            // wait the person has already spent once, waiting for this.
+            if (!device.CanControl && session.Snapshot.CanControl)
+            {
+                RequestRefresh(device.Info.Key);
+            }
+        }
+
         if (full)
         {
             await session.RefreshAllAsync(cancellationToken).ConfigureAwait(false);
         }
-        else
+        else if (scope != PollScope.None)
         {
             await session.RefreshAsync(Wanted(device, scope), cancellationToken).ConfigureAwait(false);
         }

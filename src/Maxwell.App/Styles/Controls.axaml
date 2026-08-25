@@ -414,6 +414,7 @@
     <Setter Property="OnContent" Value="" />
     <Setter Property="OffContent" Value="" />
     <Setter Property="MinWidth" Value="0" />
+    <Setter Property="Padding" Value="0" />
 
     <!--
       Its height is left alone, and that took three goes to get right.
@@ -428,6 +429,28 @@
       The row was the thing that was too small. It now takes the height the control asks
       for, here and in the panel, and the switch is drawn as its theme draws it.
     -->
+  </Style>
+
+  <!--
+    The room the missing label was going to sit in.
+
+    Emptying OnContent and OffContent empties the words but not the space: the template
+    still lays out a presenter for each, with the gap that would have separated one from
+    the pill, so a switch aligned to the right edge of its row stopped about twenty pixels
+    short of it. Next to a slider that does reach the edge — and under a percentage that
+    does — the switch read as misaligned, which is exactly what it was.
+
+    Hidden rather than measured and cancelled out. A negative margin would need a number
+    taken from somebody else's template, and it would be wrong the day that template
+    changed; an element that is not visible occupies nothing, including its margin,
+    whatever the number was.
+  -->
+  <Style Selector="ToggleSwitch /template/ ContentPresenter#PART_OnContentPresenter">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+
+  <Style Selector="ToggleSwitch /template/ ContentPresenter#PART_OffContentPresenter">
+    <Setter Property="IsVisible" Value="False" />
   </Style>
 
   <!-- A white knob on the accent, in both themes, because that is what the artboards

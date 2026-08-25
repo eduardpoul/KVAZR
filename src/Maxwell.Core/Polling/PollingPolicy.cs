@@ -71,6 +71,16 @@ public sealed class DevicePollingOptions
 
     /// <summary>Ceiling on the consecutive-failure backoff, as a power of two.</summary>
     public int MaxBackoffShift { get; set; } = 4;
+
+    /// <summary>
+    /// How often to ask a silent device whether it is back, while its page is open.
+    ///
+    /// Longer than the focused interval on purpose: a question that goes unanswered costs
+    /// the protocol's whole retry window — four attempts across about a second and a half
+    /// — where one that is answered costs a few tens of milliseconds. So the wait is set
+    /// by what a failure costs, and the recovery it is watching for is the cheap case.
+    /// </summary>
+    public TimeSpan WakeInterval { get; set; } = TimeSpan.FromSeconds(3);
 }
 
 /// <summary>Everything the policy needs to know about one device.</summary>
@@ -81,7 +91,14 @@ public readonly record struct PollSubject(
     int ConsecutiveFailures,
     bool IsHidden = false);
 
-public readonly record struct PollPlan(PollScope Scope, TimeSpan Interval)
+/// <summary>
+/// What to do with one device on this pass. <paramref name="Probe"/> is the liveness
+/// question — asked apart from the reads because it is wanted in the two cases where
+/// reading settles nothing: a device that has gone quiet has nothing worth reading, and a
+/// device that is answering can stop between one pass and the next without any read
+/// failing at all.
+/// </summary>
+public readonly record struct PollPlan(PollScope Scope, TimeSpan Interval, bool Probe = false)
 {
     public static readonly PollPlan Skip = new(PollScope.None, TimeSpan.Zero);
 }
@@ -158,13 +175,25 @@ public static class PollingPolicy
         // every thirty seconds would be the worst of both.
         if (subject.IsHidden) return PollPlan.Skip;
 
-        // A device that is not answering is re-probed by discovery, which asks it one
-        // cheap question on every sweep. Polling it as well would climb the failure
-        // backoff forever while adding nothing.
-        if (!subject.CanControl) return PollPlan.Skip;
-
         bool focused = attention == PollingAttention.Focused
             && string.Equals(subject.DeviceKey, focusedDeviceKey, StringComparison.Ordinal);
+
+        // A device that has gone quiet is still a device. A headset switched off on its
+        // dongle enumerates exactly as it did a moment ago and simply stops replying, so
+        // reading it is pointless — every answer would be empty — but asking whether it
+        // is back is not, and nothing was asking. Discovery was, once every twenty
+        // seconds, which is how long somebody who has just switched their headset on sat
+        // looking at a page that said it was off.
+        //
+        // Only while its page is open. A device nobody is looking at can wait for the
+        // discovery sweep; this is the one somebody is waiting on.
+        //
+        // And no backoff on this lane, deliberately: the one question whose job is to
+        // notice a recovery must not get slower the longer the recovery takes.
+        if (!subject.CanControl)
+        {
+            return focused ? new PollPlan(PollScope.None, options.WakeInterval, Probe: true) : PollPlan.Skip;
+        }
 
         PollScope scope = focused ? PollScope.BatteryAndVolatile : PollScope.Battery;
 
@@ -174,7 +203,13 @@ public static class PollingPolicy
                 ? options.Interval * Math.Max(1, options.IdleMultiplier)
                 : options.Interval;
 
-        return new PollPlan(scope, Backoff(interval, subject.ConsecutiveFailures, options));
+        // The open page asks the same question in the other direction. A device can stop
+        // answering without a single read throwing — the values simply come back empty,
+        // which the sweep is right to ignore, since one empty row is not evidence of
+        // anything. So the page went on offering controls for a headset in a drawer until
+        // discovery came round. One extra reading a second, on the one device being
+        // watched, buys the answer.
+        return new PollPlan(scope, Backoff(interval, subject.ConsecutiveFailures, options), Probe: focused);
     }
 
     /// <summary>

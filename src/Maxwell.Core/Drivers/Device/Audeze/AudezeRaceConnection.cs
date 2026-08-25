@@ -31,21 +31,12 @@ internal sealed class AudezeRaceConnection : IDeviceConnection
     private readonly IReadOnlyList<TransportInfo> _transports;
 
     /// <summary>
-    /// How far the level has to climb before it counts as charging. The reading moves by
-    /// one on its own, so one is noise and two is news.
+    /// Whether the headset is on a cable, which nothing in the protocol says: it is read
+    /// off the trend in the battery percentage, and the whole of that guess lives apart
+    /// from here so it can be run against a made-up series of readings.
     /// </summary>
-    private const int RiseMeansCharging = 2;
+    private readonly ChargeTrend _charge = new();
 
-    /// <summary>
-    /// How long a charging claim survives without another rise confirming it. Long enough
-    /// to cover the slow last percent of a nearly full battery, short enough that pulling
-    /// the cable is noticed while the person is still looking at the panel.
-    /// </summary>
-    private static readonly TimeSpan ChargingHolds = TimeSpan.FromMinutes(6);
-
-    private int _lastBattery = -1;
-    private bool _charging;
-    private DateTimeOffset _chargingSeenAt;
     private string? _firmware;
     private int _sidetoneMax = -1;
 
@@ -96,11 +87,14 @@ internal sealed class AudezeRaceConnection : IDeviceConnection
         return capabilityId switch
         {
             CapabilityIds.PowerBattery => await ReadBatteryAsync(cancellationToken).ConfigureAwait(false),
-            CapabilityIds.PowerCharging => _lastBattery < 0 ? CapabilityValue.Absent : CapabilityValue.Of(_charging),
+            CapabilityIds.PowerCharging => _charge.HasReading
+                ? CapabilityValue.Of(_charge.IsCharging(DateTimeOffset.UtcNow))
+                : CapabilityValue.Absent,
             CapabilityIds.DeviceFirmware => await ReadFirmwareAsync(cancellationToken).ConfigureAwait(false),
             CapabilityIds.DeviceEdition => Edition(),
 
-            CapabilityIds.AudioVolume => await ScalarAsync(MaxwellFeatures.AmpGain, cancellationToken).ConfigureAwait(false),
+            CapabilityIds.AudioVolume => Awake(
+                await ScalarAsync(MaxwellFeatures.AmpGain, cancellationToken).ConfigureAwait(false)),
             CapabilityIds.AudioGainLeft => await ScalarAsync(MaxwellFeatures.LeftGain, cancellationToken).ConfigureAwait(false),
             CapabilityIds.AudioGainRight => await ScalarAsync(MaxwellFeatures.RightGain, cancellationToken).ConfigureAwait(false),
             CapabilityIds.AudioBalance => await ScalarAsync(MaxwellFeatures.EarcupBalance, cancellationToken).ConfigureAwait(false),
@@ -157,40 +151,29 @@ internal sealed class AudezeRaceConnection : IDeviceConnection
         _ => CapabilityValue.Absent,
     };
 
+    /// <summary>
+    /// The heartbeat's answer, and what its silence means for everything inferred from a
+    /// run of readings.
+    ///
+    /// The battery goes on arriving from the dongle while the headset sleeps, and while
+    /// it sleeps nothing is polled at all — so the readings either side of a nap have an
+    /// unknown time between them and possibly a cable. That is not a trend, and reading
+    /// it as one lights a bolt over a headset that has simply been switched back on.
+    /// </summary>
+    private CapabilityValue Awake(CapabilityValue gain)
+    {
+        if (gain.IsAbsent) _charge.Lost();
+
+        return gain;
+    }
+
     private async Task<CapabilityValue> ReadBatteryAsync(CancellationToken cancellationToken)
     {
         int battery = await _session.ReadBatteryAsync(cancellationToken).ConfigureAwait(false);
         if (battery < 0) return CapabilityValue.Absent;
 
-        // No charging flag has been found in the protocol, so it is inferred from the
-        // trend — and the first version of that inference was wrong in both directions.
-        //
-        // The reading jitters: sitting on a dongle with no cable in it, the headset
-        // reports 92, then 93, then 93 again. A single rising sample was enough to claim
-        // charging, so noise switched it on; and it was only ever switched off by a fall,
-        // which at 93% does not come for hours. The bolt stayed lit long after the cable
-        // was out, which is exactly what was reported.
-        //
-        // So: a rise has to be bigger than the jitter to mean anything, and a claim that
-        // nothing has confirmed for a while expires on its own.
-        if (_lastBattery >= 0)
-        {
-            if (battery >= _lastBattery + RiseMeansCharging)
-            {
-                _charging = true;
-                _chargingSeenAt = DateTimeOffset.UtcNow;
-            }
-            else if (battery < _lastBattery)
-            {
-                _charging = false;
-            }
-            else if (_charging && DateTimeOffset.UtcNow - _chargingSeenAt > ChargingHolds)
-            {
-                _charging = false;
-            }
-        }
+        _charge.Saw(battery, DateTimeOffset.UtcNow);
 
-        _lastBattery = battery;
         return CapabilityValue.Of(battery);
     }
 

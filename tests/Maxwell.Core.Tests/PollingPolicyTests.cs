@@ -25,14 +25,95 @@ public sealed class PollingPolicyTests
     }
 
     [Fact]
-    public void UnreachableDevice_IsNotPolled()
+    public void UnreachableDevice_IsNotRead()
     {
-        // A device that is not answering is re-probed by discovery, not by the poller:
-        // polling it would climb the failure backoff forever while discovery is already
-        // asking it the one question that matters.
+        // Nothing to read: every answer would come back empty. The one question still
+        // worth asking is whether it is back, and that is the probe, not a scope.
         PollPlan plan = Plan(Headset, present: true, canControl: false, PollingAttention.Focused, Headset);
 
         Assert.Equal(PollScope.None, plan.Scope);
+    }
+
+    /// <summary>
+    /// A headset switched off on its dongle is still enumerated and still open; it has
+    /// simply stopped replying. Nothing was asking whether it had come back except
+    /// discovery, twenty seconds apart — which is the ten to fifteen seconds somebody
+    /// spends looking at a page that says their switched-on headset is off.
+    /// </summary>
+    [Fact]
+    public void ASilentDeviceWhosePageIsOpen_IsAskedWhetherItIsBack()
+    {
+        PollPlan plan = Plan(Headset, present: true, canControl: false, PollingAttention.Focused, Headset);
+
+        Assert.True(plan.Probe);
+        Assert.Equal(Options.WakeInterval, plan.Interval);
+    }
+
+    [Fact]
+    public void ASilentDeviceNobodyIsWatching_IsLeftToDiscovery()
+    {
+        // The probe is the expensive kind of cheap — an unanswered question costs the
+        // protocol's whole retry window — so it is spent where somebody is waiting.
+        PollPlan plan = Plan(Headset, present: true, canControl: false, PollingAttention.Focused, Mouse);
+
+        Assert.False(plan.Probe);
+        Assert.Equal(PollScope.None, plan.Scope);
+    }
+
+    /// <summary>
+    /// The backoff exists so a device that has just been unplugged is not retried thirty
+    /// times a minute. It must not reach this lane: the one question whose job is to
+    /// notice a recovery would get slower the longer the recovery took, which is the
+    /// opposite of what it is for.
+    /// </summary>
+    [Fact]
+    public void TheWakingQuestion_IsNotBackedOff()
+    {
+        PollPlan plan = Plan(
+            Headset, present: true, canControl: false, PollingAttention.Focused, Headset, failures: 6);
+
+        Assert.Equal(Options.WakeInterval, plan.Interval);
+    }
+
+    [Fact]
+    public void AnOpenPage_AlsoAsksWhetherTheDeviceIsStillThere()
+    {
+        // The same question in the other direction, and no read can answer it: a device
+        // that stops replying does not fail a read, it just returns nothing — which the
+        // sweep is right to ignore, since one empty row is not evidence of anything.
+        PollPlan plan = Plan(Headset, present: true, canControl: true, PollingAttention.Focused, Headset);
+
+        Assert.True(plan.Probe);
+    }
+
+    [Fact]
+    public void ADeviceInTheBackground_IsReadButNotQuestioned()
+    {
+        PollPlan plan = Plan(Mouse, present: true, canControl: true, PollingAttention.Focused, Headset);
+
+        Assert.Equal(PollScope.Battery, plan.Scope);
+        Assert.False(plan.Probe);
+    }
+
+    [Fact]
+    public void AnOfflineDevice_IsNotEvenAsked()
+    {
+        // Unplugged, not asleep. There is nothing on the other end of the question.
+        PollPlan plan = Plan(Headset, present: false, canControl: false, PollingAttention.Focused, Headset);
+
+        Assert.False(plan.Probe);
+    }
+
+    [Fact]
+    public void AHiddenDevice_IsNotAskedEitherWayRoundTheAttention()
+    {
+        PollPlan plan = PollingPolicy.Plan(
+            new PollSubject(Headset, IsPresent: true, CanControl: false, ConsecutiveFailures: 0, IsHidden: true),
+            PollingAttention.Focused,
+            Headset,
+            Options);
+
+        Assert.False(plan.Probe);
     }
 
     [Fact]

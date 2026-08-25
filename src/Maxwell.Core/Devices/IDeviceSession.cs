@@ -24,6 +24,17 @@ public interface IDeviceSession
     Task RefreshAllAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Asks whether the device is answering, and settles the claim either way.
+    ///
+    /// Apart from the reads because it is the one question a read cannot answer: an empty
+    /// value is not evidence of a dead device — half the rows on a microphone are
+    /// legitimately empty — and a device that has gone quiet has nothing worth reading at
+    /// all. Cheap, and cheapest in the case that matters: a device that is there answers
+    /// at once.
+    /// </summary>
+    Task ProbeAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Writes one capability and reports whether the device took it. A refusal is not an
     /// exception: the previous reading is restored and the failure is left on the
     /// capability for the control to show.
