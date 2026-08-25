@@ -36,8 +36,41 @@ internal static class SystemDeviceProfile
         BluetoothClass,
     ];
 
-    public static bool IsPeripheral(IEnumerable<SystemDeviceNode> nodes) =>
-        nodes.Any(n => Peripheral.Contains(n.ClassGuid));
+    public static bool IsPeripheral(IEnumerable<SystemDeviceNode> nodes)
+    {
+        List<SystemDeviceNode> all = [.. nodes];
+
+        return all.Any(n => Peripheral.Contains(n.ClassGuid)) && IsConnected(all);
+    }
+
+    /// <summary>
+    /// Whether a low-energy device is here or merely remembered.
+    ///
+    /// Measured on a Bluetooth mouse, asleep and then woken: awake it has two HID nodes
+    /// alongside its services, and asleep it has only the services. The services are what
+    /// pairing leaves behind — they stay for as long as the pairing does, whether or not
+    /// anything is listening at the other end.
+    ///
+    /// Which matters because Windows keeps answering for a device that is not there. It
+    /// went on reporting the mouse's charge at a hundred per cent with the mouse asleep on
+    /// the desk, and a charge that answers is read here as a device that answers — so the
+    /// row sat there claiming to be live. The same lesson as a headset's dongle
+    /// remembering its battery: a number out of somebody's memory is not the device
+    /// speaking.
+    ///
+    /// Deliberately not a property. There is one on these nodes that looks like the
+    /// answer, and it reads false with the mouse awake and working; every key on the node
+    /// was dumped and none of them says connected. What does say it is whether the device
+    /// has grown anything but its services.
+    /// </summary>
+    private static bool IsConnected(List<SystemDeviceNode> nodes)
+    {
+        if (!nodes.Any(n => n.Link == SystemDeviceLink.BluetoothLe)) return true;
+
+        return nodes.Any(n =>
+            !n.InstanceId.StartsWith("BTHLEDEVICE\\", StringComparison.OrdinalIgnoreCase)
+            && !n.InstanceId.StartsWith("BTHLE\\", StringComparison.OrdinalIgnoreCase));
+    }
 
     /// <summary>
     /// What to call the device, and the order is not the obvious one. A Bluetooth device

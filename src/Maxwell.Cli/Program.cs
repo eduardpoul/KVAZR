@@ -115,6 +115,7 @@ if (args.Contains("--quadcast"))
 if (args.Contains("--pointers")) return PointerProbe.Run();
 if (args.Contains("--pairings")) return PairingProbe.Run();
 if (args.Contains("--pointer")) return PointerSettingsProbe.Run();
+if (args.Contains("--props")) return PropertyProbe.Run(ValueAfter(args, "--props"));
 if (args.Contains("--tester"))
 {
     return TesterProbe.Run(int.TryParse(ValueAfter(args, "--tester"), out int watching) ? watching : 20);

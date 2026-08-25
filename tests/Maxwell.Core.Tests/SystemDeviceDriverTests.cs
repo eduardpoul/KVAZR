@@ -49,6 +49,51 @@ public sealed class SystemDeviceDriverTests
         };
 
     /// <summary>
+    /// A low-energy device asleep is a pairing, not a device.
+    ///
+    /// Measured on the mouse, asleep and then woken: awake it has HID nodes beside its
+    /// GATT services, asleep it has only the services — and Windows goes on answering its
+    /// charge either way. A charge that answers is read as a device that answers, so the
+    /// row sat there at a hundred per cent claiming to be live while the mouse slept.
+    /// </summary>
+    [Fact]
+    public void ASleepingLowEnergyDevice_IsNotHere()
+    {
+        Guid container = Guid.NewGuid();
+
+        Assert.False(SystemDeviceProfile.IsPeripheral(
+        [
+            Node(container, Hid, instanceId: @"BTHLEDEVICE\{00001812-0000}_DEV_X\1",
+                link: SystemDeviceLink.BluetoothLe),
+            Node(container, Mouse, instanceId: @"BTHLE\DEV_X\1", link: SystemDeviceLink.BluetoothLe),
+        ]));
+    }
+
+    [Fact]
+    public void TheSameDeviceAwake_IsHere()
+    {
+        Guid container = Guid.NewGuid();
+
+        // The HID collection is what appears when it connects, and it is what the mouse
+        // is driven through.
+        Assert.True(SystemDeviceProfile.IsPeripheral(
+        [
+            Node(container, Hid, instanceId: @"BTHLEDEVICE\{00001812-0000}_DEV_X\1",
+                link: SystemDeviceLink.BluetoothLe),
+            Node(container, Mouse, instanceId: @"HID\{00001812-0000}_DEV_X&COL01\1",
+                link: SystemDeviceLink.BluetoothLe),
+        ]));
+    }
+
+    [Fact]
+    public void AWiredDevice_IsNotJudgedByThatRule()
+    {
+        // The rule is about what a pairing leaves behind. Nothing on a cable leaves
+        // anything behind, so a USB device is here whenever it is enumerated at all.
+        Assert.True(SystemDeviceProfile.IsPeripheral([Node(Guid.NewGuid(), Mouse)]));
+    }
+
+    /// <summary>
     /// A Bluetooth Low Energy mouse, which is a mouse that says nothing about itself in
     /// the field classic Bluetooth uses — low energy has an Appearance instead and leaves
     /// this one at zero.
