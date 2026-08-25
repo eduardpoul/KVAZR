@@ -76,6 +76,16 @@ internal sealed class AudezeRaceConnection : IDeviceConnection
 
     // ---------- reads ----------
 
+    /// <summary>
+    /// The amp gain, because the headset answers it and the dongle does not.
+    ///
+    /// Measured with the headset switched off: the battery still reads 94% and the
+    /// firmware still reads 1.0.1.74, both out of the dongle, while the gain, the earcup
+    /// gains and the ChatMix all answer "no reply". Anything kept in the dongle describes
+    /// the dongle.
+    /// </summary>
+    public string Heartbeat => CapabilityIds.AudioVolume;
+
     public async Task<CapabilityValue> ReadAsync(
         string capabilityId,
         CancellationToken cancellationToken = default)

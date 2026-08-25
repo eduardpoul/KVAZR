@@ -147,12 +147,19 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
             // channel order and keeps any capability a contributor also declares.
             if (connected) SeedCapabilities();
 
-            // A device that is not answering is asked again on every sweep. Without
-            // this a headset switched off once would stay marked unreachable until the
-            // application restarted.
+            // Asked on every sweep, in both directions.
+            //
+            // It used to be asked only while the answer was already "no", which meant a
+            // device could come back to life but never go quiet: nothing revisited the
+            // claim unless a read had thrown. A headset that simply stops replying throws
+            // nothing at all, so its page went on offering controls for a device in a
+            // drawer.
+            //
+            // One reading per sweep for the devices that have a channel at all, which is
+            // the handful with a driver rather than every peripheral on the machine.
             bool probed = false;
 
-            if (HasChannel && !_answers)
+            if (HasChannel)
             {
                 _answers = await AnswersAsync(cancellationToken).ConfigureAwait(false);
                 probed = true;
@@ -636,26 +643,26 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
     /// </summary>
     private async Task<bool> AnswersAsync(CancellationToken cancellationToken)
     {
-        // Where the device's own driver reads a battery, that reading decides on its own.
+        // The driver's own heartbeat, where it named one.
         //
-        // It is the one question every such device answers and the one that cannot be
-        // answered from memory. Asking anything else as well sounds harmless and is not: a
-        // firmware version is read once and returned from a field ever after, and a
-        // headset switched off on its dongle went on answering it for as long as the
-        // dongle stayed in. Nothing else moved either — not the battery, not the volume —
-        // and the page sat there claiming ninety-four per cent of a headset in a drawer.
+        // Only a driver can know which reading means the device itself is awake, and
+        // guessing cost two rounds of this. A battery looks like the obvious choice and is
+        // wrong here: a Maxwell's dongle answers 94% with the headset in a drawer, and its
+        // firmware version out of the same memory. Anything a dongle remembers describes
+        // the dongle.
         //
-        // Only a device with no battery of its own falls through to the rest, which is
-        // where asking more than one question earns its place: a microphone's page is
-        // built from rows that are legitimately empty until something happens to them, and
-        // one of those must not condemn the other five.
-        List<string> probes = _owner.TryGetValue(CapabilityIds.PowerBattery, out IDeviceConnection? charge)
-            && ReferenceEquals(charge, _connection)
-                ? [CapabilityIds.PowerBattery]
+        // Without one, a few of the device's own rows, and silent only when every one of
+        // them is: a microphone's page is built from rows that are legitimately empty
+        // until something happens to them, and one of those must not condemn the other
+        // five.
+        List<string> probes =
+            _connection?.Heartbeat is { Length: > 0 } beat && _owner.ContainsKey(beat)
+                ? [beat]
                 : [
                     .. _states.Values
                         .Where(s => s.Descriptor.IsReadable && _owner.ContainsKey(s.Id))
                         .OrderBy(s => ReferenceEquals(_owner[s.Id], _connection) ? 0 : 1)
+                        .ThenBy(s => s.Id == CapabilityIds.PowerBattery ? 0 : 1)
                         .Select(s => s.Id)
                         .Take(Probes),
                 ];

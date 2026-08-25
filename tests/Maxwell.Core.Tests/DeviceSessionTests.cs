@@ -146,29 +146,51 @@ public sealed class DeviceSessionTests
     /// battery and no auto-off, and unplugging the dongle was the only cure.
     /// </summary>
     /// <summary>
-    /// A headset switched off on its dongle went on reading as awake, because the probe
-    /// was asking more than one question and one of the answers came from memory: a
-    /// firmware version is read once and returned from a field ever after.
+    /// A headset switched off on its dongle went on reading as awake through two attempts
+    /// at this, and both failed the same way: they guessed which reading meant "alive".
     ///
-    /// So where a device's own driver reads a battery, that reading decides alone. It is
-    /// the one question every such device answers and the one that cannot be answered
-    /// without touching it.
+    /// A battery looks like the obvious choice and is wrong here — a Maxwell's dongle
+    /// answers 94% with the headset in a drawer, and its firmware out of the same memory.
+    /// Anything a dongle remembers describes the dongle. Only the driver knows which
+    /// reading the device itself has to answer, so only the driver can say.
     /// </summary>
     [Fact]
-    public async Task ABatteryThatSaysNothing_IsDecisive_HoweverManyCachedRowsAnswer()
+    public async Task AHeartbeatThatSaysNothing_IsDecisive_HoweverMuchElseAnswers()
     {
-        var fixture = new Fixture();
+        var fixture = new Fixture { Heartbeat = Plain };
         DeviceSession session = fixture.CreateSession();
         await session.MarkPresentAsync(fixture.Info, Ct);
 
         Assert.Equal(DeviceAvailability.Active, session.Snapshot.Availability);
 
-        // The headset goes to sleep: its battery stops answering while everything read
-        // from a field goes on answering exactly as before.
-        fixture.Connection.Values.Remove(CapabilityIds.PowerBattery);
+        // The headset goes quiet. Its battery and everything else read out of the dongle
+        // go on answering exactly as before.
+        fixture.Connection.Values.Remove(Plain);
         await session.MarkPresentAsync(fixture.Info, Ct);
 
         Assert.Equal(DeviceAvailability.Unreachable, session.Snapshot.Availability);
+        Assert.Equal(CapabilityValue.Of(94), fixture.Connection.Values[CapabilityIds.PowerBattery]);
+    }
+
+    /// <summary>
+    /// And back, without a restart or an unplug. Nothing revisited the claim before: the
+    /// probe ran only while the answer was already "no", so a device could come back to
+    /// life but never go quiet.
+    /// </summary>
+    [Fact]
+    public async Task WhenTheHeartbeatReturns_SoDoesTheDevice()
+    {
+        var fixture = new Fixture { Heartbeat = Plain };
+        DeviceSession session = fixture.CreateSession();
+
+        fixture.Connection.Values.Remove(Plain);
+        await session.MarkPresentAsync(fixture.Info, Ct);
+        Assert.Equal(DeviceAvailability.Unreachable, session.Snapshot.Availability);
+
+        fixture.Connection.Values[Plain] = CapabilityValue.Of(3);
+        await session.MarkPresentAsync(fixture.Info, Ct);
+
+        Assert.Equal(DeviceAvailability.Active, session.Snapshot.Availability);
     }
 
     [Fact]
@@ -383,6 +405,9 @@ public sealed class DeviceSessionTests
 
         public bool ConnectFails { get; init; }
 
+        /// <summary>Handed to the connection, the way a real driver names its own.</summary>
+        public string? Heartbeat { get; init; }
+
         public DeviceInfo Info { get; } = new()
         {
             Key = "fake:device",
@@ -395,6 +420,7 @@ public sealed class DeviceSessionTests
 
         public DeviceSession CreateSession(IReadOnlyList<ICapabilityContributor>? contributors = null)
         {
+            Connection.Heartbeat = Heartbeat;
             Driver = new FakeDriver(this);
             return new DeviceSession(
                 Info, Driver, Ledger, NullLogger<DeviceSession>.Instance, contributors);
@@ -435,6 +461,9 @@ public sealed class DeviceSessionTests
     private sealed class FakeConnection : IDeviceConnection
     {
         public bool AcceptWrites { get; set; } = true;
+
+        /// <summary>What this device must answer to count as awake, if its driver says.</summary>
+        public string? Heartbeat { get; set; }
 
         public Dictionary<string, CapabilityValue> Values { get; } = new(StringComparer.Ordinal)
         {

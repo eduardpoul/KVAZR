@@ -81,6 +81,23 @@ public interface IDeviceConnection : IDisposable
     IReadOnlyList<TransportInfo> Transports { get; }
 
     /// <summary>
+    /// The one reading that means "the device itself is here and awake", where the driver
+    /// knows which that is.
+    ///
+    /// Only a driver can know. A Maxwell on its dongle answers a battery percentage with
+    /// the headset switched off and in a drawer — the dongle remembers it — and answers
+    /// its firmware version out of the same memory, while the amp gain and the ChatMix go
+    /// quiet the moment the headset does. Measured, with the headset in hand. A session
+    /// looking for a lively-looking row would have picked one of the first two and called
+    /// a drawer a head.
+    ///
+    /// Null means there is nothing so decisive, which is the ordinary case: the session
+    /// then falls back to asking a few of the device's own rows and calling it silent only
+    /// when every one of them is.
+    /// </summary>
+    string? Heartbeat => null;
+
+    /// <summary>
     /// Reads one capability. Returns <see cref="CapabilityValue.Absent"/> when the
     /// device declines to answer, which is a legitimate outcome and not an error: a
     /// detached boom microphone simply does not respond to its level read.
