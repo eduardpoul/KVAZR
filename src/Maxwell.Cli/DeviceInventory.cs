@@ -184,6 +184,14 @@ internal static class DeviceInventory
         Console.WriteLine($"{device.Info.DisplayName}  [{device.Info.Class}]  {device.Availability}");
         Console.WriteLine($"  key {device.Info.Key}  driver {device.Info.DriverId}");
 
+        // The identities the device was recognised by. Worth printing because one of them
+        // is operational rather than descriptive: "forget in the system" needs the
+        // Bluetooth address, and without a bt: id there is nothing to unpair.
+        if (device.Info.HardwareIds.Count > 0)
+        {
+            Console.WriteLine($"  ids {string.Join("  ", device.Info.HardwareIds)}");
+        }
+
         foreach (TransportInfo transport in device.Info.Transports)
         {
             string carries = (transport.CarriesControl, transport.CarriesAudio) switch

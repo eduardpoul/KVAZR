@@ -427,6 +427,8 @@
   "KVAZR — no devices found": "KVAZR — устройств не найдено",
   "KVAZR — {0} devices": "KVAZR — устройств: {0}",
   "All settings": "Все настройки",
+  "{0} is still paired": "{0} — пара не снята",
+  "Windows would not remove the pairing. It can be removed in the system's Bluetooth settings.": "Windows отказалась удалить пару. Её можно убрать в системных настройках Bluetooth.",
   "The poll is not answering": "Опрос не отвечает",
   "No devices found": "Устройств не найдено",
   "Devices · {0}": "Устройства · {0}",

@@ -7,6 +7,7 @@ using Maxwell.App.ViewModels.Capabilities;
 using Maxwell.App.Platform;
 using Maxwell.App.ViewModels.Devices;
 using Maxwell.App.ViewModels.Pages;
+using Maxwell.Core.Abstractions;
 using Maxwell.Core.Devices;
 using Maxwell.Core.Polling;
 using Maxwell.Race.Windows;
@@ -49,6 +50,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     private readonly PrimaryDevice _primary;
     private readonly CurvePresetLibrary _presets;
     private readonly TrayExtras _extras;
+    private readonly INotifier _notifier;
     private readonly Dictionary<string, DevicePageViewModel> _pages = new(StringComparer.Ordinal);
 
     private bool _disposed;
@@ -64,7 +66,8 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         AboutViewModel about,
         FirstSweep sweep,
         CurvePresetLibrary presets,
-        TrayExtras extras)
+        TrayExtras extras,
+        INotifier notifier)
     {
         ArgumentNullException.ThrowIfNull(registry);
         ArgumentNullException.ThrowIfNull(polling);
@@ -77,6 +80,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         ArgumentNullException.ThrowIfNull(sweep);
         ArgumentNullException.ThrowIfNull(presets);
         ArgumentNullException.ThrowIfNull(extras);
+        ArgumentNullException.ThrowIfNull(notifier);
 
         _registry = registry;
         _polling = polling;
@@ -84,6 +88,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         _hidden = hidden;
         _primary = primary;
         _presets = presets;
+        _notifier = notifier;
         _extras = extras;
 
         // Shortcuts are shelved, not deleted: the page, its view model and the coordinator
@@ -614,15 +619,37 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         string? bluetooth = device.Snapshot.Info.HardwareIds
             .FirstOrDefault(id => id.StartsWith("bt:", StringComparison.Ordinal));
 
-        if (OperatingSystem.IsWindows() && WindowsBluetoothPairing.Parse(bluetooth?[3..]) is { } address)
+        // A device on a dongle has no pairing to remove, and for it this can only mean
+        // taking the row away. A Bluetooth one has both halves — and the first can be
+        // refused, which used to be thrown away along with the answer.
+        if (OperatingSystem.IsWindows()
+            && WindowsBluetoothPairing.Parse(bluetooth?[3..]) is { } address
+            && !WindowsBluetoothPairing.Forget(address))
         {
-            WindowsBluetoothPairing.Forget(address);
+            // Hiding the row now would answer a request to unpair by pretending to have
+            // done it: the device is still paired, still there, and will come back the
+            // moment anybody looks past the hiding.
+            await _notifier.NotifyAsync(
+                Maxwell.App.Localization.Localizer.Current.Say("{0} is still paired", device.DisplayName),
+                Maxwell.App.Localization.Localizer.Current.Say(
+                    "Windows would not remove the pairing. It can be removed in the system's Bluetooth settings."))
+                .ConfigureAwait(true);
+
+            return;
         }
 
-        // Whether Windows removed it or not, the device goes off the list now. It will be
-        // gone from the next sweep either way, and leaving the row sitting there until
-        // then reads as the menu item having done nothing.
         await _hidden.HideAsync(device.Key, DateTimeOffset.Now).ConfigureAwait(true);
+
+        // And off the page of the device that has just been forgotten.
+        //
+        // This is what made the whole thing read as having done nothing. The row goes
+        // from the list, and the list is behind the page somebody is standing on — so a
+        // device was forgotten, its row disappeared where nobody was looking, and the
+        // page went on showing it as though the button had not been pressed.
+        if (SelectedDevice is { } open && string.Equals(open.Key, device.Key, StringComparison.Ordinal))
+        {
+            ShowDashboard();
+        }
     }
 
     /// <summary>
