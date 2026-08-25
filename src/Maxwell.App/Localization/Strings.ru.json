@@ -324,7 +324,7 @@
   "The device refused the value. The previous one is back": "Устройство не приняло значение. Вернули прежнее",
   "The charge cannot be read over this link": "Заряд по этому подключению не читается",
   "The dongle reports \"wired, no battery\"": "Донгл рапортует «проводной, батареи нет»",
-  "The dongle does not give a battery level. It appears once paired over Bluetooth": "Донгл не отдаёт уровень батареи. Появится, если спарить по Bluetooth",
+  "No charge has come back on this link yet": "Заряд по этому подключению пока не пришёл",
   "The slot reads; writing to it has not been confirmed": "Слот читается, запись в него не подтверждена",
   "Another application has that combination": "Сочетание занято другим приложением",
   "That combination is already assigned to another action": "Это сочетание уже назначено другому действию",

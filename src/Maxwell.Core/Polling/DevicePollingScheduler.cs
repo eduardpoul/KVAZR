@@ -517,6 +517,7 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
         if (full)
         {
             await session.RefreshAllAsync(cancellationToken).ConfigureAwait(false);
+            await FillGapsAsync(session, cancellationToken).ConfigureAwait(false);
         }
         else if (scope != PollScope.None)
         {
@@ -530,6 +531,53 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
 
         await EvaluateBatteryAsync(session.Snapshot, entry, cancellationToken).ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// How many times a half-answered device is asked again for the rows it missed.
+    /// </summary>
+    private const int Refills = 2;
+
+    /// <summary>How long to leave it between those attempts.</summary>
+    private static readonly TimeSpan RefillGap = TimeSpan.FromMilliseconds(600);
+
+    /// <summary>
+    /// Asks again for the rows a full read did not get.
+    ///
+    /// The full read happens exactly once, when a device is first seen or when it comes
+    /// back from being silent — and coming back is a second or two of the device being
+    /// half there. It answers the first questions and not the last ones, and an empty
+    /// answer is deliberately not allowed to overwrite anything, so the rows it missed
+    /// stay missing: a headset switched on with a left earcup that has no reading and a
+    /// battery that reads as no battery at all, for as long as it stays switched on,
+    /// because nothing was ever going to ask a second time.
+    ///
+    /// Only the rows that are actually missing, and only twice. A row that is genuinely
+    /// empty on this hardware costs two extra readings once, which is the right price for
+    /// not having to know in advance which rows those are.
+    /// </summary>
+    private static async Task FillGapsAsync(IDeviceSession session, CancellationToken cancellationToken)
+    {
+        for (int round = 0; round < Refills; round++)
+        {
+            string[] missing = Missing(session.Snapshot);
+            if (missing.Length == 0) return;
+
+            await Task.Delay(RefillGap, cancellationToken).ConfigureAwait(false);
+            await session.RefreshAsync(missing, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Rows this device says it can answer, is currently able to answer, and has not.
+    /// Live readings are excluded: they are measurements taken while somebody watches,
+    /// and being empty is their resting state.
+    /// </summary>
+    private static string[] Missing(DeviceSnapshot device) =>
+    [
+        .. device.Capabilities.Values
+            .Where(c => c.Descriptor.IsReadable && !c.Descriptor.IsLive && c.IsAvailable && c.Value.IsAbsent)
+            .Select(c => c.Id),
+    ];
 
     private static string[] Wanted(DeviceSnapshot device, PollScope scope)
     {

@@ -261,7 +261,12 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     public string NoBatteryReason => Snapshot.Info.Class switch
     {
         DeviceClass.Gamepad => Maxwell.App.Localization.Localizer.Current.Say("The dongle reports \"wired, no battery\""),
-        _ when HasDongle => Maxwell.App.Localization.Localizer.Current.Say("The dongle does not give a battery level. It appears once paired over Bluetooth"),
+        // Was: "the dongle does not give a battery level, it appears once paired over
+        // Bluetooth". Measured false — this dongle answers the charge all day, and
+        // answers it with the headset switched off — so the sentence was a confident
+        // claim about the hardware made on the strength of one reading being empty. What
+        // is actually true at this moment is that one reading was empty.
+        _ when HasDongle => Maxwell.App.Localization.Localizer.Current.Say("No charge has come back on this link yet"),
         _ => Maxwell.App.Localization.Localizer.Current.Say("The charge cannot be read over this link"),
     };
 
