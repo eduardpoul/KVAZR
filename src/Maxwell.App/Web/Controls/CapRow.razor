@@ -19,6 +19,19 @@
       {
         <span class="badge @BadgeClass(badge.Kind)">@badge.Text</span>
       }
+
+      @* Beside the name, because it is a choice about this control rather than a value of
+         it: eight named colours are quicker when one of them is what you want, and two
+         sliders are the only way when it is not. *@
+      @if (Vm is LightingCapabilityViewModel modes)
+      {
+        <div class="segmented tiny">
+          <button class="@(modes.BySliders ? "" : "sel")"
+                  @onclick="() => { var m = modes; OnUi(() => m.BySliders = false); }">@T.Say("Swatches")</button>
+          <button class="@(modes.BySliders ? "sel" : "")"
+                  @onclick="() => { var m = modes; OnUi(() => m.BySliders = true); }">@T.Say("Sliders")</button>
+        </div>
+      }
     </div>
     @if (!string.IsNullOrEmpty(Vm.Subtitle))
     {
@@ -301,25 +314,39 @@
               {
                 <div class="zone">
                   <span class="caption">@zone.Label</span>
-                  <div class="swatches">
-                    @foreach (LightingSwatch swatch in zone.Palette)
-                    {
-                      <button class="swatch @(ReferenceEquals(zone.Selected, swatch) ? "sel" : "")"
-                              title="@swatch.Name"
-                              style="background:#@swatch.Packed.ToString("X6", CultureInfo.InvariantCulture)"
-                              disabled="@(!zone.CanEdit)"
-                              @onclick="() => { var z = zone; var s = swatch; OnUi(() => z.Selected = s); }"></button>
-                    }
-
-                    @* Eight swatches are the quick picks; this is the other sixteen
-                       million. The pane is a browser, so a colour input is the system's
-                       own picker for the price of one element — and a device that takes a
-                       packed colour was never limited to a list. *@
-                    <input type="color" class="swatch custom" value="@zone.Hex"
-                           title="@T.Say("Any colour")"
-                           disabled="@(!zone.CanEdit)"
-                           @onchange="e => { var z = zone; OnUi(() => z.Choose(Packed(e.Value?.ToString()))); }" />
-                  </div>
+                  @if (lighting.BySliders)
+                  {
+                    @* Hue and saturation, and nothing else: brightness is a row of its own
+                       on this card and a third slider here would be two controls for one
+                       thing. Each track is painted with what it does — the whole spectrum
+                       under the first, grey to this colour under the second. *@
+                    <div class="hsv">
+                      <input type="range" class="tinted" min="0" max="359" step="1" value="@zone.Hue"
+                             style="background:@LightingZoneViewModel.HueTrack"
+                             title="@T.Say("Hue")"
+                             disabled="@(!zone.CanEdit)"
+                             @oninput="e => { var z = zone; OnUi(() => z.Hue = Number(e.Value, z.Hue)); }" />
+                      <input type="range" class="tinted" min="0" max="100" step="1" value="@zone.Saturation"
+                             style="background:@zone.SaturationTrack"
+                             title="@T.Say("Saturation")"
+                             disabled="@(!zone.CanEdit)"
+                             @oninput="e => { var z = zone; OnUi(() => z.Saturation = Number(e.Value, z.Saturation)); }" />
+                      <span class="swatch shown" style="background:@zone.Hex"></span>
+                    </div>
+                  }
+                  else
+                  {
+                    <div class="swatches">
+                      @foreach (LightingSwatch swatch in zone.Palette)
+                      {
+                        <button class="swatch @(ReferenceEquals(zone.Selected, swatch) ? "sel" : "")"
+                                title="@swatch.Name"
+                                style="background:#@swatch.Packed.ToString("X6", CultureInfo.InvariantCulture)"
+                                disabled="@(!zone.CanEdit)"
+                                @onclick="() => { var z = zone; var s = swatch; OnUi(() => z.Selected = s); }"></button>
+                      }
+                    </div>
+                  }
                 </div>
               }
             </div>
@@ -437,9 +464,14 @@
   private static RenderFragment? Glyph(string? name) => name switch
   {
     // Two separate circles: left and right, kept apart.
+    //
+    // Smaller than the single-shape drawings, and that is the point rather than an
+    // oversight. A pair carries more ink and more width than one circle of the same
+    // radius, so matching the radii makes the pair look bigger; the four are matched on
+    // what the eye weighs, not on the number in the markup.
     "polar.stereo" => @<svg class="glyph" viewBox="0 0 24 16" width="24" height="16" aria-hidden="true">
-                         <circle cx="7" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.4" />
-                         <circle cx="17" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.4" />
+                         <circle cx="7.5" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.4" />
+                         <circle cx="16.5" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.4" />
                        </svg>,
 
     // A circle with a bite out of the bottom, which is how a heart-shaped pattern is
@@ -459,10 +491,11 @@
                       <circle cx="12" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.4" />
                     </svg>,
 
-    // Two circles that overlap: the figure of eight, front and back.
+    // Two circles that overlap: the figure of eight, front and back. A pair, so the same
+    // smaller radius as the stereo drawing.
     "polar.figure8" => @<svg class="glyph" viewBox="0 0 24 16" width="24" height="16" aria-hidden="true">
-                         <circle cx="9" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.4" />
-                         <circle cx="15" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.4" />
+                         <circle cx="9.5" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.4" />
+                         <circle cx="14.5" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.4" />
                        </svg>,
 
     _ => null,
@@ -470,13 +503,9 @@
 }
 
 @code {
-  /// <summary>"#rrggbb" as a packed colour. Anything unparseable leaves the zone alone.</summary>
-  private static int Packed(string? hex) =>
-    hex is { Length: 7 } && hex[0] == '#'
-      && int.TryParse(hex.AsSpan(1), System.Globalization.NumberStyles.HexNumber,
-                      CultureInfo.InvariantCulture, out int value)
-      ? value
-      : -1;
+  /// <summary>A range input's value, or what it was if the browser sent something odd.</summary>
+  private static int Number(object? raw, int fallback) =>
+    int.TryParse(raw?.ToString(), CultureInfo.InvariantCulture, out int value) ? value : fallback;
 
   /// <summary>
   /// A slot's caption, tagged by where its curve comes from. The wearer's own four sit

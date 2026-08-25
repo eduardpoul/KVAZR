@@ -744,6 +744,42 @@ button.accent:disabled:hover { background: var(--track-empty); }
 
 .swatch.sel { outline: 2px solid var(--accent-primary); outline-offset: 1.5px; }
 
+/* Hue and saturation, as two tracks painted with what they do.
+
+   A range input with a gradient behind it rather than a picker of our own: the thumb, the
+   keyboard and the focus ring all come for free and behave the way every other slider on
+   this page does. The track is the control's own explanation — the spectrum under the
+   first, grey to the chosen colour under the second — so neither needs a label. */
+.hsv { display: flex; align-items: center; gap: 10px; }
+
+.hsv .tinted {
+  flex: 1;
+  height: 10px;
+  border-radius: 5px;
+  -webkit-appearance: none;
+  appearance: none;
+  border: 1px solid var(--stroke-subtle);
+  background-size: 100% 100%;
+}
+
+.hsv .tinted::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, .45);
+  cursor: pointer;
+}
+
+.hsv .tinted:disabled { opacity: .4; }
+
+/* What the two of them add up to, so the answer is beside the question. */
+.hsv .swatch.shown { border-color: var(--stroke-strong); cursor: default; }
+
+/* A segmented control small enough to sit on a title line beside the name. */
+.segmented.tiny { margin-left: auto; }
+.segmented.tiny button { padding: 2px 10px; font-size: 11px; }
+
 /* The ninth swatch is the system's own colour picker, dressed as the other eight.
 
    A colour input draws its own bevelled well by default, which beside eight flat squares

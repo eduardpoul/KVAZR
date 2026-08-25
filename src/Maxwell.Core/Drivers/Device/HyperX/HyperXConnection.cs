@@ -157,7 +157,12 @@ internal sealed class HyperXConnection : IDeviceConnection
         };
 
     /// <summary>
-    /// The lighting, as four separate rows.
+    /// The lighting, as five separate rows under a heading of the domain's own.
+    ///
+    /// Not "HyperX" like the selector above: that row is filed by its maker because it is
+    /// a fact about this particular microphone's body, while lighting is lighting on any
+    /// device that has it, and a section called after the maker twice on one page is a
+    /// heading that has stopped saying anything.
     ///
     /// Separate because they are separate questions and a device that offered only some of
     /// them would otherwise be undrawable: the colour is a pair of zones, the effect is a
@@ -172,7 +177,6 @@ internal sealed class HyperXConnection : IDeviceConnection
             Domain = CapabilityDomain.Light,
             Primitive = CapabilityPrimitive.Toggle,
             Title = "Lighting",
-            Section = "HyperX",
 
             // The sentence has to say what off means, because it is not darkness. The
             // microphone has an effect of its own and runs it whenever nothing is
@@ -186,7 +190,6 @@ internal sealed class HyperXConnection : IDeviceConnection
             Domain = CapabilityDomain.Light,
             Primitive = CapabilityPrimitive.Choice,
             Title = "Effect",
-            Section = "HyperX",
             EnabledBy = CapabilityIds.LightOn,
             Choices =
             [
@@ -203,7 +206,6 @@ internal sealed class HyperXConnection : IDeviceConnection
             Domain = CapabilityDomain.Light,
             Primitive = CapabilityPrimitive.Lighting,
             Title = "Colour",
-            Section = "HyperX",
             EnabledBy = CapabilityIds.LightOn,
 
             // Two bars, and they are named for where they are on the microphone rather
@@ -221,7 +223,6 @@ internal sealed class HyperXConnection : IDeviceConnection
             Domain = CapabilityDomain.Light,
             Primitive = CapabilityPrimitive.Range,
             Title = "Speed",
-            Section = "HyperX",
             EnabledBy = CapabilityIds.LightOn,
             Subtitle = "How fast the effect runs. Nothing to do with a steady colour",
             Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },

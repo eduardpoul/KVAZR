@@ -903,7 +903,7 @@ public sealed record LightingSwatch(string Name, int Packed);
 /// device exposes them separately and folding them in here would make a keyboard whose
 /// firmware offers only one of the three undrawable.
 /// </summary>
-public sealed class LightingCapabilityViewModel : CompositeCapabilityViewModel
+public sealed partial class LightingCapabilityViewModel : CompositeCapabilityViewModel
 {
     /// <summary>
     /// The offered colours are a presentation choice, not a claim about the hardware.
@@ -932,12 +932,35 @@ public sealed class LightingCapabilityViewModel : CompositeCapabilityViewModel
 
     public IReadOnlyList<LightingZoneViewModel> Zones { get; }
 
+    /// <summary>
+    /// Whether the zones are steered by sliders rather than picked from the swatches.
+    ///
+    /// A preference about operating the control, not about the device, so it is not
+    /// written to anything: eight named colours are quicker when one of them is what you
+    /// want, and two sliders are the only way when it is not. Which of those a person
+    /// prefers is not something to guess at, so both are here and the choice is theirs.
+    ///
+    /// It lasts as long as the page does. Remembering it belongs with the other interface
+    /// preferences and there is nowhere for it in a capability.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool BySliders { get; set; }
+
     protected override void PushReadings()
     {
         foreach (LightingZoneViewModel zone in Zones) zone.Pull(Reading(zone.Index), CanEdit);
     }
 
     internal void Commit(int index, int packed) => WriteSlotNow(index, CapabilityValue.Of(packed));
+
+    /// <summary>
+    /// The same, on the debounce a dragged control gets.
+    ///
+    /// A swatch is one click and one colour, so it goes at once. A slider dragged across
+    /// its track is sixty colours a second, each of them a write through the session's
+    /// gate, and all but the last are on the way to somewhere.
+    /// </summary>
+    internal void CommitSoon(int index, int packed) => WriteSlot(index, CapabilityValue.Of(packed));
 
     private static int Count(CapabilityState state)
     {
@@ -992,10 +1015,114 @@ public sealed partial class LightingZoneViewModel : ObservableObject
     public string Hex => $"#{Packed & 0xFFFFFF:X6}";
 
     /// <summary>
+    /// The colour again, as the two numbers a person actually steers by.
+    ///
+    /// Hue and saturation and not brightness, because brightness is a row of its own on
+    /// the same card and a second one here would be two controls for one thing. They are
+    /// kept as fields rather than derived on demand: a grey has no hue and a black has no
+    /// saturation either, so a slider that recomputed itself from the colour would jump
+    /// to zero the moment somebody dragged the other one to the end.
+    /// </summary>
+    [ObservableProperty]
+    public partial int Hue { get; set; }
+
+    [ObservableProperty]
+    public partial int Saturation { get; set; }
+
+    /// <summary>How far up the value axis this zone sits. Not shown; kept so the round trip is lossless.</summary>
+    private double _value = 1;
+
+    partial void OnHueChanged(int value) => Steer();
+
+    partial void OnSaturationChanged(int value) => Steer();
+
+    /// <summary>The colour the two sliders currently describe, sent on if it is a change.</summary>
+    private void Steer()
+    {
+        if (_pulling) return;
+
+        Choose(FromHsv(Hue, Saturation / 100.0, _value), dragged: true);
+    }
+
+    /// <summary>Set while a reading is being taken in, so echoing it back does not write.</summary>
+    private bool _pulling;
+
+    /// <summary>The track a hue slider is drawn on: the whole spectrum, left to right.</summary>
+    public static string HueTrack =>
+        "linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)";
+
+    /// <summary>
+    /// And the one a saturation slider is drawn on, which has to be built per zone: it
+    /// runs from grey to this colour, so the slider shows what it is about to do.
+    /// </summary>
+    public string SaturationTrack =>
+        $"linear-gradient(to right, #{FromHsv(Hue, 0, _value) & 0xFFFFFF:X6}, #{FromHsv(Hue, 1, _value) & 0xFFFFFF:X6})";
+
+    private static int FromHsv(int hue, double saturation, double value)
+    {
+        double h = ((hue % 360) + 360) % 360 / 60.0;
+        double c = Math.Clamp(value, 0, 1) * Math.Clamp(saturation, 0, 1);
+        double x = c * (1 - Math.Abs((h % 2) - 1));
+        double m = Math.Clamp(value, 0, 1) - c;
+
+        (double r, double g, double b) = (int)h switch
+        {
+            0 => (c, x, 0d),
+            1 => (x, c, 0d),
+            2 => (0d, c, x),
+            3 => (0d, x, c),
+            4 => (x, 0d, c),
+            _ => (c, 0d, x),
+        };
+
+        return ((int)Math.Round((r + m) * 255) << 16)
+             | ((int)Math.Round((g + m) * 255) << 8)
+             | (int)Math.Round((b + m) * 255);
+    }
+
+    private void TakeHsv(int packed)
+    {
+        double r = ((packed >> 16) & 0xFF) / 255.0;
+        double g = ((packed >> 8) & 0xFF) / 255.0;
+        double b = (packed & 0xFF) / 255.0;
+
+        double max = Math.Max(r, Math.Max(g, b));
+        double min = Math.Min(r, Math.Min(g, b));
+        double span = max - min;
+
+        _value = max;
+
+        _pulling = true;
+
+        try
+        {
+            // A grey keeps whatever hue the slider was on. Snapping it to red would move a
+            // control nobody touched, and the colour it describes is the same either way.
+            if (span > 0)
+            {
+                double hue =
+                    max == r ? ((g - b) / span + (g < b ? 6 : 0)) :
+                    max == g ? ((b - r) / span + 2) :
+                    ((r - g) / span + 4);
+
+                Hue = (int)Math.Round(hue * 60) % 360;
+            }
+
+            Saturation = max <= 0 ? Saturation : (int)Math.Round(span / max * 100);
+        }
+        finally
+        {
+            _pulling = false;
+        }
+    }
+
+    /// <summary>
     /// Takes a colour from outside the palette. Nothing is written unless it is a change,
     /// because a colour input fires on every nudge of a slider in the system dialog.
     /// </summary>
-    public void Choose(int packed)
+    public void Choose(int packed) => Choose(packed, dragged: false);
+
+    private void Choose(int packed, bool dragged)
     {
         packed &= 0xFFFFFF;
 
@@ -1004,10 +1131,12 @@ public sealed partial class LightingZoneViewModel : ObservableObject
         Packed = packed;
         HasColour = true;
         Selected = Palette.FirstOrDefault(s => s.Packed == packed);
+        TakeHsv(packed);
 
         // Directly rather than through Selected: a colour with no swatch leaves that null,
         // and the notification it raises would not carry the colour anywhere.
-        _owner.Commit(Index, packed);
+        if (dragged) _owner.CommitSoon(Index, packed);
+        else _owner.Commit(Index, packed);
     }
 
     [ObservableProperty]
@@ -1027,7 +1156,11 @@ public sealed partial class LightingZoneViewModel : ObservableObject
 
         int packed = value.AsNumber(-1);
 
-        if (packed >= 0) Packed = packed & 0xFFFFFF;
+        if (packed >= 0)
+        {
+            Packed = packed & 0xFFFFFF;
+            TakeHsv(Packed);
+        }
 
         Selected = Palette.FirstOrDefault(s => s.Packed == packed);
     }
