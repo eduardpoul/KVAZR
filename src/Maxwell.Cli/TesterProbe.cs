@@ -96,7 +96,8 @@ internal static class TesterProbe
 
         Console.WriteLine($"  {name}");
         Console.WriteLine($"      reports   {tally.Reports}");
-        Console.WriteLine($"      rate      {tally.Rate():0} per second while moving");
+        Console.WriteLine($"      rate      {tally.Peak} in the busiest second"
+                          + $"  ·  shortest gap {tally.Shortest():0.0} ms");
 
         string pressed = string.Join(
             ", ",
@@ -116,10 +117,23 @@ internal static class TesterProbe
 
     private sealed class Tally
     {
-        private TimeSpan _first = TimeSpan.MinValue;
-        private TimeSpan _last;
+        private readonly Dictionary<long, int> _seconds = [];
+
+        private TimeSpan _last = TimeSpan.MinValue;
+        private double _shortest = double.MaxValue;
 
         public int Reports { get; private set; }
+
+        /// <summary>
+        /// The busiest whole second, which is the rate while the mouse was actually being
+        /// used.
+        ///
+        /// It replaced an average across the span from the first report to the last, and
+        /// that average was wrong in a way that read as a plausible number: somebody moves
+        /// a mouse in bursts, the span counts the pauses between them, and a thousand-hertz
+        /// mouse comes out at forty-five. Which is not a rate anything has.
+        /// </summary>
+        public int Peak { get; private set; }
 
         public ushort Flags { get; private set; }
 
@@ -135,7 +149,16 @@ internal static class TesterProbe
             Reports++;
             Flags |= report.Buttons;
 
-            if (_first == TimeSpan.MinValue) _first = at;
+            long second = (long)at.TotalSeconds;
+            int inThisSecond = _seconds[second] = _seconds.GetValueOrDefault(second) + 1;
+            if (inThisSecond > Peak) Peak = inThisSecond;
+
+            if (_last != TimeSpan.MinValue)
+            {
+                double gap = (at - _last).TotalMilliseconds;
+                if (gap > 0 && gap < _shortest) _shortest = gap;
+            }
+
             _last = at;
 
             if ((report.Buttons & (Wheel | HorizontalWheel)) != 0 && report.Wheel != 0)
@@ -145,15 +168,11 @@ internal static class TesterProbe
         }
 
         /// <summary>
-        /// Reports per second across the span they arrived in, which is the rate while the
-        /// mouse was being used — the only rate worth having. Counting against the whole
-        /// window would divide by the time it spent sitting still.
+        /// The shortest gap between two reports, which is the other half of the answer:
+        /// the busiest second says how hard it was worked, this says how fast it can go.
+        /// A mouse polled at a thousand hertz has a millisecond here whatever anybody did
+        /// with it.
         /// </summary>
-        public double Rate()
-        {
-            double span = (_last - _first).TotalSeconds;
-
-            return span > 0.2 ? Reports / span : 0;
-        }
+        public double Shortest() => _shortest == double.MaxValue ? 0 : _shortest;
     }
 }
