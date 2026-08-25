@@ -108,6 +108,20 @@ public sealed record DeviceInfo
     public string? ImageKey { get; init; }
 
     /// <summary>
+    /// The maker as the device itself states it, which is not the same thing as
+    /// <see cref="Vendor"/>: that one comes from the catalogue and is empty for anything
+    /// nobody has catalogued. This is the device's own answer, so a mouse from a maker
+    /// this application has never heard of can still say who made it.
+    /// </summary>
+    public string? Maker { get; init; }
+
+    /// <summary>
+    /// The revision the device reports about itself. The nearest thing a peripheral has
+    /// to a firmware version without anybody speaking its protocol.
+    /// </summary>
+    public string? Revision { get; init; }
+
+    /// <summary>
     /// Everything that identifies this device to the operating system: "usb:3329:4b1e",
     /// "bt:034275a08236", "container:{guid}".
     ///

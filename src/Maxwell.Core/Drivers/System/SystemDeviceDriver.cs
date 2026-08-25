@@ -113,6 +113,8 @@ public sealed class SystemDeviceDriver : IDeviceDriver
                 // Never from DEVPKEY_Device_Manufacturer: that is the author of the
                 // driver package, and it reads "Microsoft" for a Logitech receiver.
                 Vendor = entry?.Vendor ?? _catalogue.Vendor(ids) ?? string.Empty,
+                Maker = SystemDeviceProfile.Maker(parts.SelectMany(p => p.Nodes).ToList()),
+                Revision = SystemDeviceProfile.Revision(parts.SelectMany(p => p.Nodes).ToList()),
                 Model = entry?.Model ?? first.Reported,
                 Class = deviceClass,
                 ImageKey = entry?.Slug,

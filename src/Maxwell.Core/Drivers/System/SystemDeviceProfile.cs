@@ -1,3 +1,4 @@
+using System.Globalization;
 using Maxwell.Core.Devices;
 using Maxwell.Race.Abstractions;
 
@@ -183,6 +184,29 @@ internal static class SystemDeviceProfile
     /// Everything that identifies this device to the operating system, so a vendor driver
     /// finding the same hardware can be recognised as talking about the same object.
     /// </summary>
+    /// <summary>
+    /// Who the device says made it, ignoring what Windows says. The property beside it
+    /// names whoever wrote the driver — Microsoft, for everything on the Bluetooth stack
+    /// — which is true and is not what anybody means by a manufacturer.
+    /// </summary>
+    public static string? Maker(IReadOnlyList<SystemDeviceNode> nodes) =>
+        nodes.Select(n => n.Manufacturer)
+            .FirstOrDefault(m => m is { Length: > 0 } && !Anonymous.Contains(m));
+
+    /// <summary>The revision it reports, where it reports one.</summary>
+    public static string? Revision(IReadOnlyList<SystemDeviceNode> nodes) =>
+        nodes.Select(n => n.Revision).FirstOrDefault(r => r is not null) is { } revision
+            ? revision.ToString(CultureInfo.InvariantCulture)
+            : null;
+
+    /// <summary>
+    /// Names that mean "nobody said". Windows fills the manufacturer in with whoever
+    /// supplied the driver, and printing that as the maker of the hardware is worse than
+    /// printing nothing: it is wrong, and it is wrong in a way that looks like an answer.
+    /// </summary>
+    private static readonly HashSet<string> Anonymous =
+        new(StringComparer.OrdinalIgnoreCase) { "Microsoft", "(Standard system devices)", "(Standard USB Host Controller)" };
+
     public static HashSet<string> HardwareIds(Guid container, IEnumerable<SystemDeviceNode> nodes)
     {
         var ids = new HashSet<string>(StringComparer.Ordinal) { $"container:{container:D}" };

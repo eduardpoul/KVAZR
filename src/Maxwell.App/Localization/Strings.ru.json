@@ -19,6 +19,8 @@
   "device.firmware": "Прошивка",
   "fact.address": "Адрес",
   "fact.class": "Класс устройства",
+  "fact.maker": "Производитель",
+  "fact.revision": "Ревизия",
   "fact.usb_id": "Идентификатор USB",
   "fact.catalogue": "Запись в каталоге",
   "page.about": "О программе",

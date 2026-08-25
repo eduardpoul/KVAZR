@@ -176,6 +176,18 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
                     Maxwell.App.Localization.Localizer.Current["fact.class", "Device class"], ClassName));
             }
 
+            if (Snapshot.Info.Maker is { Length: > 0 } maker)
+            {
+                facts.Add(new DeviceFact(
+                    Maxwell.App.Localization.Localizer.Current["fact.maker", "Manufacturer"], maker));
+            }
+
+            if (Snapshot.Info.Revision is { Length: > 0 } revision)
+            {
+                facts.Add(new DeviceFact(
+                    Maxwell.App.Localization.Localizer.Current["fact.revision", "Revision"], revision));
+            }
+
             foreach (string id in Snapshot.Info.HardwareIds.Where(i => i.StartsWith("usb:", StringComparison.Ordinal)))
             {
                 facts.Add(new DeviceFact(Maxwell.App.Localization.Localizer.Current["fact.usb_id", "USB identifier"], id[4..].ToUpperInvariant()));
