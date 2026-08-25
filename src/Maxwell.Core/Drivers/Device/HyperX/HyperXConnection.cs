@@ -156,7 +156,12 @@ internal sealed class HyperXConnection : IDeviceConnection
 
         int pattern = Volatile.Read(ref _pattern);
 
-        return Task.FromResult(pattern < 0 ? CapabilityValue.Absent : CapabilityValue.Of(pattern));
+        // A choice rather than a number, and the distinction is not cosmetic: a control
+        // with named options looks its value up by index among them, and a plain number
+        // matches none of them however right it is. The row read as empty on the page
+        // while the same reading printed correctly in the harness, which prints whatever
+        // it is given.
+        return Task.FromResult(pattern < 0 ? CapabilityValue.Absent : CapabilityValue.Choice(pattern));
     }
 
     /// <summary>

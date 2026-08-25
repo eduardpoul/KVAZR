@@ -58,8 +58,11 @@ internal static class PolarProbe
                     .ReadAsync(CapabilityIds.MicPolarPattern)
                     .ConfigureAwait(false);
 
-                string now = value is NumberValue number && number.Value >= 0 && number.Value < Named.Length
-                    ? $"{number.Value} — {Named[number.Value]}"
+                // A choice, matching what the page is handed. The harness printing a bare
+                // number was how a type mismatch went unnoticed: it printed the reading
+                // correctly while the page beside it showed nothing at all.
+                string now = value is ChoiceValue choice && choice.Index >= 0 && choice.Index < Named.Length
+                    ? $"{choice.Index} — {Named[choice.Index]}"
                     : "not known yet: the channel says nothing until the dial moves";
 
                 if (now != last)

@@ -97,7 +97,7 @@ public sealed class HyperXStatusTests
 
         listeners.Send([0x05, 0x11, pattern, 0, 0, 0, 0, 0]);
 
-        await WaitFor(connection, CapabilityValue.Of(pattern));
+        await WaitFor(connection, CapabilityValue.Choice(pattern));
     }
 
     [Fact]
@@ -141,10 +141,30 @@ public sealed class HyperXStatusTests
         var listeners = new FakeListeners { Answer = Answer(2) };
         using IDeviceConnection connection = await AttachAsync(listeners);
 
-        Assert.Equal(CapabilityValue.Of(2), await connection.ReadAsync(CapabilityIds.MicPolarPattern, Ct));
+        Assert.Equal(CapabilityValue.Choice(2), await connection.ReadAsync(CapabilityIds.MicPolarPattern, Ct));
 
         byte[] asked = Assert.Single(listeners.Pipes.Single().Asked);
         Assert.Equal<byte[]>([0x04, 0x58, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x01], asked);
+    }
+
+    /// <summary>
+    /// The kind of value has to match the kind of row, and this is the case that says so
+    /// out loud because nothing else does.
+    ///
+    /// A control with named options finds its value by looking for that index among them.
+    /// Handed a plain number it finds nothing, however right the number is, and draws an
+    /// empty row. Which is what happened: the page showed a dash while the harness beside
+    /// it printed the correct pattern, because a harness prints whatever it is given and a
+    /// control does not.
+    /// </summary>
+    [Fact]
+    public async Task TheValueIsAChoice_BecauseTheRowIsOne()
+    {
+        var listeners = new FakeListeners { Answer = Answer(2) };
+        using IDeviceConnection connection = await AttachAsync(listeners);
+
+        Assert.Equal(CapabilityPrimitive.Choice, connection.Capabilities.Single().Primitive);
+        Assert.IsType<ChoiceValue>(await connection.ReadAsync(CapabilityIds.MicPolarPattern, Ct));
     }
 
     [Fact]
@@ -159,7 +179,7 @@ public sealed class HyperXStatusTests
         Assert.Equal(CapabilityValue.Absent, await connection.ReadAsync(CapabilityIds.MicPolarPattern, Ct));
 
         listeners.Send([0x05, 0x11, 0x03, 0, 0, 0, 0, 0]);
-        await WaitFor(connection, CapabilityValue.Of(3));
+        await WaitFor(connection, CapabilityValue.Choice(3));
     }
 
     [Fact]
@@ -182,7 +202,7 @@ public sealed class HyperXStatusTests
         // The reply describes the state of a fifth of a second ago. A hand that moved the
         // dial in the meantime is the newer fact, and the ear is already running.
         listeners.Send([0x05, 0x11, 0x03, 0, 0, 0, 0, 0]);
-        await WaitFor(connection, CapabilityValue.Of(3));
+        await WaitFor(connection, CapabilityValue.Choice(3));
     }
 
     [Fact]
