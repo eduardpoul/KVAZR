@@ -84,12 +84,19 @@ public sealed class DevicePollingOptions
 }
 
 /// <summary>Everything the policy needs to know about one device.</summary>
+/// <param name="IsStirred">
+/// Something changed on this machine a moment ago — a device announced itself to Windows,
+/// which is what switching a headset on looks like from here even though its dongle never
+/// left the socket. Measured: the announcement lands about a second before the headset can
+/// answer anything, so it says when to start asking rather than what the answer is.
+/// </param>
 public readonly record struct PollSubject(
     string DeviceKey,
     bool IsPresent,
     bool CanControl,
     int ConsecutiveFailures,
-    bool IsHidden = false);
+    bool IsHidden = false,
+    bool IsStirred = false);
 
 /// <summary>
 /// What to do with one device on this pass. <paramref name="Probe"/> is the liveness
@@ -185,15 +192,29 @@ public static class PollingPolicy
         // seconds, which is how long somebody who has just switched their headset on sat
         // looking at a page that said it was off.
         //
-        // Only while somebody is looking at the application at all, and quicker for the
-        // page that is actually open. A device in a list is a click away from being
-        // looked at; a machine with nothing on screen has nobody to tell, and waking a
-        // dongle every few seconds to tell nobody is worse than the wait.
+        // Something just happened to the hardware: ask hard for a moment, whoever is or
+        // is not looking.
         //
-        // And no backoff on this lane, deliberately: the one question whose job is to
-        // notice a recovery must not get slower the longer the recovery takes.
+        // This is the whole of what an event buys. Switching a headset on does announce
+        // itself — Windows raises a burst of device notifications, because the dongle
+        // presents interfaces that come and go with the radio link even though the dongle
+        // itself never leaves the socket. What the burst cannot do is answer the question:
+        // measured on this desk, it lands about a second before the headset will reply to
+        // anything, so a single read triggered by it finds the device still asleep and the
+        // wait falls back on the timer. Read as "start asking now" instead, it costs a
+        // handful of readings and the wait disappears.
         if (!subject.CanControl)
         {
+            if (subject.IsStirred) return new PollPlan(PollScope.None, options.FocusedInterval, Probe: true);
+
+            // Otherwise only while somebody is looking at the application at all, and
+            // quicker for the page that is actually open. A device in a list is a click
+            // away from being looked at; a machine with nothing on screen has nobody to
+            // tell, and waking a dongle every few seconds to tell nobody is worse than
+            // the wait.
+            //
+            // And no backoff on this lane, deliberately: the one question whose job is to
+            // notice a recovery must not get slower the longer the recovery takes.
             if (attention == PollingAttention.Idle) return PollPlan.Skip;
 
             return new PollPlan(

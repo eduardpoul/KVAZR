@@ -61,6 +61,45 @@ public sealed class PollingPolicyTests
         Assert.Equal(Options.WakeInterval * 2, plan.Interval);
     }
 
+    /// <summary>
+    /// Switching a headset on does announce itself, and this is the whole of what the
+    /// announcement buys.
+    ///
+    /// Measured on the desk: Windows raises a burst of device notifications the moment the
+    /// headset comes up, because its dongle presents interfaces that come and go with the
+    /// radio link even though the dongle never leaves the socket. The burst lands about a
+    /// second before the headset will answer anything — so it says when to start asking,
+    /// not what the answer is, and a single read triggered by it finds the device still
+    /// asleep. Read as "start asking now" it costs a handful of readings and the wait goes.
+    /// </summary>
+    [Fact]
+    public void ADeviceThatJustAnnouncedItself_IsAskedAtTheFastestRate()
+    {
+        PollPlan plan = PollingPolicy.Plan(
+            new PollSubject(Headset, IsPresent: true, CanControl: false, ConsecutiveFailures: 0, IsStirred: true),
+            PollingAttention.Idle,
+            null,
+            Options);
+
+        Assert.True(plan.Probe);
+        Assert.Equal(Options.FocusedInterval, plan.Interval);
+    }
+
+    [Fact]
+    public void AnUnpluggedDevice_IsNotAskedHoweverLoudTheAnnouncement()
+    {
+        // The same burst carries both directions — pulling the dongle out announces
+        // itself exactly as loudly — and there is nothing on the other end of the wire
+        // to ask.
+        PollPlan plan = PollingPolicy.Plan(
+            new PollSubject(Headset, IsPresent: false, CanControl: false, ConsecutiveFailures: 0, IsStirred: true),
+            PollingAttention.Focused,
+            Headset,
+            Options);
+
+        Assert.False(plan.Probe);
+    }
+
     [Fact]
     public void ASilentDeviceWithNothingOnScreen_IsLeftToDiscovery()
     {

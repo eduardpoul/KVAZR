@@ -133,6 +133,10 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
             // came round.
             DateTimeOffset due = DateTimeOffset.Now + ChangeCoalesce;
             if (due < _nextDiscovery) _nextDiscovery = due;
+
+            // And keep asking for a while afterwards, because one look now is a look at a
+            // device that has not finished arriving.
+            _stirredUntil = DateTimeOffset.Now + StirWindow;
         }
 
         Nudge();
@@ -140,6 +144,20 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
 
     /// <summary>How long one plug or unplug is given to finish announcing itself.</summary>
     private static readonly TimeSpan ChangeCoalesce = TimeSpan.FromMilliseconds(750);
+
+    /// <summary>
+    /// How long a device that has just been announced is asked at the fastest rate.
+    ///
+    /// Twelve seconds because of what the announcement actually is. Switching a headset on
+    /// raises a burst of notifications about a second before it will answer anything, and
+    /// a couple more bursts follow as Windows finishes settling its audio endpoints — so
+    /// the event marks the beginning of the arrival rather than the end of it. Long enough
+    /// to cover that, short enough that a machine where somebody is unplugging things all
+    /// afternoon is not being asked continuously.
+    /// </summary>
+    private static readonly TimeSpan StirWindow = TimeSpan.FromSeconds(12);
+
+    private DateTimeOffset _stirredUntil = DateTimeOffset.MinValue;
 
     // ---------- coordinator ----------
 
@@ -307,6 +325,17 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
 
         DateTimeOffset nextWake = _nextDiscovery;
 
+        bool stirred;
+        lock (_sync) stirred = now < _stirredUntil;
+
+        // The window has to be looked at again while it is open, or a device announced
+        // between two sweeps would be asked once and then left to the ordinary interval.
+        if (stirred)
+        {
+            DateTimeOffset again = now + options.FocusedInterval;
+            if (again < nextWake) nextWake = again;
+        }
+
         AppSettings settings = _settings.Current;
         var hiddenKeys = settings.HiddenDevices.Keys.ToHashSet(StringComparer.Ordinal);
 
@@ -332,7 +361,7 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
             bool hidden = DeviceVisibility.IsHidden(device.Info, hiddenKeys, settings.HideSilentDevices);
 
             PollPlan plan = PollingPolicy.Plan(
-                new PollSubject(key, device.IsPresent, device.CanControl, entry.Failures, hidden),
+                new PollSubject(key, device.IsPresent, device.CanControl, entry.Failures, hidden, stirred),
                 attention,
                 focused,
                 options);
