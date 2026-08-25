@@ -50,11 +50,23 @@ public sealed class PollingPolicyTests
     }
 
     [Fact]
-    public void ASilentDeviceNobodyIsWatching_IsLeftToDiscovery()
+    public void ASilentDeviceInTheListBehind_IsAskedLessOften()
     {
-        // The probe is the expensive kind of cheap — an unanswered question costs the
-        // protocol's whole retry window — so it is spent where somebody is waiting.
+        // Not the page that is open, but on screen behind it and a click away. The probe
+        // is the expensive kind of cheap — an unanswered question costs the protocol's
+        // whole retry window — so it is spent in proportion to who is waiting.
         PollPlan plan = Plan(Headset, present: true, canControl: false, PollingAttention.Focused, Mouse);
+
+        Assert.True(plan.Probe);
+        Assert.Equal(Options.WakeInterval * 2, plan.Interval);
+    }
+
+    [Fact]
+    public void ASilentDeviceWithNothingOnScreen_IsLeftToDiscovery()
+    {
+        // Nobody to tell. Waking a dongle every few seconds to answer a question no
+        // surface is showing is worse than the wait it would save.
+        PollPlan plan = Plan(Headset, present: true, canControl: false, PollingAttention.Idle);
 
         Assert.False(plan.Probe);
         Assert.Equal(PollScope.None, plan.Scope);

@@ -185,14 +185,21 @@ public static class PollingPolicy
         // seconds, which is how long somebody who has just switched their headset on sat
         // looking at a page that said it was off.
         //
-        // Only while its page is open. A device nobody is looking at can wait for the
-        // discovery sweep; this is the one somebody is waiting on.
+        // Only while somebody is looking at the application at all, and quicker for the
+        // page that is actually open. A device in a list is a click away from being
+        // looked at; a machine with nothing on screen has nobody to tell, and waking a
+        // dongle every few seconds to tell nobody is worse than the wait.
         //
         // And no backoff on this lane, deliberately: the one question whose job is to
         // notice a recovery must not get slower the longer the recovery takes.
         if (!subject.CanControl)
         {
-            return focused ? new PollPlan(PollScope.None, options.WakeInterval, Probe: true) : PollPlan.Skip;
+            if (attention == PollingAttention.Idle) return PollPlan.Skip;
+
+            return new PollPlan(
+                PollScope.None,
+                focused ? options.WakeInterval : options.WakeInterval * 2,
+                Probe: true);
         }
 
         PollScope scope = focused ? PollScope.BatteryAndVolatile : PollScope.Battery;

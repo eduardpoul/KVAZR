@@ -137,6 +137,14 @@ if (args.Contains("--devchange")) return DeviceChangeProbe.Run(TimeSpan.FromSeco
 if (args.Contains("--charge")) return await ChargeProbe.RunAsync(4).ConfigureAwait(false);
 if (args.Contains("--autooff")) return await AutoOffProbe.RunAsync().ConfigureAwait(false);
 if (args.Contains("--eqwrite")) return await EqWriteProbe.RunAsync().ConfigureAwait(false);
+// Whether a headset switching on announces itself anywhere at all. Decides whether the
+// panel can subscribe or has to keep asking on a timer.
+if (args.Contains("--wake"))
+{
+    int window = int.TryParse(ValueAfter(args, "--wake"), out int watching) ? watching : 60;
+    return await WakeProbe.RunAsync(window).ConfigureAwait(false);
+}
+
 if (args.Contains("--listen"))
 {
     // How long to hold the door open. Twenty seconds was hard-coded and it is not enough
