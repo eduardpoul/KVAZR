@@ -35,13 +35,98 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
     /// <summary>The last percentage this connection believed, for the glitch re-read.</summary>
     private int _lastPercent = -1;
 
-    public HidPlusPlusConnection(DeviceInfo device, string path, int input, int output, byte slot)
+    private readonly PointerFacts _facts;
+
+    public HidPlusPlusConnection(
+        DeviceInfo device, string path, int input, int output, byte slot, PointerFacts? facts = null)
     {
         _device = device;
         _path = path;
         _input = input;
         _output = output;
         _slot = slot;
+        _facts = facts ?? new PointerFacts();
+
+        Capabilities = Declare(_facts);
+    }
+
+    /// <summary>
+    /// The rows this particular device offers, built from what it said about itself when
+    /// it was connected.
+    ///
+    /// Nothing here is decided in advance and nothing is a literal. A resolution row
+    /// exists only if the device described a resolution, and its ends and its notches are
+    /// the ends and the steps that device gave — a Superlight reaches 44000 and the mouse
+    /// beside it reaches something else. A number written here would be right once.
+    /// </summary>
+    private static List<Capability> Declare(PointerFacts facts)
+    {
+        var rows = new List<Capability> { BatteryCapability, ChargingCapability };
+
+        if (facts is { Dpi: not null, MinDpi: { } low, MaxDpi: { } high } && high > low)
+        {
+            rows.Add(new Capability
+            {
+                Id = CapabilityIds.PointerDpi,
+                Domain = CapabilityDomain.Pointing,
+                Primitive = CapabilityPrimitive.Range,
+                Title = "Resolution",
+                Subtitle = facts.DefaultDpi is { } standard
+                    ? $"The mouse leaves the factory at {standard}"
+                    : null,
+
+                // Read only for now, and honestly so: writing it is one function further
+                // on and has not been tried against hardware.
+                Access = CapabilityAccess.Read,
+                Range = new CapabilityRange
+                {
+                    Min = low,
+                    Max = high,
+                    Unit = "DPI",
+                    Detents = [.. facts.Presets],
+                },
+            });
+        }
+
+        if (facts.Buttons is not null)
+        {
+            rows.Add(new Capability
+            {
+                Id = CapabilityIds.ButtonsCount,
+                Domain = CapabilityDomain.Pointing,
+                Primitive = CapabilityPrimitive.Readout,
+                Title = "Buttons",
+                Subtitle = "Counted by the mouse; its HID descriptor says otherwise",
+                Access = CapabilityAccess.Read,
+            });
+        }
+
+        if (facts.Profiles is not null)
+        {
+            rows.Add(new Capability
+            {
+                Id = CapabilityIds.DeviceProfiles,
+                Domain = CapabilityDomain.Maintenance,
+                Primitive = CapabilityPrimitive.Readout,
+                Title = "Profiles on board",
+                Access = CapabilityAccess.Read,
+            });
+        }
+
+        if (facts.Serial is not null)
+        {
+            rows.Add(new Capability
+            {
+                Id = CapabilityIds.DeviceSerial,
+                Domain = CapabilityDomain.Maintenance,
+                Primitive = CapabilityPrimitive.Readout,
+                Title = "Serial",
+                Subtitle = "The only thing that tells two of the same mouse apart",
+                Access = CapabilityAccess.Read,
+            });
+        }
+
+        return rows;
     }
 
     private static readonly Capability ChargingCapability = new()
@@ -54,7 +139,7 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
         Access = CapabilityAccess.Read,
     };
 
-    public IReadOnlyList<Capability> Capabilities { get; } = [BatteryCapability, ChargingCapability];
+    public IReadOnlyList<Capability> Capabilities { get; }
 
     public IReadOnlyList<TransportInfo> Transports => _device.Transports;
 
@@ -89,6 +174,25 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
 
     public async Task<CapabilityValue> ReadAsync(string capabilityId, CancellationToken cancellationToken = default)
     {
+        // Everything the device said about itself at connection, answered from what it
+        // said. These do not change while it is plugged in, and asking again on every
+        // sweep would be a conversation with a receiver for an answer nobody's hand can
+        // alter.
+        switch (capabilityId)
+        {
+            case CapabilityIds.PointerDpi:
+                return _facts.Dpi is { } dpi ? CapabilityValue.Of(dpi) : CapabilityValue.Absent;
+
+            case CapabilityIds.ButtonsCount:
+                return _facts.Buttons is { } buttons ? CapabilityValue.Of(buttons) : CapabilityValue.Absent;
+
+            case CapabilityIds.DeviceProfiles:
+                return _facts.Profiles is { } profiles ? CapabilityValue.Of(profiles) : CapabilityValue.Absent;
+
+            case CapabilityIds.DeviceSerial:
+                return _facts.Serial is { } serial ? CapabilityValue.Of(serial) : CapabilityValue.Absent;
+        }
+
         if (capabilityId is not (CapabilityIds.PowerBattery or CapabilityIds.PowerCharging))
         {
             return CapabilityValue.Absent;

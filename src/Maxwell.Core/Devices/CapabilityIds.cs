@@ -94,6 +94,18 @@ public static class CapabilityIds
     public const string PointerReportRate = "pointer.report_rate";
     public const string ButtonsMap = "buttons.map";
 
+    /// <summary>How many buttons a pointer actually has, where the device will say.</summary>
+    public const string ButtonsCount = "buttons.count";
+
+    /// <summary>How far the sensor keeps reading as the mouse is lifted.</summary>
+    public const string PointerLiftOff = "pointer.lift_off";
+
+    /// <summary>How many settings profiles the device stores on board.</summary>
+    public const string DeviceProfiles = "device.profiles";
+
+    /// <summary>The device's own serial, where it has one — the only way to tell two apart.</summary>
+    public const string DeviceSerial = "device.serial";
+
     // Like head tracking below, this one sits outside the shared vocabulary and is
     // marked as such deliberately. A sensor response curve is drawn in the design's
     // gamepad artboard and offered by several vendors' own applications, but neither

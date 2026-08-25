@@ -266,22 +266,33 @@ internal static class HidPlusPlusProbe
         // gave: they start at a hundred. Were this the setter after all, it would be
         // asked to set a resolution of zero, which the device's own validation refuses.
         // A guess with a floor under it.
-        for (byte function = 0; function <= 5; function++)
+        // The range comes in chunks: the reply holds sixteen bytes and the description
+        // runs past them, so the third question is asked again for each further chunk
+        // until it stops saying anything. Which is exactly why the range cannot be a
+        // literal anywhere — it is a conversation, and its end is where the device says
+        // it is.
+        for (byte function = 0; function <= 7; function++)
         {
+            byte[] parameters = function == 6 ? [0x00, 0x00, 0x01]
+                : function == 7 ? [0x00, 0x00, 0x02]
+                : [];
+
+            byte ask = function >= 6 ? (byte)2 : function;
+
             byte[]? reply = Ask(
                 channel,
-                HidPlusPlus.Request(channel.OutputLength, device, feature, function),
+                HidPlusPlus.Request(channel.OutputLength, device, feature, ask, parameters),
                 device,
                 feature,
-                function);
+                ask);
 
             string said = reply is null
                 ? "нет ответа"
                 : HidPlusPlus.IsError(reply)
                     ? HidPlusPlus.Explain(reply)
-                    : Convert.ToHexString(reply.AsSpan(4, Math.Min(12, reply.Length - 4)));
+                    : Convert.ToHexString(reply.AsSpan(4, reply.Length - 4));
 
-            Console.WriteLine($"              fn {function}  {said}");
+            Console.WriteLine($"              fn {ask}{(function >= 6 ? $" chunk {function - 5}" : string.Empty),-8}  {said}");
         }
     }
 

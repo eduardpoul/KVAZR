@@ -159,6 +159,21 @@ public static class HidPlusPlusReader
         return reply[4] <= (byte)Kind.Receiver ? (Kind)reply[4] : null;
     }
 
+    /// <summary>
+    /// Where a feature sits on this device, or null if it does not have one.
+    ///
+    /// Public because a feature table is the whole point of the protocol: anything that
+    /// wants to read a device's resolution has to ask the device where its resolution
+    /// feature is first, and the answer differs between two mice of the same age.
+    /// </summary>
+    public static byte? FeatureIndex(WindowsHidChannel channel, byte device, ushort feature) =>
+        Index(channel, device, feature);
+
+    /// <summary>One question to one feature. Read-only by discipline rather than by type.</summary>
+    public static byte[]? Ask(
+        WindowsHidChannel channel, byte device, byte feature, byte function, params byte[] parameters) =>
+        Put(channel, device, feature, function, parameters);
+
     private static byte? Index(WindowsHidChannel channel, byte device, ushort feature)
     {
         byte[]? reply = channel.Request(
@@ -171,7 +186,7 @@ public static class HidPlusPlusReader
         return reply[4];
     }
 
-    private static byte[]? Ask(
+    private static byte[]? Put(
         WindowsHidChannel channel, byte device, byte feature, byte function, params byte[] parameters) =>
         channel.Request(
             HidPlusPlus.Request(channel.OutputLength, device, feature, function, parameters),

@@ -1,0 +1,219 @@
+using System.Runtime.Versioning;
+using Maxwell.Race.Protocol;
+using Maxwell.Race.Windows;
+
+namespace Maxwell.Core.Drivers.Logitech;
+
+/// <summary>
+/// What a Logitech pointer says about its own resolution, buttons and identity.
+///
+/// Every number here comes from the device and none of them is written down anywhere in
+/// this application. That is not tidiness — it is the difference between a driver for the
+/// range and a driver for one mouse. The resolution range of a Superlight is 100 to 44000
+/// and the range of the mouse next to it is something else; a literal would be right once
+/// and quietly wrong forever after.
+/// </summary>
+public sealed record PointerFacts
+{
+    /// <summary>The resolution now, or null where the device does not offer one.</summary>
+    public int? Dpi { get; init; }
+
+    public int? DefaultDpi { get; init; }
+
+    /// <summary>The ends of what it will accept, as it described them.</summary>
+    public int? MinDpi { get; init; }
+
+    public int? MaxDpi { get; init; }
+
+    /// <summary>The steps it offers by name, which become the notches on the row.</summary>
+    public IReadOnlyList<int> Presets { get; init; } = [];
+
+    /// <summary>
+    /// How many buttons it actually has, which is knowable here and nowhere else: its HID
+    /// descriptor declares sixteen for a five-button mouse and Windows repeats the
+    /// sixteen. Two features state it and they agree.
+    /// </summary>
+    public int? Buttons { get; init; }
+
+    /// <summary>
+    /// The unit id — the only thing anywhere that tells two identical mice apart. Neither
+    /// the descriptor nor Windows carries one.
+    /// </summary>
+    public string? Serial { get; init; }
+
+    /// <summary>How many profiles it stores on board.</summary>
+    public int? Profiles { get; init; }
+}
+
+/// <summary>
+/// Asks a device the questions above, once, when it is first connected.
+///
+/// Only questions. In HID++ 2.0 the first function of a feature is a getter by
+/// convention and the ones that change something sit further down; every call here was
+/// walked up to one step at a time on real hardware, each step taken only after the
+/// previous answer matched the shape the layout predicted.
+/// </summary>
+[SupportedOSPlatform("windows")]
+public static class PointerReader
+{
+    private const ushort ExtendedResolution = 0x2202;
+    private const ushort Resolution = 0x2201;
+    private const ushort OnboardProfiles = 0x8100;
+    private const ushort DeviceInformation = 0x0003;
+
+    /// <summary>A value at or above this in the range stream is a step, not a resolution.</summary>
+    private const int StepMarker = 0xE000;
+
+    public static PointerFacts Read(WindowsHidChannel channel, byte device)
+    {
+        ArgumentNullException.ThrowIfNull(channel);
+
+        // Asked first, deliberately: it is one exchange and the rest are a dozen, and a
+        // shared receiver path is exactly where the last question in a queue is the one
+        // that goes unanswered.
+        string? serial = Serial(channel, device);
+
+        byte? extended = HidPlusPlusReader.FeatureIndex(channel, device, ExtendedResolution);
+        byte? plain = extended is null ? HidPlusPlusReader.FeatureIndex(channel, device, Resolution) : null;
+
+        (int? dpi, int? standard, int? lowest, int? highest, IReadOnlyList<int> presets) =
+            extended is { } index ? Extended(channel, device, index)
+            : plain is { } older ? Older(channel, device, older)
+            : (null, null, null, null, []);
+
+        (int? buttons, int? profiles) = Profiles(channel, device);
+
+        return new PointerFacts
+        {
+            Dpi = dpi,
+            DefaultDpi = standard,
+            MinDpi = lowest,
+            MaxDpi = highest,
+            Presets = presets,
+            Buttons = buttons,
+            Profiles = profiles,
+            Serial = serial,
+        };
+    }
+
+    /// <summary>
+    /// The newer resolution feature, whose answers were walked through on hardware:
+    /// a sensor count, that sensor's capabilities, the range, the named steps, the
+    /// lift-off list, and then the current setting.
+    /// </summary>
+    private static (int? Dpi, int? Default, int? Min, int? Max, IReadOnlyList<int> Presets) Extended(
+        WindowsHidChannel channel, byte device, byte index)
+    {
+        List<int> presets = Values(HidPlusPlusReader.Ask(channel, device, index, 0x03, 0x00, 0x00, 0x00), 3);
+        (int? lowest, int? highest) = Range(channel, device, index);
+
+        byte[]? now = HidPlusPlusReader.Ask(channel, device, index, 0x05, 0x00);
+
+        // sensorIdx, then dpiX, defaultDpiX, dpiY, defaultDpiY as sixteen-bit words.
+        int? dpi = Word(now, 5);
+        int? standard = Word(now, 7);
+
+        return (dpi, standard, lowest ?? presets.FirstOrDefault(), highest ?? presets.LastOrDefault(), presets);
+    }
+
+    /// <summary>
+    /// The older feature, which has no range description at all — only the named steps
+    /// and the current one. The ends then come from the steps, which is what the device
+    /// gave and all it gave.
+    /// </summary>
+    private static (int? Dpi, int? Default, int? Min, int? Max, IReadOnlyList<int> Presets) Older(
+        WindowsHidChannel channel, byte device, byte index)
+    {
+        List<int> presets = Values(HidPlusPlusReader.Ask(channel, device, index, 0x01, 0x00), 5);
+        int? dpi = Word(HidPlusPlusReader.Ask(channel, device, index, 0x02, 0x00), 5);
+
+        return (dpi, null, presets.Count > 0 ? presets.Min() : null, presets.Count > 0 ? presets.Max() : null, presets);
+    }
+
+    /// <summary>
+    /// The two ends of the range, read out of a description that arrives in pieces.
+    ///
+    /// The pieces are a single stream of sixteen-bit words that can break across a
+    /// reply — the first chunk of the mouse measured here ends mid-word — so they are
+    /// joined before anything is read out of them. A word at or above 0xE000 is a step
+    /// size rather than a resolution, which is how the description says "and every
+    /// hundred from here".
+    /// </summary>
+    private static (int? Min, int? Max) Range(WindowsHidChannel channel, byte device, byte index)
+    {
+        var stream = new List<byte>();
+
+        for (byte chunk = 0; chunk < 8; chunk++)
+        {
+            byte[]? reply = HidPlusPlusReader.Ask(channel, device, index, 0x02, 0x00, 0x00, chunk);
+            if (reply is null || reply.Length < 8) break;
+
+            // Four bytes of report header, then the sensor, the direction and the chunk
+            // number, and the stream after them.
+            stream.AddRange(reply[7..]);
+
+            if (reply[7..].All(b => b == 0)) break;
+        }
+
+        var values = new List<int>();
+
+        for (int i = 0; i + 1 < stream.Count; i += 2)
+        {
+            int word = (stream[i] << 8) | stream[i + 1];
+
+            if (word is > 0 and < StepMarker) values.Add(word);
+        }
+
+        return values.Count > 0 ? (values.Min(), values.Max()) : (null, null);
+    }
+
+    /// <summary>
+    /// The button count and the profile count, both from the onboard-profiles feature —
+    /// which states them whether or not anybody intends to touch a profile.
+    /// </summary>
+    private static (int? Buttons, int? Profiles) Profiles(WindowsHidChannel channel, byte device)
+    {
+        if (HidPlusPlusReader.FeatureIndex(channel, device, OnboardProfiles) is not { } index)
+        {
+            return (null, null);
+        }
+
+        byte[]? reply = HidPlusPlusReader.Ask(channel, device, index, 0x00);
+
+        // memory model, profile format, macro format, profile count, count out of the
+        // box, button count.
+        return reply is { Length: > 9 } ? (reply[9], reply[7]) : (null, null);
+    }
+
+    private static string? Serial(WindowsHidChannel channel, byte device)
+    {
+        if (HidPlusPlusReader.FeatureIndex(channel, device, DeviceInformation) is not { } index) return null;
+
+        byte[]? reply = HidPlusPlusReader.Ask(channel, device, index, 0x00);
+
+        // The entity count, then four bytes of unit id.
+        return reply is { Length: > 8 } ? Convert.ToHexString(reply.AsSpan(5, 4)) : null;
+    }
+
+    /// <summary>Sixteen-bit words out of a reply, from the given payload offset, until a zero.</summary>
+    private static List<int> Values(byte[]? reply, int skip)
+    {
+        var values = new List<int>();
+        if (reply is null) return values;
+
+        for (int i = 4 + skip; i + 1 < reply.Length; i += 2)
+        {
+            int word = (reply[i] << 8) | reply[i + 1];
+            if (word == 0) break;
+
+            values.Add(word);
+        }
+
+        return values;
+    }
+
+    private static int? Word(byte[]? reply, int at) =>
+        reply is not null && at + 1 < reply.Length && ((reply[at] << 8) | reply[at + 1]) is var word and > 0
+            ? word
+            : null;
+}

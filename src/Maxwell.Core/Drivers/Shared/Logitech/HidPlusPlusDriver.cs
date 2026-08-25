@@ -183,6 +183,24 @@ public sealed class HidPlusPlusDriver : IDeviceDriver
             throw new IOException($"No receiver recorded for {device.Key}.");
         }
 
-        return Task.FromResult<IDeviceConnection>(new HidPlusPlusConnection(device, home.Path, home.Input, home.Output, home.Slot));
+        // Asked once, here, because this is where a device is first spoken to and
+        // because none of these answers can change while it stays connected. What comes
+        // back decides which rows the page has — a device that describes no resolution
+        // gets no resolution row rather than an empty one.
+        PointerFacts facts = new();
+
+        try
+        {
+            using var channel = new WindowsHidChannel(home.Path, home.Input, home.Output);
+            facts = PointerReader.Read(channel, home.Slot);
+        }
+        catch (IOException)
+        {
+            // The receiver is busy or gone. The battery rows still work through their own
+            // opening, and the introduction is asked again the next time it connects.
+        }
+
+        return Task.FromResult<IDeviceConnection>(
+            new HidPlusPlusConnection(device, home.Path, home.Input, home.Output, home.Slot, facts));
     }
 }
