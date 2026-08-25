@@ -85,6 +85,27 @@ public sealed class PollingPolicyTests
         Assert.Equal(Options.FocusedInterval, plan.Interval);
     }
 
+    /// <summary>
+    /// The same burst, for a device still believed alive — which is what switching a
+    /// headset off looks like from here, and it announces itself exactly as loudly.
+    ///
+    /// Until this asked, the burst's only effect on such a device was to order a full read
+    /// of it: fifteen questions that each cost the protocol's whole retry window, taken
+    /// from a headset that had just stopped answering, holding the single gate in front of
+    /// the one question worth asking.
+    /// </summary>
+    [Fact]
+    public void AnAliveDeviceThatJustAnnouncedItself_IsAskedWhetherItStillIs()
+    {
+        PollPlan plan = PollingPolicy.Plan(
+            new PollSubject(Headset, IsPresent: true, CanControl: true, ConsecutiveFailures: 0, IsStirred: true),
+            PollingAttention.Idle,
+            null,
+            Options);
+
+        Assert.True(plan.Probe);
+    }
+
     [Fact]
     public void AnUnpluggedDevice_IsNotAskedHoweverLoudTheAnnouncement()
     {

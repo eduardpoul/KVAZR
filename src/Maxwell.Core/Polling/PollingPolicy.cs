@@ -237,7 +237,17 @@ public static class PollingPolicy
         // anything. So the page went on offering controls for a headset in a drawer until
         // discovery came round. One extra reading a second, on the one device being
         // watched, buys the answer.
-        return new PollPlan(scope, Backoff(interval, subject.ConsecutiveFailures, options), Probe: focused);
+        //
+        // And after an announcement, whoever is looking. Switching a headset off announces
+        // itself exactly as loudly as switching it on, and until this asked, the burst's
+        // only effect on a device still believed alive was to order a full read of it —
+        // fifteen questions that each cost the protocol's whole retry window, taken from a
+        // headset that had just stopped answering, in front of the one question worth
+        // asking.
+        return new PollPlan(
+            scope,
+            Backoff(interval, subject.ConsecutiveFailures, options),
+            Probe: focused || subject.IsStirred);
     }
 
     /// <summary>

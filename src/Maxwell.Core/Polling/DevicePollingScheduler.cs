@@ -500,6 +500,18 @@ public sealed class DevicePollingScheduler : BackgroundService, IPollingCoordina
             {
                 RequestRefresh(device.Info.Key);
             }
+
+            // And nothing at all to read from one that has just gone quiet. The reading
+            // is worthless — every answer would be empty — and it is not free: each
+            // unanswered question costs the protocol's full retry window, and the whole
+            // sweep of them holds the single gate that the next liveness probe needs.
+            // That is what stood between switching a headset off and the panel admitting
+            // it, once the announcement had ordered a full read of it.
+            if (!session.Snapshot.CanControl)
+            {
+                full = false;
+                scope = PollScope.None;
+            }
         }
 
         if (full)
