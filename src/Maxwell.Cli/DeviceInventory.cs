@@ -6,6 +6,7 @@ using Maxwell.Core.Drivers.Audeze;
 using Maxwell.Core.Drivers.Audio;
 using Maxwell.Core.Drivers.Mock;
 using Maxwell.Core.Drivers.System;
+using Maxwell.Core.Drivers.Logitech;
 using Maxwell.Core.Polling;
 using Maxwell.Race.Windows;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -30,6 +31,13 @@ internal static class DeviceInventory
     {
         List<IDeviceDriver> drivers =
         [
+            // The class tier: Logitech's HID++ speaks for anything behind one of their
+            // receivers, and for their Bluetooth mice too. Missing here while the
+            // application had it, which made the harness quietly disagree with the
+            // product about an entire class of device — a receiver reading as "presence
+            // only" with no mouse behind it at all.
+            new HidPlusPlusDriver(new WindowsHidEnumerator(), new DeviceCatalogue()),
+
             // Everything on the machine, understood as little as possible.
             new SystemDeviceDriver(new WindowsSystemDeviceEnumerator(), new DeviceCatalogue()),
         ];

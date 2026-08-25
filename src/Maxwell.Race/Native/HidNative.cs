@@ -63,6 +63,40 @@ internal static class HidNative
     internal static extern int HidP_GetValueCaps(int reportType, [Out] HidpValueCaps[] caps,
         ref ushort capsLength, IntPtr preparsed);
 
+    [DllImport("hid.dll")]
+    internal static extern int HidP_GetButtonCaps(int reportType, [Out] HidpButtonCaps[] caps,
+        ref ushort capsLength, IntPtr preparsed);
+
+    /// <summary>
+    /// One declared run of buttons. A mouse usually has exactly one of these covering
+    /// usages 1..n on the button page, which is where "five buttons" comes from — the
+    /// count is declared, not discovered by watching somebody click.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct HidpButtonCaps
+    {
+        public ushort UsagePage;
+        public byte ReportID;
+        public byte IsAlias;
+        public ushort BitField;
+        public ushort LinkCollection;
+        public ushort LinkUsage;
+        public ushort LinkUsagePage;
+        public byte IsRange;
+        public byte IsStringRange;
+        public byte IsDesignatorRange;
+        public byte IsAbsolute;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 10)] public uint[] Reserved;
+        public ushort UsageMin;
+        public ushort UsageMax;
+        public ushort StringMin;
+        public ushort StringMax;
+        public ushort DesignatorMin;
+        public ushort DesignatorMax;
+        public ushort DataIndexMin;
+        public ushort DataIndexMax;
+    }
+
     internal const int HidpInput = 0;
     internal const int HidpOutput = 1;
     internal const int HidpFeature = 2;

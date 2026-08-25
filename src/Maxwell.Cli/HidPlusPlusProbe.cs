@@ -104,6 +104,8 @@ internal static class HidPlusPlusProbe
             Console.WriteLine($"  slot {device}  {paired.Name}");
             Console.WriteLine(
                 $"            {paired.Type?.ToString() ?? "?"} · {(paired.Battery is { } b ? $"{b.Percent}%{(b.IsCharging ? " ⚡" : "")}" : "заряд не отдаёт")}");
+
+            Features(channel, device);
             return;
         }
 
@@ -135,7 +137,80 @@ internal static class HidPlusPlusProbe
 
         Console.WriteLine($"  slot {device}  {name}");
         Console.WriteLine($"            {type} · {version} · {battery}");
+
+        Features(channel, device);
     }
+
+    /// <summary>
+    /// Everything this device can be asked, from its own feature table.
+    ///
+    /// HID++ 2.0 devices carry a list of the features they implement, and the list is
+    /// itself a feature — so a device can be asked what it is capable of rather than
+    /// probed for it one guess at a time. This is the answer to what a mouse page could
+    /// hold beyond a name and a charge: whatever is in here has a documented shape.
+    ///
+    /// Printed as raw identifiers with names only where they are certain. The number is
+    /// the measurement; the name is a convenience, and a wrong name would be worse than
+    /// none.
+    /// </summary>
+    private static void Features(WindowsHidChannel channel, byte device)
+    {
+        if (Index(channel, device, FeatureSet) is not { } set) return;
+
+        byte[]? counted = Ask(
+            channel, HidPlusPlus.Request(channel.OutputLength, device, set, 0x00), device, set, 0x00);
+        if (counted is null || counted.Length < 5) return;
+
+        int count = counted[4];
+        if (count is 0 or > 80) return;
+
+        var listed = new List<string>();
+
+        for (byte i = 1; i <= count; i++)
+        {
+            byte[]? entry = Ask(
+                channel, HidPlusPlus.Request(channel.OutputLength, device, set, 0x01, i), device, set, 0x01);
+            if (entry is null || entry.Length < 6) continue;
+
+            ushort id = (ushort)((entry[4] << 8) | entry[5]);
+            listed.Add(Named(id) is { } known ? $"0x{id:X4} {known}" : $"0x{id:X4}");
+        }
+
+        if (listed.Count == 0) return;
+
+        Console.WriteLine($"            {listed.Count} features:");
+
+        foreach (string line in listed) Console.WriteLine($"              {line}");
+    }
+
+    /// <summary>The feature that lists the features.</summary>
+    private const ushort FeatureSet = 0x0001;
+
+    /// <summary>
+    /// The identifiers worth naming, and only the ones there is no doubt about. Everything
+    /// else prints as a number, which is what it is.
+    /// </summary>
+    private static string? Named(ushort id) => id switch
+    {
+        0x0000 => "root",
+        0x0001 => "feature set",
+        0x0003 => "device information",
+        0x0005 => "device name and kind",
+        0x1000 => "battery level",
+        0x1001 => "battery voltage",
+        0x1004 => "unified battery",
+        0x1814 => "change host",
+        0x1815 => "hosts information",
+        0x1b04 => "reprogrammable controls",
+        0x2201 => "adjustable resolution",
+        0x2202 => "extended adjustable resolution",
+        0x8060 => "report rate",
+        0x8061 => "extended report rate",
+        0x8100 => "onboard profiles",
+        _ => null,
+    };
+
+
 
     private static string? Name(WindowsHidChannel channel, byte device)
     {
