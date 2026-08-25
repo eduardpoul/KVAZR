@@ -56,7 +56,15 @@ internal static class PlatformServices
         // Being told the moment a device arrives beats asking every few seconds whether
         // one has. The sweep stays as the safety net; this is what makes it feel instant.
         services.AddSingleton<IDeviceChangeWatcher, Maxwell.Race.Windows.WindowsDeviceChangeWatcher>();
+
+        // Unpairing, which is two implementations on one platform: the classic call for
+        // a headset and the modern pairing object for anything low-energy. Registered
+        // here rather than called directly, because only this target can see the second
+        // one at all.
+        services.AddSingleton<IPairingRemoval, WindowsPairingRemoval>();
 #else
+        services.AddSingleton<IPairingRemoval>(UnsupportedPairingRemoval.Instance);
+
         if (OperatingSystem.IsLinux())
         {
             services.AddSingleton<IHidEnumerator, LinuxHidEnumerator>();

@@ -51,6 +51,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     private readonly CurvePresetLibrary _presets;
     private readonly TrayExtras _extras;
     private readonly INotifier _notifier;
+    private readonly IPairingRemoval _pairing;
     private readonly Dictionary<string, DevicePageViewModel> _pages = new(StringComparer.Ordinal);
 
     private bool _disposed;
@@ -67,7 +68,8 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         FirstSweep sweep,
         CurvePresetLibrary presets,
         TrayExtras extras,
-        INotifier notifier)
+        INotifier notifier,
+        IPairingRemoval pairing)
     {
         ArgumentNullException.ThrowIfNull(registry);
         ArgumentNullException.ThrowIfNull(polling);
@@ -81,6 +83,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         ArgumentNullException.ThrowIfNull(presets);
         ArgumentNullException.ThrowIfNull(extras);
         ArgumentNullException.ThrowIfNull(notifier);
+        ArgumentNullException.ThrowIfNull(pairing);
 
         _registry = registry;
         _polling = polling;
@@ -89,6 +92,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         _primary = primary;
         _presets = presets;
         _notifier = notifier;
+        _pairing = pairing;
         _extras = extras;
 
         // Shortcuts are shelved, not deleted: the page, its view model and the coordinator
@@ -622,9 +626,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         // A device on a dongle has no pairing to remove, and for it this can only mean
         // taking the row away. A Bluetooth one has both halves — and the first can be
         // refused, which used to be thrown away along with the answer.
-        if (OperatingSystem.IsWindows()
-            && WindowsBluetoothPairing.Parse(bluetooth?[3..]) is { } address
-            && !WindowsBluetoothPairing.Forget(address))
+        if (await _pairing.ForgetAsync(bluetooth?[3..]).ConfigureAwait(true) == PairingRemoval.Refused)
         {
             // Hiding the row now would answer a request to unpair by pretending to have
             // done it: the device is still paired, still there, and will come back the
