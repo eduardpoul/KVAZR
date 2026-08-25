@@ -19,10 +19,8 @@ internal static class PointerProbe
 {
     public static int Run()
     {
-        List<HidInterface> pointers =
-        [
-            .. new WindowsHidEnumerator().EnumerateAll().Where(PointerSurvey.IsPointer),
-        ];
+        List<HidInterface> all = [.. new WindowsHidEnumerator().EnumerateAll()];
+        List<HidInterface> pointers = [.. all.Where(PointerSurvey.IsPointer)];
 
         Console.WriteLine("[pointers] What every mouse on this machine declares");
         Console.WriteLine();
@@ -60,6 +58,38 @@ internal static class PointerProbe
 
             Console.WriteLine($"      wheel     {(facts.HasFineWheel ? "high resolution" : "stepped")}"
                               + $"{(facts.HasTilt ? ", tilts" : string.Empty)}");
+
+            Console.WriteLine($"      write     {PointerSurvey.WriteTest(face)}");
+
+            // The rest of the same device. A mouse's settings, where it has any without a
+            // vendor protocol, live on a sibling collection rather than on the one the
+            // cursor is driven from — Windows has that one open for itself.
+            foreach (HidInterface sibling in all.Where(i =>
+                         i.VendorId == face.VendorId
+                         && i.ProductId == face.ProductId
+                         && !ReferenceEquals(i, face)))
+            {
+                Console.WriteLine(
+                    $"      also      page 0x{sibling.UsagePage:X4} usage 0x{sibling.Usage:X2}  "
+                    + $"in {sibling.InputReportLength}  out {sibling.OutputReportLength}  "
+                    + $"feature {sibling.FeatureReportLength}  · write {PointerSurvey.WriteTest(sibling)}");
+
+                List<(byte Id, byte[] Data)> features = PointerSurvey.Features(sibling);
+
+                foreach ((byte id, byte[] data) in features)
+                {
+                    Console.WriteLine(
+                        $"        feature 0x{id:X2}  {Convert.ToHexString(data.AsSpan(0, Math.Min(20, data.Length)))}");
+                }
+
+                // Said explicitly, because "no lines here" and "nothing answered" are the
+                // same sight and completely different facts: a collection that declares
+                // feature reports and answers none has nothing behind the declaration.
+                if (sibling.FeatureReportLength > 0 && features.Count == 0)
+                {
+                    Console.WriteLine("        feature   declared, none answered");
+                }
+            }
 
             Console.WriteLine();
         }

@@ -191,6 +191,76 @@ public static class PointerSurvey
         return axes;
     }
 
+    /// <summary>
+    /// Whether Windows will hand over a handle that could change anything.
+    ///
+    /// The question behind every "can we set the resolution from here": a mouse is the
+    /// device driving the cursor, and Windows opens it exclusively for exactly that
+    /// reason. A refusal here is not a permissions problem to be worked around — it is
+    /// the operating system saying that this collection is spoken for, and it is why a
+    /// mouse's own settings, where it has any, live on a second collection or in a
+    /// protocol of the maker's own.
+    /// </summary>
+    public static string WriteTest(HidInterface face)
+    {
+        ArgumentNullException.ThrowIfNull(face);
+
+        IntPtr handle = HidNative.CreateFile(
+            face.Path,
+            HidNative.GenericRead | HidNative.GenericWrite,
+            HidNative.FileShareReadWrite,
+            IntPtr.Zero,
+            HidNative.OpenExisting,
+            0,
+            IntPtr.Zero);
+
+        if (handle == HidNative.InvalidHandle) return $"refused (Win32 {Marshal.GetLastWin32Error()})";
+
+        HidNative.CloseHandle(handle);
+        return "allowed";
+    }
+
+    /// <summary>
+    /// Every feature report the collection will hand over, by id.
+    ///
+    /// Reads only. A feature report is where a device keeps the settings it is willing to
+    /// discuss without a vendor protocol, and reading them is how one finds out whether
+    /// there is anything to discuss at all — a collection that declares feature reports
+    /// and answers none of them has nothing behind the declaration.
+    /// </summary>
+    public static List<(byte Id, byte[] Data)> Features(HidInterface face, int highestId = 0x10)
+    {
+        ArgumentNullException.ThrowIfNull(face);
+
+        var found = new List<(byte, byte[])>();
+        if (face.FeatureReportLength <= 0) return found;
+
+        IntPtr handle = HidNative.CreateFile(
+            face.Path, 0, HidNative.FileShareReadWrite, IntPtr.Zero, HidNative.OpenExisting, 0, IntPtr.Zero);
+
+        if (handle == HidNative.InvalidHandle) return found;
+
+        try
+        {
+            for (byte id = 0; id <= highestId; id++)
+            {
+                byte[] buffer = new byte[face.FeatureReportLength];
+                buffer[0] = id;
+
+                if (!HidNative.HidD_GetFeature(handle, buffer, buffer.Length)) continue;
+                if (buffer.Skip(1).All(b => b == 0)) continue;
+
+                found.Add((id, buffer));
+            }
+        }
+        finally
+        {
+            HidNative.CloseHandle(handle);
+        }
+
+        return found;
+    }
+
     /// <summary>The handful of usages a pointer actually declares, named.</summary>
     private static string NameOf(ushort page, ushort usage) => (page, usage) switch
     {

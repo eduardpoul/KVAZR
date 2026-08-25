@@ -32,9 +32,19 @@ public sealed class WindowsSystemDeviceEnumerator : ISystemDeviceEnumerator
         ("BTHENUM", SystemDeviceLink.Bluetooth),
         ("BTHHFENUM", SystemDeviceLink.Bluetooth),
         ("BTHLEDEVICE", SystemDeviceLink.BluetoothLe),
+        // The device itself, as against BTHLEDEVICE's one node per GATT service. This is
+        // where the friendly name and the charge live — measured: without it a Bluetooth
+        // mouse arrived as "Bluetooth LE Service {0000180a-...}" with no battery, while
+        // Windows' own settings showed its name and 100% beside it.
+        ("BTHLE", SystemDeviceLink.BluetoothLe),
         ("HID", SystemDeviceLink.Usb),
         ("USB", SystemDeviceLink.Usb),
     ];
+
+    /// <summary>
+    /// The HID-over-GATT service, which is what makes a HID node a Bluetooth one.
+    /// </summary>
+    private const string HidOverGatt = "{00001812-0000-1000-8000-00805F9B34FB}";
 
     public IReadOnlyList<SystemDeviceNode> Enumerate()
     {
@@ -76,9 +86,18 @@ public sealed class WindowsSystemDeviceEnumerator : ISystemDeviceEnumerator
         if (container == Guid.Empty || container == Native.NotAPhysicalDevice) return null;
 
         // A BLE node sitting on the classic enumerators still belongs on the LE link.
-        SystemDeviceLink actual = instanceId.StartsWith("BTHLE", StringComparison.OrdinalIgnoreCase)
-            ? SystemDeviceLink.BluetoothLe
-            : link;
+        //
+        // Two ways it can be one. It can be enumerated as a low-energy node outright; or
+        // it can be a HID node whose instance id carries the HID-over-GATT service — which
+        // is what a Bluetooth mouse is, and it enumerates under HID like anything on a
+        // wire. Without the second test a Bluetooth mouse reported itself as attached by
+        // USB, on a container that also held its LE service nodes, so the one device
+        // claimed two kinds of lead at once.
+        SystemDeviceLink actual =
+            instanceId.StartsWith("BTHLE", StringComparison.OrdinalIgnoreCase)
+            || instanceId.Contains(HidOverGatt, StringComparison.OrdinalIgnoreCase)
+                ? SystemDeviceLink.BluetoothLe
+                : link;
 
         (ushort? vid, ushort? pid) = ParseIds(instanceId);
 
