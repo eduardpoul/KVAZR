@@ -33,6 +33,17 @@ public sealed record CapabilityChoice(int Index, string Label)
 {
     /// <summary>Secondary line, for options that need a word of explanation.</summary>
     public string? Hint { get; init; }
+
+    /// <summary>
+    /// A name for a drawing of this option, where one exists and helps.
+    ///
+    /// For the cases where the hardware itself is labelled with a picture rather than a
+    /// word: the selector on a microphone's back is four rings, and somebody comparing the
+    /// screen with the device is matching shapes, not reading. The interface owns what the
+    /// name draws; a driver only says which one applies, and a name it does not recognise
+    /// draws nothing rather than breaking the row.
+    /// </summary>
+    public string? Glyph { get; init; }
 }
 
 /// <summary>

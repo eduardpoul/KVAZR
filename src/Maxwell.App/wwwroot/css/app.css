@@ -744,6 +744,37 @@ button.accent:disabled:hover { background: var(--track-empty); }
 
 .swatch.sel { outline: 2px solid var(--accent-primary); outline-offset: 1.5px; }
 
+/* The ninth swatch is the system's own colour picker, dressed as the other eight.
+
+   A colour input draws its own bevelled well by default, which beside eight flat squares
+   looks like a control from another decade. The appearance is reset and the inner swatch
+   is stretched to the edges so the only difference from its neighbours is that it opens a
+   dialog. The dotted ring says so before it is clicked. */
+.swatch.custom {
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  border: 1px dashed var(--stroke-strong);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.swatch.custom::-webkit-color-swatch-wrapper { padding: 0; }
+.swatch.custom::-webkit-color-swatch { border: none; border-radius: 4px; }
+.swatch.custom:disabled { opacity: .4; cursor: default; }
+
+/* A reading that carries a drawing: the polar selector, whose four positions are printed
+   on the microphone as rings and nowhere as words. The glyph sits after the name, at the
+   end of the row, where the eye lands last and the comparison with the device is made. */
+.value.with-glyph {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.value.with-glyph .glyph { flex: none; opacity: .8; }
+
 /* slot lists: artboard 9b — 68px rows, status dot, one verb on the right */
 .slots { display: flex; flex-direction: column; }
 .slots .slot-row { border-top: 1px solid var(--stroke-subtle); }

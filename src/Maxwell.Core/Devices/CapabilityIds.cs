@@ -112,6 +112,9 @@ public static class CapabilityIds
     public const string LightEffect = "light.effect";
     public const string LightColor = "light.color";
 
+    /// <summary>How fast an effect runs. Only ever meaningful beside one that moves.</summary>
+    public const string LightSpeed = "light.speed";
+
     // Profiles and maintenance
     public const string ProfilesOnboard = "profiles.onboard";
     public const string MaintFactoryReset = "maint.factory_reset";

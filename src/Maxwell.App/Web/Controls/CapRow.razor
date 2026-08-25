@@ -115,7 +115,10 @@
              selector on a QuadCast is a mechanical dial, and putting a dead combo box
              beside it invites a click that can never work. *@
           case ChoiceCapabilityViewModel { Descriptor.Access: CapabilityAccess.Read } reading:
-            <div class="value">@(reading.Selected?.Label ?? "—")</div>
+            <div class="value with-glyph">
+              <span>@(reading.Selected?.Label ?? "—")</span>
+              @Glyph(reading.Selected?.Glyph)
+            </div>
             break;
 
           case ChoiceCapabilityViewModel choice:
@@ -307,6 +310,15 @@
                               disabled="@(!zone.CanEdit)"
                               @onclick="() => { var z = zone; var s = swatch; OnUi(() => z.Selected = s); }"></button>
                     }
+
+                    @* Eight swatches are the quick picks; this is the other sixteen
+                       million. The pane is a browser, so a colour input is the system's
+                       own picker for the price of one element — and a device that takes a
+                       packed colour was never limited to a list. *@
+                    <input type="color" class="swatch custom" value="@zone.Hex"
+                           title="@T.Say("Any colour")"
+                           disabled="@(!zone.CanEdit)"
+                           @onchange="e => { var z = zone; OnUi(() => z.Choose(Packed(e.Value?.ToString()))); }" />
                   </div>
                 </div>
               }
@@ -415,7 +427,52 @@
   </div>
 </div>
 
+@* The drawings a choice may ask for by name.
+
+     Here rather than in the driver because a driver has no business emitting markup, and
+     because the same ring means the same thing whichever microphone reports it. A name
+     that is not recognised draws nothing, so an older build renders a row that is plainer
+     rather than one that is broken. *@
+@functions {
+  private static RenderFragment? Glyph(string? name) => name switch
+  {
+    // Two separate circles: left and right, kept apart.
+    "polar.stereo" => @<svg class="glyph" viewBox="0 0 24 16" width="24" height="16" aria-hidden="true">
+                         <circle cx="7" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.4" />
+                         <circle cx="17" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.4" />
+                       </svg>,
+
+    // A circle with a bite out of the bottom, which is how a heart-shaped pattern is
+    // drawn on every microphone that has one.
+    "polar.cardioid" => @<svg class="glyph" viewBox="0 0 24 16" width="24" height="16" aria-hidden="true">
+                          <path d="M15.5 12.5 A5 5 0 1 0 8.5 12.5 L12 8 Z" fill="none"
+                                stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+                        </svg>,
+
+    // One circle: everything, from everywhere.
+    "polar.omni" => @<svg class="glyph" viewBox="0 0 24 16" width="24" height="16" aria-hidden="true">
+                      <circle cx="12" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.4" />
+                    </svg>,
+
+    // Two circles that overlap: the figure of eight, front and back.
+    "polar.figure8" => @<svg class="glyph" viewBox="0 0 24 16" width="24" height="16" aria-hidden="true">
+                         <circle cx="9" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.4" />
+                         <circle cx="15" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.4" />
+                       </svg>,
+
+    _ => null,
+  };
+}
+
 @code {
+  /// <summary>"#rrggbb" as a packed colour. Anything unparseable leaves the zone alone.</summary>
+  private static int Packed(string? hex) =>
+    hex is { Length: 7 } && hex[0] == '#'
+      && int.TryParse(hex.AsSpan(1), System.Globalization.NumberStyles.HexNumber,
+                      CultureInfo.InvariantCulture, out int value)
+      ? value
+      : -1;
+
   /// <summary>
   /// A slot's caption, tagged by where its curve comes from. The wearer's own four sit
   /// beside six the headset ships with, they are edited and deleted quite differently,

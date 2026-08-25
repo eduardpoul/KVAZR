@@ -130,8 +130,11 @@ internal sealed class HyperXLighting : IDisposable
     /// </summary>
     internal static (int Upper, int Lower) Compose(LightingState state, double seconds)
     {
-        double speed = 0.4 + (state.Speed / 100.0 * 1.6);
-        double turn = seconds * speed;
+        // Turns per second, and the range is chosen from what the effects look like
+        // rather than from round numbers: a fifth of a turn a second is a breath, and one
+        // whole turn is about as fast as a blink can go before it reads as a fault. The
+        // first version of this ran from 0.4 to 2.0 and everything looked hurried.
+        double turn = seconds * (0.05 + (Math.Clamp(state.Speed, 0, 100) / 100.0 * 0.95));
 
         return state.Effect switch
         {
@@ -241,7 +244,7 @@ internal readonly record struct LightingState(
     /// is the one colour in the palette that says nothing about taste.
     /// </summary>
     public static readonly LightingState Default =
-        new(false, LightingEffect.Static, 0xFFFFFF, 0xFFFFFF, 100, 50);
+        new(false, LightingEffect.Static, 0xFFFFFF, 0xFFFFFF, 100, 30);
 }
 
 internal enum LightingEffect

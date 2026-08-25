@@ -977,6 +977,39 @@ public sealed partial class LightingZoneViewModel : ObservableObject
     [ObservableProperty]
     public partial bool HasColour { get; private set; }
 
+    /// <summary>
+    /// The colour itself, whether or not it is one of the swatches.
+    ///
+    /// The palette is eight quick picks and a device that takes a packed colour takes any
+    /// of sixteen million, so the selection alone cannot describe the zone: a colour
+    /// chosen from the system's own picker matches no swatch and would otherwise leave
+    /// this reading as nothing at all.
+    /// </summary>
+    [ObservableProperty]
+    public partial int Packed { get; private set; }
+
+    /// <summary>The same colour as CSS, for the markup and for a colour input.</summary>
+    public string Hex => $"#{Packed & 0xFFFFFF:X6}";
+
+    /// <summary>
+    /// Takes a colour from outside the palette. Nothing is written unless it is a change,
+    /// because a colour input fires on every nudge of a slider in the system dialog.
+    /// </summary>
+    public void Choose(int packed)
+    {
+        packed &= 0xFFFFFF;
+
+        if (packed == Packed) return;
+
+        Packed = packed;
+        HasColour = true;
+        Selected = Palette.FirstOrDefault(s => s.Packed == packed);
+
+        // Directly rather than through Selected: a colour with no swatch leaves that null,
+        // and the notification it raises would not carry the colour anywhere.
+        _owner.Commit(Index, packed);
+    }
+
     [ObservableProperty]
     public partial bool CanEdit { get; private set; }
 
@@ -993,6 +1026,9 @@ public sealed partial class LightingZoneViewModel : ObservableObject
         HasColour = !value.IsAbsent;
 
         int packed = value.AsNumber(-1);
+
+        if (packed >= 0) Packed = packed & 0xFFFFFF;
+
         Selected = Palette.FirstOrDefault(s => s.Packed == packed);
     }
 

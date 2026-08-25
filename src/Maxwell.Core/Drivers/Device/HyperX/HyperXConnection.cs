@@ -140,12 +140,15 @@ internal sealed class HyperXConnection : IDeviceConnection
             // of a polar pattern at all, so saying the microphone is what was asked is the
             // difference between a row that looks invented and one that looks read.
             Subtitle = "The selector on the back, read from the microphone itself",
+            // Each one named for its drawing as well as for itself. The selector is
+            // labelled with rings and nothing else, so somebody checking the screen
+            // against the microphone is matching shapes.
             Choices =
             [
-                new CapabilityChoice(0, "Stereo"),
-                new CapabilityChoice(1, "Cardioid"),
-                new CapabilityChoice(2, "Omnidirectional"),
-                new CapabilityChoice(3, "Bidirectional"),
+                new CapabilityChoice(0, "Stereo") { Glyph = "polar.stereo" },
+                new CapabilityChoice(1, "Cardioid") { Glyph = "polar.cardioid" },
+                new CapabilityChoice(2, "Omnidirectional") { Glyph = "polar.omni" },
+                new CapabilityChoice(3, "Bidirectional") { Glyph = "polar.figure8" },
             ],
 
             // It changes under somebody's hand and never under ours, which is the whole
@@ -214,6 +217,17 @@ internal sealed class HyperXConnection : IDeviceConnection
         },
         new Capability
         {
+            Id = CapabilityIds.LightSpeed,
+            Domain = CapabilityDomain.Light,
+            Primitive = CapabilityPrimitive.Range,
+            Title = "Speed",
+            Section = "HyperX",
+            EnabledBy = CapabilityIds.LightOn,
+            Subtitle = "How fast the effect runs. Nothing to do with a steady colour",
+            Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
+        },
+        new Capability
+        {
             Id = CapabilityIds.LightBrightness,
             Domain = CapabilityDomain.Light,
             Primitive = CapabilityPrimitive.Range,
@@ -275,6 +289,9 @@ internal sealed class HyperXConnection : IDeviceConnection
             (CapabilityIds.LightBrightness, NumberValue number) =>
                 was with { Brightness = Math.Clamp(number.Value, 0, 100) },
 
+            (CapabilityIds.LightSpeed, NumberValue number) =>
+                was with { Speed = Math.Clamp(number.Value, 0, 100) },
+
             (CapabilityIds.LightColor, VectorValue zones) when zones.Items.Count >= 2 =>
                 was with
                 {
@@ -297,6 +314,7 @@ internal sealed class HyperXConnection : IDeviceConnection
         CapabilityIds.LightOn => CapabilityValue.Of(state.On),
         CapabilityIds.LightEffect => CapabilityValue.Choice((int)state.Effect),
         CapabilityIds.LightBrightness => CapabilityValue.Of(state.Brightness),
+        CapabilityIds.LightSpeed => CapabilityValue.Of(state.Speed),
         CapabilityIds.LightColor => CapabilityValue.Numbers(state.Upper, state.Lower),
         _ => null,
     };
