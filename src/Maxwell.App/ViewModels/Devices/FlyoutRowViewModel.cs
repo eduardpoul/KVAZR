@@ -224,7 +224,24 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
             }
         }
 
-        foreach (string id in QuickOrder) yield return id;
+        foreach (string id in QuickOrder)
+        {
+            // Not a microphone's lighting, whatever room is left.
+            //
+            // The panel is for the controls somebody reaches for while doing something
+            // else — muting mid-sentence, pulling the level down, turning monitoring off.
+            // A microphone's lighting is chosen once and then looked at; it is how the
+            // thing on the desk looks, not something anybody adjusts during a call. It
+            // was only here because the capsule's two rows leave room for it, which is a
+            // reason to leave the room empty rather than to fill it.
+            if (device.Info.Class == DeviceClass.Microphone
+                && id is CapabilityIds.LightOn or CapabilityIds.LightBrightness)
+            {
+                continue;
+            }
+
+            yield return id;
+        }
 
         yield return CapabilityIds.MicSystemOn;
     }

@@ -135,6 +135,12 @@ public sealed class FlyoutRowTests
             [CapabilityIds.AudioSystemOn] =
                 Switch(CapabilityIds.AudioSystemOn, CapabilityDomain.Audio, "Monitoring"),
             [CapabilityIds.AudioSystemVolume] = Range(CapabilityIds.AudioSystemVolume, "Monitoring volume"),
+
+            // The real one has these, and they are why this fixture carries them: with
+            // the capsule's two rows taking two lines, there is room left over and the
+            // shared order would happily spend it here.
+            [CapabilityIds.LightOn] = Switch(CapabilityIds.LightOn, CapabilityDomain.Light, "Lighting"),
+            [CapabilityIds.LightBrightness] = Range(CapabilityIds.LightBrightness, "Brightness"),
         },
     };
 
@@ -177,6 +183,25 @@ public sealed class FlyoutRowTests
                 CapabilityIds.AudioSystemVolume,
             ],
             row.Quick.Select(q => q.Id));
+    }
+
+    /// <summary>
+    /// The panel is for what somebody reaches for while doing something else: muting
+    /// mid-sentence, pulling the level down, turning monitoring off. A microphone's
+    /// lighting is chosen once and then looked at — it is how the thing on the desk
+    /// looks, not something anybody adjusts during a call.
+    ///
+    /// It was only ever there because the capsule's two rows leave room for it, and room
+    /// left over is a reason to leave it empty rather than to fill it.
+    /// </summary>
+    [Fact]
+    public void AMicrophonesLighting_IsNotPanelWork()
+    {
+        using var row = new FlyoutRowViewModel(QuadCast(), new Registry(), Extras(monitoring: false));
+        row.ToggleCommand.Execute(null);
+
+        Assert.DoesNotContain(CapabilityIds.LightOn, row.Quick.Select(q => q.Id));
+        Assert.DoesNotContain(CapabilityIds.LightBrightness, row.Quick.Select(q => q.Id));
     }
 
     [Fact]
