@@ -180,6 +180,7 @@ internal static class HidPlusPlusProbe
         if (count is 0 or > 80) return;
 
         var listed = new List<string>();
+        var indexed = new List<(ushort Id, byte Index)>();
 
         for (byte i = 1; i <= count; i++)
         {
@@ -189,6 +190,7 @@ internal static class HidPlusPlusProbe
 
             ushort id = (ushort)((entry[4] << 8) | entry[5]);
             listed.Add(Named(id) is { } known ? $"0x{id:X4} {known}" : $"0x{id:X4}");
+            indexed.Add((id, i));
         }
 
         if (listed.Count == 0) return;
@@ -198,6 +200,44 @@ internal static class HidPlusPlusProbe
         foreach (string line in listed) Console.WriteLine($"              {line}");
 
         Resolution(channel, device);
+
+        if (Environment.GetCommandLineArgs().Contains("--deep")) Sweep(channel, device, indexed);
+    }
+
+    /// <summary>
+    /// Asks every declared feature its first question and prints the answer raw.
+    ///
+    /// Function zero and no further, which is the whole safety argument. In HID++ 2.0 the
+    /// first function of a feature is a question by convention — getCount, getInfo,
+    /// getCapabilities — and the functions that change something sit further down the
+    /// list. Sweeping wider on a device somebody is holding means finding out what a
+    /// function does by watching what it does to their mouse.
+    ///
+    /// Raw bytes on purpose. What each answer means is a separate question, and dressing
+    /// an unread reply up as a number is how a wrong reading gets believed.
+    /// </summary>
+    private static void Sweep(WindowsHidChannel channel, byte device, List<(ushort Id, byte Index)> features)
+    {
+        Console.WriteLine();
+        Console.WriteLine("            first question of each, raw:");
+
+        foreach ((ushort id, byte index) in features)
+        {
+            byte[]? reply = Ask(
+                channel,
+                HidPlusPlus.Request(channel.OutputLength, device, index, 0x00),
+                device,
+                index,
+                0x00);
+
+            string said = reply is null
+                ? "нет ответа"
+                : HidPlusPlus.IsError(reply)
+                    ? HidPlusPlus.Explain(reply)
+                    : Convert.ToHexString(reply.AsSpan(4, Math.Min(12, reply.Length - 4)));
+
+            Console.WriteLine($"              0x{id:X4}  {Named(id) ?? string.Empty,-32} {said}");
+        }
     }
 
     /// <summary>
@@ -216,7 +256,17 @@ internal static class HidPlusPlusProbe
 
         Console.WriteLine($"            0x2202 at index {feature}, asked its first three questions:");
 
-        for (byte function = 0; function <= 2; function++)
+        // Four now rather than three. The first three answered exactly as the extended
+        // layout says they should — a sensor count, that sensor's capabilities, then a
+        // range — so the fourth is a step onto ground three answers have already tested.
+        // The setter is further down still, and stays untouched until its number is read
+        // off a published list rather than remembered.
+        // Up to five, and the fifth is where the current setting lives. What makes it
+        // safe to ask is not confidence in the order — it is the ranges the third answer
+        // gave: they start at a hundred. Were this the setter after all, it would be
+        // asked to set a resolution of zero, which the device's own validation refuses.
+        // A guess with a floor under it.
+        for (byte function = 0; function <= 5; function++)
         {
             byte[]? reply = Ask(
                 channel,
