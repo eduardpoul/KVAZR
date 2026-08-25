@@ -6,13 +6,18 @@ using Maxwell.Race.Windows;
 namespace Maxwell.Cli;
 
 /// <summary>
-/// What a mouse actually does, counted rather than read off its declaration.
+/// Walks one mouse through its controls, one at a time, and says what answered.
 ///
-/// The last universal source at the baseline. Everything else about a mouse is something
-/// it says about itself, and the descriptor has been caught saying sixteen buttons for a
-/// five-button one; Windows repeats the same sixteen. Only the traffic settles it, and
-/// the traffic needs somebody to move the mouse — which is why this is a tester and not
-/// another line in an inventory.
+/// It used to watch everything at once for half a minute and print which flags had been
+/// seen. That counts, and counting is the weaker half of the question: five flags out of
+/// five tells nobody whether their side button works, only that something did. Asked one
+/// control at a time, the same traffic answers what people actually open a mouse tester
+/// for — press this; did it arrive?
+///
+/// The ceiling is unchanged and no procedure raises it. Raw Input's mouse record carries
+/// five buttons and a wheel, full stop; a sixth button is not under-reported here, it is
+/// absent from the vocabulary and arrives on a different collection entirely. What the
+/// walk changes is that the five are confirmed one by one instead of summed.
 /// </summary>
 internal static class TesterProbe
 {
@@ -22,22 +27,25 @@ internal static class TesterProbe
     private const ushort FourthDown = 0x0040;
     private const ushort FifthDown = 0x0100;
     private const ushort Wheel = 0x0400;
-    private const ushort HorizontalWheel = 0x0800;
 
-    private static readonly (ushort Flag, string Name)[] Buttons =
+    /// <summary>How long one step waits before giving up on it and moving on.</summary>
+    private static readonly TimeSpan StepPatience = TimeSpan.FromSeconds(20);
+
+    private sealed record Step(string Ask, ushort Flag, int Direction = 0);
+
+    private static readonly Step[] Walk =
     [
-        (LeftDown, "left"),
-        (RightDown, "right"),
-        (MiddleDown, "middle"),
-        (FourthDown, "fourth (back)"),
-        (FifthDown, "fifth (forward)"),
+        new("Left click", LeftDown),
+        new("Right click", RightDown),
+        new("Wheel click", MiddleDown),
+        new("Side button — back", FourthDown),
+        new("Side button — forward", FifthDown),
+        new("Wheel up", Wheel, 1),
+        new("Wheel down", Wheel, -1),
     ];
 
     public static int Run(int seconds)
     {
-        var seen = new Dictionary<IntPtr, Tally>();
-        var clock = Stopwatch.StartNew();
-
         using var watcher = new WindowsRawInputWatcher();
 
         if (!watcher.IsWatching)
@@ -46,137 +54,200 @@ internal static class TesterProbe
             return 1;
         }
 
-        watcher.Reported += report =>
+        var state = new Progress();
+        watcher.Reported += state.Saw;
+
+        Console.WriteLine("[tester] One control at a time. Nothing is opened and nothing is written.");
+        Console.WriteLine();
+        Console.WriteLine("  Use one mouse throughout — the first thing that answers is the one being");
+        Console.WriteLine("  tested, and everything else is ignored from then on.");
+        Console.WriteLine("  Press Enter to skip a control you have not got.");
+        Console.WriteLine();
+
+        var answered = new List<Step>();
+        var silent = new List<Step>();
+
+        for (int i = 0; i < Walk.Length; i++)
         {
-            lock (seen)
-            {
-                if (!seen.TryGetValue(report.Device, out Tally? tally))
-                {
-                    seen[report.Device] = tally = new Tally();
-                }
+            Step step = Walk[i];
+            Console.Write($"  {i + 1}/{Walk.Length + 1}  {step.Ask,-24} ");
 
-                tally.Count(report, clock.Elapsed);
+            if (Await(state, step))
+            {
+                answered.Add(step);
+                Console.WriteLine("ok");
             }
-        };
-
-        Console.WriteLine($"[tester] Counting for {seconds}s. Nothing is opened and nothing is written.");
-        Console.WriteLine();
-        Console.WriteLine("  Move each mouse, press every button including the side ones,");
-        Console.WriteLine("  turn the wheel, and tilt it if it tilts.");
-        Console.WriteLine();
-        Console.WriteLine("  For the rate: whip it about as fast as you can for a second or two.");
-        Console.WriteLine("  A mouse reports when it has movement to report, so a slow hand");
-        Console.WriteLine("  measures the hand rather than the mouse.");
-        Console.WriteLine();
-
-        Thread.Sleep(TimeSpan.FromSeconds(seconds));
-
-        lock (seen)
-        {
-            if (seen.Count == 0)
+            else
             {
-                Console.WriteLine("  Nothing moved.");
-                return 1;
-            }
-
-            foreach ((IntPtr device, Tally tally) in seen)
-            {
-                Report(device, tally);
+                silent.Add(step);
+                Console.WriteLine("— skipped");
             }
         }
 
-        Console.WriteLine();
-        Console.WriteLine("Counted, not declared. A button that was never pressed is missing from this");
-        Console.WriteLine("list rather than absent from the mouse, and Raw Input carries five buttons and");
-        Console.WriteLine("a wheel — a sixth arrives elsewhere. So the count is a floor, and a floor that");
-        Console.WriteLine("was observed beats a ceiling that was claimed.");
+        Console.Write($"  {Walk.Length + 1}/{Walk.Length + 1}  {"Move it, fast",-24} ");
+        Sweep(state, seconds);
+
+        Report(state, answered, silent);
 
         return 0;
     }
 
-    private static void Report(IntPtr device, Tally tally)
+    /// <summary>
+    /// Waits for one control, or for the person to say they have not got it.
+    ///
+    /// Polling rather than a wait handle, because there are two things to wait for and
+    /// one of them is a keypress. Twenty milliseconds is well below noticing and well
+    /// above spinning.
+    /// </summary>
+    private static bool Await(Progress state, Step step)
     {
-        string name = RawInputPointers.NameOf(device) ?? $"device {device.ToInt64():X}";
+        state.Expect(step);
 
-        Console.WriteLine($"  {name}");
-        Console.WriteLine($"      reports   {tally.Reports}");
-        Console.WriteLine($"      rate      {tally.Peak} per second at its busiest");
+        var clock = Stopwatch.StartNew();
 
-        string pressed = string.Join(
-            ", ",
-            Buttons.Where(b => (tally.Flags & b.Flag) != 0).Select(b => b.Name));
-
-        Console.WriteLine($"      buttons   {(pressed.Length > 0 ? pressed : "none pressed")}");
-        Console.WriteLine($"      wheel     {(tally.Flags & Wheel) != 0} · "
-                          + $"horizontal {((tally.Flags & HorizontalWheel) != 0 ? "yes" : "not seen")}");
-
-        if (tally.Steps.Count > 0)
+        while (clock.Elapsed < StepPatience)
         {
-            Console.WriteLine($"      steps     {string.Join(", ", tally.Steps.Order())}");
+            if (state.Satisfied) return true;
+
+            // Guarded, because asking a redirected stdin whether a key is waiting throws
+            // rather than answering no — and a harness that pipes into this would take
+            // the whole walk down on its first step.
+            if (!Console.IsInputRedirected
+                && Console.KeyAvailable
+                && Console.ReadKey(intercept: true).Key == ConsoleKey.Enter)
+            {
+                return false;
+            }
+
+            Thread.Sleep(20);
         }
 
-        Console.WriteLine();
+        return false;
     }
 
-    private sealed class Tally
+    /// <summary>
+    /// The one step that measures rather than asks: how fast reports come when somebody
+    /// is really moving it.
+    /// </summary>
+    private static void Sweep(Progress state, int seconds)
     {
-        /// <summary>
-        /// Counted in tenths of a second rather than whole ones.
-        ///
-        /// Because of what is being asked of the person holding the mouse: nobody moves
-        /// one flat out for a whole second, so a whole-second bucket averages the fast
-        /// part of a flick together with the slowing down at the end of it. A tenth is
-        /// short enough to sit inside one swipe.
-        /// </summary>
+        Console.WriteLine();
+        Console.WriteLine();
+        Console.WriteLine($"        Whip it about for {seconds}s — as fast as you can, and keep going.");
+        Console.WriteLine("        A mouse reports when it has movement to report, so a gentle hand");
+        Console.WriteLine("        measures the hand.");
+        Console.WriteLine();
+
+        state.Measure();
+        Thread.Sleep(TimeSpan.FromSeconds(seconds));
+    }
+
+    private static void Report(Progress state, List<Step> answered, List<Step> silent)
+    {
+        Console.WriteLine();
+        Console.WriteLine($"  Mouse      {state.Name ?? "nothing answered"}");
+        Console.WriteLine(
+            $"  Answered   {(answered.Count > 0 ? string.Join(", ", answered.Select(s => s.Ask)) : "nothing")}");
+
+        if (silent.Count > 0)
+        {
+            Console.WriteLine($"  Silent     {string.Join(", ", silent.Select(s => s.Ask))}");
+        }
+
+        if (state.Steps.Count > 0)
+        {
+            Console.WriteLine(
+                $"  Wheel      steps of {string.Join(", ", state.Steps.Order())}"
+                + (state.Steps.All(s => Math.Abs(s) % 120 == 0)
+                    ? " — stepped, one detent is 120"
+                    : " — finer than a detent, so high resolution"));
+        }
+
+        Console.WriteLine($"  Rate       at least {state.Peak} per second");
+        Console.WriteLine();
+        Console.WriteLine("  \"At least\" twice over. A control nobody pressed is silent here rather than");
+        Console.WriteLine("  missing from the mouse; and the rate is what the hand achieved, which is a");
+        Console.WriteLine("  floor under what the mouse can do and never a ceiling.");
+    }
+
+    /// <summary>
+    /// What has been asked for and what has arrived. Shared with the watcher's thread,
+    /// which is why everything it touches sits behind one lock.
+    /// </summary>
+    private sealed class Progress
+    {
+        private readonly Lock _sync = new();
         private readonly Dictionary<long, int> _tenths = [];
+        private readonly Stopwatch _clock = Stopwatch.StartNew();
 
-        public int Reports { get; private set; }
+        private Step? _wanted;
+        private bool _measuring;
+        private IntPtr _device;
 
-        /// <summary>
-        /// The rate at its busiest, which is a floor on what the mouse can do and never a
-        /// ceiling.
-        ///
-        /// It replaced an average across the whole span, and that average was wrong in a
-        /// way that read as a plausible number: somebody moves a mouse in bursts, the span
-        /// counts the pauses, and any mouse comes out at forty-something.
-        ///
-        /// Even this is a floor, and for a reason no arithmetic fixes: a mouse sends a
-        /// report when it has movement to report. Polled a thousand times a second and
-        /// pushed gently, it answers a fraction of those polls — so what is counted here
-        /// is how fast the hand moved, until the hand moves fast enough to stop being the
-        /// limit.
-        /// </summary>
-        public int Peak { get; private set; }
+        public bool Satisfied { get; private set; }
 
-        public ushort Flags { get; private set; }
+        public string? Name { get; private set; }
 
-        /// <summary>
-        /// The distinct wheel deltas seen. A stepped wheel reports 120 every time; a
-        /// high-resolution one reports fractions of it, and that difference cannot be
-        /// found in any declaration.
-        /// </summary>
         public HashSet<int> Steps { get; } = [];
 
-        public void Count(RawMouseReport report, TimeSpan at)
+        /// <summary>Reports in the busiest tenth of a second, scaled to the second.</summary>
+        public int Peak { get; private set; }
+
+        public void Expect(Step step)
         {
-            Reports++;
-            Flags |= report.Buttons;
-
-            long tenth = (long)(at.TotalSeconds * 10);
-            int inThisTenth = _tenths[tenth] = _tenths.GetValueOrDefault(tenth) + 1;
-
-            if (inThisTenth * 10 > Peak) Peak = inThisTenth * 10;
-
-            if ((report.Buttons & (Wheel | HorizontalWheel)) != 0 && report.Wheel != 0)
+            lock (_sync)
             {
-                Steps.Add(report.Wheel);
+                _wanted = step;
+                Satisfied = false;
             }
         }
 
-        // No "shortest gap between two reports" any more. It read 0.0 ms, and it was
-        // reading the wrong clock: the timestamp is taken when this thread pulls the
-        // message off its queue, not when the report arrived, so several delivered
-        // together are stamped at the same instant. It described the message pump and
-        // was offered as a fact about the mouse.
+        public void Measure()
+        {
+            lock (_sync)
+            {
+                _wanted = null;
+                _measuring = true;
+            }
+        }
+
+        public void Saw(RawMouseReport report)
+        {
+            lock (_sync)
+            {
+                // The first mouse to answer claims the walk. Two mice on one desk both
+                // report, and a walk that accepted either would pass a step with the
+                // wrong one and never say which.
+                if (_device != IntPtr.Zero && report.Device != _device) return;
+
+                if (_measuring) Count();
+
+                if (_wanted is not { } step) return;
+                if ((report.Buttons & step.Flag) == 0) return;
+
+                if (step.Direction != 0)
+                {
+                    if (report.Wheel == 0 || Math.Sign(report.Wheel) != step.Direction) return;
+
+                    Steps.Add(report.Wheel);
+                }
+
+                if (_device == IntPtr.Zero)
+                {
+                    _device = report.Device;
+                    Name = RawInputPointers.NameOf(report.Device);
+                }
+
+                Satisfied = true;
+            }
+        }
+
+        private void Count()
+        {
+            long tenth = (long)(_clock.Elapsed.TotalSeconds * 10);
+            int inThisTenth = _tenths[tenth] = _tenths.GetValueOrDefault(tenth) + 1;
+
+            if (inThisTenth * 10 > Peak) Peak = inThisTenth * 10;
+        }
     }
 }
