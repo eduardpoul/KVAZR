@@ -32,6 +32,10 @@ internal static class QuadCastProbe
 {
     private const ushort HyperX = 0x0951;
 
+    /// <summary>Set while watching another application drive the device, where a repeated
+    /// frame is itself the finding rather than noise.</summary>
+    private static bool _everyFrame;
+
     /// <summary>
     /// The script. Long enough per step to do the thing unhurriedly and to see it land,
     /// short enough that the whole run is a couple of minutes.
@@ -67,7 +71,30 @@ internal static class QuadCastProbe
         (5, "Hands off. Leave it wherever you like."),
     ];
 
-    public static int Run(string? logPath, bool patterns = false)
+    /// <summary>
+    /// The third script: what the maker's own software makes the microphone say.
+    ///
+    /// NGENUITY shows the polar selector's position the moment it opens, which means a
+    /// question exists that this application does not know how to ask — the status channel
+    /// refuses a plain read, measured, so the answer must come some other way. Finding it
+    /// normally means capturing USB traffic with a separate tool.
+    ///
+    /// This is the cheaper attempt first. Windows hands an input report to every reader of
+    /// a collection, not only to whoever asked, so anything the microphone answers back
+    /// while NGENUITY is driving it lands here too. It will not show the question — that is
+    /// a write from another process — but the shape of the answer, and which channel it
+    /// arrives on, is most of what is wanted. Nothing here writes to the device.
+    /// </summary>
+    private static readonly (int Seconds, string Do)[] NgenuitySteps =
+    [
+        (8, "Hands off, and NGENUITY closed. Baseline."),
+        (25, "Start NGENUITY now and wait until it shows the QuadCast."),
+        (15, "With NGENUITY open, turn the selector through all four positions."),
+        (12, "Close NGENUITY."),
+        (8, "Hands off. Settle."),
+    ];
+
+    public static int Run(string? logPath, bool patterns = false, bool ngenuity = false)
     {
         List<HidInterface> ears =
         [
@@ -83,13 +110,15 @@ internal static class QuadCastProbe
             return 1;
         }
 
+        _everyFrame = ngenuity;
+
         string path = logPath is { Length: > 0 }
             ? logPath
             : Path.Combine(Path.GetTempPath(), "quadcast-dig.txt");
 
         using var log = new StreamWriter(path, append: false, Encoding.UTF8) { AutoFlush = true };
 
-        (int Seconds, string Do)[] script = patterns ? PatternSteps : Steps;
+        (int Seconds, string Do)[] script = ngenuity ? NgenuitySteps : patterns ? PatternSteps : Steps;
 
         Write(log, $"QuadCast dig — {script.Sum(s => s.Seconds)} seconds, {ears.Count} channels, nothing written.");
         Write(log, string.Empty);
@@ -163,8 +192,10 @@ internal static class QuadCastProbe
                 string line = string.Join(' ', report.Select(b => b.ToString("X2", CultureInfo.InvariantCulture)));
 
                 // A channel that repeats one frame is one line of news rather than
-                // hundreds. Changes only, after the first of each.
-                if (seen.TryGetValue(tag, out string? previous) && previous == line) continue;
+                // hundreds. Changes only, after the first of each — except while another
+                // application is driving the device, where a repeat is the news: it means
+                // something asked again.
+                if (!_everyFrame && seen.TryGetValue(tag, out string? previous) && previous == line) continue;
                 seen[tag] = line;
 
                 lock (gate) Write(log, $"  {clock.Elapsed.TotalSeconds,5:0.0}s  {tag}  {line}");

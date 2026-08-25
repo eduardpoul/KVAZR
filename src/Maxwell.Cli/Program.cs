@@ -64,7 +64,8 @@ if (args.Contains("--polar"))
 
 if (args.Contains("--quadcast"))
 {
-    return QuadCastProbe.Run(ValueAfter(args, "--log"), args.Contains("--patterns"));
+    return QuadCastProbe.Run(
+        ValueAfter(args, "--log"), args.Contains("--patterns"), args.Contains("--ngenuity"));
 }
 
 if (args.Contains("--hidpp")) return HidPlusPlusProbe.Run();
