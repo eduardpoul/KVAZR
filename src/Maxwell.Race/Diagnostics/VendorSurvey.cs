@@ -32,6 +32,9 @@ public static class VendorSurvey
     /// <summary>GENERIC_READ. Query-only access is enough to enumerate but not to read a report.</summary>
     private const uint Read = 0x80000000;
 
+    /// <summary>GENERIC_WRITE. Only the query path asks for it; everything else here reads.</summary>
+    private const uint Write = 0x40000000;
+
     public static int Dump(TextWriter writer, ushort vendorId)
     {
         ArgumentNullException.ThrowIfNull(writer);
@@ -267,6 +270,88 @@ public static class VendorSurvey
         frame.StartsWith("00 04 F2", StringComparison.Ordinal)
         || frame.StartsWith("00 81", StringComparison.Ordinal)
         || frame.StartsWith("00 00 00 00 FF  (+60", StringComparison.Ordinal);
+
+    /// <summary>
+    /// Writes one command into the vendor register and prints everything that comes back
+    /// until the register goes quiet.
+    ///
+    /// The first write this application has ever made to this microphone, and it is a
+    /// replay rather than a guess: NGENUITY sends exactly these bytes at start-up, it was
+    /// watched doing so at four milliseconds a sample, and the answer was read out of the
+    /// same register a moment later. A question rather than a setting — nothing about
+    /// the device changes because it was asked.
+    ///
+    /// The exchange is: write the command, then read the register repeatedly. It holds the
+    /// answer for a few milliseconds, ends it with AA 55, and returns to 00 00 00 00 FF
+    /// when there is nothing left to say. So the reads are fast and the whole thing is
+    /// over in well under a second.
+    /// </summary>
+    public static int Ask(TextWriter writer, ushort vendorId, byte[] command, int forMs = 400)
+    {
+        ArgumentNullException.ThrowIfNull(writer);
+        ArgumentNullException.ThrowIfNull(command);
+
+        HidInterface? found = new WindowsHidEnumerator().EnumerateAll()
+            .FirstOrDefault(i => i.VendorId == vendorId && i.UsagePage == 0xFF90 && i.FeatureReportLength > 0);
+
+        if (found is not { } collection)
+        {
+            writer.WriteLine($"No vendor pipe on 0x{vendorId:X4}.");
+            return 1;
+        }
+
+        // Read and write: a query needs both halves, unlike everything else in this file.
+        IntPtr handle = HidNative.CreateFile(
+            collection.Path, Read | Write, HidNative.FileShareReadWrite,
+            IntPtr.Zero, HidNative.OpenExisting, 0, IntPtr.Zero);
+
+        if (handle == HidNative.InvalidHandle)
+        {
+            writer.WriteLine("Will not open for writing.");
+            return 1;
+        }
+
+        try
+        {
+            byte[] buffer = new byte[collection.FeatureReportLength];
+            command.CopyTo(buffer, 1);
+
+            writer.WriteLine($"  writing   {Hex(buffer)}");
+
+            if (!HidNative.HidD_SetFeature(handle, buffer, buffer.Length))
+            {
+                writer.WriteLine("  the device refused the command.");
+                return 2;
+            }
+
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            string last = string.Empty;
+
+            while (clock.Elapsed < TimeSpan.FromMilliseconds(forMs))
+            {
+                byte[] answer = new byte[collection.FeatureReportLength];
+
+                if (HidNative.HidD_GetFeature(handle, answer, answer.Length))
+                {
+                    string now = Hex(answer);
+
+                    if (now != last)
+                    {
+                        writer.WriteLine($"  {clock.Elapsed.TotalMilliseconds,5:0} ms   {now}");
+                        last = now;
+                    }
+                }
+
+                Thread.Sleep(2);
+            }
+
+            return 0;
+        }
+        finally
+        {
+            HidNative.CloseHandle(handle);
+        }
+    }
 
     /// <summary>Every report of every collection that will answer a read, opened once.</summary>
     private static IEnumerable<Ear> Open(ushort vendorId)

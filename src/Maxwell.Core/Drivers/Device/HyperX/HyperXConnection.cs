@@ -36,22 +36,69 @@ internal sealed class HyperXConnection : IDeviceConnection
     private const byte StatusReport = 0x05;
     private const byte PolarPattern = 0x11;
 
+    /// <summary>Where the register that answers lives. Not the status channel, which only announces.</summary>
+    internal const ushort PipePage = 0xFF90;
+
+    /// <summary>"What is your state" — NGENUITY's own opening question, byte for byte.</summary>
+    private static readonly byte[] AskState = [0x04, 0x58, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x01];
+
+    /// <summary>Where the selector sits in the reply. Measured against the dial at three of its four positions.</summary>
+    private const int PatternAt = 16;
+
+    /// <summary>Long enough for an answer measured at four milliseconds, short enough not to hold a sweep up.</summary>
+    private static readonly TimeSpan Patience = TimeSpan.FromMilliseconds(200);
+
     /// <summary>How long a read waits before looking at the cancellation token again.</summary>
     private static readonly TimeSpan Tick = TimeSpan.FromMilliseconds(400);
 
     private readonly IHidListener _listener;
+    private readonly IHidVendorPipe? _pipe;
     private readonly CancellationTokenSource _stop = new();
     private readonly Task _ear;
 
     private int _pattern = -1;
     private bool _disposed;
 
-    public HyperXConnection(IHidListener listener)
+    public HyperXConnection(IHidListener listener, IHidVendorPipe? pipe = null)
     {
         ArgumentNullException.ThrowIfNull(listener);
 
         _listener = listener;
+        _pipe = pipe;
         _ear = Task.Run(Listen);
+
+        // Before anything is drawn. Without it the row is empty until somebody turns the
+        // dial, which on a page opened to look at that very row reads as broken.
+        AskOnce();
+    }
+
+    /// <summary>
+    /// Asks the register for the selector's position, once, and takes the answer only if
+    /// nothing has been heard yet.
+    ///
+    /// Only if nothing has been heard: the ear is already running by the time this
+    /// returns, and a reply about the state a fifth of a second ago must not overwrite a
+    /// hand that moved the dial in between.
+    /// </summary>
+    private void AskOnce()
+    {
+        if (_pipe is null) return;
+
+        try
+        {
+            if (_pipe.Ask(AskState, Patience) is not { } answer) return;
+            if (answer.Length <= PatternAt) return;
+
+            byte pattern = answer[PatternAt];
+            if (pattern > 3) return;
+
+            _ = Interlocked.CompareExchange(ref _pattern, pattern, -1);
+        }
+        catch (IOException)
+        {
+            // Taken, unplugged, or refusing to be written to. The row fills on the first
+            // turn of the dial instead, which is where it started.
+        }
     }
 
     public IReadOnlyList<Capability> Capabilities { get; } =
@@ -71,10 +118,10 @@ internal sealed class HyperXConnection : IDeviceConnection
             // suggests Windows has an opinion about it.
             Section = "HyperX",
 
-            // The sentence has to carry two facts, and the second one is unusual enough
-            // to be worth the words: this is read from the microphone rather than from
-            // Windows, and it is not known until the selector moves.
-            Subtitle = "The selector on the back. Read from the microphone, so it appears once the dial is turned",
+            // Where it comes from, in the words a person would use. Windows has no notion
+            // of a polar pattern at all, so saying the microphone is what was asked is the
+            // difference between a row that looks invented and one that looks read.
+            Subtitle = "The selector on the back, read from the microphone itself",
             Choices =
             [
                 new CapabilityChoice(0, "Stereo"),
@@ -150,6 +197,7 @@ internal sealed class HyperXConnection : IDeviceConnection
         _ = _ear.Wait(TimeSpan.FromSeconds(2));
 
         _listener.Dispose();
+        _pipe?.Dispose();
         _stop.Dispose();
     }
 }

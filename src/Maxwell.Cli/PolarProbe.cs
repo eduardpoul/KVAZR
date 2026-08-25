@@ -12,9 +12,9 @@ namespace Maxwell.Cli;
 ///
 /// A check of the new code on real hardware rather than of the hardware: everything below
 /// goes through <see cref="HyperXContributor"/> and the connection it opens, so a pass
-/// here means the page will show the same thing. The device inventory cannot do this job —
-/// it prints one snapshot at start-up, and this row is empty until somebody turns the
-/// dial, so a snapshot will always show it empty however many times it is run.
+/// here means the page will show the same thing. The device inventory cannot do this job:
+/// it prints one snapshot and then exits, which says nothing about whether the row keeps
+/// up with a hand on the dial.
 /// </summary>
 [SupportedOSPlatform("windows")]
 internal static class PolarProbe
@@ -46,7 +46,7 @@ internal static class PolarProbe
         using (connection)
         {
             Console.WriteLine($"Watching the polar selector for {seconds}s, through the application's own code.");
-            Console.WriteLine("Turn the selector on the back. Nothing is written to the device.");
+            Console.WriteLine("It should be known at once. Turn the dial to watch it follow.");
             Console.WriteLine();
 
             var clock = Stopwatch.StartNew();

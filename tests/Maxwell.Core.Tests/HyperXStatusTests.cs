@@ -128,6 +128,83 @@ public sealed class HyperXStatusTests
         Assert.True(listeners.Opened.Single().Disposed);
     }
 
+    /// <summary>
+    /// The payoff of the whole dig. The row used to be empty until somebody turned the
+    /// dial, on a page opened to look at that very row.
+    ///
+    /// The question is a replay of NGENUITY's own opening move, watched at four
+    /// milliseconds a sample, and the answer carries the selector at byte 16.
+    /// </summary>
+    [Fact]
+    public async Task OnTheWayUp_ItAsksTheMicrophoneWhereTheDialIs()
+    {
+        var listeners = new FakeListeners { Answer = Answer(2) };
+        using IDeviceConnection connection = await AttachAsync(listeners);
+
+        Assert.Equal(CapabilityValue.Of(2), await connection.ReadAsync(CapabilityIds.MicPolarPattern, Ct));
+
+        byte[] asked = Assert.Single(listeners.Pipes.Single().Asked);
+        Assert.Equal<byte[]>([0x04, 0x58, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x01], asked);
+    }
+
+    [Fact]
+    public async Task WithNoRegisterToAsk_ItStillFillsOnTheFirstTurn()
+    {
+        var listeners = new FakeListeners();
+        using IDeviceConnection connection = await AttachAsync(listeners);
+
+        // An older model, or one that will not open for writing. Worse than asking, and
+        // still a working row.
+        Assert.Empty(listeners.Pipes);
+        Assert.Equal(CapabilityValue.Absent, await connection.ReadAsync(CapabilityIds.MicPolarPattern, Ct));
+
+        listeners.Send([0x05, 0x11, 0x03, 0, 0, 0, 0, 0]);
+        await WaitFor(connection, CapabilityValue.Of(3));
+    }
+
+    [Fact]
+    public async Task AnAnswerOutOfRange_IsNotBelieved()
+    {
+        // Four positions and no more. A register answering with something else is
+        // answering a different question, and drawing it as a pattern would invent one.
+        var listeners = new FakeListeners { Answer = Answer(9) };
+        using IDeviceConnection connection = await AttachAsync(listeners);
+
+        Assert.Equal(CapabilityValue.Absent, await connection.ReadAsync(CapabilityIds.MicPolarPattern, Ct));
+    }
+
+    [Fact]
+    public async Task ADialTurnedWhileAsking_OutranksTheAnswer()
+    {
+        var listeners = new FakeListeners { Answer = Answer(0) };
+        using IDeviceConnection connection = await AttachAsync(listeners);
+
+        // The reply describes the state of a fifth of a second ago. A hand that moved the
+        // dial in the meantime is the newer fact, and the ear is already running.
+        listeners.Send([0x05, 0x11, 0x03, 0, 0, 0, 0, 0]);
+        await WaitFor(connection, CapabilityValue.Of(3));
+    }
+
+    [Fact]
+    public async Task ClosingIt_LetsGoOfTheRegisterToo()
+    {
+        var listeners = new FakeListeners { Answer = Answer(0) };
+        IDeviceConnection connection = await AttachAsync(listeners);
+
+        connection.Dispose();
+
+        Assert.True(listeners.Pipes.Single().Disposed);
+    }
+
+    /// <summary>A reply with the selector where the microphone puts it.</summary>
+    private static byte[] Answer(byte pattern)
+    {
+        byte[] reply = new byte[65];
+        reply[12] = 0x01;
+        reply[16] = pattern;
+        return reply;
+    }
+
     // ---------- fixture ----------
 
     private static async Task<IDeviceConnection> AttachAsync(FakeListeners listeners)
@@ -165,7 +242,27 @@ public sealed class HyperXStatusTests
     {
         public bool Refuse { get; init; }
 
+        /// <summary>What the register answers, or null for a device that will not be asked.</summary>
+        public byte[]? Answer { get; init; }
+
         public List<FakeListener> Opened { get; } = [];
+
+        public List<FakePipe> Pipes { get; } = [];
+
+        public IHidVendorPipe? OpenPipe(ushort vendorId, ushort usagePage)
+        {
+            Assert.Equal(0x0951, vendorId);
+
+            // The register that answers, which is a different collection from the one
+            // that announces.
+            Assert.Equal(0xFF90, usagePage);
+
+            if (Refuse || Answer is null) return null;
+
+            var pipe = new FakePipe(Answer);
+            Pipes.Add(pipe);
+            return pipe;
+        }
 
         public IHidListener? Open(ushort vendorId, ushort usagePage)
         {
@@ -186,6 +283,21 @@ public sealed class HyperXStatusTests
         {
             foreach (FakeListener listener in Opened) listener.Queue.Enqueue(report);
         }
+    }
+
+    private sealed class FakePipe(byte[] answer) : IHidVendorPipe
+    {
+        public List<byte[]> Asked { get; } = [];
+
+        public bool Disposed { get; private set; }
+
+        public byte[]? Ask(byte[] command, TimeSpan within)
+        {
+            Asked.Add(command);
+            return answer;
+        }
+
+        public void Dispose() => Disposed = true;
     }
 
     private sealed class FakeListener : IHidListener

@@ -56,7 +56,13 @@ public sealed class HyperXContributor : ICapabilityContributor
         // Recognised and there is no channel: an older model, or one whose control
         // function the operating system has not enumerated. Not an error, and not a
         // reason to hold up the rest of the device.
-        return Task.FromResult<IDeviceConnection?>(
-            listener is null ? null : new HyperXConnection(listener));
+        if (listener is null) return Task.FromResult<IDeviceConnection?>(null);
+
+        // The register that answers questions, which is a different collection from the
+        // one that announces changes. Optional: without it the row fills on the first turn
+        // of the dial rather than on the way up, which is worse and still works.
+        IHidVendorPipe? pipe = _listeners.OpenPipe(HyperXConnection.Vendor, HyperXConnection.PipePage);
+
+        return Task.FromResult<IDeviceConnection?>(new HyperXConnection(listener, pipe));
     }
 }

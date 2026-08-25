@@ -48,6 +48,17 @@ if (args.Contains("--vendor"))
         return VendorSurvey.Watch(Console.Out, vid, seconds, everyMs, args.Contains("--quiet"));
     }
 
+    // The one command this harness will send, and it is a replay of what NGENUITY was
+    // watched sending: ask the microphone what its polar selector is set to.
+    if (args.Contains("--ask"))
+    {
+        Console.WriteLine("Asking the microphone for its state. This writes one command — the");
+        Console.WriteLine("same bytes NGENUITY sends at start-up — and reads the answer back.");
+        Console.WriteLine();
+
+        return VendorSurvey.Ask(Console.Out, vid, [0x04, 0x58, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x01]);
+    }
+
     return VendorSurvey.Dump(Console.Out, vid);
 }
 
