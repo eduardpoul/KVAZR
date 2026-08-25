@@ -43,6 +43,12 @@ public sealed record PointerFacts
 
     /// <summary>How many profiles it stores on board.</summary>
     public int? Profiles { get; init; }
+
+    /// <summary>How often it reports now, in hertz.</summary>
+    public int? ReportRate { get; init; }
+
+    /// <summary>Which rates it offers on the link it is using, in hertz.</summary>
+    public IReadOnlyList<int> ReportRates { get; init; } = [];
 }
 
 /// <summary>
@@ -82,6 +88,7 @@ public static class PointerReader
             : (null, null, null, null, []);
 
         (int? buttons, int? profiles) = Profiles(channel, device);
+        (int? rate, IReadOnlyList<int> rates) = Rate(channel, device);
 
         return new PointerFacts
         {
@@ -92,6 +99,8 @@ public static class PointerReader
             Presets = presets,
             Buttons = buttons,
             Profiles = profiles,
+            ReportRate = rate,
+            ReportRates = rates,
             Serial = serial,
         };
     }
@@ -194,6 +203,55 @@ public static class PointerReader
         // The entity count, then four bytes of unit id.
         return reply is { Length: > 8 } ? Convert.ToHexString(reply.AsSpan(5, 4)) : null;
     }
+
+    /// <summary>
+    /// How often the device reports, and which rates it offers on the link it is using.
+    ///
+    /// Two halves from two places, and only one of them is knowledge held here. Which
+    /// rates exist at all is the protocol's own vocabulary — seven of them, from eight
+    /// milliseconds down to a hundred and twenty-five microseconds, in that fixed order —
+    /// and it is a dictionary rather than a device's answer. Which of the seven this mouse
+    /// offers is the device's answer, and it differs by link: the one measured here offers
+    /// four on one and all seven on the other.
+    ///
+    /// The link is not asked for, it is deduced. The device answers the same current rate
+    /// whichever link is named, so the offered list to believe is the one that contains
+    /// the rate the mouse is actually running at.
+    /// </summary>
+    private static (int? Rate, IReadOnlyList<int> Rates) Rate(WindowsHidChannel channel, byte device)
+    {
+        if (HidPlusPlusReader.FeatureIndex(channel, device, ExtendedRate) is not { } index)
+        {
+            return (null, []);
+        }
+
+        byte[]? now = HidPlusPlusReader.Ask(channel, device, index, 0x02, 0x00);
+        if (now is null || now.Length < 5 || now[4] >= Rates.Length) return (null, []);
+
+        int rate = Rates[now[4]];
+
+        foreach (byte link in (byte[])[0x00, 0x01])
+        {
+            byte[]? offered = HidPlusPlusReader.Ask(channel, device, index, 0x00, link);
+            if (offered is null || offered.Length < 6) continue;
+
+            int mask = (offered[4] << 8) | offered[5];
+            List<int> list = [.. Rates.Where((_, i) => (mask & (1 << i)) != 0)];
+
+            if (list.Contains(rate)) return (rate, list);
+        }
+
+        return (rate, []);
+    }
+
+    /// <summary>
+    /// The protocol's list of report rates, in the order its bitmap names them. A
+    /// dictionary, not a device's capabilities: which of these a given mouse offers comes
+    /// out of the mask it answers with.
+    /// </summary>
+    private static readonly int[] Rates = [125, 250, 500, 1000, 2000, 4000, 8000];
+
+    private const ushort ExtendedRate = 0x8061;
 
     /// <summary>Sixteen-bit words out of a reply, from the given payload offset, until a zero.</summary>
     private static List<int> Values(byte[]? reply, int skip)

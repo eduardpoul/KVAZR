@@ -88,6 +88,20 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
             });
         }
 
+        if (facts is { ReportRate: not null, ReportRates.Count: > 1 })
+        {
+            rows.Add(new Capability
+            {
+                Id = CapabilityIds.PointerReportRate,
+                Domain = CapabilityDomain.Pointing,
+                Primitive = CapabilityPrimitive.Choice,
+                Title = "Report rate",
+                Subtitle = "How often the mouse tells the computer where it is",
+                Access = CapabilityAccess.Read,
+                Choices = [.. facts.ReportRates.Select(hz => new CapabilityChoice(hz, $"{hz} Hz"))],
+            });
+        }
+
         if (facts.Buttons is not null)
         {
             rows.Add(new Capability
@@ -182,6 +196,9 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
         {
             case CapabilityIds.PointerDpi:
                 return _facts.Dpi is { } dpi ? CapabilityValue.Of(dpi) : CapabilityValue.Absent;
+
+            case CapabilityIds.PointerReportRate:
+                return _facts.ReportRate is { } rate ? CapabilityValue.Choice(rate) : CapabilityValue.Absent;
 
             case CapabilityIds.ButtonsCount:
                 return _facts.Buttons is { } buttons ? CapabilityValue.Of(buttons) : CapabilityValue.Absent;

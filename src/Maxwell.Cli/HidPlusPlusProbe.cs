@@ -200,6 +200,7 @@ internal static class HidPlusPlusProbe
         foreach (string line in listed) Console.WriteLine($"              {line}");
 
         Resolution(channel, device);
+        Rate(channel, device);
 
         if (Environment.GetCommandLineArgs().Contains("--deep")) Sweep(channel, device, indexed);
     }
@@ -298,6 +299,44 @@ internal static class HidPlusPlusProbe
 
     /// <summary>Adjustable resolution, the extended flavour — what this mouse declares.</summary>
     private const ushort ExtendedResolution = 0x2202;
+
+    /// <summary>
+    /// The report rate, asked the same way and for the same reason: what rates it offers
+    /// is the device's answer, not a list anybody types out.
+    /// </summary>
+    private static void Rate(WindowsHidChannel channel, byte device)
+    {
+        if (Index(channel, device, ExtendedRate) is not { } feature) return;
+
+        Console.WriteLine($"            0x8061 at index {feature}:");
+
+        foreach ((string what, byte function, byte[] parameters) in
+                 new (string, byte, byte[])[]
+                 {
+                     ("rates offered, link 0", 0x00, [0x00]),
+                     ("rates offered, link 1", 0x00, [0x01]),
+                     ("rate now, link 0", 0x02, [0x00]),
+                     ("rate now, link 1", 0x02, [0x01]),
+                 })
+        {
+            byte[]? reply = Ask(
+                channel,
+                HidPlusPlus.Request(channel.OutputLength, device, feature, function, parameters),
+                device,
+                feature,
+                function);
+
+            string said = reply is null
+                ? "нет ответа"
+                : HidPlusPlus.IsError(reply)
+                    ? HidPlusPlus.Explain(reply)
+                    : Convert.ToHexString(reply.AsSpan(4, reply.Length - 4));
+
+            Console.WriteLine($"              {what,-24} {said}");
+        }
+    }
+
+    private const ushort ExtendedRate = 0x8061;
 
     /// <summary>The feature that lists the features.</summary>
     private const ushort FeatureSet = 0x0001;

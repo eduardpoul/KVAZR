@@ -92,6 +92,8 @@ public static class CapabilityIds
     public const string PointerDpi = "pointer.dpi";
     public const string PointerDpiXy = "pointer.dpi_xy";
     public const string PointerReportRate = "pointer.report_rate";
+
+    /// <summary>The sensor's own resolution, as against the pointer speed Windows keeps.</summary>
     public const string ButtonsMap = "buttons.map";
 
     /// <summary>How many buttons a pointer actually has, where the device will say.</summary>
