@@ -168,20 +168,28 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
 
             if (Address is { } address) facts.Add(new DeviceFact(Maxwell.App.Localization.Localizer.Current["fact.address", "Address"], address));
 
-            facts.Add(new DeviceFact(
-                Maxwell.App.Localization.Localizer.Current["fact.class", "Device class"],
-                Snapshot.Info.Class == DeviceClass.Unknown ? Maxwell.App.Localization.Localizer.Current.Say("not established") : ClassName));
+            // Only when it is known. A row reading "not established" is this application
+            // reporting on itself, and the reader came here to learn about a device.
+            if (Snapshot.Info.Class != DeviceClass.Unknown)
+            {
+                facts.Add(new DeviceFact(
+                    Maxwell.App.Localization.Localizer.Current["fact.class", "Device class"], ClassName));
+            }
 
             foreach (string id in Snapshot.Info.HardwareIds.Where(i => i.StartsWith("usb:", StringComparison.Ordinal)))
             {
                 facts.Add(new DeviceFact(Maxwell.App.Localization.Localizer.Current["fact.usb_id", "USB identifier"], id[4..].ToUpperInvariant()));
             }
 
-            facts.Add(new DeviceFact(
-                Maxwell.App.Localization.Localizer.Current["fact.catalogue", "Catalogue entry"],
-                Snapshot.Info.ImageKey is { Length: > 0 } slug
-                    ? slug
-                    : Maxwell.App.Localization.Localizer.Current["fact.catalogue.none", "none — showing what the system knows"]));
+            // The same, for the same reason. "Catalogue entry: none" tells the reader
+            // that this application has not heard of their device, which is true and is
+            // none of their business — the page beneath already shows exactly what is
+            // known, with or without a catalogue behind it.
+            if (Snapshot.Info.ImageKey is { Length: > 0 } slug)
+            {
+                facts.Add(new DeviceFact(
+                    Maxwell.App.Localization.Localizer.Current["fact.catalogue", "Catalogue entry"], slug));
+            }
 
             return facts;
         }

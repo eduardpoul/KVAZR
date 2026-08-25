@@ -196,7 +196,47 @@ internal static class HidPlusPlusProbe
         Console.WriteLine($"            {listed.Count} features:");
 
         foreach (string line in listed) Console.WriteLine($"              {line}");
+
+        Resolution(channel, device);
     }
+
+    /// <summary>
+    /// What the resolution feature answers to its first three questions.
+    ///
+    /// Functions 0, 1 and 2 and no further, and that bound is the point rather than
+    /// caution for its own sake. There are two resolution features in HID++ and this
+    /// prints raw bytes precisely because it is not yet known which layout this device
+    /// speaks — but in both of them the first three functions are questions, and the
+    /// setter is further down the list. Guessing one function too far on a mouse means
+    /// changing somebody's resolution to find out what the number meant.
+    /// </summary>
+    private static void Resolution(WindowsHidChannel channel, byte device)
+    {
+        if (Index(channel, device, ExtendedResolution) is not { } feature) return;
+
+        Console.WriteLine($"            0x2202 at index {feature}, asked its first three questions:");
+
+        for (byte function = 0; function <= 2; function++)
+        {
+            byte[]? reply = Ask(
+                channel,
+                HidPlusPlus.Request(channel.OutputLength, device, feature, function),
+                device,
+                feature,
+                function);
+
+            string said = reply is null
+                ? "нет ответа"
+                : HidPlusPlus.IsError(reply)
+                    ? HidPlusPlus.Explain(reply)
+                    : Convert.ToHexString(reply.AsSpan(4, Math.Min(12, reply.Length - 4)));
+
+            Console.WriteLine($"              fn {function}  {said}");
+        }
+    }
+
+    /// <summary>Adjustable resolution, the extended flavour — what this mouse declares.</summary>
+    private const ushort ExtendedResolution = 0x2202;
 
     /// <summary>The feature that lists the features.</summary>
     private const ushort FeatureSet = 0x0001;
