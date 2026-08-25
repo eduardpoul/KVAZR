@@ -45,7 +45,7 @@ if (args.Contains("--vendor"))
 
         int everyMs = int.TryParse(ValueAfter(args, "--ms"), out int rate) ? Math.Max(1, rate) : 250;
 
-        return VendorSurvey.Watch(Console.Out, vid, seconds, everyMs);
+        return VendorSurvey.Watch(Console.Out, vid, seconds, everyMs, args.Contains("--quiet"));
     }
 
     return VendorSurvey.Dump(Console.Out, vid);

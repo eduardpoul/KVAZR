@@ -203,7 +203,7 @@ public static class VendorSurvey
     ///
     /// Read-only at any rate. Nothing is written at any point.
     /// </summary>
-    public static int Watch(TextWriter writer, ushort vendorId, int seconds, int everyMs = 250)
+    public static int Watch(TextWriter writer, ushort vendorId, int seconds, int everyMs = 250, bool quiet = false)
     {
         ArgumentNullException.ThrowIfNull(writer);
 
@@ -232,6 +232,8 @@ public static class VendorSurvey
                     if (last.TryGetValue(ear.Tag, out string? before) && before == now) continue;
 
                     last[ear.Tag] = now;
+
+                    if (quiet && IsChatter(now)) continue;
                     writer.WriteLine($"  {clock.Elapsed.TotalSeconds,5:0.0}s  {ear.Tag}  {now}");
                 }
 
@@ -247,6 +249,24 @@ public static class VendorSurvey
             foreach (Ear ear in ears) ear.Dispose();
         }
     }
+
+    /// <summary>
+    /// Frames that are known and boring, so a search for the unknown one is possible.
+    ///
+    /// The QuadCast's lighting is painted from the host at three frames a second and each
+    /// frame passes through the same register a request would, which buries any exchange
+    /// between the maker's software and the device in a thousand lines of rainbow. Three
+    /// shapes account for all of it: the display header, a pair of colours, and the value
+    /// the register holds when it is idle.
+    ///
+    /// A list of what to ignore rather than of what to keep, deliberately. The thing being
+    /// looked for is by definition not yet known, and a filter that kept only recognised
+    /// shapes would hide it.
+    /// </summary>
+    private static bool IsChatter(string frame) =>
+        frame.StartsWith("00 04 F2", StringComparison.Ordinal)
+        || frame.StartsWith("00 81", StringComparison.Ordinal)
+        || frame.StartsWith("00 00 00 00 FF  (+60", StringComparison.Ordinal);
 
     /// <summary>Every report of every collection that will answer a read, opened once.</summary>
     private static IEnumerable<Ear> Open(ushort vendorId)
