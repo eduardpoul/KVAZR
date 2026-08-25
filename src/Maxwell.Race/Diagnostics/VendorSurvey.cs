@@ -195,9 +195,15 @@ public static class VendorSurvey
     /// is in that answer is the whole question, and nothing but a dial in somebody's hand
     /// will settle it.
     ///
-    /// Read-only, four times a second. Nothing is written at any point.
+    /// The rate matters more than it looks. Four times a second is fine for a dial in
+    /// somebody's hand and far too slow for a conversation between two pieces of
+    /// software: a request written into a feature register and the answer read back out
+    /// of it can be over in a few milliseconds, and at 250 ms it is invisible. Hence the
+    /// interval, which is what turns this from a state watcher into an eavesdropper.
+    ///
+    /// Read-only at any rate. Nothing is written at any point.
     /// </summary>
-    public static int Watch(TextWriter writer, ushort vendorId, int seconds)
+    public static int Watch(TextWriter writer, ushort vendorId, int seconds, int everyMs = 250)
     {
         ArgumentNullException.ThrowIfNull(writer);
 
@@ -209,8 +215,8 @@ public static class VendorSurvey
             return 1;
         }
 
-        writer.WriteLine($"Polling {ears.Count} report(s) for {seconds}s. Nothing is written.");
-        writer.WriteLine("Turn the selector on the back, slowly, through every position.");
+        writer.WriteLine(
+            $"Polling {ears.Count} report(s) for {seconds}s, every {everyMs} ms. Nothing is written.");
         writer.WriteLine();
 
         try
@@ -229,7 +235,7 @@ public static class VendorSurvey
                     writer.WriteLine($"  {clock.Elapsed.TotalSeconds,5:0.0}s  {ear.Tag}  {now}");
                 }
 
-                Thread.Sleep(250);
+                Thread.Sleep(everyMs);
             }
 
             writer.WriteLine();

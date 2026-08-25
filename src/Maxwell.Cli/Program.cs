@@ -43,16 +43,14 @@ if (args.Contains("--vendor"))
     {
         int seconds = int.TryParse(ValueAfter(args, "--watch"), out int held) ? held : 60;
 
-        return VendorSurvey.Watch(Console.Out, vid, seconds);
+        int everyMs = int.TryParse(ValueAfter(args, "--ms"), out int rate) ? Math.Max(1, rate) : 250;
+
+        return VendorSurvey.Watch(Console.Out, vid, seconds, everyMs);
     }
 
     return VendorSurvey.Dump(Console.Out, vid);
 }
 
-// What is actually paired behind a Logitech receiver. Read-only.
-// The guided dig: a script of things to do to the microphone, with every channel
-// listened to and the lighting pipe polled, so each report lands under the step that
-// caused it. Passive.
 // The polar selector, read through the contributor the application uses. The device
 // inventory cannot show this: it prints one snapshot and the row is empty until the
 // dial moves.
@@ -62,12 +60,17 @@ if (args.Contains("--polar"))
         int.TryParse(ValueAfter(args, "--polar"), out int watched) ? watched : 40).ConfigureAwait(false);
 }
 
+// The guided dig: a script of things to do to the microphone, with every channel
+// listened to and the lighting pipe polled, so each report lands under the step that
+// caused it. --patterns names the selector's icons; --ngenuity watches the maker's own
+// software drive the device. Passive throughout.
 if (args.Contains("--quadcast"))
 {
     return QuadCastProbe.Run(
         ValueAfter(args, "--log"), args.Contains("--patterns"), args.Contains("--ngenuity"));
 }
 
+// What is actually paired behind a Logitech receiver. Read-only.
 if (args.Contains("--hidpp")) return HidPlusPlusProbe.Run();
 if (args.Contains("--xinput")) return XInputProbe.Run();
 if (args.Contains("--audio")) return AudioProbe.Run();
