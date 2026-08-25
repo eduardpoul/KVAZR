@@ -22,6 +22,10 @@ internal static class PointerProbe
         List<HidInterface> all = [.. new WindowsHidEnumerator().EnumerateAll()];
         List<HidInterface> pointers = [.. all.Where(PointerSurvey.IsPointer)];
 
+        Dictionary<string, RawPointer> windows = RawInputPointers.Enumerate()
+            .GroupBy(p => RawPointer.Key(p.Path), StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.Ordinal);
+
         Console.WriteLine("[pointers] What every mouse on this machine declares");
         Console.WriteLine();
 
@@ -60,6 +64,16 @@ internal static class PointerProbe
                               + $"{(facts.HasTilt ? ", tilts" : string.Empty)}");
 
             Console.WriteLine($"      write     {PointerSurvey.WriteTest(face)}");
+
+            // Windows' own account of the same device, which is the other universal
+            // source and the only one that states a button count and a report rate
+            // rather than passing on what the device declared.
+            if (windows.TryGetValue(RawPointer.Key(face.Path), out RawPointer? raw))
+            {
+                Console.WriteLine(
+                    $"      windows   buttons {raw.Buttons}  rate {raw.SampleRate}"
+                    + $"  horizontal wheel {(raw.HasHorizontalWheel ? "yes" : "no")}");
+            }
 
             // The rest of the same device. A mouse's settings, where it has any without a
             // vendor protocol, live on a sibling collection rather than on the one the
