@@ -103,10 +103,13 @@
 
   @if (Vm.HasNothingToChange)
   {
-    <div class="notice">
-      <span class="notice-dot"></span>
-      <span>@T.Say("Windows sees the device, but it answers none of the requests we know. There is nothing to set — below is everything that could be read.")</span>
-    </div>
+    @* No notice above this any more.
+
+       It said that Windows could see the device, that it answered nothing we know how
+       to ask, and that there was therefore nothing to set. Every clause was about this
+       application rather than about the device, and the heading under it already says
+       what the page holds. A paragraph explaining why a page is short is longer than
+       the page. *@
 
     <div class="group">
       <div class="group-head"><span class="group-heading">@T["device.what_was_read", "WHAT COULD BE READ"]</span></div>

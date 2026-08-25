@@ -381,7 +381,6 @@
   "Shown with what the system knows about them: name, class, connection and charge, if the device reports one": "Показываются тем, что о них знает система: имя, класс, подключение и заряд, если устройство его сообщает",
   "Nothing to set: the device gives only what the row already shows.": "Настраивать нечего: устройство отдаёт только то, что уже в строке.",
   "The device is not connected. The last known readings are shown": "Устройство не подключено. Показаны последние известные значения",
-  "Windows sees the device, but it answers none of the requests we know. There is nothing to set — below is everything that could be read.": "Устройство подключено на уровне Windows, но не отвечает ни на один известный запрос. Настраивать нечего — ниже всё, что удалось прочитать.",
   "Connected over Bluetooth: only the charge is available. Settings work over the dongle or the cable": "Подключено по Bluetooth: доступен только заряд. Настройка работает через донгл или кабель",
   "The headset is not answering. Switch it on or bring it closer — control works over the dongle and over the cable alike": "Наушники не отвечают. Включите их или поднесите ближе — управление работает и по донглу, и по кабелю",
   "Over the dongle the keyboard gives neither charge nor VIA — layout, layers and lighting are edited over the cable.": "Через донгл клавиатура не отдаёт ни заряд, ни VIA — раскладку, слои и подсветку правят по кабелю.",

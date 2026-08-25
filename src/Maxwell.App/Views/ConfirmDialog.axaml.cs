@@ -9,8 +9,6 @@ namespace Maxwell.App.Views;
 /// <summary>Modal question for a capability whose write cannot be taken back.</summary>
 public partial class ConfirmDialog : Window
 {
-    private bool _accepted;
-
     public ConfirmDialog()
     {
         // There used to be a hand-written InitializeComponent() beside this call. The
@@ -50,20 +48,19 @@ public partial class ConfirmDialog : Window
         });
     }
 
-    private void OnConfirm(object? sender, RoutedEventArgs e)
-    {
-        _accepted = true;
-        Close(true);
-    }
+    private void OnConfirm(object? sender, RoutedEventArgs e) => Close(true);
 
     private void OnCancel(object? sender, RoutedEventArgs e) => Close(false);
 
-    protected override void OnClosing(WindowClosingEventArgs e)
-    {
-        // Dismissed any other way — Escape, the close button — is a refusal.
-        if (!_accepted) Close(false);
-
-        base.OnClosing(e);
-    }
-
+    // No OnClosing override, and that is the fix rather than a simplification.
+    //
+    // There was one, and it called Close(false) whenever the dialog had not been
+    // confirmed — from inside the closing pass, which is to say it started a second
+    // close while the first was still running. Pressing Cancel went through it, and
+    // the process went away without a word: the kind of failure that leaves no dialog
+    // and no log because the stack is gone.
+    //
+    // What it was for is already true. A dialog dismissed any other way — Escape, the
+    // close button, Cancel — leaves ShowDialog<bool> with the default of its result
+    // type, and the default of a bool is no.
 }
