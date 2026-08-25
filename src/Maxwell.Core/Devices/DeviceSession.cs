@@ -636,23 +636,29 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
     /// </summary>
     private async Task<bool> AnswersAsync(CancellationToken cancellationToken)
     {
-        // The device's own driver first, and the battery first within that.
+        // Where the device's own driver reads a battery, that reading decides on its own.
         //
-        // The order carries a meaning that was lost when this learned to ask more than one
-        // question. "Answering" is about the thing the page is built on: a headset asleep
-        // on its dongle has a working set of Windows audio endpoints and a silent RACE
-        // channel, and asking the endpoints first calls it awake. It then gets its one
-        // full read while it is still asleep, and every row the vendor protocol supplies
-        // stays empty for as long as it stays attached.
-        List<string> probes =
-        [
-            .. _states.Values
-                .Where(s => s.Descriptor.IsReadable && _owner.ContainsKey(s.Id))
-                .OrderBy(s => ReferenceEquals(_owner[s.Id], _connection) ? 0 : 1)
-                .ThenBy(s => s.Id == CapabilityIds.PowerBattery ? 0 : 1)
-                .Select(s => s.Id)
-                .Take(Probes),
-        ];
+        // It is the one question every such device answers and the one that cannot be
+        // answered from memory. Asking anything else as well sounds harmless and is not: a
+        // firmware version is read once and returned from a field ever after, and a
+        // headset switched off on its dongle went on answering it for as long as the
+        // dongle stayed in. Nothing else moved either — not the battery, not the volume —
+        // and the page sat there claiming ninety-four per cent of a headset in a drawer.
+        //
+        // Only a device with no battery of its own falls through to the rest, which is
+        // where asking more than one question earns its place: a microphone's page is
+        // built from rows that are legitimately empty until something happens to them, and
+        // one of those must not condemn the other five.
+        List<string> probes = _owner.TryGetValue(CapabilityIds.PowerBattery, out IDeviceConnection? charge)
+            && ReferenceEquals(charge, _connection)
+                ? [CapabilityIds.PowerBattery]
+                : [
+                    .. _states.Values
+                        .Where(s => s.Descriptor.IsReadable && _owner.ContainsKey(s.Id))
+                        .OrderBy(s => ReferenceEquals(_owner[s.Id], _connection) ? 0 : 1)
+                        .Select(s => s.Id)
+                        .Take(Probes),
+                ];
 
         // Nothing readable to ask. Being open is the best evidence available.
         if (probes.Count == 0) return true;

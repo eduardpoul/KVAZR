@@ -145,6 +145,32 @@ public sealed class DeviceSessionTests
     /// happened: a Maxwell switched on beside a running application had no volume, no
     /// battery and no auto-off, and unplugging the dongle was the only cure.
     /// </summary>
+    /// <summary>
+    /// A headset switched off on its dongle went on reading as awake, because the probe
+    /// was asking more than one question and one of the answers came from memory: a
+    /// firmware version is read once and returned from a field ever after.
+    ///
+    /// So where a device's own driver reads a battery, that reading decides alone. It is
+    /// the one question every such device answers and the one that cannot be answered
+    /// without touching it.
+    /// </summary>
+    [Fact]
+    public async Task ABatteryThatSaysNothing_IsDecisive_HoweverManyCachedRowsAnswer()
+    {
+        var fixture = new Fixture();
+        DeviceSession session = fixture.CreateSession();
+        await session.MarkPresentAsync(fixture.Info, Ct);
+
+        Assert.Equal(DeviceAvailability.Active, session.Snapshot.Availability);
+
+        // The headset goes to sleep: its battery stops answering while everything read
+        // from a field goes on answering exactly as before.
+        fixture.Connection.Values.Remove(CapabilityIds.PowerBattery);
+        await session.MarkPresentAsync(fixture.Info, Ct);
+
+        Assert.Equal(DeviceAvailability.Unreachable, session.Snapshot.Availability);
+    }
+
     [Fact]
     public async Task ADriverThatSaysNothing_IsSilentHoweverLoudItsContributorsAre()
     {
@@ -412,6 +438,7 @@ public sealed class DeviceSessionTests
 
         public Dictionary<string, CapabilityValue> Values { get; } = new(StringComparer.Ordinal)
         {
+            [CapabilityIds.PowerBattery] = CapabilityValue.Of(94),
             [Plain] = CapabilityValue.Of(3),
             [Ceiling] = CapabilityValue.Of(31),
             [Ranged] = CapabilityValue.Of(9),
@@ -425,6 +452,17 @@ public sealed class DeviceSessionTests
 
         public IReadOnlyList<Capability> Capabilities { get; } =
         [
+            // Every real device has one, and it is what the liveness probe is built
+            // around: the one question that cannot be answered out of a field.
+            new()
+            {
+                Id = CapabilityIds.PowerBattery,
+                Domain = CapabilityDomain.Power,
+                Primitive = CapabilityPrimitive.Readout,
+                Access = CapabilityAccess.Read,
+                Title = "Battery",
+                Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
+            },
             new()
             {
                 Id = Plain,
