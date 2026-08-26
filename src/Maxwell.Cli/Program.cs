@@ -245,7 +245,28 @@ if (args.Contains("--eqpush"))
 }
 
 if (args.Contains("--eq")) return await EqProbe.RunAsync().ConfigureAwait(false);
-if (args.Contains("--airpods")) return AirPodsProbe.Run();
+if (args.Contains("--aapmatrix"))
+{
+    string who = ValueAfter(args, "--aapmatrix") ?? "6093160A369F";
+
+    return ulong.TryParse(who, NumberStyles.HexNumber, null, out ulong which)
+        ? AapProbe.Matrix(which)
+        : 1;
+}
+
+if (args.Contains("--aap"))
+{
+    return AapProbe.Run(
+        ValueAfter(args, "--aap") ?? "6093160A369F",
+        int.TryParse(ValueAfter(args, "--for"), out int held) ? held : 12,
+        !args.Contains("--all"));
+}
+
+if (args.Contains("--airpods"))
+{
+    return AirPodsProbe.Run(int.TryParse(ValueAfter(args, "--airpods"), out int listen) ? listen : 12);
+}
+
 if (args.Contains("--live"))
 {
     return LiveProbe.Run(int.TryParse(ValueAfter(args, "--live"), out int held) ? held : 30);
