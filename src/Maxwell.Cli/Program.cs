@@ -113,6 +113,16 @@ if (args.Contains("--quadcast"))
 
 // What is actually paired behind a Logitech receiver. Read-only.
 if (args.Contains("--pointers")) return PointerProbe.Run();
+if (args.Contains("--crosstalk"))
+{
+    return CrossTalkProbe.Run(int.TryParse(ValueAfter(args, "--crosstalk"), out int laps) ? laps : 40);
+}
+
+if (args.Contains("--names"))
+{
+    return NameProbe.Run(int.TryParse(ValueAfter(args, "--names"), out int rounds) ? rounds : 10);
+}
+
 if (args.Contains("--driverdpi"))
 {
     return ProfileProbe.Driver(int.TryParse(ValueAfter(args, "--driverdpi"), out int want3) ? want3 : 1600);

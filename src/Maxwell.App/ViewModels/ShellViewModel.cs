@@ -161,6 +161,17 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     public bool HasSelectedDevice => CurrentPage is DevicePageViewModel;
 
     /// <summary>
+    /// Whether the page is showing the device entire rather than one of its sections.
+    ///
+    /// A rail that can only narrow is a rail with no way back. Picking "Pointer" put the
+    /// mouse's other sections out of reach without leaving the device and coming in
+    /// again — the list highlights one row and a ListBox does not let go of it. So the
+    /// sections have a row above them standing for all of them, and this is what marks
+    /// that row as the one you are on.
+    /// </summary>
+    public bool IsWholeDevice => CurrentPage is DevicePageViewModel { Section: null };
+
+    /// <summary>
     /// The third shape: the application's own pages. The artboards only ever show this
     /// group while one of those pages is open — from the dashboard the way in is the
     /// pinned row at the foot of the pane, not a list of settings competing with the
@@ -199,6 +210,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
 
             page.Section = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(IsWholeDevice));
             OnPropertyChanged(nameof(HeaderTitle));
         }
     }
@@ -228,6 +240,9 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     private static Localization.Localizer Text => Localization.Localizer.Current;
 
     public string AllDevices => Text["rail.all_devices", "All devices"];
+
+    /// <summary>The row above the sections, which is all of them at once.</summary>
+    public string WholeDevice => Text["rail.whole_device", "All sections"];
 
     public string ConnectedHeader => Text["dash.connected", "CONNECTED"];
 
@@ -390,6 +405,14 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// Back from one section to the device entire. The way in is a list that highlights
+    /// what it opened, and a list cannot un-highlight itself — so this is the row that
+    /// does it.
+    /// </summary>
+    [RelayCommand]
+    private void ShowWholeDevice() => SelectedSection = null;
+
     [RelayCommand]
     private void ShowDashboard()
     {
@@ -460,6 +483,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedDeviceHeading));
         OnPropertyChanged(nameof(DeviceSections));
         OnPropertyChanged(nameof(SelectedSection));
+        OnPropertyChanged(nameof(IsWholeDevice));
     }
 
     private DevicePageViewModel? PageFor(string deviceKey)

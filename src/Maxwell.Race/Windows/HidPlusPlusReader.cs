@@ -118,8 +118,8 @@ public static class HidPlusPlusReader
 
     private static byte[]? Ping(WindowsHidChannel channel, byte device) =>
         channel.Request(
-            HidPlusPlus.Ping(channel.OutputLength, device),
-            reply => HidPlusPlus.Answers(reply, device, HidPlusPlus.RootIndex, 0x01),
+            HidPlusPlus.Ping(channel.OutputLength, device, channel.SoftwareId),
+            reply => HidPlusPlus.Answers(reply, device, HidPlusPlus.RootIndex, 0x01, channel.SoftwareId),
             WakeWait);
 
     private static string? Name(WindowsHidChannel channel, byte device)
@@ -146,7 +146,15 @@ public static class HidPlusPlusReader
             }
         }
 
-        return name.Length > 0 ? name.ToString() : null;
+        // And it has to look like a name. This is a net under the software id above
+        // rather than a second cure: nothing of ours can take another reader's answer any
+        // more, but another program signing its requests the way this channel happens to
+        // is not something we can prevent — and what arrives then is not a name, it is
+        // some other reading spelt out as characters. A model name is printable text; a
+        // byte below a space never is.
+        string read = name.ToString();
+
+        return read.Length >= 3 && read.All(c => c is >= ' ' and <= '~') ? read : null;
     }
 
     private static Kind? Type(WindowsHidChannel channel, byte device)
@@ -177,8 +185,8 @@ public static class HidPlusPlusReader
     private static byte? Index(WindowsHidChannel channel, byte device, ushort feature)
     {
         byte[]? reply = channel.Request(
-            HidPlusPlus.GetFeature(channel.OutputLength, device, feature),
-            r => HidPlusPlus.Answers(r, device, HidPlusPlus.RootIndex, 0x00),
+            HidPlusPlus.GetFeature(channel.OutputLength, device, feature, channel.SoftwareId),
+            r => HidPlusPlus.Answers(r, device, HidPlusPlus.RootIndex, 0x00, channel.SoftwareId),
             Wait);
 
         if (reply is null || HidPlusPlus.IsError(reply) || reply[4] == 0) return null;
@@ -189,7 +197,7 @@ public static class HidPlusPlusReader
     private static byte[]? Put(
         WindowsHidChannel channel, byte device, byte feature, byte function, params byte[] parameters) =>
         channel.Request(
-            HidPlusPlus.Request(channel.OutputLength, device, feature, function, parameters),
-            reply => HidPlusPlus.Answers(reply, device, feature, function),
+            HidPlusPlus.Request(channel.OutputLength, device, feature, function, channel.SoftwareId, parameters),
+            reply => HidPlusPlus.Answers(reply, device, feature, function, channel.SoftwareId),
             Wait);
 }

@@ -45,7 +45,24 @@ public sealed class WindowsHidChannel : IDisposable
 
         InputLength = inputLength;
         OutputLength = outputLength;
+
+        // One to fifteen, cycling. Zero is the device's own, for what it says unprompted.
+        SoftwareId = (byte)((Interlocked.Increment(ref _opened) % 15) + 1);
     }
+
+    private static int _opened;
+
+    /// <summary>
+    /// Who this channel is, in the one nibble HID++ gives a reader to sign its requests
+    /// with.
+    ///
+    /// The lock below keeps two requests on one channel from overlapping. It cannot keep
+    /// two channels apart, and two channels on one device is the normal case here — the
+    /// driver opens one to look a device over while the poller opens another to read it,
+    /// and every report the device sends arrives on both handles. Signed with the same
+    /// nibble, their requests are indistinguishable and so are the answers.
+    /// </summary>
+    public byte SoftwareId { get; }
 
     /// <summary>Diagnostics for the probe: a write that never left is a different fault
     /// from a device that never answered, and from outside they look the same.</summary>

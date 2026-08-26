@@ -27,8 +27,27 @@ public static class HidPlusPlus
     /// Marks our requests so a reply can be told from another application's. Any non-zero
     /// nibble does; zero is reserved for notifications the device sends unprompted, which
     /// is exactly the traffic that has to be filtered out.
+    ///
+    /// One number for the whole application is not enough, and the reason cost a day.
+    /// Telling our traffic from G HUB's was never the hard part: the hard part is telling
+    /// our traffic from our own. A feature lookup names the feature it wants in the
+    /// request and the answer carries no echo of it — so two lookups in flight at once are
+    /// identical questions with interchangeable answers, and each reader takes whichever
+    /// arrives first. Measured on a live mouse, forty races swapped forty times. What it
+    /// cost on screen was a mouse named "Logitech b" with a control character after it:
+    /// the name lookup had been handed the battery's index, so the name was read out of
+    /// the charge reading — 98%, which is the letter b.
+    ///
+    /// So this is the floor rather than the answer. Each channel takes an id of its own
+    /// from <see cref="Marked"/>, which is what the nibble is for.
     /// </summary>
     public const byte SoftwareId = 0x05;
+
+    /// <summary>
+    /// The function byte: which function in the high nibble, who is asking in the low one.
+    /// </summary>
+    public static byte Marked(byte function, byte softwareId) =>
+        (byte)((function << 4) | (softwareId & 0x0F));
 
     // Features, by their published ids.
     public const ushort FeatureRoot = 0x0000;
@@ -62,12 +81,19 @@ public static class HidPlusPlus
     {
         ArgumentNullException.ThrowIfNull(parameters);
 
+        return Request(size, device, feature, function, SoftwareId, parameters);
+    }
+
+    /// <summary>The same, signed by the reader that is asking rather than by the application.</summary>
+    public static byte[] Request(
+        int size, byte device, byte feature, byte function, byte softwareId, ReadOnlySpan<byte> parameters)
+    {
         byte[] report = new byte[size];
 
         report[0] = size >= 20 ? LongReport : ShortReport;
         report[1] = device;
         report[2] = feature;
-        report[3] = (byte)((function << 4) | SoftwareId);
+        report[3] = Marked(function, softwareId);
 
         for (int i = 0; i < parameters.Length && i + 4 < report.Length; i++) report[i + 4] = parameters[i];
 
@@ -79,7 +105,11 @@ public static class HidPlusPlus
     /// volunteered. Errors count as answers: they are the device saying no to this
     /// question, and treating them as noise would mean waiting out the timeout instead.
     /// </summary>
-    public static bool Answers(byte[] reply, byte device, byte feature, byte function)
+    public static bool Answers(byte[] reply, byte device, byte feature, byte function) =>
+        Answers(reply, device, feature, function, SoftwareId);
+
+    /// <summary>The same, for a reader that signed its request with an id of its own.</summary>
+    public static bool Answers(byte[] reply, byte device, byte feature, byte function, byte softwareId)
     {
         ArgumentNullException.ThrowIfNull(reply);
 
@@ -88,7 +118,7 @@ public static class HidPlusPlus
 
         if (IsError(reply)) return true;
 
-        return reply[2] == feature && reply[3] == (byte)((function << 4) | SoftwareId);
+        return reply[2] == feature && reply[3] == Marked(function, softwareId);
     }
 
     public static bool IsError(byte[] reply)
@@ -104,14 +134,26 @@ public static class HidPlusPlus
     /// different index on a mouse and on the keyboard beside it.
     /// </summary>
     public static byte[] GetFeature(int size, byte device, ushort feature) =>
-        Request(size, device, RootIndex, 0x00, (byte)(feature >> 8), (byte)(feature & 0xFF));
+        GetFeature(size, device, feature, SoftwareId);
+
+    /// <summary>
+    /// The same, signed. This is the request the whole software id exists for: it is the
+    /// one question whose answer says nothing about what was asked, so two of them at once
+    /// can only be told apart by who signed them.
+    /// </summary>
+    public static byte[] GetFeature(int size, byte device, ushort feature, byte softwareId) =>
+        Request(size, device, RootIndex, 0x00, softwareId, [(byte)(feature >> 8), (byte)(feature & 0xFF)]);
 
     /// <summary>
     /// A ping, and the only reliable way to tell an occupied pairing slot from an empty
     /// one: an unpaired slot answers nothing at all, and a device that is merely asleep
     /// answers an error rather than silence.
     /// </summary>
-    public static byte[] Ping(int size, byte device) => Request(size, device, RootIndex, 0x01, 0x00, 0x00, 0xAA);
+    public static byte[] Ping(int size, byte device) => Ping(size, device, SoftwareId);
+
+    /// <summary>The same, signed.</summary>
+    public static byte[] Ping(int size, byte device, byte softwareId) =>
+        Request(size, device, RootIndex, 0x01, softwareId, [0x00, 0x00, 0xAA]);
 
     /// <summary>
     /// What the device said no about. The two error dialects put the code in different

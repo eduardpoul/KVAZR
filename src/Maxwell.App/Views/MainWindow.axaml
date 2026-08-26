@@ -207,6 +207,32 @@
                      IsVisible="{Binding HasSelectedDevice}"
                      Text="{Binding SelectedDeviceHeading}" />
 
+          <!-- All of them, above the one of them.
+               The sections are a ListBox and a ListBox holds on to the row it opened:
+               clicking it again does not let go, so once a section was picked the rest of
+               the page could only be got back to by leaving the device and coming in
+               again. This is the row that lets go. -->
+          <Button Classes="railRow"
+                  IsVisible="{Binding HasSelectedDevice}"
+                  Classes.current="{Binding IsWholeDevice}"
+                  Command="{Binding ShowWholeDeviceCommand}">
+            <Grid>
+              <!-- Pinned to the row's edge rather than to the text's inset, so it lines
+                   up with the mark the list draws on the section below it. -->
+              <Rectangle HorizontalAlignment="Left" VerticalAlignment="Center"
+                         IsVisible="{Binding IsWholeDevice}"
+                         Width="{DynamicResource RailMarkWidth}"
+                         Height="{DynamicResource RailMarkHeight}"
+                         RadiusX="{DynamicResource RailMarkRadius}"
+                         RadiusY="{DynamicResource RailMarkRadius}"
+                         Fill="{DynamicResource AccentPrimaryBrush}" />
+
+              <!-- The same twelve as the section rows, so the two read as one list. -->
+              <TextBlock Text="{Binding WholeDevice}" Margin="12,0"
+                         VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            </Grid>
+          </Button>
+
           <ListBox Classes="nav"
                    IsVisible="{Binding HasSelectedDevice}"
                    ItemsSource="{Binding DeviceSections}"

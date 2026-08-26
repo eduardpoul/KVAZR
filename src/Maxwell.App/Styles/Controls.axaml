@@ -392,6 +392,12 @@
     <Setter Property="FontWeight" Value="Normal" />
   </Style>
 
+  <!-- The row for the screen already open. Held rather than hovered, and the same brush
+       the root rows use, so a row above a section list reads as part of it. -->
+  <Style Selector="Button.railRow.current /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource LayerSelectedBrush}" />
+  </Style>
+
   <Style Selector="Button.railRow:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}" />
   </Style>
