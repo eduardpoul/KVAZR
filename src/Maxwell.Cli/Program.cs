@@ -113,6 +113,11 @@ if (args.Contains("--quadcast"))
 
 // What is actually paired behind a Logitech receiver. Read-only.
 if (args.Contains("--pointers")) return PointerProbe.Run();
+if (args.Contains("--setdpi"))
+{
+    int resolution = int.TryParse(ValueAfter(args, "--setdpi"), out int asked) ? asked : 1600;
+    return DpiWriteProbe.Run(resolution, args.Contains("--keep"));
+}
 if (args.Contains("--pairings")) return PairingProbe.Run();
 if (args.Contains("--pointer")) return PointerSettingsProbe.Run();
 if (args.Contains("--props")) return PropertyProbe.Run(ValueAfter(args, "--props"));
