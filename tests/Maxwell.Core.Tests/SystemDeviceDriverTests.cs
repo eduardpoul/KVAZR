@@ -33,11 +33,13 @@ public sealed class SystemDeviceDriverTests
         int? battery = null,
         uint? cod = null,
         string? address = null,
-        bool root = false) =>
+        bool root = false,
+        bool? connected = null) =>
         new()
         {
             InstanceId = instanceId,
             ContainerId = container,
+            IsConnected = connected,
             ClassGuid = deviceClass,
             Link = link,
             Name = name,
@@ -130,6 +132,53 @@ public sealed class SystemDeviceDriverTests
     private static async Task<IReadOnlyList<DeviceInfo>> Discover(params SystemDeviceNode[] nodes) =>
         await new SystemDeviceDriver(new FakeSystemEnumerator(nodes))
             .DiscoverAsync(TestContext.Current.CancellationToken);
+
+    /// <summary>
+    /// Paired is not connected, and the transport says which.
+    ///
+    /// Measured on a pair of AirPods, both ways. In the case: every Bluetooth node on
+    /// the machine — eighteen of them — reports not connected. Taken out and playing:
+    /// exactly one turns true, the node named after the device itself, while its Avrcp
+    /// Transport, its Hands-Free AG and its vendor service all go on saying false. So
+    /// the question is whether any node says yes.
+    /// </summary>
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    public async Task ABluetoothLink_IsPresentOnlyWhileTheDeviceIsConnected(bool connected, bool present)
+    {
+        Guid container = Guid.NewGuid();
+
+        IReadOnlyList<DeviceInfo> devices = await Discover(
+            Node(container, Hid, name: "Buds", root: true, link: SystemDeviceLink.Bluetooth,
+                instanceId: @"BTHENUM\DEV_6093160A369F\A&1", cod: 0x240404, address: "6093160a369f",
+                connected: connected),
+
+            // The service nodes, which report false whatever the device is doing.
+            Node(container, Media, name: "Buds Avrcp Transport", link: SystemDeviceLink.Bluetooth,
+                connected: false));
+
+        TransportInfo bluetooth = devices[0].Transports.Single(t => t.Kind == TransportKind.Bluetooth);
+
+        Assert.Equal(present, bluetooth.IsPresent);
+    }
+
+    /// <summary>
+    /// And silence is not a denial. A bus we have not measured carries no such key at
+    /// all, and reading that as "not connected" would take every device on it off the
+    /// list.
+    /// </summary>
+    [Fact]
+    public async Task ALinkWhoseNodesSayNothingAboutIt_IsPresent()
+    {
+        Guid container = Guid.NewGuid();
+
+        IReadOnlyList<DeviceInfo> devices = await Discover(
+            Node(container, Hid, name: "Buds", root: true, link: SystemDeviceLink.Bluetooth,
+                instanceId: @"BTHENUM\DEV_6093160A369F\A&1", cod: 0x240404, address: "6093160a369f"));
+
+        Assert.True(devices[0].Transports.Single(t => t.Kind == TransportKind.Bluetooth).IsPresent);
+    }
 
     [Fact]
     public async Task NodesOfOneDevice_BecomeOneDevice()

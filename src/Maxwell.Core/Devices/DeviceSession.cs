@@ -691,8 +691,25 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
 
     private DeviceAvailability Availability() =>
         !_present ? DeviceAvailability.Offline
+
+        // Enumerated, and on none of its leads.
+        //
+        // A Bluetooth device sitting in its case is still a device Windows lists, so
+        // discovery goes on finding it and "present" was the only thing this could say.
+        // What that produced was a pair of AirPods filed under CONNECTED with the lid
+        // shut, and a DISCONNECTED heading that could never have anything in it.
+        //
+        // Every driver that reports a transport at all reports at least one present one
+        // while the device is reachable, so this is a statement about links rather than
+        // a guess: no transport present means nothing to reach it over.
+        : Unlinked() ? DeviceAvailability.Offline
+
         : HasChannel && _answers ? DeviceAvailability.Active
         : DeviceAvailability.Unreachable;
+
+    /// <summary>Has leads, and not one of them is up.</summary>
+    private bool Unlinked() =>
+        _info.Transports.Count > 0 && !_info.Transports.Any(t => t.IsPresent);
 
     /// <summary>Whether anything is open at all: the owning connection, or a contributor.</summary>
     private bool HasChannel => _connection is not null || _attachments.Count > 0;

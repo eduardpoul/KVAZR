@@ -45,6 +45,17 @@ public sealed record SystemDeviceNode
     public string? Manufacturer { get; init; }
 
     /// <summary>
+    /// Whether this node's device is connected right now, where the node has an opinion.
+    ///
+    /// Bluetooth only, and only on the node named after the device itself: its service
+    /// nodes report false while the thing is playing music. Null everywhere else, which
+    /// is not the same as false — a USB node does not answer this question because the
+    /// question does not apply, and a device with nothing but nulls is present in the
+    /// ordinary way.
+    /// </summary>
+    public bool? IsConnected { get; init; }
+
+    /// <summary>
     /// Setup class of the node. Says whether this is a human interface device, an audio
     /// endpoint or a USB hub, which is how peripherals get told apart from the plumbing
     /// they hang off without keeping a list of names to ignore.

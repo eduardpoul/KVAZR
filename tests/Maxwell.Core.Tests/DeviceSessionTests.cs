@@ -584,6 +584,79 @@ public sealed class DeviceSessionTests
         return (session, fixture);
     }
 
+    /// <summary>
+    /// Enumerated, and on none of its leads: that is absent, not merely quiet.
+    ///
+    /// A Bluetooth device sitting in its case is still a device Windows lists, so
+    /// discovery goes on finding it and "present" was the only thing a session could
+    /// say. What that produced was a pair of AirPods filed under CONNECTED with the lid
+    /// shut, and a DISCONNECTED heading that could never have anything in it.
+    /// </summary>
+    [Fact]
+    public async Task ADeviceWithEveryLeadDown_IsOffline()
+    {
+        var fixture = new Fixture();
+
+        // A connection that opened names its own leads and they outrank the driver's —
+        // rightly, since a handle that answers is proof the lead is up. The system tier's
+        // connection has none of its own and echoes the device's list, which is the case
+        // being described here.
+        fixture.Connection.Transports = [];
+
+        DeviceSession session = fixture.CreateSession();
+
+        await session.MarkPresentAsync(
+            fixture.Info with
+            {
+                Transports = [new TransportInfo { Kind = TransportKind.Bluetooth, Label = "Bluetooth", IsPresent = false }],
+            },
+            Ct);
+
+        Assert.Equal(DeviceAvailability.Offline, session.Snapshot.Availability);
+        Assert.False(session.Snapshot.IsPresent);
+    }
+
+    /// <summary>One lead up is enough, whatever the others say.</summary>
+    [Fact]
+    public async Task ADeviceWithOneLeadUp_IsNotOffline()
+    {
+        var fixture = new Fixture();
+        fixture.Connection.Transports = [];
+
+        DeviceSession session = fixture.CreateSession();
+
+        await session.MarkPresentAsync(
+            fixture.Info with
+            {
+                Transports =
+                [
+                    new TransportInfo { Kind = TransportKind.Bluetooth, Label = "Bluetooth", IsPresent = false },
+                    new TransportInfo { Kind = TransportKind.Dongle, Label = "USB dongle", IsPresent = true },
+                ],
+            },
+            Ct);
+
+        Assert.True(session.Snapshot.IsPresent);
+    }
+
+    /// <summary>
+    /// And a device that reports no leads at all is present in the ordinary way. Most
+    /// drivers say nothing about transports, and reading silence as "nothing to reach it
+    /// over" would take every one of their devices off the list.
+    /// </summary>
+    [Fact]
+    public async Task ADeviceThatNamesNoLeads_IsStillPresent()
+    {
+        var fixture = new Fixture();
+        fixture.Connection.Transports = [];
+
+        DeviceSession session = fixture.CreateSession();
+
+        await session.MarkPresentAsync(fixture.Info, Ct);
+
+        Assert.True(session.Snapshot.IsPresent);
+    }
+
     private sealed class Fixture
     {
         public InMemoryCapabilityLedger Ledger { get; } = new();

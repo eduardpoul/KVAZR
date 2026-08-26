@@ -281,6 +281,24 @@ internal static class SystemDeviceProfile
         {
             if (link == SystemDeviceLink.Usb) continue;
 
+            // Paired is not connected, and Windows knows the difference.
+            //
+            // A Bluetooth device stays enumerated while it sits in its case: the nodes
+            // are all there, and reading their presence as the device's put a pair of
+            // AirPods under CONNECTED with the lid shut. What settles it is
+            // DEVPKEY_Bluetooth_IsConnected — and only on the node named after the
+            // device itself, because its service nodes report false while it is playing
+            // music. So: any node saying yes, never all of them.
+            //
+            // A link where no node carries the key at all is present in the ordinary
+            // way. Silence is not a denial, and treating it as one would take every
+            // device on a bus we have not measured off the list.
+            List<SystemDeviceNode> onLink = [.. nodes.Where(n => n.Link == link)];
+
+            bool connected =
+                !onLink.Any(n => n.IsConnected is not null)
+                || onLink.Any(n => n.IsConnected == true);
+
             transports.Add(new TransportInfo
             {
                 Kind = link is SystemDeviceLink.Bluetooth or SystemDeviceLink.BluetoothLe
@@ -292,7 +310,7 @@ internal static class SystemDeviceProfile
                     SystemDeviceLink.BluetoothLe => "Bluetooth LE",
                     _ => "Unknown",
                 },
-                IsPresent = true,
+                IsPresent = connected,
 
                 // Nothing at this tier can change a setting. Saying otherwise would put
                 // controls on a page that have no way to reach the device.

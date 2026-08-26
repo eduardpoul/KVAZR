@@ -132,6 +132,7 @@ public sealed class WindowsSystemDeviceEnumerator : ISystemDeviceEnumerator
             ProductId = pid ?? statedProduct,
             Revision = ReadUInt16(set, ref info, Native.DevPkeyBluetoothProductVersion),
             ArrivedAt = ReadFileTime(set, ref info, Native.DevPkeyLastArrival),
+            IsConnected = ReadBoolean(set, ref info, Native.DevPkeyBluetoothIsConnected),
         };
     }
 
@@ -179,6 +180,19 @@ public sealed class WindowsSystemDeviceEnumerator : ISystemDeviceEnumerator
         byte[]? raw = ReadRaw(set, ref info, key);
 
         return raw is { Length: >= 2 } ? BitConverter.ToUInt16(raw) : null;
+    }
+
+    /// <summary>
+    /// A DEVPROP_TYPE_BOOLEAN, which is one byte: 0xFF for true and 0 for false.
+    ///
+    /// Null where the node does not carry the key at all, and the difference matters —
+    /// on a Bluetooth device most nodes have no opinion about being connected and saying
+    /// "false" for them would be inventing an answer.
+    /// </summary>
+    private static bool? ReadBoolean(IntPtr set, ref Native.SpDevInfoData info, Native.DevPropKey key)
+    {
+        byte[]? buffer = ReadRaw(set, ref info, key);
+        return buffer is { Length: >= 1 } ? buffer[0] != 0 : null;
     }
 
     private static uint? ReadUInt32(IntPtr set, ref Native.SpDevInfoData info, Native.DevPropKey key)
@@ -299,6 +313,21 @@ public sealed class WindowsSystemDeviceEnumerator : ISystemDeviceEnumerator
         /// <summary>DEVPKEY_Bluetooth_Battery — a single byte, 0..100.</summary>
         internal static readonly DevPropKey DevPkeyBatteryLevel =
             new(new Guid("104ea319-6ee2-4701-bd47-8ddbf425bbe5"), 2);
+
+        /// <summary>
+        /// DEVPKEY_Bluetooth_IsConnected — paired is not connected, and this is the
+        /// difference.
+        ///
+        /// Measured on a pair of AirPods, both ways. In the case: eighteen Bluetooth
+        /// nodes on this machine and every one of them false. Taken out and connected:
+        /// exactly one turns true — <c>BTHENUM\DEV_&lt;address&gt;</c>, the node named
+        /// after the device itself. Every service node beside it — Avrcp Transport,
+        /// Hands-Free AG, the vendor's own — stays false while the thing is playing
+        /// music. So the question to ask of a device is whether ANY of its nodes says
+        /// true, never whether all of them do.
+        /// </summary>
+        internal static readonly DevPropKey DevPkeyBluetoothIsConnected =
+            new(new Guid("83da6326-97a6-4088-9453-a1923f573b29"), 15);
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct SpDevInfoData
