@@ -99,6 +99,54 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
             });
         }
 
+        if (facts.Presets.Count > 1)
+        {
+            // The rungs, editable one by one.
+            //
+            // The scale is not the device's. Asked, this mouse says 100 to 44000, and a
+            // track across that is a track where one pixel is a hundred and seventy DPI —
+            // the reason the first attempt at a resolution slider had to be taken out. So
+            // the window is a working one, chosen by the person who uses the thing: 200 to
+            // 5000 in steps of 200. Both ends happen to be rungs of the device's own
+            // ladder, and every common resolution — 400, 800, 1200, 1600, 2400, 3200 — is
+            // a multiple of the step, so every position of the track is a value the mouse
+            // will accept.
+            //
+            // Clamped to what the device actually allows, and widened to hold whatever it
+            // already has stored: a rung outside the window is still a rung, and a track
+            // that cannot show it would write a different number the first time it was
+            // touched.
+            const int Comfortable = 200;
+            const int Enough = 5000;
+
+            int floor = Math.Max(facts.MinDpi ?? Comfortable, Comfortable);
+            int ceiling = Math.Min(facts.MaxDpi ?? Enough, Enough);
+
+            floor = Math.Min(floor, facts.Presets.Min());
+            ceiling = Math.Max(ceiling, facts.Presets.Max());
+
+            rows.Add(new Capability
+            {
+                Id = CapabilityIds.PointerDpiSteps,
+                Domain = CapabilityDomain.Pointing,
+                Primitive = CapabilityPrimitive.RangeGroup,
+                Title = "Resolution steps",
+                Subtitle = "The ladder the mouse cycles with its own button, kept in the mouse",
+                Access = CapabilityAccess.ReadWrite,
+                Range = new CapabilityRange
+                {
+                    Min = floor,
+                    Max = ceiling,
+                    Step = Comfortable,
+                    Unit = "DPI",
+                },
+                Members =
+                [
+                    .. facts.Presets.Select((_, i) => new CapabilityMember(i, $"Step {i + 1}")),
+                ],
+            });
+        }
+
         if (facts is { ReportRate: not null, ReportRates.Count: > 1 })
         {
             rows.Add(new Capability
@@ -208,6 +256,11 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
             case CapabilityIds.PointerDpi:
                 return _facts.Dpi is { } dpi ? CapabilityValue.Choice(dpi) : CapabilityValue.Absent;
 
+            case CapabilityIds.PointerDpiSteps:
+                return _facts.Presets.Count > 0
+                    ? CapabilityValue.Vector([.. _facts.Presets.Select(CapabilityValue.Of)])
+                    : CapabilityValue.Absent;
+
             case CapabilityIds.PointerReportRate:
                 return _facts.ReportRate is { } rate ? CapabilityValue.Choice(rate) : CapabilityValue.Absent;
 
@@ -286,7 +339,15 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        if (capabilityId is not (CapabilityIds.PointerDpi or CapabilityIds.PointerReportRate)) return false;
+        if (capabilityId is not (CapabilityIds.PointerDpi
+            or CapabilityIds.PointerReportRate
+            or CapabilityIds.PointerDpiSteps))
+        {
+            return false;
+        }
+
+        if (capabilityId == CapabilityIds.PointerDpiSteps) return await StepsAsync(value, cancellationToken).ConfigureAwait(false);
+
         if (value is not ChoiceValue wanted) return false;
 
         SemaphoreSlim gate = GateFor(_path);
@@ -325,6 +386,52 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
             };
 
             return now == wanted.Index;
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    /// <summary>
+    /// The whole ladder at once, written into the profile and then believed only as far
+    /// as the mouse confirms it.
+    ///
+    /// One sector write for all five, because this is flash in somebody's mouse. And the
+    /// live resolution is read back afterwards rather than assumed unchanged: if the rung
+    /// that was edited is the one the mouse is standing on, the mouse moves with it.
+    /// </summary>
+    private async Task<bool> StepsAsync(CapabilityValue value, CancellationToken cancellationToken)
+    {
+        if (value is not VectorValue vector) return false;
+
+        int[] wanted = [.. vector.Items.Select(v => v.AsNumber())];
+        if (wanted.Length == 0) return false;
+
+        SemaphoreSlim gate = GateFor(_path);
+        await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            using var channel = new WindowsHidChannel(_path, _input, _output);
+
+            if (!PointerWriter.SetSteps(channel, _slot, wanted)) return false;
+
+            // Read back rather than trusted. The steps feature answers from the profile,
+            // so this is the mouse agreeing rather than the write being accepted.
+            PointerFacts fresh = PointerReader.Read(channel, _slot);
+
+            _facts = _facts with
+            {
+                Presets = fresh.Presets.Count > 0 ? fresh.Presets : _facts.Presets,
+                Dpi = fresh.Dpi ?? _facts.Dpi,
+            };
+
+            return true;
         }
         catch (IOException)
         {

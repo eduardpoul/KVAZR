@@ -62,6 +62,53 @@ public static class PointerWriter
     }
 
     /// <summary>
+    /// Writes the whole ladder — every stored resolution at once.
+    ///
+    /// All five in one sector write rather than one write each. Not tidiness: this is
+    /// flash inside somebody's mouse, and five writes to change one rung is four more
+    /// erase cycles than the change needs. The profile even counts them — there is a
+    /// write_count field in the record.
+    ///
+    /// A rung given as zero is left as it was, so a caller that only knows about one
+    /// change does not have to know the other four.
+    /// </summary>
+    public static bool SetSteps(WindowsHidChannel channel, byte device, IReadOnlyList<int> wanted)
+    {
+        ArgumentNullException.ThrowIfNull(channel);
+        ArgumentNullException.ThrowIfNull(wanted);
+
+        if (HidPlusPlusReader.FeatureIndex(channel, device, OnboardProfiles) is not { } feature) return false;
+        if (Enabled(channel, device, feature) is not { } sector) return false;
+        if (Read(channel, device, feature, sector) is not { Length: SectorSize } profile) return false;
+
+        bool touched = false;
+
+        for (int slot = 0; slot < 5 && slot < wanted.Count; slot++)
+        {
+            if (wanted[slot] <= 0) continue;
+
+            int at = 4 + (slot * 5);
+            if ((profile[at] | (profile[at + 1] << 8)) == wanted[slot]) continue;
+
+            profile[at] = (byte)(wanted[slot] & 0xFF);
+            profile[at + 1] = (byte)(wanted[slot] >> 8);
+
+            // Down as well as across, for the same reason SetResolution does it: a rung
+            // whose axes disagree is a mouse that drifts.
+            profile[at + 2] = profile[at];
+            profile[at + 3] = profile[at + 1];
+
+            touched = true;
+        }
+
+        if (!touched) return true;
+
+        Seal(profile);
+
+        return Write(channel, device, feature, sector, profile);
+    }
+
+    /// <summary>
     /// Sets how often the mouse reports, in the profile, where it survives us.
     ///
     /// Asked for directly the mouse answers "invalid argument", and Solaar's own note on

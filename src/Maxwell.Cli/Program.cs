@@ -115,6 +115,14 @@ if (args.Contains("--quadcast"))
 if (args.Contains("--pointers")) return PointerProbe.Run();
 if (args.Contains("--ratelist")) return RateListProbe.Run();
 if (args.Contains("--facts")) return FactsProbe.Run();
+if (args.Contains("--ladder"))
+{
+    int rung = int.TryParse(ValueAfter(args, "--ladder"), out int which) ? which : 1;
+    int step = int.TryParse(ValueAfter(args, "--dpi"), out int value) ? value : 1400;
+
+    return ProfileProbe.Ladder(rung, step);
+}
+
 
 if (args.Contains("--crosstalk"))
 {

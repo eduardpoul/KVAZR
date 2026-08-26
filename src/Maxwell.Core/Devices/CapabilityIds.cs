@@ -91,6 +91,13 @@ public static class CapabilityIds
     // Pointer
     public const string PointerDpi = "pointer.dpi";
     public const string PointerDpiXy = "pointer.dpi_xy";
+
+    /// <summary>
+    /// The ladder of resolutions a device stores and cycles through with a button of its
+    /// own — five of them on the mice measured. One capability rather than five, because
+    /// they live in one record and are written in one go.
+    /// </summary>
+    public const string PointerDpiSteps = "pointer.dpi_steps";
     public const string PointerReportRate = "pointer.report_rate";
 
     /// <summary>The sensor's own resolution, as against the pointer speed Windows keeps.</summary>

@@ -342,6 +342,63 @@ internal static class ProfileProbe
         return 1;
     }
 
+    /// <summary>
+    /// The driver's own ladder write: one rung changed, read back, put back.
+    ///
+    /// The point of the row this exercises is that editing a rung the mouse is not
+    /// standing on changes nothing else — so the live resolution is printed either side
+    /// of the write, and it should not move.
+    /// </summary>
+    public static int Ladder(int slot, int dpi)
+    {
+        if (Open() is not { } open) return 1;
+
+        using WindowsHidChannel channel = open.Channel;
+
+        string before = Steps(channel, open);
+        int running = Live(channel, open.Device);
+
+        int[] rungs = [.. before.Split('/').Select(int.Parse)];
+        if (slot < 0 || slot >= rungs.Length)
+        {
+            Console.WriteLine($"  There is no rung {slot}.");
+            return 1;
+        }
+
+        Console.WriteLine("[driver] the page's own ladder write");
+        Console.WriteLine();
+        Console.WriteLine($"  before   {before}   running {running} DPI");
+
+        int[] wanted = [.. rungs];
+        wanted[slot] = dpi;
+
+        if (!PointerWriter.SetSteps(channel, open.Device, wanted))
+        {
+            Console.WriteLine("  write    refused");
+            return 1;
+        }
+
+        string after = Steps(channel, open);
+        int now = Live(channel, open.Device);
+
+        Console.WriteLine($"  after    {after}   running {now} DPI");
+        Console.WriteLine();
+        Console.WriteLine(after == string.Join("/", wanted) ? "  It took." : "  It did not take.");
+        Console.WriteLine(now == running
+            ? "  The live resolution did not move, which is the point."
+            : $"  The live resolution moved {running} -> {now}.");
+        Console.WriteLine();
+
+        if (PointerWriter.SetSteps(channel, open.Device, rungs) && Steps(channel, open) == before)
+        {
+            Console.WriteLine($"  restored {before}");
+            return 0;
+        }
+
+        Console.WriteLine($"  RESTORE FAILED — the ladder is not back at {before}.");
+        return 1;
+    }
+
     /// <summary>The driver's own rate write, exercised end to end and put back.</summary>
     public static int DriverRate(int hertz)
     {
