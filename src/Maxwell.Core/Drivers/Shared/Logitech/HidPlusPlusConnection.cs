@@ -87,13 +87,11 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
                 Primitive = CapabilityPrimitive.Choice,
                 Title = "Resolution",
 
-                // Said plainly, because what this row does is not what its list suggests.
-                // The five values are the ladder the mouse cycles with its own button, and
-                // picking one does not step onto it — it writes that value over the rung
-                // the mouse is standing on. Measured: on 800, choosing 1600 leaves the
-                // ladder 1600/1200/1600/2400/3200. Which rung is in force is the mouse's
-                // own business and nothing found so far can set it.
-                Subtitle = "Rewrites the step the mouse is on now; the other four keep their values",
+                // Which rung is in force is the mouse's own business and nothing found so
+                // far can set it, so the rung it is standing on is the one that carries
+                // the new value — and the rung that already held that value takes the old
+                // one back. All five survive, in a different order.
+                Subtitle = "The steps this mouse stores; its own button cycles them too",
                 Access = CapabilityAccess.ReadWrite,
 
                 // The options are the ladder, and the ladder is a reading rather than a
@@ -389,13 +387,15 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
             // is the change taking effect rather than the write being accepted.
             if (Live(channel) is not { } now) return false;
 
-            // And the list of steps moves with it. Writing puts the new value where the
-            // old one was, so a list still offering the old one offers something the
-            // mouse no longer has.
+            // And the ladder as the mouse now has it, read back rather than worked out
+            // here. Two rungs traded places, and a copy of that arithmetic in this file
+            // would be a second thing to keep true.
+            IReadOnlyList<int> ladder = PointerReader.Read(channel, _slot).Presets;
+
             _facts = _facts with
             {
                 Dpi = now,
-                Presets = [.. _facts.Presets.Select(step => step == current ? now : step)],
+                Presets = ladder.Count > 0 ? ladder : _facts.Presets,
             };
 
             return now == wanted.Index;

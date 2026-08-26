@@ -78,6 +78,25 @@ public sealed class DeviceSessionTests
     }
 
     /// <summary>
+    /// Choosing from a list that lives in the device can move that list.
+    ///
+    /// Picking one of a mouse's stored resolutions puts it on that value by trading two
+    /// of the five around, so the five are not what they were a moment ago. Left unread,
+    /// the dialog that edits them opens showing the order from before — and saving that
+    /// writes it back and moves the mouse somewhere nobody asked for.
+    /// </summary>
+    [Fact]
+    public async Task WritingAChoice_ReadsTheListItCameFromAgain()
+    {
+        (DeviceSession session, Fixture fixture) = await StartAsync();
+        fixture.Connection.Asked.Clear();
+
+        Assert.True(await session.WriteAsync(Picked, CapabilityValue.Choice(1200), Ct));
+
+        Assert.Contains(Grouped, fixture.Connection.Asked);
+    }
+
+    /// <summary>
     /// Nothing resolved yet — the source has not been read, or will not answer at all.
     /// An empty dropdown is a worse answer than the driver's own guess, so the declared
     /// list stands until something better arrives.

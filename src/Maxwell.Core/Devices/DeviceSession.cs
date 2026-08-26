@@ -474,6 +474,34 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
                 Status = CapabilityStatus.Verified,
             };
 
+            // The list this was chosen from, read again, where that list lives in the
+            // device and the choice can have moved it.
+            //
+            // A mouse's five stored resolutions are the options of its resolution row,
+            // and picking one puts the mouse on that value by trading two of the five
+            // around. Left unread, the dialog that edits those five opened showing the
+            // order from before — and saving it would have written that order back and
+            // moved the mouse somewhere nobody asked for.
+            //
+            // Read here rather than through RefreshAsync, which takes the gate this is
+            // already holding.
+            if (state.Descriptor.ChoicesFromCapability is { Length: > 0 } list
+                && _states.TryGetValue(list, out CapabilityState? listed)
+                && _owner.TryGetValue(list, out IDeviceConnection? lister))
+            {
+                try
+                {
+                    CapabilityValue again = await lister.ReadAsync(list, cancellationToken).ConfigureAwait(false);
+
+                    // Silence is not an answer to overwrite a good reading with.
+                    if (!again.IsAbsent) _states[list] = listed with { Value = again };
+                }
+                catch (IOException ex)
+                {
+                    _logger.DeviceReadFailed(ex, _info.Key);
+                }
+            }
+
             _updatedAt = DateTimeOffset.Now;
             Publish();
 

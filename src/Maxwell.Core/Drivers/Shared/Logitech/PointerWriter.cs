@@ -30,35 +30,74 @@ public static class PointerWriter
     private const int SectorSize = 255;
 
     /// <summary>
-    /// Sets the resolution the mouse is running at, and says whether it took.
+    /// Puts the mouse on a resolution, and says whether it took.
     ///
-    /// Which of the profile's five entries to change is not a choice: it is the one whose
-    /// value is the one in force. A mouse cycles through its five with a button of its
-    /// own, and writing any other entry would change a resolution nobody asked about
-    /// while leaving the one on screen alone.
+    /// The rung the mouse is standing on is the only one that changes what it is doing —
+    /// which rung that is cannot be set by anything found so far, so it is the one that
+    /// has to carry the new value.
+    ///
+    /// Written naively that loses a resolution. Standing on 800 and asked for 1600, the
+    /// obvious write leaves the ladder 1600/1200/1600/2400/3200: two of one value, none
+    /// of the other, and a mouse whose own button now cycles through that. Measured on
+    /// hardware, and reported by the person it happened to.
+    ///
+    /// So the two rungs trade places instead. The mouse ends up on the asked-for value
+    /// and still stores all five it stored before — only their order changed, and their
+    /// order is the order its button walks them in. A value not on the ladder at all has
+    /// nowhere to trade with and is simply written.
     /// </summary>
     public static bool SetResolution(WindowsHidChannel channel, byte device, int current, int wanted)
     {
         ArgumentNullException.ThrowIfNull(channel);
 
+        if (current == wanted) return true;
+
         if (HidPlusPlusReader.FeatureIndex(channel, device, OnboardProfiles) is not { } feature) return false;
         if (Enabled(channel, device, feature) is not { } sector) return false;
         if (Read(channel, device, feature, sector) is not { Length: SectorSize } profile) return false;
 
-        int at = Entry(profile, current);
-        if (at < 0) return false;
-
-        profile[at] = (byte)(wanted & 0xFF);
-        profile[at + 1] = (byte)(wanted >> 8);
-
-        // And the resolution down with it. The two are one setting on every mouse this
-        // has been put to, and a profile whose axes disagree is a mouse that drifts.
-        profile[at + 2] = profile[at];
-        profile[at + 3] = profile[at + 1];
+        if (!Trade(profile, current, wanted)) return false;
 
         Seal(profile);
 
         return Write(channel, device, feature, sector, profile);
+    }
+
+    /// <summary>
+    /// The two rungs, traded, in a sector held in memory. Separate from the sending of it
+    /// because this is the part that can be wrong without any device saying so: the write
+    /// succeeds either way, and what it costs is a resolution quietly gone from a ladder.
+    ///
+    /// False when the mouse is standing on a value the ladder does not contain, which
+    /// would leave nowhere to put the old one.
+    /// </summary>
+    internal static bool Trade(byte[] profile, int current, int wanted)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+
+        int at = Entry(profile, current);
+        if (at < 0) return false;
+
+        int trade = Entry(profile, wanted);
+
+        Rung(profile, at, wanted);
+        if (trade >= 0 && trade != at) Rung(profile, trade, current);
+
+        return true;
+    }
+
+    /// <summary>
+    /// One rung, both ways. Across and down together: the two are one setting on every
+    /// mouse this has been put to, and a profile whose axes disagree is a mouse that
+    /// drifts — fast up the screen and slow along it, which is what it did the once they
+    /// were written apart.
+    /// </summary>
+    private static void Rung(byte[] profile, int at, int dpi)
+    {
+        profile[at] = (byte)(dpi & 0xFF);
+        profile[at + 1] = (byte)(dpi >> 8);
+        profile[at + 2] = profile[at];
+        profile[at + 3] = profile[at + 1];
     }
 
     /// <summary>
