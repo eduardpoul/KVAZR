@@ -28,7 +28,7 @@ internal static class MeterProbe
 {
     private static readonly TimeSpan Sample = TimeSpan.FromMilliseconds(100);
 
-    public static async Task<int> RunAsync(int seconds)
+    public static async Task<int> RunAsync(int seconds, string? only)
     {
         var endpoints = new WindowsAudioEndpoints();
 
@@ -36,17 +36,22 @@ internal static class MeterProbe
         [
             .. endpoints.Enumerate()
                 .Where(e => e.Flow == AudioFlow.Capture && !e.IsContainerless)
+                .Where(e => only is not { Length: > 0 }
+                    || e.Name.Contains(only, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(e => e.Name, StringComparer.Ordinal),
         ];
 
         if (capture.Count == 0)
         {
-            Console.WriteLine("Микрофонов не найдено.");
+            Console.WriteLine(only is { Length: > 0 }
+                ? $"Микрофона со словом «{only}» в имени не нашлось."
+                : "Микрофонов не найдено.");
+
             return 1;
         }
 
         Console.WriteLine($"Слушаем {capture.Count} вход(а) по {seconds} с, шаг {Sample.TotalMilliseconds:0} мс.");
-        Console.WriteLine("Говорите в микрофон — если полоска не двигается, метр без потока молчит.");
+        Console.WriteLine("Говорите в микрофон. Первое число — сейчас, второе — самое громкое за всё время.");
         Console.WriteLine();
 
         foreach (AudioEndpoint endpoint in capture)
@@ -106,7 +111,14 @@ internal static class MeterProbe
                 }
 
                 seen.Add(peak.Value);
-                Console.Write($"\r  {Bar(peak.Value)} {peak.Value * 100,6:0.00}%  {Decibels(peak.Value),8}   ");
+
+                // The loudest so far, kept on the line. A meter you have to be looking at
+                // at the right instant is a meter that misses the one shout you gave it.
+                double loudest = seen.Max();
+
+                Console.Write(
+                    $"\r  {Bar(peak.Value)} {peak.Value * 100,6:0.00}%  {Decibels(peak.Value),8}"
+                    + $"   пик {loudest * 100,6:0.00}%  {Decibels(loudest),8}   ");
 
                 await Task.Delay(Sample).ConfigureAwait(false);
             }

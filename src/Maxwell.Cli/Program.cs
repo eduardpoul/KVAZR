@@ -201,8 +201,8 @@ if (args.Contains("--audio")) return AudioProbe.Run();
 if (args.Contains("--micmute")) return await MuteProbe.RunAsync(args.Contains("--leave")).ConfigureAwait(false);
 if (args.Contains("--meter"))
 {
-    int seconds = int.TryParse(ValueAfter(args, "--meter"), out int held) ? held : 6;
-    return await MeterProbe.RunAsync(seconds).ConfigureAwait(false);
+    int seconds = int.TryParse(ValueAfter(args, "--meter"), out int held) ? held : 20;
+    return await MeterProbe.RunAsync(seconds, ValueAfter(args, "--name")).ConfigureAwait(false);
 }
 if (args.Contains("--blindspot"))
 {
