@@ -44,17 +44,22 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
     ];
 
     /// <summary>
-    /// What Windows gives any audio device, offered last of all.
+    /// What Windows gives any audio device, offered last of all — and only the half of it
+    /// worth a place here.
     ///
-    /// Last because they are the system's settings rather than the device's: a headset's
-    /// own volume is the one on the headset, and Windows' is a second, different thing
-    /// that happens to be nearer to hand. But for a device this application has no
-    /// protocol for — a pair of AirPods — these are the only settings there are, and
-    /// without them opening its row showed nothing but a way out of it.
+    /// The microphone, because muting yourself is the thing people reach for mid-sentence
+    /// and Windows buries it. Not the playback volume: that is the system's own slider,
+    /// the very one sitting two icons along in the same tray, and a copy of it here would
+    /// be a control that looks like the earphones' and is not. A volume row earns its
+    /// place when it moves something inside the device — which for these earphones is
+    /// nothing we can reach.
+    ///
+    /// Last because these are the system's settings rather than the device's. But for a
+    /// device this application has no protocol for, they are the only settings there are,
+    /// and without them opening its row showed nothing but a way out of it.
     /// </summary>
     private static readonly string[] SystemLast =
     [
-        CapabilityIds.AudioSystemVolume,
         CapabilityIds.MicSystemOn,
         CapabilityIds.MicSystemLevel,
     ];
