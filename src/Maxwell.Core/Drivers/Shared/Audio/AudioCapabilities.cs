@@ -133,12 +133,21 @@ internal static class AudioCapabilities
                     Primitive = CapabilityPrimitive.Toggle,
                     Title = onTitle,
 
-                    // A capture switch reports what is actually coming through, not what
-                    // Windows was last asked for, and the sentence says so — otherwise a
-                    // switch that moves on its own has no explanation anywhere on the page.
+                    // The switch Windows keeps, and the sentence promises no more than
+                    // that.
+                    //
+                    // It used to say the switch follows the microphone's own mute button.
+                    // That is true of some — a QuadCast muted by its own button reports
+                    // the mute to Windows, and this switch moves with it, which is why the
+                    // sentence was there at all. It is not true of others: an Audeze
+                    // Maxwell muted at the headset leaves this switch on and goes on
+                    // sending the same room noise down the wire, measured — not one silent
+                    // packet in four hundred. A sentence that is right about one device and
+                    // wrong about the next is worse than none, because it is the ones it
+                    // is wrong about that send somebody looking for a fault.
                     Subtitle = several ? endpoint.Name
                         : render ? null
-                        : "Follows the microphone itself, including its own mute button",
+                        : "The mute Windows keeps — some microphones report their own button here",
                     IsVolatile = true,
                 }));
 
