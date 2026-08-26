@@ -442,16 +442,19 @@
                     <!-- The case, which the row above has no room for and which is not
                          what anybody glances at a tray panel to learn. Present only while
                          its lid is open: shut, the earphones do not report it at all. -->
+                    <!-- Reached through the row rather than by setting a DataContext
+                         here: a DataContext on an element applies to that element's own
+                         bindings too, so IsVisible went looking for the row's property on
+                         the part it had just switched to. -->
                     <StackPanel Orientation="Horizontal" Spacing="8"
-                                IsVisible="{Binding Device.HasCaseBattery}"
-                                DataContext="{Binding Device.CaseBattery}">
+                                IsVisible="{Binding Device.HasCaseBattery}">
                       <TextBlock Classes="caption" VerticalAlignment="Center"
-                                 Text="{Binding Label}" />
-                      <controls:BatteryGauge Percent="{Binding Percent}"
-                                             Charging="{Binding Charging}"
+                                 Text="{Binding Device.CaseBattery.Label}" />
+                      <controls:BatteryGauge Percent="{Binding Device.CaseBattery.Percent}"
+                                             Charging="{Binding Device.CaseBattery.Charging}"
                                              VerticalAlignment="Center" />
                       <TextBlock FontWeight="SemiBold" VerticalAlignment="Center"
-                                 Text="{Binding Reading}" />
+                                 Text="{Binding Device.CaseBattery.Reading}" />
                     </StackPanel>
 
                     <!--
