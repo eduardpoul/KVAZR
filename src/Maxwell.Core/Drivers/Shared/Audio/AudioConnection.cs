@@ -308,7 +308,8 @@ internal sealed class AudioConnection : IDeviceConnection
         /// and none of them empty, every muted one carried fifty and all of them empty,
         /// and the quietest live window still measured −57 dBFS. The two states are
         /// not neighbours on a scale, which is why no threshold in decibels appears here:
-        /// the meter's own floor is −60, so a quiet room and a dead capsule draw alike.
+        /// the meter's own floor is above both, so a quiet room and a dead capsule draw
+        /// alike and only the packets can tell them apart.
         /// </summary>
         public bool? Capsule
         {

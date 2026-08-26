@@ -24,12 +24,12 @@ public sealed class LevelMeterTests
             Primitive = CapabilityPrimitive.Readout,
             Access = CapabilityAccess.Read,
             Title = "Input level",
-            Range = new CapabilityRange { Min = -60, Max = 0, Unit = "dB" },
+            Range = new CapabilityRange { Min = -45, Max = 0, Unit = "dB" },
             IsLive = true,
         },
         // The session fills this in from the descriptor, and for a range whose ceiling
         // comes from the device, from the reading. A hand-built state has to say it.
-        Range = new CapabilityRange { Min = -60, Max = 0, Unit = "dB" },
+        Range = new CapabilityRange { Min = -45, Max = 0, Unit = "dB" },
         Value = CapabilityValue.Of(decibels),
     };
 
@@ -53,9 +53,10 @@ public sealed class LevelMeterTests
     }
 
     [Theory]
-    [InlineData(0, 1.0)]      // full scale: the loudest thing the microphone can hear
-    [InlineData(-30, 0.5)]    // halfway up the scale
-    [InlineData(-60, 0.0)]    // the floor, which is where silence sits
+    [InlineData(0, 1.0)]           // full scale: the loudest thing the microphone can hear
+    [InlineData(-15, 2.0 / 3)]     // ordinary speech, two thirds up
+    [InlineData(-30, 1.0 / 3)]     // a third of the way up
+    [InlineData(-45, 0.0)]         // the floor, which is where a quiet room sits
     public void TheBarIsThePositionOnTheDecibelScale(int decibels, double expected)
     {
         var meter = new ReadoutCapabilityViewModel(Level(decibels), null);
@@ -86,12 +87,12 @@ public sealed class LevelMeterTests
     [Fact]
     public void TheBarFollowsTheReading()
     {
-        var meter = new ReadoutCapabilityViewModel(Level(-60), null);
+        var meter = new ReadoutCapabilityViewModel(Level(-45), null);
 
         Assert.Equal(0, meter.Fill);
 
         meter.Apply(Level(-15));
 
-        Assert.Equal(0.75, meter.Fill, 3);
+        Assert.Equal(2 / 3d, meter.Fill, 3);
     }
 }

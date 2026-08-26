@@ -482,8 +482,44 @@ public sealed class AudioContributorTests
         Assert.Equal(CapabilityValue.Of(0), await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct));
 
         meter.Level = 0;
-        Assert.Equal(CapabilityValue.Of(-60), await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct));
+        Assert.Equal(
+            CapabilityValue.Of(AudioCapabilities.MinimumDecibels),
+            await connection.ReadAsync(CapabilityIds.MicSystemPeak, Ct));
     }
+
+    /// <summary>
+    /// A quiet room reads as nothing, and somebody talking does not.
+    ///
+    /// This is the whole complaint the floor was moved for: at −60 an empty room lit the
+    /// first blocks of the bar and kept moving, which reads as a microphone hearing
+    /// something. The two numbers here are measured on this desk rather than picked —
+    /// the loudest half-second of forty in a silent room, and the quieter end of speech
+    /// into the same microphone — so the scale cannot drift back without a test saying so.
+    /// </summary>
+    [Theory]
+    [InlineData(-51)]
+    [InlineData(-66)]
+    [InlineData(-76)]
+    public void AQuietRoom_LightsNothing(int decibels)
+    {
+        Assert.Equal(AudioCapabilities.MinimumDecibels, AudioCapabilities.Decibels(Amplitude(decibels)));
+    }
+
+    [Theory]
+    [InlineData(-25)]
+    [InlineData(-15)]
+    public void Speech_IsWellUpTheBar(int decibels)
+    {
+        int read = AudioCapabilities.Decibels(Amplitude(decibels));
+
+        Assert.Equal(decibels, read);
+        Assert.True(Fill(read) > 0.4, $"{decibels} dB filled only {Fill(read):P0} of the bar");
+    }
+
+    private static double Amplitude(int decibels) => Math.Pow(10, decibels / 20.0);
+
+    private static double Fill(int decibels) =>
+        (decibels - AudioCapabilities.MinimumDecibels) / (double)-AudioCapabilities.MinimumDecibels;
 
     [Fact]
     public async Task AStreamThatDies_IsLetGoOfRatherThanAskedAgain()

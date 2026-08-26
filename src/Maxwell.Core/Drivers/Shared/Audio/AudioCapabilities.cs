@@ -178,8 +178,7 @@ internal static class AudioCapabilities
             // Measured in decibels relative to full scale, which is the scale sound is
             // heard on and the only one that makes a meter readable: ordinary speech is
             // about a tenth of full amplitude, so on a linear percentage it and a quiet
-            // room share the bottom of the bar. The floor is −60, below which the
-            // difference between "quiet" and "nothing" stops being information.
+            // room share the bottom of the bar.
             rows.Add(new AudioRow(
                 Numbered(CapabilityIds.MicSystemPeak, i),
                 endpoint.Id,
@@ -203,11 +202,21 @@ internal static class AudioCapabilities
     }
 
     /// <summary>
-    /// The bottom of the meter. A microphone in a silent room sits around −70 dBFS and a
-    /// muted one at negative infinity; both are "nothing", and a scale that tried to show
-    /// the difference would spend most of itself on it.
+    /// The bottom of the meter, and the whole of what makes it readable.
+    ///
+    /// A microphone in a silent room sits around −70 dBFS and a muted one at negative
+    /// infinity; both are "nothing", and a scale that tried to show the difference would
+    /// spend most of itself on it. At −60 it spent a sixth: an empty room lit the first
+    /// blocks and kept moving, which reads as a microphone picking something up and sent
+    /// somebody looking for what.
+    ///
+    /// So the floor is measured rather than chosen. Forty half-second windows of a quiet
+    /// room on this desk: typically −66 to −76 dBFS, loudest −51. Speech into the same
+    /// microphone peaked −15 to −25. Six decibels above the loudest silent window puts
+    /// an empty room at nothing with margin, and still leaves two thirds of the bar for
+    /// somebody talking.
     /// </summary>
-    internal const int MinimumDecibels = -60;
+    internal const int MinimumDecibels = -45;
 
     /// <summary>
     /// Amplitude as the meter reports it, 0..1, turned into the decibels the row carries.
