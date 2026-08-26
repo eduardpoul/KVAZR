@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Runtime.Versioning;
+using Maxwell.Core.Drivers.Logitech;
 using Maxwell.Race.Abstractions;
 using Maxwell.Race.Protocol;
 using Maxwell.Race.Windows;
@@ -284,6 +285,183 @@ internal static class ProfileProbe
         Console.WriteLine($"  RESTORE FAILED — the mouse is not back at {before} DPI.");
         return 1;
     }
+
+    /// <summary>
+    /// The driver's own write, exercised end to end and put back.
+    ///
+    /// Through <see cref="PointerWriter"/> rather than through this file's copy of the
+    /// same idea, because what needs proving is the code the page runs — a harness that
+    /// tests its own reimplementation of a thing proves the reimplementation.
+    /// </summary>
+    public static int Driver(int wanted)
+    {
+        if (Open() is not { } open) return 1;
+
+        using WindowsHidChannel channel = open.Channel;
+
+        int before = Live(channel, open.Device);
+        if (before < 0)
+        {
+            Console.WriteLine("  The mouse would not say what it is running at.");
+            return 1;
+        }
+
+        Console.WriteLine($"[driver] the page's own write");
+        Console.WriteLine();
+        Console.WriteLine($"  before   {before} DPI");
+
+        if (!PointerWriter.SetResolution(channel, open.Device, before, wanted))
+        {
+            Console.WriteLine("  write    refused");
+            return 1;
+        }
+
+        int after = Live(channel, open.Device);
+        Console.WriteLine($"  after    {after} DPI");
+        Console.WriteLine();
+        Console.WriteLine(after == wanted ? "  It took." : "  It did not take.");
+        Console.WriteLine();
+
+        if (PointerWriter.SetResolution(channel, open.Device, after, before) && Live(channel, open.Device) == before)
+        {
+            Console.WriteLine($"  restored {before} DPI");
+            return after == wanted ? 0 : 1;
+        }
+
+        Console.WriteLine($"  RESTORE FAILED — the mouse is not back at {before} DPI.");
+        return 1;
+    }
+
+    /// <summary>
+    /// Whether the report rate can be changed the same way the resolution was.
+    ///
+    /// It should be: the first byte of a profile is the rate, and it agrees with what the
+    /// rate feature reports separately. Whether writing it moves the mouse is a different
+    /// question from whether it decodes, and only the mouse can answer it.
+    /// </summary>
+    public static int Rate(int index)
+    {
+        if (Open() is not { } open) return 1;
+
+        using WindowsHidChannel channel = open.Channel;
+
+        if (Enabled(channel, open.Device, open.Feature) is not { } sector
+            || Sector(channel, open.Device, open.Feature, sector, 255) is not { Length: 255 } original)
+        {
+            Console.WriteLine("  The active profile would not read.");
+            return 1;
+        }
+
+        int before = LiveRate(channel, open.Device);
+
+        Console.WriteLine($"[rate] profile in sector {sector}");
+        Console.WriteLine();
+        Console.WriteLine($"  before   byte 0 is {original[0]}, and the mouse reports rate index {before}");
+
+        byte[] changed = [.. original];
+        changed[0] = (byte)index;
+        Seal(changed);
+
+        if (!Put(channel, open.Device, open.Feature, sector, changed))
+        {
+            Console.WriteLine("  write    refused");
+            return 1;
+        }
+
+        int after = LiveRate(channel, open.Device);
+
+        Console.WriteLine($"  after    byte 0 is {index}, and the mouse reports rate index {after}");
+        Console.WriteLine();
+        Console.WriteLine(after != before
+            ? "  The rate follows the profile."
+            : "  Nothing moved — the rate is not kept there, or not read from there.");
+
+        Console.WriteLine();
+
+        if (Put(channel, open.Device, open.Feature, sector, original) && LiveRate(channel, open.Device) == before)
+        {
+            Console.WriteLine($"  restored rate index {before}");
+            return 0;
+        }
+
+        Console.WriteLine($"  RESTORE FAILED — the rate is not back at index {before}.");
+        return 1;
+    }
+
+    /// <summary>
+    /// The rate asked for directly, which is the other place it could live.
+    ///
+    /// The profile holds a rate byte and the mouse does not follow it — so either it is
+    /// read only when a profile is loaded, or it is not the rate at all. Either way the
+    /// feature that reports the rate has a function for setting it, and whether that one
+    /// is refused the way the resolution's was is a question only the mouse answers.
+    ///
+    /// Two shapes tried, because the parameters are not certain: the rate alone, and a
+    /// link followed by the rate. A wrong shape is refused rather than obeyed — the value
+    /// has to be one of the rates the device said it offers.
+    /// </summary>
+    public static int RateDirect(int index)
+    {
+        if (Open() is not { } open) return 1;
+
+        using WindowsHidChannel channel = open.Channel;
+
+        if (HidPlusPlusReader.FeatureIndex(channel, open.Device, ExtendedRate) is not { } feature)
+        {
+            Console.WriteLine("  No report rate feature.");
+            return 1;
+        }
+
+        int before = LiveRate(channel, open.Device);
+        Console.WriteLine($"[rate] asked directly");
+        Console.WriteLine();
+        Console.WriteLine($"  before   index {before}");
+
+        foreach ((string shape, byte[] parameters) in
+                 new (string, byte[])[] { ("rate alone", [(byte)index]), ("link, rate", [0x00, (byte)index]) })
+        {
+            byte[]? reply = HidPlusPlusReader.Ask(channel, open.Device, feature, 0x03, parameters);
+
+            string said = reply is null ? "нет ответа"
+                : HidPlusPlus.IsError(reply) ? HidPlusPlus.Explain(reply)
+                : "accepted";
+
+            int now = LiveRate(channel, open.Device);
+            Console.WriteLine($"  {shape,-12} {said,-24} index now {now}");
+
+            if (now == index)
+            {
+                Console.WriteLine();
+                Console.WriteLine("  It took.");
+                Console.WriteLine();
+
+                HidPlusPlusReader.Ask(channel, open.Device, feature, 0x03, parameters[..^1].Append((byte)before).ToArray());
+
+                int back = LiveRate(channel, open.Device);
+                Console.WriteLine(back == before
+                    ? $"  restored index {before}"
+                    : $"  RESTORE FAILED — the rate is at index {back}, not {before}.");
+
+                return back == before ? 0 : 1;
+            }
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("  Neither shape moved it.");
+        return 1;
+    }
+
+    /// <summary>The rate index the mouse reports, from its own feature.</summary>
+    private static int LiveRate(WindowsHidChannel channel, byte device)
+    {
+        if (HidPlusPlusReader.FeatureIndex(channel, device, ExtendedRate) is not { } feature) return -1;
+
+        byte[]? reply = HidPlusPlusReader.Ask(channel, device, feature, 0x02, 0x00);
+
+        return reply is { Length: > 4 } && !HidPlusPlus.IsError(reply) ? reply[4] : -1;
+    }
+
+    private const ushort ExtendedRate = 0x8061;
 
     /// <summary>The resolution the mouse is actually running at, from its own feature.</summary>
     private static int Live(WindowsHidChannel channel, byte device)
