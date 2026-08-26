@@ -53,11 +53,29 @@ internal static class AudioCapabilities
 
     private static void Add(
         List<AudioRow> rows,
-        IReadOnlyList<AudioEndpoint> endpoints,
+        IReadOnlyList<AudioEndpoint> all,
         DeviceInfo device,
         AudioFlow flow)
     {
         bool render = flow == AudioFlow.Render;
+
+        // One device, one microphone — however many Windows counts.
+        //
+        // A headset paired over Bluetooth and sitting on its dongle enumerates two capture
+        // endpoints, and they are the same capsule reached two ways. Drawn as they come,
+        // that is two switches, two levels and two meters, each labelled with a link, for
+        // a thing there is one of; and one of every pair is dead, because only one link
+        // carries at a time. So where Windows says which it is using, that is the one, and
+        // it needs no label to say which it is.
+        //
+        // Where it says nothing — no default of this kind on the machine — the several are
+        // drawn as they are, named apart. A microphone with a headphone socket on its base
+        // is genuinely two things and both belong on the page.
+        IReadOnlyList<AudioEndpoint> endpoints =
+            all.Count > 1 && all.Count(e => e.IsDefault) == 1
+                ? [.. all.Where(e => e.IsDefault)]
+                : all;
+
         bool several = endpoints.Count > 1;
 
         string volumeId = render ? CapabilityIds.AudioSystemVolume : CapabilityIds.MicSystemLevel;

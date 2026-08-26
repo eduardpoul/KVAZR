@@ -24,6 +24,12 @@ public sealed class WindowsAudioEndpoints : IAudioEndpoints
     private const int Render = 0;
     private const int Capture = 1;
     private const int StateActive = 1;
+
+    /// <summary>Everything that is not a call.</summary>
+    private const int RoleConsole = 0;
+
+    /// <summary>Calls, which is the role a headset microphone is usually chosen for.</summary>
+    private const int RoleCommunications = 2;
     private const int InprocServer = 1;
 
     public IReadOnlyList<AudioEndpoint> Enumerate()
@@ -35,6 +41,12 @@ public sealed class WindowsAudioEndpoints : IAudioEndpoints
         {
             foreach ((int flow, AudioFlow kind) in ((int, AudioFlow)[])[(Capture, AudioFlow.Capture), (Render, AudioFlow.Render)])
             {
+                // Which of this kind Windows is on right now. Both roles, because they
+                // can differ — a headset can be the communications device while the
+                // speakers take everything else — and either counts as being in use.
+                string? console = DefaultId(enumerator, flow, RoleConsole);
+                string? communications = DefaultId(enumerator, flow, RoleCommunications);
+
                 if (enumerator.EnumAudioEndpoints(flow, StateActive, out IMMDeviceCollection collection) != 0) continue;
                 if (collection.GetCount(out int count) != 0) continue;
 
@@ -44,7 +56,13 @@ public sealed class WindowsAudioEndpoints : IAudioEndpoints
 
                     try
                     {
-                        if (Describe(device, kind) is { } endpoint) found.Add(endpoint);
+                        if (Describe(device, kind) is { } endpoint)
+                        {
+                            found.Add(endpoint with
+                            {
+                                IsDefault = endpoint.Id == console || endpoint.Id == communications,
+                            });
+                        }
                     }
                     finally
                     {
@@ -123,6 +141,24 @@ public sealed class WindowsAudioEndpoints : IAudioEndpoints
         finally
         {
             Release(enumerator);
+        }
+    }
+
+    /// <summary>
+    /// The endpoint Windows uses for a kind and a role, or null where it has none — which
+    /// is an ordinary answer on a machine with no microphone at all.
+    /// </summary>
+    private static string? DefaultId(IMMDeviceEnumerator enumerator, int flow, int role)
+    {
+        if (enumerator.GetDefaultAudioEndpoint(flow, role, out IMMDevice device) != 0) return null;
+
+        try
+        {
+            return device.GetId(out string id) == 0 ? id : null;
+        }
+        finally
+        {
+            Release(device);
         }
     }
 

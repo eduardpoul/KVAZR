@@ -44,6 +44,16 @@ public sealed record AudioEndpoint
     /// </summary>
     public bool IsContainerless => ContainerId == VirtualContainer;
 
+    /// <summary>
+    /// True where this is the endpoint Windows is actually using for its kind right now.
+    ///
+    /// One device can offer several of the same kind and mean one thing by them: a
+    /// headset paired over Bluetooth and sitting on its dongle has two microphones as far
+    /// as Windows is concerned, and one microphone as far as its owner is concerned. This
+    /// is how the one that is live is told from the one that is merely enumerated.
+    /// </summary>
+    public bool IsDefault { get; init; }
+
     internal static readonly Guid VirtualContainer = new("00000000-0000-0000-ffff-ffffffffffff");
 }
 
