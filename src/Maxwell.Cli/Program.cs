@@ -267,6 +267,11 @@ if (args.Contains("--aap"))
         !args.Contains("--all"));
 }
 
+if (args.Contains("--btreset"))
+{
+    return AirPodsProbe.Reset(int.TryParse(ValueAfter(args, "--btreset"), out int span) ? span : 8);
+}
+
 if (args.Contains("--airpods"))
 {
     return AirPodsProbe.Run(int.TryParse(ValueAfter(args, "--airpods"), out int listen) ? listen : 12);

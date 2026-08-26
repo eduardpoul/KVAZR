@@ -95,6 +95,97 @@ internal static class AirPodsProbe
         return 0;
     }
 
+
+    /// <summary>
+    /// Turns the radio off and on again, and scans either side of it.
+    ///
+    /// Not a fix, a question. This adapter connects to low-energy devices happily — the
+    /// mouse on it was read, unpaired and paired again — and a device it once had to
+    /// *find* is sitting in its paired list, so scanning worked at least once. A thing
+    /// that worked and stopped is a state, and a state is worth clearing before anything
+    /// is blamed on the hardware.
+    ///
+    /// Costs a few seconds of Bluetooth, and puts it back.
+    /// </summary>
+    public static int Reset(int seconds)
+    {
+        var before = new Ears();
+        Console.WriteLine("  до перезапуска радио:");
+        Listen(BluetoothLEScanningMode.Active, seconds, before);
+        Console.WriteLine($"    поймано {before.Total}");
+
+        Console.WriteLine();
+
+        if (!Toggle()) return 1;
+
+        var after = new Ears();
+        Console.WriteLine();
+        Console.WriteLine("  после:");
+        Listen(BluetoothLEScanningMode.Active, seconds, after);
+        Console.WriteLine($"    поймано {after.Total}, разных радио {after.Radios.Count}");
+
+        foreach ((ushort id, int count) in after.Makers.OrderByDescending(m => m.Value))
+        {
+            Console.WriteLine($"      0x{id:X4}  {count,4}{(id == Apple ? "   ← Apple" : string.Empty)}");
+        }
+
+        foreach ((string hex, (int count, short rssi, ulong address)) in after.Apple)
+        {
+            Console.WriteLine($"      {address:X12}  rssi {rssi}  ×{count}  {hex}");
+
+            byte[] payload = Convert.FromHexString(hex);
+            if (payload.Length >= 10 && payload[0] == ProximityPairing) Console.WriteLine($"        {Guess(payload)}");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine(after.Total > 0
+            ? "  Заработало. Значит радио застревало, а не не умело."
+            : "  Не помогло. Состояние ни при чём.");
+
+        return after.Total > 0 ? 0 : 1;
+    }
+
+    /// <summary>Off, a pause, on, and time to come back.</summary>
+    private static bool Toggle()
+    {
+        try
+        {
+            var access = Windows.Devices.Radios.Radio.RequestAccessAsync().AsTask().Result;
+
+            if (access != Windows.Devices.Radios.RadioAccessStatus.Allowed)
+            {
+                Console.WriteLine($"  радио трогать не дают: {access}");
+                return false;
+            }
+
+            var radios = Windows.Devices.Radios.Radio.GetRadiosAsync().AsTask().Result;
+            var bluetooth = radios.FirstOrDefault(r => r.Kind == Windows.Devices.Radios.RadioKind.Bluetooth);
+
+            if (bluetooth is null)
+            {
+                Console.WriteLine("  радио Bluetooth не нашлось");
+                return false;
+            }
+
+            Console.WriteLine($"  выключаю {bluetooth.Name}...");
+            Console.WriteLine($"    {bluetooth.SetStateAsync(Windows.Devices.Radios.RadioState.Off).AsTask().Result}");
+            Thread.Sleep(TimeSpan.FromSeconds(3));
+
+            Console.WriteLine("  включаю обратно...");
+            Console.WriteLine($"    {bluetooth.SetStateAsync(Windows.Devices.Radios.RadioState.On).AsTask().Result}");
+
+            // Long enough for the stack to bring the adapter and its devices back.
+            Thread.Sleep(TimeSpan.FromSeconds(8));
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"  не вышло: {ex.GetType().Name} {ex.Message}");
+            return false;
+        }
+    }
+
     /// <summary>Everything the listener collected, across every mode it was run in.</summary>
     private sealed class Ears
     {
