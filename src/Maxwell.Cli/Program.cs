@@ -245,6 +245,11 @@ if (args.Contains("--eqpush"))
 }
 
 if (args.Contains("--eq")) return await EqProbe.RunAsync().ConfigureAwait(false);
+if (args.Contains("--btscan"))
+{
+    return BluetoothScanProbe.Run(int.TryParse(ValueAfter(args, "--btscan"), out int look) ? look : 10);
+}
+
 if (args.Contains("--aapmatrix"))
 {
     string who = ValueAfter(args, "--aapmatrix") ?? "6093160A369F";
