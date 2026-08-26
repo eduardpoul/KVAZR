@@ -532,6 +532,12 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
     /// <summary>
     /// Long enough to cover a debounce, a write and the poll that follows it. Short
     /// enough that a value moved on the device itself still shows up promptly.
+    ///
+    /// Whatever holds the written value on the other side has to outlive this, or the
+    /// moment it ends is a moment this control accepts a reading nobody is vouching for.
+    /// A microphone switch did exactly that: the audio driver asserted the clicked value
+    /// for one second, this ignored readings for one and a half, and the switch flicked
+    /// back on in the half-second between them.
     /// </summary>
     private static readonly TimeSpan WriteEcho = TimeSpan.FromMilliseconds(1500);
 

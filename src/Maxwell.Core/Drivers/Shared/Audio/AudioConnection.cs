@@ -356,10 +356,25 @@ internal sealed class AudioConnection : IDeviceConnection
             }
         }
 
-        /// <summary>How long a click outranks the stream. Long enough to cover the packets
-        /// in flight and the run of silence the verdict waits for, and short enough that a
-        /// device which ignored the write is found out while the hand is still there.</summary>
-        private static readonly TimeSpan Patience = TimeSpan.FromSeconds(1);
+        /// <summary>
+        /// How long a click outranks the stream.
+        ///
+        /// It has to outlive the window the view model spends ignoring readings after a
+        /// write — 1.5 seconds there — and one second did not. That half-second gap was
+        /// the switch flicking back on for about a second after being turned off: the
+        /// page started accepting readings at 1.5 s, by which time this had stopped
+        /// asserting what was clicked, and the stream had not caught up yet.
+        ///
+        /// The stream is slower than it looks. A QuadCast follows a write in about
+        /// seventy milliseconds, which is what the old second was tuned to; a Maxwell
+        /// over its dongle takes about 620 ms before the silence starts, and the verdict
+        /// wants a further quarter-second of it — so roughly 870 ms on a good run, and
+        /// unmuting measured about the same. Three seconds is that with room to spare,
+        /// and it costs nothing on a device that answers quickly: the assertion ends the
+        /// moment the stream agrees, so the clock only ever runs out on a device that
+        /// really did refuse.
+        /// </summary>
+        private static readonly TimeSpan Patience = TimeSpan.FromSeconds(3);
 
         public double? Read()
         {
