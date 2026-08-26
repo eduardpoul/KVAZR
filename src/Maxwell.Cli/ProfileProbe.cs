@@ -150,7 +150,7 @@ internal static class ProfileProbe
     /// stores at the end of a sector are reproduced exactly by ours, so a sector we
     /// assemble is one it will accept rather than one it will reject or, worse, take.
     /// </summary>
-    public static int Write(int sector, int slot, int dpi)
+    public static int Write(int sector, int slot, int dpi, bool keep = false)
     {
         if (Open() is not { } open) return 1;
 
@@ -164,14 +164,23 @@ internal static class ProfileProbe
 
         int at = 4 + (slot * 5);
         int was = original[at] | (original[at + 1] << 8);
+        int down = original[at + 2] | (original[at + 3] << 8);
 
         Console.WriteLine($"[profile write] sector {sector}, resolution {slot}");
         Console.WriteLine();
-        Console.WriteLine($"  before   {was} DPI in the sector, {Live(channel, open.Device)} DPI running");
+        Console.WriteLine(
+            $"  before   {was} across / {down} down in the sector, {Live(channel, open.Device)} DPI running");
 
         byte[] changed = [.. original];
         changed[at] = (byte)(dpi & 0xFF);
         changed[at + 1] = (byte)(dpi >> 8);
+
+        // And down as well as across. Writing one axis and not the other is a mouse that
+        // is fast up the screen and slow along it — which is what it did, because this
+        // touched two bytes where the entry has four.
+        changed[at + 2] = changed[at];
+        changed[at + 3] = changed[at + 1];
+
         Seal(changed);
 
         if (!Put(channel, open.Device, open.Feature, sector, changed))
@@ -188,6 +197,12 @@ internal static class ProfileProbe
         Console.WriteLine($"  running  {Live(channel, open.Device)} DPI  (what the mouse is doing now)");
         Console.WriteLine();
         Console.WriteLine(now == dpi ? "  It took." : "  It did not take.");
+        if (keep)
+        {
+            Console.WriteLine("  Left as written.");
+            return now == dpi ? 0 : 1;
+        }
+
         Console.WriteLine();
 
         // Back exactly as found, byte for byte, including the checksum that came with it.

@@ -127,7 +127,7 @@ if (args.Contains("--profilewrite"))
     int slot = int.TryParse(ValueAfter(args, "--slot"), out int index) ? index : 0;
     int value = int.TryParse(ValueAfter(args, "--dpi"), out int wanted2) ? wanted2 : 1600;
 
-    return ProfileProbe.Write(sector, slot, value);
+    return ProfileProbe.Write(sector, slot, value, args.Contains("--keep"));
 }
 
 if (args.Contains("--profiles"))

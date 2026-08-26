@@ -64,26 +64,31 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
     {
         var rows = new List<Capability> { BatteryCapability, ChargingCapability };
 
-        if (facts is { Dpi: not null, MinDpi: { } low, MaxDpi: { } high } && high > low)
+        if (facts is { Dpi: { } running, Presets.Count: > 1 })
         {
+            // The mouse's own steps, and nothing between them.
+            //
+            // This was a slider across the whole range the sensor will accept — a hundred
+            // to forty-four thousand on the one measured — and that was wrong twice over.
+            // A drag writes at every position it passes through, so a hand crossing the
+            // track put a dozen resolutions into the mouse on its way; and the values in
+            // between are not steps anybody wants, they are wherever a pixel landed. What
+            // came out of it was a mouse at seven thousand four hundred.
+            //
+            // Five named steps, chosen one at a time, written once each. The steps are the
+            // device's own, so a mouse with three offers three.
+            List<int> steps = [.. facts.Presets];
+            if (!steps.Contains(running)) steps.Insert(0, running);
+
             rows.Add(new Capability
             {
                 Id = CapabilityIds.PointerDpi,
                 Domain = CapabilityDomain.Pointing,
-                Primitive = CapabilityPrimitive.Range,
+                Primitive = CapabilityPrimitive.Choice,
                 Title = "Resolution",
-                Subtitle = facts.DefaultDpi is { } standard
-                    ? $"The mouse leaves the factory at {standard}"
-                    : null,
-
+                Subtitle = "The steps this mouse stores; its own button cycles them too",
                 Access = CapabilityAccess.ReadWrite,
-                Range = new CapabilityRange
-                {
-                    Min = low,
-                    Max = high,
-                    Unit = "DPI",
-                    Detents = [.. facts.Presets],
-                },
+                Choices = [.. steps.Order().Select(dpi => new CapabilityChoice(dpi, $"{dpi} DPI"))],
             });
         }
 
@@ -194,7 +199,7 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
         switch (capabilityId)
         {
             case CapabilityIds.PointerDpi:
-                return _facts.Dpi is { } dpi ? CapabilityValue.Of(dpi) : CapabilityValue.Absent;
+                return _facts.Dpi is { } dpi ? CapabilityValue.Choice(dpi) : CapabilityValue.Absent;
 
             case CapabilityIds.PointerReportRate:
                 return _facts.ReportRate is { } rate ? CapabilityValue.Choice(rate) : CapabilityValue.Absent;
@@ -275,7 +280,7 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
         ArgumentNullException.ThrowIfNull(value);
 
         if (capabilityId != CapabilityIds.PointerDpi) return false;
-        if (value is not NumberValue wanted) return false;
+        if (value is not ChoiceValue wanted) return false;
         if (_facts.Dpi is not { } current) return false;
 
         SemaphoreSlim gate = GateFor(_path);
@@ -287,14 +292,23 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
 
             // A mouse asleep answers nothing, and the exchange that wakes it is the one
             // that goes unanswered. The read below is what wakes it here.
-            if (!PointerWriter.SetResolution(channel, _slot, current, wanted.Value)) return false;
+            if (!PointerWriter.SetResolution(channel, _slot, current, wanted.Index)) return false;
 
             // Believed only after the device says so. The resolution feature answers from
             // what the mouse is actually running at rather than from the sector, so this
             // is the change taking effect rather than the write being accepted.
-            if (Live(channel) is { } now) _facts = _facts with { Dpi = now };
+            if (Live(channel) is not { } now) return false;
 
-            return _facts.Dpi == wanted.Value;
+            // And the list of steps moves with it. Writing puts the new value where the
+            // old one was, so a list still offering the old one offers something the
+            // mouse no longer has.
+            _facts = _facts with
+            {
+                Dpi = now,
+                Presets = [.. _facts.Presets.Select(step => step == current ? now : step)],
+            };
+
+            return now == wanted.Index;
         }
         catch (IOException)
         {
