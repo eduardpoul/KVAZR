@@ -60,12 +60,18 @@ internal static class DeviceInventory
 
         if (includeMocks) drivers.Add(new MockDeviceDriver());
 
+        // The radio listener, started here and disposed with the run. It has to exist
+        // before the sweep and outlive it: a beacon arrives when it arrives, and a
+        // listener created per read would hear nothing at all.
+        using var listening = new Maxwell.Race.Windows.WindowsProximityListener();
+
         // The same contributors the application composes, so the harness prints the page
         // a person would see rather than a thinner one.
         ICapabilityContributor[] contributors =
         [
             new AudioContributor(new WindowsAudioEndpoints(), new WindowsSystemDeviceEnumerator()),
             new Maxwell.Core.Drivers.HyperX.HyperXContributor(new WindowsHidListenerFactory()),
+            new Maxwell.Core.Drivers.Apple.AppleProximityContributor(listening),
         ];
 
         using var registry = new DeviceRegistry(

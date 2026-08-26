@@ -300,6 +300,7 @@ internal static class Program
             new Maxwell.Core.Drivers.HyperX.HyperXModule(),
             new Maxwell.Core.Drivers.Logitech.LogitechModule(),
             new Maxwell.Core.Drivers.Audio.AudioModule(),
+            new Maxwell.Core.Drivers.Apple.AppleModule(),
         ];
 
         builder.Services.AddDeviceRegistry(includeMockDevices: true, mockDeviceCount: mocks, [.. modules]);

@@ -293,11 +293,13 @@ internal static class AirPodsProbe
     {
         ushort model = (ushort)((p[3] << 8) | p[4]);
 
-        static string Level(int nibble) =>
-            nibble > 10 ? "—" : (nibble * 10).ToString(CultureInfo.InvariantCulture) + "%";
-
-        return $"модель 0x{model:X4}  статус 0x{p[5]:X2}  "
-            + $"нибблы {Level(p[6] >> 4)}/{Level(p[6] & 0x0F)}  кейс {Level(p[7] & 0x0F)}  "
-            + $"флаги зарядки 0x{p[7] >> 4:X1}";
+        // Every byte, labelled, and no verdict. Two write-ups disagree about which half
+        // of byte 7 is the case and which is the flags, and about which nibble of byte 6
+        // is the left pod — so the thing to print is the bytes, beside what a person can
+        // see on their own screen.
+        return $"модель 0x{model:X4} (наоборот 0x{(p[4] << 8) | p[3]:X4})  режим {p[2]}  статус 0x{p[5]:X2}"
+            + $"  байт6 0x{p[6]:X2} = {p[6] >> 4}/{p[6] & 0x0F}"
+            + $"  байт7 0x{p[7]:X2} = {p[7] >> 4}/{p[7] & 0x0F}"
+            + $"  далее {Convert.ToHexString(p.AsSpan(8, Math.Min(4, p.Length - 8)))}";
     }
 }

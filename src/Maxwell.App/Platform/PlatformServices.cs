@@ -47,6 +47,12 @@ internal static class PlatformServices
         // without it on platforms where it is not.
         services.AddSingleton<ISystemDeviceEnumerator, Maxwell.Race.Windows.WindowsSystemDeviceEnumerator>();
 
+        // One radio listener for the machine, shared by every device that broadcasts its
+        // state instead of answering questions. Registered here rather than in the core
+        // because it is WinRT and the core is platform-free; a host without it registers
+        // no Apple contributor and those devices simply have no charge row.
+        services.AddSingleton<IProximityListener, Maxwell.Race.Windows.WindowsProximityListener>();
+
         // Core Audio: volume, mute and level for every audio device on the machine.
         // A platform service rather than something inside a driver, because three
         // categories at once — headsets, microphones, speakers — draw their baseline

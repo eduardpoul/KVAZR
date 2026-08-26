@@ -17,6 +17,19 @@ public static class CapabilityIds
     // Power and identity
     public const string PowerBattery = "power.battery";
     public const string PowerCharging = "power.charging";
+
+    /// <summary>
+    /// The halves of a device that has two batteries — a pair of earphones, and its case.
+    ///
+    /// Apart from <see cref="PowerBattery"/> rather than instead of it: the hero and the
+    /// tray want one number for the device, and the one that matters is the emptier half,
+    /// because the pair only lasts as long as its worse side.
+    /// </summary>
+    public const string PowerBatteryLeft = "power.battery.left";
+
+    public const string PowerBatteryRight = "power.battery.right";
+
+    public const string PowerBatteryCase = "power.battery.case";
     public const string PowerAutoOff = "power.auto_off";
     public const string DeviceFirmware = "device.firmware";
 
