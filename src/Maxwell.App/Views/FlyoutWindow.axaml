@@ -320,6 +320,11 @@
                        would draw a second, lighter rectangle over the top of it. -->
                   <Button Classes="deviceRowButton" Background="Transparent"
                           Command="{Binding ToggleCommand}">
+                    <!-- The name's column is the elastic one and the readings' is
+                         sized to its content, so a long name is trimmed rather than being
+                         allowed to reach them. The floor stops the traffic going the other
+                         way: three readings on a narrow panel would otherwise squeeze the
+                         name down to an ellipsis and nothing else. -->
                     <Grid ColumnDefinitions="Auto,*,Auto,Auto"
                           Height="{DynamicResource FlyoutRowHeight}">
                       <Border Grid.Column="0"
@@ -337,12 +342,15 @@
                            without it a long device name runs straight into the percentage
                            instead of being trimmed short of it. -->
                       <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center"
+                                  MinWidth="70" ClipToBounds="True"
                                   Margin="0,0,12,0">
                         <TextBlock FontSize="{DynamicResource FlyoutNameSize}" FontWeight="SemiBold"
                                    Text="{Binding Device.DisplayName}"
+                                   MaxLines="1"
                                    TextTrimming="CharacterEllipsis" />
                         <TextBlock Classes="caption" FontSize="{DynamicResource FlyoutSubSize}"
                                    Text="{Binding Device.Status}"
+                                   MaxLines="1"
                                    TextTrimming="CharacterEllipsis" />
                       </StackPanel>
 

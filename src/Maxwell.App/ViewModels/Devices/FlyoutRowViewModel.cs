@@ -41,12 +41,22 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
         CapabilityIds.LightBrightness,
         CapabilityIds.LightOn,
         CapabilityIds.LinkHosts,
+    ];
 
-        // What Windows itself gives an audio device is deliberately absent. It arrives
-        // anyway, by the fill below, which is the right way round: a device with settings
-        // of its own leads with those, and one with none — a pair of AirPods — opens on
-        // the system's. Listed here instead, the playback volume climbed above a
-        // microphone's own switch and level, which two cases already guard against.
+    /// <summary>
+    /// What Windows gives any audio device, offered last of all.
+    ///
+    /// Last because they are the system's settings rather than the device's: a headset's
+    /// own volume is the one on the headset, and Windows' is a second, different thing
+    /// that happens to be nearer to hand. But for a device this application has no
+    /// protocol for — a pair of AirPods — these are the only settings there are, and
+    /// without them opening its row showed nothing but a way out of it.
+    /// </summary>
+    private static readonly string[] SystemLast =
+    [
+        CapabilityIds.AudioSystemVolume,
+        CapabilityIds.MicSystemOn,
+        CapabilityIds.MicSystemLevel,
     ];
 
     /// <summary>
@@ -257,6 +267,16 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
 
             yield return id;
         }
+
+        // And what the operating system offers, for whatever room is left.
+        //
+        // Not on a microphone. Its own switch and level already lead the row, and its
+        // headphone socket is asked for by name — a playback volume appearing under a
+        // capsule's controls is a second, unrelated slider in the place somebody reaches
+        // to mute themselves.
+        if (device.Info.Class == DeviceClass.Microphone) yield break;
+
+        foreach (string id in SystemLast) yield return id;
 
         yield return CapabilityIds.MicSystemOn;
     }
