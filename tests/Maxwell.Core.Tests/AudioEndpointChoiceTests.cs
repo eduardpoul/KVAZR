@@ -85,6 +85,42 @@ public sealed class AudioEndpointChoiceTests
     }
 
     /// <summary>
+    /// A microphone's own row states a fact; an output's offers a switch.
+    ///
+    /// Both read the same way, and for an output that is the whole story. For a
+    /// microphone the switch was a promise the page cannot keep: a headset muted at the
+    /// earcup goes on sending room noise, and twenty seconds of flipping moved no
+    /// register, no HID report and no flag. What is left worth saying is what the stream
+    /// is doing, and that is a reading rather than a control.
+    /// </summary>
+    [Fact]
+    public void AMicrophonesOwnRow_IsAReadingRatherThanASwitch()
+    {
+        IReadOnlyList<AudioRow> rows = AudioCapabilities.Rows(
+            [
+                Endpoint("Microphone (Test)", AudioFlow.Capture, inUse: true),
+                Endpoint("Speakers (Test)", AudioFlow.Render, inUse: true),
+            ],
+            Headset);
+
+        Capability microphone = rows.Single(r =>
+            r.Control == AudioControl.OnOff && r.Descriptor.Domain == CapabilityDomain.Microphone).Descriptor;
+
+        Assert.Equal(CapabilityPrimitive.Readout, microphone.Primitive);
+        Assert.False(microphone.IsWritable);
+
+        // And it says which of the two states it is in with a word of its own: a row
+        // reading "Microphone - yes" answers a question nobody asked.
+        Assert.Equal(["Muted", "On"], microphone.Choices.OrderBy(c => c.Index).Select(c => c.Label));
+
+        Capability sound = rows.Single(r =>
+            r.Control == AudioControl.OnOff && r.Descriptor.Domain == CapabilityDomain.Audio).Descriptor;
+
+        Assert.Equal(CapabilityPrimitive.Toggle, sound.Primitive);
+        Assert.True(sound.IsWritable);
+    }
+
+    /// <summary>
     /// Two kinds are not two of a kind. A microphone's capsule and the socket on its base
     /// are a capture and a render endpoint, and collapsing has nothing to say about them.
     /// </summary>
