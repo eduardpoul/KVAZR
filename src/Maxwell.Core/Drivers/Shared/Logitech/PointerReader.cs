@@ -113,8 +113,20 @@ public static class PointerReader
     private static (int? Dpi, int? Default, int? Min, int? Max, IReadOnlyList<int> Presets) Extended(
         WindowsHidChannel channel, byte device, byte index)
     {
-        List<int> presets = Values(HidPlusPlusReader.Ask(channel, device, index, 0x03, 0x00, 0x00, 0x00), 3);
+        // Two bytes of header — the sensor and the direction — and then the steps. Three
+        // was a byte too many, and a byte too many does not fail: it reads the tail of one
+        // number and the head of the next, so 800 came out as 8196 and the page offered a
+        // list of resolutions no mouse has.
+        List<int> presets = Values(HidPlusPlusReader.Ask(channel, device, index, 0x03, 0x00, 0x00, 0x00), 2);
         (int? lowest, int? highest) = Range(channel, device, index);
+
+        // Anything outside the range the device itself described is a misread rather than
+        // a step. This is the check that would have caught the byte above without anybody
+        // noticing the numbers looked odd.
+        if (lowest is { } floor && highest is { } ceiling)
+        {
+            presets = [.. presets.Where(step => step >= floor && step <= ceiling)];
+        }
 
         byte[]? now = HidPlusPlusReader.Ask(channel, device, index, 0x05, 0x00);
 
@@ -133,7 +145,9 @@ public static class PointerReader
     private static (int? Dpi, int? Default, int? Min, int? Max, IReadOnlyList<int> Presets) Older(
         WindowsHidChannel channel, byte device, byte index)
     {
-        List<int> presets = Values(HidPlusPlusReader.Ask(channel, device, index, 0x01, 0x00), 5);
+        // One byte of header here, the sensor. Not verified against hardware: no mouse
+        // old enough to carry this feature has been on the desk.
+        List<int> presets = Values(HidPlusPlusReader.Ask(channel, device, index, 0x01, 0x00), 1);
         int? dpi = Word(HidPlusPlusReader.Ask(channel, device, index, 0x02, 0x00), 5);
 
         return (dpi, null, presets.Count > 0 ? presets.Min() : null, presets.Count > 0 ? presets.Max() : null, presets);

@@ -235,7 +235,13 @@ internal static class DeviceInventory
             NumberValue n => state.Range?.Unit is { } unit ? $"{n.Value} {unit}" : n.Value.ToString(),
             FlagValue f => f.Value ? "да" : "нет",
             TextValue t => t.Value,
-            ChoiceValue c => state.Descriptor.Choices.FirstOrDefault(o => o.Index == c.Index)?.Label
+            // The whole list, not only the one in force. What a device offers is as much
+            // the point as what it has chosen — and a list that reads oddly is the first
+            // sign that a reply was decoded from the wrong byte.
+            ChoiceValue c => state.Descriptor.Choices.Count > 1
+                ? $"{state.Descriptor.Choices.FirstOrDefault(o => o.Index == c.Index)?.Label}"
+                    + $"   of {string.Join(", ", state.Descriptor.Choices.Select(o => o.Label))}"
+                : state.Descriptor.Choices.FirstOrDefault(o => o.Index == c.Index)?.Label
                 ?? $"#{c.Index}",
 
             // A curve or a channel pair, printed as its members. An unanswered member
