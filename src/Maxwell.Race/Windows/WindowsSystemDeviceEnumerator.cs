@@ -160,10 +160,19 @@ public sealed class WindowsSystemDeviceEnumerator : ISystemDeviceEnumerator
         }
     }
 
+    /// <summary>
+    /// A string property, and only a string property.
+    ///
+    /// The type is checked rather than assumed, because a key can hold something else
+    /// entirely and the bytes decode anyway. Measured on a pair of AirPods:
+    /// DEVPKEY_Bluetooth_Manufacturer holds a UInt32 on this stack, not a name — 2360344,
+    /// which is 0x00240418, which read as UTF-16 is two characters of punctuation and
+    /// Cyrillic. That went on the page as the maker of the device.
+    /// </summary>
     private static string? ReadString(IntPtr set, ref Native.SpDevInfoData info, Native.DevPropKey key)
     {
-        byte[]? buffer = ReadRaw(set, ref info, key);
-        if (buffer is null) return null;
+        byte[]? buffer = ReadRaw(set, ref info, key, out ulong type);
+        if (buffer is null || type != Native.DevpropTypeString) return null;
 
         string value = Encoding.Unicode.GetString(buffer).TrimEnd('\0');
         return value.Length == 0 ? null : value;
@@ -228,20 +237,28 @@ public sealed class WindowsSystemDeviceEnumerator : ISystemDeviceEnumerator
             : null;
     }
 
-    private static byte[]? ReadRaw(IntPtr set, ref Native.SpDevInfoData info, Native.DevPropKey key)
+    private static byte[]? ReadRaw(IntPtr set, ref Native.SpDevInfoData info, Native.DevPropKey key) =>
+        ReadRaw(set, ref info, key, out _);
+
+    /// <summary>The bytes and what Windows says they are, for readers that care.</summary>
+    private static byte[]? ReadRaw(
+        IntPtr set, ref Native.SpDevInfoData info, Native.DevPropKey key, out ulong type)
     {
-        Native.SetupDiGetDeviceProperty(set, ref info, ref key, out _, null, 0, out int needed, 0);
+        Native.SetupDiGetDeviceProperty(set, ref info, ref key, out type, null, 0, out int needed, 0);
         if (needed <= 0) return null;
 
         byte[] buffer = new byte[needed];
 
-        return Native.SetupDiGetDeviceProperty(set, ref info, ref key, out _, buffer, needed, out _, 0)
+        return Native.SetupDiGetDeviceProperty(set, ref info, ref key, out type, buffer, needed, out _, 0)
             ? buffer
             : null;
     }
 
     private static class Native
     {
+        /// <summary>DEVPROP_TYPE_STRING.</summary>
+        internal const ulong DevpropTypeString = 0x12;
+
         internal const int DigcfPresent = 0x2;
         internal const int DigcfAllClasses = 0x4;
 
@@ -294,6 +311,17 @@ public sealed class WindowsSystemDeviceEnumerator : ISystemDeviceEnumerator
         private static readonly Guid BluetoothDeviceInfo =
             new("2bd67d8b-8beb-48d5-87e0-6cda3428040a");
 
+        /// <summary>
+        /// DEVPKEY_Bluetooth_Manufacturer, which on this stack is not a name.
+        ///
+        /// Measured: the key answers with a UInt32 rather than a string — the same
+        /// 0x240418 the class-of-device key carries. The company is in a different key
+        /// and as a number: sub 7 held 76, which is Apple, beside sub 8 holding 0x2013,
+        /// the product id. Naming a maker out of a number needs a table of company ids,
+        /// which is a separate thing to build; until then the read refuses, and the
+        /// Windows manufacturer beside it says "Microsoft" for the whole Bluetooth stack
+        /// and is filtered out as the nothing it is.
+        /// </summary>
         internal static readonly DevPropKey DevPkeyBluetoothManufacturer = new(BluetoothDeviceInfo, 4);
 
         internal static readonly DevPropKey DevPkeyBluetoothVendorId = new(BluetoothDeviceInfo, 7);
