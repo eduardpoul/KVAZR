@@ -130,39 +130,24 @@ internal static class AudioCapabilities
                 {
                     Id = Numbered(onId, i),
                     Domain = domain,
-
-                    // A switch for an output, a statement of fact for a microphone.
-                    //
-                    // Both read the same way — the stream first, the flag Windows keeps
-                    // as the fallback — and for an output that is all there is, so it
-                    // stays a switch. For a microphone the switch was a promise the page
-                    // cannot keep: a headset muted at the earcup goes on sending the same
-                    // room noise, measured here as not one silent packet in four hundred,
-                    // and a switch sitting above that still says "on". Twenty seconds of
-                    // flipping moved no register, no HID report and no flag.
-                    //
-                    // So the row says what is happening instead of offering to change it.
-                    // The mute itself belongs to Windows and is a click away in the tray
-                    // Windows already has; what this page can do, and nothing else on the
-                    // machine does, is tell whether the capsule is actually passing sound.
-                    Primitive = render ? CapabilityPrimitive.Toggle : CapabilityPrimitive.Readout,
-                    Access = render ? CapabilityAccess.ReadWrite : CapabilityAccess.Read,
-
-                    // The two words a flag reads as. "Yes" and "no" answer a question
-                    // nobody asked; a microphone is on or it is muted.
-                    Choices = render
-                        ? []
-                        : [new CapabilityChoice(0, "Muted"), new CapabilityChoice(1, "On")],
-
+                    Primitive = CapabilityPrimitive.Toggle,
                     Title = onTitle,
 
-                    // Where the answer comes from, because it is not where anyone
-                    // expects. A microphone that has gone quiet has done so somewhere —
-                    // its own button, the flag Windows keeps, the driver — and the only
-                    // thing that sees all of those at once is the sound itself.
+                    // The switch Windows keeps, and the sentence promises no more than
+                    // that.
+                    //
+                    // It used to say the switch follows the microphone's own mute button.
+                    // That is true of some — a QuadCast muted by its own button reports
+                    // the mute to Windows, and this switch moves with it, which is why the
+                    // sentence was there at all. It is not true of others: an Audeze
+                    // Maxwell muted at the headset leaves this switch on and goes on
+                    // sending the same room noise down the wire, measured — not one silent
+                    // packet in four hundred. A sentence that is right about one device and
+                    // wrong about the next is worse than none, because it is the ones it
+                    // is wrong about that send somebody looking for a fault.
                     Subtitle = several ? endpoint.Name
                         : render ? null
-                        : "Read from the sound arriving, not from the switch Windows keeps",
+                        : "The mute Windows keeps — some microphones report their own button here",
                     IsVolatile = true,
                 }));
 

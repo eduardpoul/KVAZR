@@ -57,20 +57,9 @@ public sealed partial class ReadoutCapabilityViewModel : CapabilityViewModel
         return Math.Clamp((number.Value - range.Min) / (double)(range.Max - range.Min), 0, 1);
     }
 
-    /// <summary>The word this capability gives the flag's true or false side, if it gave one.</summary>
-    private static string? Named(CapabilityState state, bool on) =>
-        state.Options.Count == 2
-            ? Maxwell.App.Localization.Localizer.Current.Say(
-                state.Options.First(o => o.Index == (on ? 1 : 0)).Label)
-            : null;
-
     private static string Format(CapabilityState state) => state.Value switch
     {
         NumberValue n => WithUnit(n.Value.ToString(), state.Range?.Unit),
-        // A flag can name its own two states, and a row that reads "Microphone — yes"
-        // is the reason it can: the words belong to the thing being described, not to
-        // the type it happens to be stored in.
-        FlagValue f when Named(state, f.Value) is { } word => word,
         FlagValue f => f.Value ? Maxwell.App.Localization.Localizer.Current.Say("yes") : Maxwell.App.Localization.Localizer.Current.Say("no"),
         TextValue t => t.Value,
         ChoiceValue c => state.Options.FirstOrDefault(o => o.Index == c.Index)?.Label ?? $"#{c.Index}",

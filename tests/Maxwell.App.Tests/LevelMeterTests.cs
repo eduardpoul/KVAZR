@@ -33,44 +33,6 @@ public sealed class LevelMeterTests
         Value = CapabilityValue.Of(decibels),
     };
 
-    /// <summary>
-    /// A flag reading shows the word the capability gave it, not "yes".
-    ///
-    /// The microphone row is the reason: it stopped being a switch, and "Microphone -
-    /// yes" is not a sentence. The two words belong to the thing being described rather
-    /// than to the type the answer happens to be stored in.
-    /// </summary>
-    [Theory]
-    [InlineData(true, "On")]
-    [InlineData(false, "Muted")]
-    public void AFlagReadout_UsesTheNamesItWasGiven(bool on, string expected)
-    {
-        CapabilityState state = Level(0) with
-        {
-            Descriptor = Level(0).Descriptor with
-            {
-                IsLive = false,
-                Choices = [new CapabilityChoice(0, "Muted"), new CapabilityChoice(1, "On")],
-            },
-            Value = CapabilityValue.Of(on),
-        };
-
-        Assert.Equal(expected, new ReadoutCapabilityViewModel(state, null).Display);
-    }
-
-    /// <summary>And falls back to yes and no where it was given none.</summary>
-    [Fact]
-    public void AFlagReadoutWithoutNames_StillReads()
-    {
-        CapabilityState state = Level(0) with
-        {
-            Descriptor = Level(0).Descriptor with { IsLive = false },
-            Value = CapabilityValue.Of(true),
-        };
-
-        Assert.False(string.IsNullOrWhiteSpace(new ReadoutCapabilityViewModel(state, null).Display));
-    }
-
     [Fact]
     public void ALiveReadout_IsDrawnAsAMeter()
     {

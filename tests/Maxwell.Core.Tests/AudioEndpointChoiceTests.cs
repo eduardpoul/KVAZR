@@ -85,16 +85,21 @@ public sealed class AudioEndpointChoiceTests
     }
 
     /// <summary>
-    /// A microphone's own row states a fact; an output's offers a switch.
+    /// A microphone's own row is a switch, and it is Windows' mute that it writes.
     ///
-    /// Both read the same way, and for an output that is the whole story. For a
-    /// microphone the switch was a promise the page cannot keep: a headset muted at the
-    /// earcup goes on sending room noise, and twenty seconds of flipping moved no
-    /// register, no HID report and no flag. What is left worth saying is what the stream
-    /// is doing, and that is a reading rather than a control.
+    /// Worth pinning, because it was taken away once on the reasoning that it promised
+    /// something it could not do: a Maxwell muted at the earcup goes on sending room
+    /// noise, and the switch above it stayed on. That reasoning was wrong about what the
+    /// switch is for. It is not a mirror of the headset's button — it is the mute Windows
+    /// keeps, measured writing and holding on this very endpoint: set, still set two
+    /// seconds later, restored. Every application recording from that microphone gets
+    /// silence while it is on, which is the whole of what a mute is for.
+    ///
+    /// What it shows is a separate question, answered in AudioConnection: the stream
+    /// first, this flag only where nothing is listening.
     /// </summary>
     [Fact]
-    public void AMicrophonesOwnRow_IsAReadingRatherThanASwitch()
+    public void AMicrophonesOwnRow_IsTheMuteWindowsKeeps()
     {
         IReadOnlyList<AudioRow> rows = AudioCapabilities.Rows(
             [
@@ -103,21 +108,11 @@ public sealed class AudioEndpointChoiceTests
             ],
             Headset);
 
-        Capability microphone = rows.Single(r =>
-            r.Control == AudioControl.OnOff && r.Descriptor.Domain == CapabilityDomain.Microphone).Descriptor;
-
-        Assert.Equal(CapabilityPrimitive.Readout, microphone.Primitive);
-        Assert.False(microphone.IsWritable);
-
-        // And it says which of the two states it is in with a word of its own: a row
-        // reading "Microphone - yes" answers a question nobody asked.
-        Assert.Equal(["Muted", "On"], microphone.Choices.OrderBy(c => c.Index).Select(c => c.Label));
-
-        Capability sound = rows.Single(r =>
-            r.Control == AudioControl.OnOff && r.Descriptor.Domain == CapabilityDomain.Audio).Descriptor;
-
-        Assert.Equal(CapabilityPrimitive.Toggle, sound.Primitive);
-        Assert.True(sound.IsWritable);
+        foreach (AudioRow row in rows.Where(r => r.Control == AudioControl.OnOff))
+        {
+            Assert.Equal(CapabilityPrimitive.Toggle, row.Descriptor.Primitive);
+            Assert.True(row.Descriptor.IsWritable, $"{row.CapabilityId} cannot be written");
+        }
     }
 
     /// <summary>
