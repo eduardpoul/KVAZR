@@ -667,11 +667,25 @@
     _ => "",
   };
 
+  /// <summary>
+  /// Which row of the list is the selected one.
+  ///
+  /// By value, and it has to be. This asked by reference and was right for as long as an
+  /// options list was built once and never touched again: the selection was always an
+  /// object out of that very list. Now a list can move under it — a mouse's stored
+  /// resolutions are its resolution row's options and are editable — and after such a
+  /// change the selection is an object that is equal to one of the options without being
+  /// it. The row went blank while the view model behind it held the right value all
+  /// along; measured, with the model printed into the page beside the empty control.
+  ///
+  /// An option's identity is its value anyway. Two with the same index and the same words
+  /// on them are the same option, whichever list they came out of.
+  /// </summary>
   private static int IndexIn(IReadOnlyList<CapabilityChoice> options, CapabilityChoice item)
   {
     for (int i = 0; i < options.Count; i++)
     {
-      if (ReferenceEquals(options[i], item)) return i;
+      if (Equals(options[i], item)) return i;
     }
 
     return -1;

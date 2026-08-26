@@ -19,6 +19,7 @@ public sealed class DeviceSessionTests
     private const string Grouped = "test.grouped";
     private const string Live = "test.live";
     private const string Withheld = "test.withheld";
+    private const string Picked = "test.picked";
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
@@ -52,6 +53,52 @@ public sealed class DeviceSessionTests
 
         // Promotion has to outlive the process, or the amber mark comes back tomorrow.
         Assert.True(fixture.Ledger.IsConfirmed(fixture.Info.Key, Plain));
+    }
+
+    /// <summary>
+    /// A list of options that is itself a reading, the way a mouse's stored resolutions
+    /// are its resolution row's options and are also editable in their own right.
+    ///
+    /// Declared once and the two drift apart the moment one is edited: the row goes on
+    /// offering a value the device no longer has.
+    /// </summary>
+    [Fact]
+    public async Task ChoicesFromAnotherCapability_ComeFromItsReading()
+    {
+        (DeviceSession session, _) = await StartAsync();
+
+        await session.RefreshAllAsync(Ct);
+
+        CapabilityState state = session.Snapshot.Capabilities[Picked];
+
+        // The source reads 1600 and 1200; the options are those, in order, with the unit
+        // the descriptor named — and not the placeholder the driver declared.
+        Assert.Equal([1200, 1600], state.Options.Select(o => o.Index));
+        Assert.Equal("1200 DPI", state.Options[0].Label);
+    }
+
+    /// <summary>
+    /// Nothing resolved yet — the source has not been read, or will not answer at all.
+    /// An empty dropdown is a worse answer than the driver's own guess, so the declared
+    /// list stands until something better arrives.
+    /// </summary>
+    [Fact]
+    public void WithNothingResolved_TheDeclaredListStands()
+    {
+        var state = new CapabilityState
+        {
+            Descriptor = new Capability
+            {
+                Id = Picked,
+                Domain = CapabilityDomain.Pointing,
+                Primitive = CapabilityPrimitive.Choice,
+                Title = "Picked",
+                Choices = [new(1, "placeholder")],
+                ChoicesFromCapability = Grouped,
+            },
+        };
+
+        Assert.Equal([1], state.Options.Select(o => o.Index));
     }
 
     [Fact]
@@ -595,6 +642,7 @@ public sealed class DeviceSessionTests
             [NeedsCable] = CapabilityValue.Of(1),
             [Grouped] = CapabilityValue.Numbers(1600, 1200),
             [Live] = CapabilityValue.Of(-20),
+            [Picked] = CapabilityValue.Choice(1600),
         };
 
         /// <summary>Every capability asked for, in order, so a test can say what was not asked.</summary>
@@ -676,6 +724,19 @@ public sealed class DeviceSessionTests
                 IsVolatile = true,
                 Range = new CapabilityRange { Min = 200, Max = 8000 },
                 Members = [new(0, "X"), new(1, "Y")],
+            },
+            new()
+            {
+                Id = Picked,
+                Domain = CapabilityDomain.Pointing,
+                Primitive = CapabilityPrimitive.Choice,
+                Title = "Picked",
+
+                // A seed for the moment before the source has answered, and a source that
+                // replaces it afterwards.
+                Choices = [new(1, "placeholder")],
+                ChoicesFromCapability = Grouped,
+                ChoiceUnit = "DPI",
             },
             new()
             {
