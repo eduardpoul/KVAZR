@@ -504,6 +504,13 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         // A device turning up is also an answer, and it may arrive before the sweep
         // this shell is waiting on has returned. Resolve is idempotent.
         Loading.Resolve();
+
+        // A device somebody removed while it was away has just been plugged in again, so
+        // the note saying it was gone is stale. Housekeeping only — the list already
+        // shows it, because a present device outranks anything remembered about it — but
+        // a note nothing ever clears is a file that grows for ever.
+        _ = _hidden.PruneAsync(_registry);
+
         Sync();
     });
 
@@ -672,6 +679,49 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         // from the list, and the list is behind the page somebody is standing on — so a
         // device was forgotten, its row disappeared where nobody was looking, and the
         // page went on showing it as though the button had not been pressed.
+        if (SelectedDevice is { } open && string.Equals(open.Key, device.Key, StringComparison.Ordinal))
+        {
+            ShowDashboard();
+        }
+    }
+
+    /// <summary>
+    /// Takes a device that is no longer here off the list for good.
+    ///
+    /// Not the same offer as forgetting, and the wording says so: forgetting unpairs the
+    /// device in Windows, which is a change to the system and cannot be undone from here.
+    /// This changes nothing outside the application — the row goes, what was remembered
+    /// about the device goes with it, and the pairing is left exactly where it was.
+    ///
+    /// Only while the device is absent. Nothing here can know whether a gamepad that was
+    /// unplugged is in a drawer or in a bin, which is precisely why the person holding it
+    /// gets to say; and if it is ever plugged in again it comes back on its own, because
+    /// ignoring hardware somebody is holding is the one thing a device list must not do.
+    /// </summary>
+    [RelayCommand]
+    private async Task RemoveDeviceAsync(DeviceListItemViewModel? device)
+    {
+        if (device is null || !device.CanRemove) return;
+
+        bool go = await _confirm.ConfirmAsync(new Capability
+        {
+            Id = "device.remove",
+            Domain = CapabilityDomain.Maintenance,
+            Primitive = CapabilityPrimitive.Action,
+            Title = Maxwell.App.Localization.Localizer.Current.Say("Remove {0} from the list?", device.DisplayName),
+            Subtitle = Maxwell.App.Localization.Localizer.Current.Say(
+                "Its settings here are dropped. The pairing in the system is left alone, ")
+                + Maxwell.App.Localization.Localizer.Current.Say("and connecting the device again brings it back."),
+            Risk = CapabilityRisk.Confirm,
+            IsReversible = false,
+        }).ConfigureAwait(true);
+
+        if (!go) return;
+
+        await _hidden.RemoveAsync(device.Key, DateTimeOffset.Now).ConfigureAwait(true);
+
+        // Off the page of the device that has just gone, for the same reason forgetting
+        // does it: the list is behind the page somebody is standing on.
         if (SelectedDevice is { } open && string.Equals(open.Key, device.Key, StringComparison.Ordinal))
         {
             ShowDashboard();

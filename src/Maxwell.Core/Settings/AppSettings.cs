@@ -132,6 +132,20 @@ public sealed class AppSettings
         new(StringComparer.Ordinal);
 
     /// <summary>
+    /// Devices the user has said are gone, and when.
+    ///
+    /// Different from hidden, and the difference is what happens next. Hidden is about a
+    /// device that is here: it stays put away until it is asked for back. Removed is
+    /// about one that is not — a gamepad unplugged and thrown out, an old headset — and
+    /// nothing on this machine can know whether it will ever be plugged in again. So the
+    /// row goes now and the entry lasts exactly as long as the absence: connect the thing
+    /// again and it comes back as if new, because a device manager that ignores hardware
+    /// somebody is holding is worse than one that shows a row too many.
+    /// </summary>
+    public Dictionary<string, DateTimeOffset> RemovedDevices { get; set; } =
+        new(StringComparer.Ordinal);
+
+    /// <summary>
     /// Put anonymous devices away without being asked. A machine with a car stereo and a
     /// neighbour's speaker paired shows them on first launch, and a list where several
     /// rows are bare addresses teaches the user to distrust the whole list.
@@ -189,6 +203,7 @@ public sealed class AppSettings
         ConfirmedCapabilities = ConfirmedCapabilities.ToDictionary(
             p => p.Key, p => new List<string>(p.Value), StringComparer.Ordinal),
         HiddenDevices = new Dictionary<string, DateTimeOffset>(HiddenDevices, StringComparer.Ordinal),
+        RemovedDevices = new Dictionary<string, DateTimeOffset>(RemovedDevices, StringComparer.Ordinal),
         HideSilentDevices = HideSilentDevices,
         MonitoringInTray = new HashSet<string>(MonitoringInTray, StringComparer.Ordinal),
         DeveloperMode = DeveloperMode,

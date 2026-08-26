@@ -110,6 +110,16 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     public bool CanForget =>
         Snapshot.Info.Transports.Any(t => t.Kind is TransportKind.Bluetooth or TransportKind.Dongle);
 
+    /// <summary>
+    /// Whether "this one is gone" is a thing anybody could mean about it.
+    ///
+    /// Only about a device that is not here. Offered on one that is, it would be a button
+    /// promising to take away a row that the next sweep puts straight back — and the
+    /// device is on the desk, so putting it back is right and the button is what is
+    /// wrong. Unplug it first, then it can go.
+    /// </summary>
+    public bool CanRemove => !IsPresent;
+
     public string Battery => Snapshot.BatteryPercent is { } percent ? $"{percent}%" : "—";
 
     /// <summary>

@@ -133,18 +133,35 @@
       </div>
     </div>
 
-    @if (CanForget)
+    @if (CanForget || CanRemove)
     {
       <div class="group">
         <div class="group-head"><span class="group-heading">@T["device.actions", "ACTIONS"]</span></div>
         <div class="card">
-          <div class="cap-row">
-            <div class="cap-text">
-              <div class="cap-title">@T["device.forget", "Forget the device"]</div>
-              <div class="caption">@T["device.forget.caption", "Removes the pairing in the system. To use it again, pair it afresh"]</div>
+          @if (CanForget)
+          {
+            <div class="cap-row">
+              <div class="cap-text">
+                <div class="cap-title">@T["device.forget", "Forget the device"]</div>
+                <div class="caption">@T["device.forget.caption", "Removes the pairing in the system. To use it again, pair it afresh"]</div>
+              </div>
+              <button class="danger-outline" @onclick="Forget">@T["device.forget.button", "Forget"]</button>
             </div>
-            <button class="danger-outline" @onclick="Forget">@T["device.forget.button", "Forget"]</button>
-          </div>
+          }
+
+          @* Last on the page, and only while the device is away. The two read as one
+             pair and are not: the one above changes the system, this one only changes
+             what this application keeps. *@
+          @if (CanRemove)
+          {
+            <div class="cap-row">
+              <div class="cap-text">
+                <div class="cap-title">@T["device.remove", "Remove from the list"]</div>
+                <div class="caption">@T["device.remove.caption", "The device is not connected. Its settings here are dropped; the pairing in the system is left alone"]</div>
+              </div>
+              <button class="danger-outline" @onclick="Remove">@T["device.remove.button", "Remove"]</button>
+            </div>
+          }
         </div>
       </div>
     }
@@ -253,6 +270,13 @@
   private void Forget() => OnUi(() =>
   {
     if (Shell.SelectedDevice is { } device) Shell.ForgetDeviceCommand.Execute(device);
+  });
+
+  private bool CanRemove => !Vm.Snapshot.IsPresent;
+
+  private void Remove() => OnUi(() =>
+  {
+    if (Shell.SelectedDevice is { } device) Shell.RemoveDeviceCommand.Execute(device);
   });
 
   private static string HeroPillClass(HeroPillKind kind) =>
