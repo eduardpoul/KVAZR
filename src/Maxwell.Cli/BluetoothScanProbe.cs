@@ -24,26 +24,71 @@ internal static class BluetoothScanProbe
 {
     public static int Run(int seconds)
     {
-        Console.WriteLine($"[scan] перечисление устройств, {seconds} с на каждый вид");
+        Console.WriteLine($"[scan] {seconds} с на каждую попытку");
         Console.WriteLine();
 
-        int le = Watch("низкоэнергетические, не сопряжённые",
-            BluetoothLEDevice.GetDeviceSelectorFromPairingState(false), seconds);
-
-        int classic = Watch("классические, не сопряжённые",
-            BluetoothDevice.GetDeviceSelectorFromPairingState(false), seconds);
+        // Devices already paired, asked for twice: once by a call that returns an answer,
+        // once by a watcher that raises events. Windows finds these instantly either way,
+        // so a difference between the two columns is not about the radio at all — it is
+        // about whether WinRT events reach this process. Everything that has worked here
+        // so far was an async call; everything silent was an event.
+        Console.WriteLine("  уже сопряжённые — их система знает наверняка:");
+        int calledLe = Called("низкоэнергетические", BluetoothLEDevice.GetDeviceSelectorFromPairingState(true));
+        int watchedLe = Watch("низкоэнергетические", BluetoothLEDevice.GetDeviceSelectorFromPairingState(true), seconds);
 
         Console.WriteLine();
-        Console.WriteLine(le + classic > 0
-            ? "  Радио сканирует. Значит глух именно слушатель рекламы."
-            : "  Не нашлось ничего и здесь. Радио не сканирует — дело не в нашем коде.");
+        Console.WriteLine("  вокруг, не сопряжённые — здесь нужен настоящий поиск:");
+        int calledNear = Called("низкоэнергетические", BluetoothLEDevice.GetDeviceSelectorFromPairingState(false));
+        int watchedNear = Watch("низкоэнергетические", BluetoothLEDevice.GetDeviceSelectorFromPairingState(false), seconds);
+        int calledClassic = Called("классические", BluetoothDevice.GetDeviceSelectorFromPairingState(false));
+        int watchedClassic = Watch("классические", BluetoothDevice.GetDeviceSelectorFromPairingState(false), seconds);
 
-        return le + classic > 0 ? 0 : 1;
+        Console.WriteLine();
+
+        if (calledLe > 0 && watchedLe == 0)
+        {
+            Console.WriteLine("  Вызов отвечает, наблюдатель молчит — на том же самом наборе устройств.");
+            Console.WriteLine("  Значит события WinRT до этого процесса не доходят. Это наша беда, а не радио.");
+        }
+        else if (calledLe == 0 && watchedLe == 0)
+        {
+            Console.WriteLine("  Молчат оба даже про сопряжённые. Дело глубже, чем поиск.");
+        }
+        else
+        {
+            Console.WriteLine("  События доходят. Тогда молчание про окружающие — про сам поиск.");
+        }
+
+        return calledNear + watchedNear + calledClassic + watchedClassic > 0 ? 0 : 1;
+    }
+
+    /// <summary>The asking kind: one call, one answer, no events involved.</summary>
+    private static int Called(string what, string selector)
+    {
+        try
+        {
+            DeviceInformationCollection found = DeviceInformation
+                .FindAllAsync(selector, [], DeviceInformationKind.AssociationEndpoint)
+                .AsTask().Result;
+
+            Console.WriteLine($"    вызовом      {what,-22} {found.Count}");
+
+            foreach (DeviceInformation device in found.Take(8))
+            {
+                Console.WriteLine($"      {device.Name}");
+            }
+
+            return found.Count;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"    вызовом      {what,-22} не вышло: {ex.GetType().Name} {ex.Message}");
+            return 0;
+        }
     }
 
     private static int Watch(string what, string selector, int seconds)
     {
-        Console.WriteLine($"  {what}...");
 
         var found = new List<string>();
         var done = new ManualResetEventSlim(false);
@@ -82,8 +127,8 @@ internal static class BluetoothScanProbe
 
         lock (found)
         {
+            Console.WriteLine($"    наблюдателем {what,-22} {found.Count}   состояние {status}");
             foreach (string line in found) Console.WriteLine(line);
-            Console.WriteLine($"    найдено {found.Count}, состояние {status}");
 
             return found.Count;
         }
