@@ -588,17 +588,41 @@ input[type="range"]::-webkit-slider-thumb {
   height: 32px; padding: 0 10px;
   font: inherit; font-size: 13px;
   color: var(--text-primary);
-  background: var(--surface-raised);
+  background: var(--layer-card);
   border: 1px solid var(--stroke-default);
   border-bottom-width: 1px;
   border-radius: 4px;
 }
+
+.dark .dialog input { background: var(--layer-alt); }
 
 /* Fluent puts the focus on the bottom edge rather than round the whole box. */
 .dialog input:focus { outline: none; border-bottom: 2px solid var(--accent-primary); }
 .dialog input::placeholder { color: var(--text-tertiary); }
 
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+
+/* A dropdown with a way into the list itself beside it. The button goes first and keeps
+   its own width, so the dropdown stays in the column the other rows' dropdowns make
+   rather than being pushed off it by a neighbour only this row has. */
+.picker { display: flex; align-items: center; gap: 8px; }
+.picker > .icon-btn { flex: none; }
+.picker > .dd { flex: 1; min-width: 0; }
+
+/* Wider, because a dialog whose whole content is five tracks should spend its width on
+   them. */
+.dialog.wide { width: min(560px, calc(100vw - 48px)); }
+
+/* The tracks take the dialog's full width. Inside a row the group hugs its right edge —
+   a pair of earcup gains beside a label — and left that way here the five tracks kept the
+   width of a track in a row and left half the dialog empty. */
+.dialog .range-group { gap: 12px; margin-top: 4px; align-items: stretch; }
+.dialog .range-track { gap: 14px; }
+.dialog .range-track input[type="range"] { flex: 1; width: auto; min-width: 0; }
+
+/* Side by side, so the same height. The accent button is four pixels taller than the
+   outline one everywhere else, which nobody notices until the two are a pair. */
+.dialog-actions button { height: 30px; }
 
 /* A save with nothing to save it under. Greyed rather than hidden, so the shape of the
    dialog does not change under the hand that is still typing. */
@@ -610,10 +634,12 @@ button.accent:disabled:hover { background: var(--track-empty); }
 .icon-btn {
   display: inline-flex; align-items: center; justify-content: center;
   width: 30px; height: 30px; padding: 0;
-  border: 1px solid var(--border-default); border-radius: 4px;
-  background: var(--surface-raised); color: var(--text-secondary);
+  border: 1px solid var(--stroke-default); border-radius: 4px;
+  background: var(--layer-card); color: var(--text-secondary);
   cursor: pointer;
 }
+.dark .icon-btn { background: var(--layer-alt); }
+
 /* flex: none matters. The button is a flex container and an svg with no intrinsic width
    is a shrinkable item: it collapsed to zero and the glyph vanished while every colour and
    rule around it looked correct — which is what made this so hard to see. */

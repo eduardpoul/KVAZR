@@ -637,6 +637,7 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
             {
                 IsAvailable = IsRequirementMet(state.Descriptor, availability),
                 Range = Resolve(state.Descriptor),
+                Choices = Offer(state.Descriptor),
             };
         }
 
@@ -801,6 +802,37 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
 
             _ => true,
         };
+
+    /// <summary>
+    /// The options for a choice whose list is another capability's reading.
+    ///
+    /// Empty where the descriptor names no such source or where that source has not
+    /// answered yet — the state falls back to the declared list, which is the right thing
+    /// to draw while waiting rather than an empty dropdown.
+    /// </summary>
+    private IReadOnlyList<CapabilityChoice> Offer(Capability descriptor)
+    {
+        if (descriptor.ChoicesFromCapability is not { Length: > 0 } source) return [];
+        if (!_states.TryGetValue(source, out CapabilityState? from)) return [];
+
+        IReadOnlyList<CapabilityValue> items = from.Value.AsVector();
+        if (items.Count == 0) return [];
+
+        string unit = descriptor.ChoiceUnit is { Length: > 0 } written ? " " + written : string.Empty;
+
+        // Ordered and deduplicated, because the source is a ladder rather than a menu: a
+        // mouse whose steps read 1600/1200/1600 would otherwise offer 1600 twice, and two
+        // identical options are two ways to do the same thing that a person has to choose
+        // between.
+        return
+        [
+            .. items.Select(v => v.AsNumber(-1))
+                .Where(n => n > 0)
+                .Distinct()
+                .Order()
+                .Select(n => new CapabilityChoice(n, $"{n}{unit}")),
+        ];
+    }
 
     private CapabilityRange? Resolve(Capability descriptor)
     {

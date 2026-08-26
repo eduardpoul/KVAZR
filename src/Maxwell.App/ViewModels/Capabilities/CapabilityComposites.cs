@@ -130,7 +130,7 @@ public abstract class CompositeCapabilityViewModel : CapabilityViewModel
 /// Sliders that belong together: the left and right earcup gains, a sensor that resolves
 /// X and Y separately. One capability, one write, several tracks.
 /// </summary>
-public sealed class RangeGroupCapabilityViewModel : CompositeCapabilityViewModel
+public sealed partial class RangeGroupCapabilityViewModel : CompositeCapabilityViewModel
 {
     public RangeGroupCapabilityViewModel(CapabilityState state, IDeviceSession? session)
         : base(state, session, Count(state))
@@ -143,12 +143,62 @@ public sealed class RangeGroupCapabilityViewModel : CompositeCapabilityViewModel
 
     public IReadOnlyList<GroupedRangeViewModel> Channels { get; }
 
+    /// <summary>
+    /// Held back rather than sent, while a dialog is open over these tracks.
+    ///
+    /// A group normally writes as it is dragged, which is right for a pair of earcup
+    /// gains: the ear hears the change and that is the point of the control. It is wrong
+    /// for a mouse's stored resolutions, which are edited in a dialog with a Save and a
+    /// Cancel — a Cancel that had already written four times is not a cancel, and a
+    /// mouse's flash is not a place to write on the way past.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsEditing { get; private set; }
+
+    /// <summary>What the tracks held when the dialog opened, to go back to on a cancel.</summary>
+    private int[] _asOpened = [];
+
+    public void BeginEdit()
+    {
+        _asOpened = [.. Channels.Select(c => (int)Math.Round(c.Value))];
+        IsEditing = true;
+    }
+
+    public void CancelEdit()
+    {
+        IsEditing = false;
+
+        // Straight back onto the tracks. Nothing was sent, so there is nothing to undo at
+        // the device — only the drawing to put right.
+        for (int i = 0; i < Channels.Count && i < _asOpened.Length; i++)
+        {
+            Channels[i].Value = _asOpened[i];
+        }
+    }
+
+    /// <summary>The whole ladder, in one write, and the dialog closes.</summary>
+    public void SaveEdit()
+    {
+        IsEditing = false;
+
+        WriteAll([.. Channels.Select(c => CapabilityValue.Of((int)Math.Round(c.Value)))]);
+    }
+
     protected override void PushReadings()
     {
+        // Not over a hand that is mid-edit. A reading arriving while the dialog is open
+        // would drag the tracks back under the person moving them.
+        if (IsEditing) return;
+
         foreach (GroupedRangeViewModel channel in Channels) channel.Pull(Reading(channel.Index), CanEdit);
     }
 
-    internal void Commit(int index, int value) => WriteSlot(index, CapabilityValue.Of(value));
+    internal void Commit(int index, int value)
+    {
+        if (IsEditing) return;
+
+        WriteSlot(index, CapabilityValue.Of(value));
+    }
 
     private static int Count(CapabilityState state)
     {
@@ -198,6 +248,12 @@ public sealed partial class GroupedRangeViewModel : ObservableObject
     public double Maximum => _bounds.Max;
 
     public string? Unit => _bounds.Unit;
+
+    /// <summary>
+    /// How far one nudge moves. The device's, where it stated one — a track that steps by
+    /// a unit across a scale of thousands is a track nobody can land on.
+    /// </summary>
+    public double Step => _bounds.Step > 0 ? _bounds.Step : 1;
 
     [ObservableProperty]
     public partial double Value { get; set; }

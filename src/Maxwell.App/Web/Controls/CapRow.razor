@@ -135,10 +135,65 @@
             break;
 
           case ChoiceCapabilityViewModel choice:
-            <Dropdown Items="@([.. choice.Options.Select(o => o.Label)])"
-                      Disabled="@(!choice.CanEdit)"
-                      SelectedIndex="@(choice.Selected is { } sel ? IndexIn(choice.Options, sel) : -1)"
-                      SelectedIndexChanged="i => OnUi(() => choice.Selected = choice.Options.ElementAtOrDefault(i))" />
+            <div class="picker">
+              @* A list that is itself a setting gets a way into it. The five resolutions a
+                 mouse stores are the options of this row and are also editable, and left
+                 open on the page as five tracks they were five ways to write to a mouse's
+                 flash by brushing past them. Behind a button, with a Save, they are edited
+                 on purpose or not at all.
+
+                 Before the list rather than after it: the dropdowns down the right of a
+                 page make a column, and one of them pushed sideways by a neighbour that
+                 only this row has breaks the column. *@
+              @if (choice.Editor is { } ladder)
+              {
+                <button class="icon-btn" disabled="@(!ladder.CanEdit)"
+                        title="@ladder.Title"
+                        @onclick="() => OnUi(() => ladder.BeginEdit())">
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
+                       stroke="currentColor" stroke-width="1.4" stroke-linejoin="round">
+                    <path d="M11.1 2.3a1.3 1.3 0 0 1 1.9 0l.7.7a1.3 1.3 0 0 1 0 1.9l-7.3 7.3-3 .8.8-3z" />
+                  </svg>
+                </button>
+              }
+
+              <Dropdown Items="@([.. choice.Options.Select(o => o.Label)])"
+                        Disabled="@(!choice.CanEdit)"
+                        SelectedIndex="@(choice.Selected is { } sel ? IndexIn(choice.Options, sel) : -1)"
+                        SelectedIndexChanged="i => OnUi(() => choice.Selected = choice.Options.ElementAtOrDefault(i))" />
+
+              @if (choice.Editor is { IsEditing: true } open)
+              {
+                <div class="scrim" @onclick="() => OnUi(() => open.CancelEdit())"></div>
+                <div class="dialog wide" role="dialog" aria-modal="true">
+                  <h2>@open.Title</h2>
+                  @if (open.Subtitle is { Length: > 0 } says)
+                  {
+                    <p>@says</p>
+                  }
+                  <div class="range-group">
+                    @foreach (GroupedRangeViewModel rung in open.Channels)
+                    {
+                      <div class="range-track">
+                        <span class="caption">@rung.Label</span>
+                        <input type="range" min="@Inv(rung.Minimum)" max="@Inv(rung.Maximum)"
+                               step="@Inv(rung.Step)"
+                               value="@Inv(rung.Value)"
+                               style="--fill:@Fill(rung.Value, rung.Minimum, rung.Maximum)%"
+                               @oninput="e => { var r = rung; OnUi(() => r.Value = Parse(e)); }" />
+                        <span class="reading">@rung.Display</span>
+                      </div>
+                    }
+                  </div>
+                  <div class="dialog-actions">
+                    <button class="outline"
+                            @onclick="() => OnUi(() => open.CancelEdit())">@T["dialog.cancel", "Cancel"]</button>
+                    <button class="accent"
+                            @onclick="() => OnUi(() => open.SaveEdit())">@T["dialog.save", "Save"]</button>
+                  </div>
+                </div>
+              }
+            </div>
             break;
 
           case ActionCapabilityViewModel action:
@@ -577,6 +632,10 @@
     {
       case RangeGroupCapabilityViewModel grouped:
         foreach (GroupedRangeViewModel channel in grouped.Channels) Track(channel);
+        break;
+      case ChoiceCapabilityViewModel { Editor: { } editor }:
+        Track(editor);
+        foreach (GroupedRangeViewModel rung in editor.Channels) Track(rung);
         break;
       case LightingCapabilityViewModel lighting:
         foreach (LightingZoneViewModel zone in lighting.Zones) Track(zone);

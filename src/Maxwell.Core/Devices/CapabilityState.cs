@@ -39,6 +39,21 @@ public sealed record CapabilityState
     /// </summary>
     public CapabilityRange? Range { get; init; }
 
+    /// <summary>
+    /// The options as they stand, for a choice whose list is itself a device reading.
+    ///
+    /// Same idea as <see cref="Range"/> above and for the same reason: a mouse's stored
+    /// resolutions are the options of its resolution row and are also a capability of
+    /// their own, editable. Declared once at connection they went stale the moment one was
+    /// edited — the row went on offering a step the mouse no longer had. Empty means the
+    /// descriptor's own list stands, which is the ordinary case.
+    /// </summary>
+    public IReadOnlyList<CapabilityChoice> Choices { get; init; } = [];
+
+    /// <summary>What a choice control should actually offer.</summary>
+    public IReadOnlyList<CapabilityChoice> Options =>
+        Choices.Count > 0 ? Choices : Descriptor.Choices;
+
     /// <summary>The device meets the descriptor's precondition and can be operated.</summary>
     public bool IsAvailable { get; init; } = true;
 

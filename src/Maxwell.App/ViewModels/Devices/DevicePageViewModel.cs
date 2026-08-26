@@ -546,13 +546,17 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
                 // already answered.
                 if (DrawnInHero.Contains(state.Id)) continue;
 
-                // Read, kept, and not drawn. It exists to give another control its
-                // bounds, and the snapshot still carries it for that.
-                if (state.Descriptor.IsSupporting) continue;
-
                 CapabilityViewModel vm = CapabilityViewModelFactory.Create(
                     state, _session, HintDetail.Normal, _confirm);
                 byId[state.Id] = vm;
+
+                // Read, kept, and not drawn on its own. It exists for another control —
+                // to give it its bounds, or, for a mouse's stored resolutions, to be the
+                // list that control offers and the thing its edit button opens. Built
+                // before it is skipped, because the joining pass below works from these
+                // view models and a capability that never became one cannot be joined to
+                // anything.
+                if (state.Descriptor.IsSupporting) continue;
 
                 // The preset picker is drawn inside the equaliser card rather than as a
                 // row beneath it, so it is handed over and skipped here.
@@ -602,6 +606,16 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
             if (byId.GetValueOrDefault(gate) is not ToggleCapabilityViewModel toggle) continue;
 
             vm.GateWith(toggle);
+        }
+
+        // The mouse's stored resolutions are the resolution row's options and are also
+        // editable, so the row gets a way in to them. Same join as the equaliser's card
+        // and its preset picker: the driver said which capability supplies the list, and
+        // this is the one place where both view models exist at once.
+        if (byId.GetValueOrDefault(CapabilityIds.PointerDpi) is ChoiceCapabilityViewModel resolution
+            && byId.GetValueOrDefault(CapabilityIds.PointerDpiSteps) is RangeGroupCapabilityViewModel ladder)
+        {
+            resolution.Editor = ladder;
         }
 
         if (byId.GetValueOrDefault(CapabilityIds.AudioEqGraphic) is CurveCapabilityViewModel curve)

@@ -95,7 +95,14 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
                 // own business and nothing found so far can set it.
                 Subtitle = "Rewrites the step the mouse is on now; the other four keep their values",
                 Access = CapabilityAccess.ReadWrite,
+
+                // The options are the ladder, and the ladder is a reading rather than a
+                // fact settled at connection: edit a rung and this list has to move with
+                // it. Declared here as a seed for the moment before the ladder has been
+                // read, and replaced by the session from that reading afterwards.
                 Choices = [.. steps.Order().Select(dpi => new CapabilityChoice(dpi, $"{dpi} DPI"))],
+                ChoicesFromCapability = CapabilityIds.PointerDpiSteps,
+                ChoiceUnit = "DPI",
             });
         }
 
@@ -133,6 +140,12 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
                 Title = "Resolution steps",
                 Subtitle = "The ladder the mouse cycles with its own button, kept in the mouse",
                 Access = CapabilityAccess.ReadWrite,
+
+                // Read and kept, and drawn inside the resolution row rather than as five
+                // tracks of its own. Five sliders sitting open on the page is five ways to
+                // write to a mouse's flash by brushing past them, for a thing that is set
+                // once and then left alone.
+                IsSupporting = true,
                 Range = new CapabilityRange
                 {
                     Min = floor,

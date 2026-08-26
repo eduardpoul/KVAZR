@@ -195,6 +195,21 @@ public sealed record Capability
     public IReadOnlyList<CapabilityChoice> Choices { get; init; } = [];
 
     /// <summary>
+    /// A capability whose reading is this one's list of options, for a choice whose
+    /// options are themselves something the device stores and lets us change.
+    ///
+    /// The mouse case is the reason it exists: the five resolutions a Logitech keeps on
+    /// board are the options of its resolution row and are also a row of their own,
+    /// editable. Declared once at connection the two drifted apart the moment one was
+    /// edited. The reading is expected to be a vector of numbers, and each becomes an
+    /// option labelled with <see cref="ChoiceUnit"/>.
+    /// </summary>
+    public string? ChoicesFromCapability { get; init; }
+
+    /// <summary>What to write after a number that became an option. "DPI", "Hz".</summary>
+    public string? ChoiceUnit { get; init; }
+
+    /// <summary>
     /// The parts of a composite primitive, in the order they are drawn. Empty for the
     /// scalar ones, which are their own single part.
     /// </summary>

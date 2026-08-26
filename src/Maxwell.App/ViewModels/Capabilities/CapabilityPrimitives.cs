@@ -62,7 +62,7 @@ public sealed partial class ReadoutCapabilityViewModel : CapabilityViewModel
         NumberValue n => WithUnit(n.Value.ToString(), state.Range?.Unit),
         FlagValue f => f.Value ? Maxwell.App.Localization.Localizer.Current.Say("yes") : Maxwell.App.Localization.Localizer.Current.Say("no"),
         TextValue t => t.Value,
-        ChoiceValue c => state.Descriptor.Choices.FirstOrDefault(o => o.Index == c.Index)?.Label ?? $"#{c.Index}",
+        ChoiceValue c => state.Options.FirstOrDefault(o => o.Index == c.Index)?.Label ?? $"#{c.Index}",
 
         // Never a zero. A value that has not been read and a value that is zero look
         // identical in an int and completely different to a person.
@@ -297,12 +297,21 @@ public sealed partial class ChoiceCapabilityViewModel : CapabilityViewModel
     {
         // Translated here rather than in the driver: a driver is a layer below the
         // catalogue and cannot see it, and these are the words on the buttons.
-        Options = [.. state.Descriptor.Choices.Select(
-            c => c with { Label = Text.Say(c.Label), Hint = Text.Say(c.Hint) })];
+        Options = [.. Named(state)];
         Selected = Find(state);
     }
 
     public ObservableCollection<CapabilityChoice> Options { get; }
+
+    /// <summary>
+    /// The tracks behind this list, where the list is itself something the device stores
+    /// and lets us change — a mouse's five resolutions. Null for an ordinary choice.
+    ///
+    /// Joined by the page rather than known here, the same way the equaliser's card
+    /// borrows its preset picker: the driver says which capability supplies the options,
+    /// and the page is the one place where both view models exist at once.
+    /// </summary>
+    public RangeGroupCapabilityViewModel? Editor { get; set; }
 
     /// <summary>
     /// Two or three options are drawn as a segmented switch, as the design shows noise
@@ -319,6 +328,20 @@ public sealed partial class ChoiceCapabilityViewModel : CapabilityViewModel
     {
         if (WriteInFlight) return;
 
+        // The list itself can move, where the options are a device reading rather than a
+        // fixed menu: a mouse's stored resolutions are its resolution row's options and
+        // are editable in their own right. Rebuilt in place rather than replaced so the
+        // control keeps the collection it is bound to.
+        List<CapabilityChoice> offered = [.. Named(state)];
+
+        if (!offered.SequenceEqual(Options))
+        {
+            Options.Clear();
+            foreach (CapabilityChoice option in offered) Options.Add(option);
+
+            OnPropertyChanged(nameof(IsSegmented));
+        }
+
         Selected = Find(state);
     }
 
@@ -326,6 +349,9 @@ public sealed partial class ChoiceCapabilityViewModel : CapabilityViewModel
     {
         if (value is not null) WriteNow(CapabilityValue.Choice(value.Index));
     }
+
+    private static IEnumerable<CapabilityChoice> Named(CapabilityState state) =>
+        state.Options.Select(c => c with { Label = Text.Say(c.Label), Hint = Text.Say(c.Hint) });
 
     private CapabilityChoice? Find(CapabilityState state) =>
         state.Value is ChoiceValue c ? Options.FirstOrDefault(o => o.Index == c.Index) : null;
