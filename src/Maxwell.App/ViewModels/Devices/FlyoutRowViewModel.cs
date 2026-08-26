@@ -235,6 +235,23 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
             lines += LinesFor(state.Descriptor.Primitive);
         }
 
+        // A control that depends on a switch is joined to it here, the same way the
+        // device page does it once every row exists. The panel used to skip this, so a
+        // microphone's recording level sat there fully draggable under a switch that was
+        // off — the page beside it greyed the same slider out, which is the tell that
+        // this was an omission rather than a decision.
+        //
+        // Only against a switch that made the panel. One that did not is not a gate the
+        // reader can see or move, and greying a control against an invisible condition is
+        // worse than leaving it alone.
+        foreach (CapabilityViewModel vm in Quick)
+        {
+            if (vm.Descriptor.EnabledBy is not { Length: > 0 } gate) continue;
+            if (Quick.FirstOrDefault(q => q.Id == gate) is not ToggleCapabilityViewModel toggle) continue;
+
+            vm.GateWith(toggle);
+        }
+
         OnPropertyChanged(nameof(HasNothing));
         OnPropertyChanged(nameof(NothingSaid));
         OnPropertyChanged(nameof(HasReason));

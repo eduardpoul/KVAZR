@@ -1,4 +1,5 @@
 using Maxwell.App;
+using Maxwell.App.ViewModels.Capabilities;
 using Maxwell.App.ViewModels.Devices;
 using Maxwell.Core.Devices;
 using Xunit;
@@ -31,7 +32,7 @@ public sealed class FlyoutRowTests
         }
     }
 
-    private static CapabilityState Range(string id, string title) => new()
+    private static CapabilityState Range(string id, string title, string? enabledBy = null) => new()
     {
         Descriptor = new Capability
         {
@@ -41,6 +42,7 @@ public sealed class FlyoutRowTests
             Access = CapabilityAccess.ReadWrite,
             Title = title,
             Range = new CapabilityRange { Min = 0, Max = 20 },
+            EnabledBy = enabledBy,
         },
         Value = CapabilityValue.Of(10),
     };
@@ -80,7 +82,8 @@ public sealed class FlyoutRowTests
             [CapabilityIds.MicSidetone] = Choice(CapabilityIds.MicSidetone, "Сайдтон", "Выкл", "Вкл"),
             [CapabilityIds.MicSystemOn] =
                 Switch(CapabilityIds.MicSystemOn, CapabilityDomain.Microphone, "Микрофон"),
-            [CapabilityIds.MicSystemLevel] = Range(CapabilityIds.MicSystemLevel, "Уровень записи"),
+            [CapabilityIds.MicSystemLevel] =
+                Range(CapabilityIds.MicSystemLevel, "Уровень записи", CapabilityIds.MicSystemOn),
         },
     };
 
@@ -114,9 +117,47 @@ public sealed class FlyoutRowTests
         Assert.DoesNotContain(row.Quick, q => q.Id == CapabilityIds.MicSidetone);
     }
 
+    /// <summary>
+    /// A level under a switch that is off cannot be dragged, in the panel as on the page.
+    ///
+    /// The page joins every control to the switch the driver named, once all its rows
+    /// exist. The panel built its rows and never did, so a microphone's recording level
+    /// sat there fully draggable under a switch that was off — while the same slider on
+    /// the page beside it was greyed. Two answers to one question, from one reading.
+    /// </summary>
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void ALevelInThePanel_FollowsTheSwitchAboveIt(bool micOn, bool gated)
+    {
+        using var row = new FlyoutRowViewModel(QuadCast(micOn), new Registry(), Extras(monitoring: false));
+        row.ToggleCommand.Execute(null);
+
+        CapabilityViewModel level = row.Quick.Single(q => q.Id == CapabilityIds.MicSystemLevel);
+
+        Assert.Equal(gated, level.IsGated);
+    }
+
+    /// <summary>And it follows it afterwards, not only at the moment the panel was built.</summary>
+    [Fact]
+    public void TheLevel_GreysWhenTheSwitchIsTurnedOff()
+    {
+        using var row = new FlyoutRowViewModel(QuadCast(), new Registry(), Extras(monitoring: false));
+        row.ToggleCommand.Execute(null);
+
+        var mute = (ToggleCapabilityViewModel)row.Quick.Single(q => q.Id == CapabilityIds.MicSystemOn);
+        CapabilityViewModel level = row.Quick.Single(q => q.Id == CapabilityIds.MicSystemLevel);
+
+        Assert.False(level.IsGated);
+
+        mute.IsOn = false;
+
+        Assert.True(level.IsGated);
+    }
+
     // ---------- a microphone ----------
 
-    private static CapabilityState Switch(string id, CapabilityDomain domain, string title) => new()
+    private static CapabilityState Switch(string id, CapabilityDomain domain, string title, bool on = true) => new()
     {
         Descriptor = new Capability
         {
@@ -126,10 +167,10 @@ public sealed class FlyoutRowTests
             Access = CapabilityAccess.ReadWrite,
             Title = title,
         },
-        Value = CapabilityValue.Of(true),
+        Value = CapabilityValue.Of(on),
     };
 
-    private static DeviceSnapshot QuadCast() => new()
+    private static DeviceSnapshot QuadCast(bool micOn = true) => new()
     {
         Info = new DeviceInfo
         {
@@ -143,11 +184,13 @@ public sealed class FlyoutRowTests
         Capabilities = new Dictionary<string, CapabilityState>(StringComparer.Ordinal)
         {
             [CapabilityIds.MicSystemOn] =
-                Switch(CapabilityIds.MicSystemOn, CapabilityDomain.Microphone, "Microphone"),
-            [CapabilityIds.MicSystemLevel] = Range(CapabilityIds.MicSystemLevel, "Recording level"),
+                Switch(CapabilityIds.MicSystemOn, CapabilityDomain.Microphone, "Microphone", micOn),
+            [CapabilityIds.MicSystemLevel] =
+                Range(CapabilityIds.MicSystemLevel, "Recording level", CapabilityIds.MicSystemOn),
             [CapabilityIds.AudioSystemOn] =
                 Switch(CapabilityIds.AudioSystemOn, CapabilityDomain.Audio, "Monitoring"),
-            [CapabilityIds.AudioSystemVolume] = Range(CapabilityIds.AudioSystemVolume, "Monitoring volume"),
+            [CapabilityIds.AudioSystemVolume] =
+                Range(CapabilityIds.AudioSystemVolume, "Monitoring volume", CapabilityIds.AudioSystemOn),
 
             // The real one has these, and they are why this fixture carries them: with
             // the capsule's two rows taking two lines, there is room left over and the
