@@ -172,9 +172,9 @@ public sealed class CapabilityContributorTests
 
 
     [Fact]
-    public async Task AnOwnerThatSupersedesAContributor_KeepsThatGroundToItself()
+    public async Task AnOwnerThatClaimsASection_KeepsThatGroundToItself()
     {
-        Fixture fixture = new(new FakeContributor("extra", Added)) { Superseded = "extra" };
+        Fixture fixture = new(new FakeContributor("extra", Added)) { Claims = CapabilityDomain.Audio };
         DeviceSession session = fixture.CreateSession();
 
         await session.MarkPresentAsync(fixture.Info, Ct);
@@ -184,6 +184,29 @@ public sealed class CapabilityContributorTests
         // not the same number, and the page stops being readable. Tiering cannot express
         // this — by the time contributors run, the owner has already won the device.
         Assert.False(session.Snapshot.Has(Added));
+        Assert.True(session.Snapshot.Has(Owned));
+    }
+
+    /// <summary>
+    /// And only that section. Claimed of the whole contributor, this took the Maxwell's
+    /// Windows volume off its page — which was the point — and its microphone mute, its
+    /// recording level and its input meter along with it, on account of an overlap that
+    /// was never there: the Audeze protocol says nothing about muting the capsule or how
+    /// loud it is coming through.
+    /// </summary>
+    [Fact]
+    public async Task WhatTheOwnerDoesNotClaim_TheContributorStillBrings()
+    {
+        Fixture fixture = new(new FakeContributor("extra", Added, domain: CapabilityDomain.Microphone))
+        {
+            Claims = CapabilityDomain.Audio,
+        };
+
+        DeviceSession session = fixture.CreateSession();
+
+        await session.MarkPresentAsync(fixture.Info, Ct);
+
+        Assert.True(session.Snapshot.Has(Added));
         Assert.True(session.Snapshot.Has(Owned));
     }
     private sealed class Fixture
@@ -198,8 +221,8 @@ public sealed class CapabilityContributorTests
 
         public bool ConnectFails { get; init; }
 
-        /// <summary>A contributor whose ground the owning driver says it already covers.</summary>
-        public string? Superseded { get; init; }
+        /// <summary>A section the owning driver says it already answers for.</summary>
+        public CapabilityDomain? Claims { get; init; }
 
         public DeviceInfo Info => new()
         {
@@ -207,9 +230,9 @@ public sealed class CapabilityContributorTests
             DriverId = "fake",
             Vendor = "Fake",
             Model = "Device",
-            Supersedes = Superseded is null
-                ? new HashSet<string>(StringComparer.Ordinal)
-                : new HashSet<string>(StringComparer.Ordinal) { Superseded },
+            Exclusive = Claims is { } section
+                ? new HashSet<CapabilityDomain> { section }
+                : new HashSet<CapabilityDomain>(),
         };
 
         public DeviceSession CreateSession() =>
@@ -240,12 +263,19 @@ public sealed class CapabilityContributorTests
         private readonly string _capabilityId;
         private readonly int _value;
 
-        public FakeContributor(string id, string capabilityId, int value = 50)
+        private readonly CapabilityDomain _domain;
+
+        public FakeContributor(
+            string id,
+            string capabilityId,
+            int value = 50,
+            CapabilityDomain domain = CapabilityDomain.Audio)
         {
             ContributorId = id;
             _capabilityId = capabilityId;
             _value = value;
-            Connection = new FakeConnection(capabilityId, value);
+            _domain = domain;
+            Connection = new FakeConnection(capabilityId, value, domain);
         }
 
         public string ContributorId { get; }
@@ -259,7 +289,7 @@ public sealed class CapabilityContributorTests
         /// <summary>How many times this contributor has handed over a channel.</summary>
         public int Attachments { get; private set; }
 
-        public void Reopen() => Connection = new FakeConnection(_capabilityId, _value);
+        public void Reopen() => Connection = new FakeConnection(_capabilityId, _value, _domain);
 
         public Task<IDeviceConnection?> AttachAsync(
             DeviceInfo device,
@@ -275,7 +305,7 @@ public sealed class CapabilityContributorTests
 
     private sealed class FakeConnection : IDeviceConnection
     {
-        public FakeConnection(string capabilityId, int value)
+        public FakeConnection(string capabilityId, int value, CapabilityDomain domain = CapabilityDomain.Audio)
         {
             Values = new Dictionary<string, CapabilityValue>(StringComparer.Ordinal)
             {
@@ -287,7 +317,7 @@ public sealed class CapabilityContributorTests
                 new()
                 {
                     Id = capabilityId,
-                    Domain = CapabilityDomain.Audio,
+                    Domain = domain,
                     Primitive = CapabilityPrimitive.Range,
                     Title = capabilityId,
                     Range = new CapabilityRange { Min = 0, Max = 100 },

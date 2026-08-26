@@ -149,8 +149,16 @@ public sealed record DeviceInfo
     /// So the driver that has the deeper answer says so and the shallower source stands
     /// aside. This is not tiering: tiering decides who owns the device, and by then the
     /// owner has already won. This decides what the owner lets anyone else add.
+    ///
+    /// By section rather than by source, and the difference is not academic. Said of the
+    /// whole audio contributor, this took the Maxwell's Windows volume off its page —
+    /// which was the point — and its microphone mute, its recording level and its input
+    /// meter with it. The sentence above claims the Audeze reports its own microphone
+    /// level. It does not: it reports noise reduction and sidetone, and nothing that
+    /// mutes or measures the capsule. Three rows were removed on account of an overlap
+    /// that was never there.
     /// </summary>
-    public IReadOnlySet<string> Supersedes { get; init; } = new HashSet<string>(StringComparer.Ordinal);
+    public IReadOnlySet<CapabilityDomain> Exclusive { get; init; } = new HashSet<CapabilityDomain>();
 
     public IReadOnlyList<TransportInfo> Transports { get; init; } = [];
 

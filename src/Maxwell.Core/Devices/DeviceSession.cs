@@ -542,10 +542,22 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
         var seeded = new Dictionary<string, CapabilityState>(StringComparer.Ordinal);
         _owner.Clear();
 
+        // The owning connection comes first out of Channels(), which is what makes the
+        // rule below about anybody else.
+        IDeviceConnection? owner = Channels().FirstOrDefault();
+
         foreach (IDeviceConnection channel in Channels())
         {
             foreach (Capability descriptor in channel.Capabilities)
             {
+                // Ground the owner keeps to itself. Core Audio's volume beside a vendor
+                // protocol's is two numbers on one page that are both real and are not
+                // the same, which reads as a bug however carefully either is labelled —
+                // so the owner names the sections where its answer stands alone, and the
+                // rest of what a contributor brought still stands.
+                if (!ReferenceEquals(channel, owner) && _info.Exclusive.Contains(descriptor.Domain)) continue;
+
+
                 // Two sources claiming one id is a mistake somewhere rather than a merge
                 // to be guessed at — their values would fight each other on every poll.
                 // The owner keeps it and the collision is logged where it can be fixed.
@@ -616,11 +628,6 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
 
         foreach (ICapabilityContributor contributor in _contributors)
         {
-            // The owner says it has the deeper answer here. Core Audio beside a vendor
-            // protocol is two volumes on one page that are both real and are not the
-            // same number, which reads as a bug however carefully either is labelled.
-            if (info.Supersedes.Contains(contributor.ContributorId)) continue;
-
             if (_attachments.Any(a => string.Equals(a.Id, contributor.ContributorId, StringComparison.Ordinal)))
             {
                 continue;

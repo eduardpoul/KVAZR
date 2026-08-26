@@ -171,7 +171,12 @@ public sealed class AudezeRaceDriver : IDeviceDriver
             //
             // Only the audio contributor is superseded. A battery usage or anything else
             // that turns up later is still welcome, because RACE does not answer for it.
-            Supersedes = new HashSet<string>(StringComparer.Ordinal) { "audio" },
+            // Sound only. The headset has its own amplifier gain and its own earcup
+            // balance, and Core Audio's slider for the same hardware is a second real
+            // number beside them. Its microphone is a different story: this protocol says
+            // nothing about muting the capsule or how loud it is coming through, so the
+            // system's answers there are the only ones there are.
+            Exclusive = new HashSet<CapabilityDomain> { CapabilityDomain.Audio },
             Transports = TransportsOf(interfaces),
         };
 
