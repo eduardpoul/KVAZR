@@ -33,6 +33,23 @@ public sealed class LevelMeterTests
         Value = CapabilityValue.Of(decibels),
     };
 
+    /// <summary>
+    /// The number beside the bar is the reading, not the bar.
+    ///
+    /// A quiet room sits below the bottom of the scale — deliberately, that is where the
+    /// bottom is for — and drawn as "0%" beside an empty bar it reads as a meter that has
+    /// stopped. The decibels are never zero and never still, so the row stays visibly
+    /// alive while the bar honestly shows nothing happening.
+    /// </summary>
+    [Fact]
+    public void TheNumberBesideTheBar_IsTheReadingItself()
+    {
+        var meter = new ReadoutCapabilityViewModel(Level(-52), null);
+
+        Assert.Equal(0, meter.Fill);
+        Assert.Contains("-52", meter.Display, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void ALiveReadout_IsDrawnAsAMeter()
     {

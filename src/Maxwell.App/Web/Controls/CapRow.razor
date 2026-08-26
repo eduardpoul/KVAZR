@@ -59,7 +59,15 @@
               <div class="meter-track">
                 <div class="meter-fill @MeterTone(meter.Fill)" style="width:@Percent(meter.Fill)%"></div>
               </div>
-              <span class="meter-value">@Percent(meter.Fill)%</span>
+              @* The reading, not the bar's own width as a percentage.
+
+                 A quiet room sits below the bottom of the scale, which is the whole
+                 point of where that bottom is — but drawn as "0%" beside an empty bar it
+                 reads as a meter that has stopped rather than a microphone in a quiet
+                 room, and somebody goes looking for the fault. The decibels are never
+                 zero and never still, so the row is visibly alive while the bar honestly
+                 shows nothing happening. *@
+              <span class="meter-value">@meter.Display</span>
             </div>
             break;
 
