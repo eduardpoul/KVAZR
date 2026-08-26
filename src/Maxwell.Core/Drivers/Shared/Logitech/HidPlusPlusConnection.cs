@@ -1,6 +1,7 @@
 using System.Runtime.Versioning;
 
 using Maxwell.Core.Devices;
+using Maxwell.Race.Protocol;
 using Maxwell.Race.Windows;
 
 namespace Maxwell.Core.Drivers.Logitech;
@@ -35,7 +36,7 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
     /// <summary>The last percentage this connection believed, for the glitch re-read.</summary>
     private int _lastPercent = -1;
 
-    private readonly PointerFacts _facts;
+    private PointerFacts _facts;
 
     public HidPlusPlusConnection(
         DeviceInfo device, string path, int input, int output, byte slot, PointerFacts? facts = null)
@@ -75,9 +76,7 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
                     ? $"The mouse leaves the factory at {standard}"
                     : null,
 
-                // Read only for now, and honestly so: writing it is one function further
-                // on and has not been tried against hardware.
-                Access = CapabilityAccess.Read,
+                Access = CapabilityAccess.ReadWrite,
                 Range = new CapabilityRange
                 {
                     Min = low,
@@ -257,10 +256,65 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
     }
 
     /// <summary>Nothing here writes, and nothing pretends to.</summary>
-    public Task<bool> WriteAsync(
+    /// <summary>
+    /// Changes the resolution, in the one place a change survives being closed: the
+    /// profile the mouse plays from.
+    ///
+    /// Everything else here is read-only, and this one is not offered lightly. A mouse
+    /// running its own profile refuses a resolution sent to it directly — the refusal
+    /// reads as the function not existing — so the setting has to be edited where the
+    /// mouse keeps it, which means reading a sector, changing five bytes of it and
+    /// putting the checksum back. That the checksum can be put back was established
+    /// against one the mouse had written itself.
+    /// </summary>
+    public async Task<bool> WriteAsync(
         string capabilityId,
         CapabilityValue value,
-        CancellationToken cancellationToken = default) => Task.FromResult(false);
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+
+        if (capabilityId != CapabilityIds.PointerDpi) return false;
+        if (value is not NumberValue wanted) return false;
+        if (_facts.Dpi is not { } current) return false;
+
+        SemaphoreSlim gate = GateFor(_path);
+        await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            using var channel = new WindowsHidChannel(_path, _input, _output);
+
+            // A mouse asleep answers nothing, and the exchange that wakes it is the one
+            // that goes unanswered. The read below is what wakes it here.
+            if (!PointerWriter.SetResolution(channel, _slot, current, wanted.Value)) return false;
+
+            // Believed only after the device says so. The resolution feature answers from
+            // what the mouse is actually running at rather than from the sector, so this
+            // is the change taking effect rather than the write being accepted.
+            if (Live(channel) is { } now) _facts = _facts with { Dpi = now };
+
+            return _facts.Dpi == wanted.Value;
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    /// <summary>What the mouse is running at now, from its own resolution feature.</summary>
+    private int? Live(WindowsHidChannel channel)
+    {
+        if (HidPlusPlusReader.FeatureIndex(channel, _slot, 0x2202) is not { } feature) return null;
+
+        byte[]? reply = HidPlusPlusReader.Ask(channel, _slot, feature, 0x05, 0x00);
+
+        return reply is { Length: > 6 } && !HidPlusPlus.IsError(reply) ? (reply[5] << 8) | reply[6] : null;
+    }
 
     public void Dispose()
     {

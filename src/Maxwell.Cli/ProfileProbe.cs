@@ -167,7 +167,7 @@ internal static class ProfileProbe
 
         Console.WriteLine($"[profile write] sector {sector}, resolution {slot}");
         Console.WriteLine();
-        Console.WriteLine($"  before   {was} DPI");
+        Console.WriteLine($"  before   {was} DPI in the sector, {Live(channel, open.Device)} DPI running");
 
         byte[] changed = [.. original];
         changed[at] = (byte)(dpi & 0xFF);
@@ -185,6 +185,7 @@ internal static class ProfileProbe
 
         Console.WriteLine($"  wrote    {dpi} DPI");
         Console.WriteLine($"  after    {(now < 0 ? "could not read back" : now + " DPI")}");
+        Console.WriteLine($"  running  {Live(channel, open.Device)} DPI  (what the mouse is doing now)");
         Console.WriteLine();
         Console.WriteLine(now == dpi ? "  It took." : "  It did not take.");
         Console.WriteLine();
@@ -201,6 +202,101 @@ internal static class ProfileProbe
         Console.WriteLine($"  RESTORE FAILED — sector {sector} is not back at {was}.");
         return 1;
     }
+
+    /// <summary>
+    /// Which of a profile's five resolutions the mouse is on, and where that is written.
+    ///
+    /// The header of a profile is four bytes and only the first is understood from
+    /// elsewhere: it is the report rate, and it agrees with what the rate feature reports
+    /// separately. One of the other three says which resolution is in force, and which one
+    /// cannot be read off a single sample — the mouse is on 800, which is the first of its
+    /// five, and two of the three bytes are zero.
+    ///
+    /// So it is settled by changing one and asking the mouse what it is doing: the
+    /// resolution feature answers from the live setting rather than from the sector, so a
+    /// byte that moves it is the byte. Then everything goes back.
+    /// </summary>
+    public static int Active(int offset, int index)
+    {
+        if (Open() is not { } open) return 1;
+
+        using WindowsHidChannel channel = open.Channel;
+
+        if (Enabled(channel, open.Device, open.Feature) is not { } sector)
+        {
+            Console.WriteLine("  No profile is switched on.");
+            return 1;
+        }
+
+        if (Sector(channel, open.Device, open.Feature, sector, 255) is not { Length: 255 } original)
+        {
+            Console.WriteLine($"  Sector {sector} would not read in full — nothing was written.");
+            return 1;
+        }
+
+        int before = Live(channel, open.Device);
+
+        Console.WriteLine($"[active] profile in sector {sector}, header {Convert.ToHexString(original.AsSpan(0, 4))}");
+        Console.WriteLine();
+        Console.WriteLine($"  byte {offset} is {original[offset]}, and the mouse is running at {before} DPI");
+
+        byte[] changed = [.. original];
+        changed[offset] = (byte)index;
+        Seal(changed);
+
+        if (!Put(channel, open.Device, open.Feature, sector, changed))
+        {
+            Console.WriteLine("  write    refused");
+            return 1;
+        }
+
+        int after = Live(channel, open.Device);
+
+        Console.WriteLine($"  set byte {offset} to {index}, and the mouse is now at {after} DPI");
+        Console.WriteLine();
+        Console.WriteLine(after != before
+            ? $"  That byte is the one: the mouse moved from {before} to {after}."
+            : "  Nothing moved. That byte is not it.");
+
+        Console.WriteLine();
+
+        if (Put(channel, open.Device, open.Feature, sector, original) && Live(channel, open.Device) == before)
+        {
+            Console.WriteLine($"  restored {before} DPI");
+            return 0;
+        }
+
+        Console.WriteLine($"  RESTORE FAILED — the mouse is not back at {before} DPI.");
+        return 1;
+    }
+
+    /// <summary>The resolution the mouse is actually running at, from its own feature.</summary>
+    private static int Live(WindowsHidChannel channel, byte device)
+    {
+        if (HidPlusPlusReader.FeatureIndex(channel, device, ExtendedResolution) is not { } feature) return -1;
+
+        byte[]? reply = HidPlusPlusReader.Ask(channel, device, feature, 0x05, 0x00);
+
+        return reply is { Length: > 6 } && !HidPlusPlus.IsError(reply) ? (reply[5] << 8) | reply[6] : -1;
+    }
+
+    /// <summary>The sector of the one profile that is switched on.</summary>
+    private static int? Enabled(WindowsHidChannel channel, byte device, byte feature)
+    {
+        if (Sector(channel, device, feature, 0, 255) is not { } directory) return null;
+
+        for (int i = 0; i + 3 < directory.Length && directory[i] != 0xFF; i += 4)
+        {
+            int sector = (directory[i] << 8) | directory[i + 1];
+            if (sector == 0) break;
+
+            if (directory[i + 2] != 0) return sector;
+        }
+
+        return null;
+    }
+
+    private const ushort ExtendedResolution = 0x2202;
 
     /// <summary>The checksum the device expects, over everything but its own two bytes.</summary>
     private static void Seal(byte[] sector)
@@ -272,6 +368,15 @@ internal static class ProfileProbe
 
         foreach (byte candidate in (byte[])[HidPlusPlus.Receiver, 1, 2, 3, 4, 5, 6])
         {
+            // The ping first, and with patience. A mouse that has been still for a
+            // minute is asleep, and the exchange that wakes it is the one that gets no
+            // answer — so without this every second run of a probe reports that nothing
+            // here keeps profiles, having asked a sleeping mouse.
+            channel.Request(
+                HidPlusPlus.Ping(channel.OutputLength, candidate),
+                r => HidPlusPlus.Answers(r, candidate, HidPlusPlus.RootIndex, 0x01),
+                HidPlusPlusReader.WakeWait);
+
             if (HidPlusPlusReader.FeatureIndex(channel, candidate, OnboardProfiles) is not { } found) continue;
 
             return (channel, candidate, found);
