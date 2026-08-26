@@ -78,11 +78,22 @@ public sealed class FlyoutRowTests
             [CapabilityIds.MicNoiseReduction] =
                 Choice(CapabilityIds.MicNoiseReduction, "Шумоподавление", "Выключено", "Низкое", "Высокое"),
             [CapabilityIds.MicSidetone] = Choice(CapabilityIds.MicSidetone, "Сайдтон", "Выкл", "Вкл"),
+            [CapabilityIds.MicSystemOn] =
+                Switch(CapabilityIds.MicSystemOn, CapabilityDomain.Microphone, "Микрофон"),
+            [CapabilityIds.MicSystemLevel] = Range(CapabilityIds.MicSystemLevel, "Уровень записи"),
         },
     };
 
+    /// <summary>
+    /// A headset's panel, filled to the line.
+    ///
+    /// The microphone's switch and level are the reason the budget is nine rather than
+    /// six: ChatMix, volume, preset and noise reduction spend six between them, so
+    /// wherever the two stood in the order they arrived to find nothing left. They are
+    /// here now, under the device's own microphone setting.
+    /// </summary>
     [Fact]
-    public void TwoSlidersAndTwoShortControlsFitThePanel()
+    public void AHeadsetsPanel_HoldsTheMicrophoneAndStopsAtTheSidetone()
     {
         using var row = new FlyoutRowViewModel(Maxwell(), new Registry());
         row.ToggleCommand.Execute(null);
@@ -93,11 +104,13 @@ public sealed class FlyoutRowTests
                 CapabilityIds.AudioVolume,
                 CapabilityIds.AudioEqPreset,
                 CapabilityIds.MicNoiseReduction,
+                CapabilityIds.MicSystemOn,
+                CapabilityIds.MicSystemLevel,
             ],
             row.Quick.Select(q => q.Id));
 
-        // Sidetone would be a seventh line. It is last in the order for a reason — a
-        // sidetone level is set once and left — so it is the one that goes.
+        // Sidetone would be a tenth line. It is near the end of the order for a reason —
+        // a sidetone is set once and left — so it is still the one that goes.
         Assert.DoesNotContain(row.Quick, q => q.Id == CapabilityIds.MicSidetone);
     }
 
@@ -173,8 +186,9 @@ public sealed class FlyoutRowTests
         using var row = new FlyoutRowViewModel(QuadCast(), new Registry(), Extras(monitoring: true));
         row.ToggleCommand.Execute(null);
 
-        // Four rows, six lines: exactly what the panel holds, which is why this is a
-        // question and not a default.
+        // Four rows, six lines. Room is not why this is a question rather than a default:
+        // a headphone socket under a capsule is a second, unrelated pair of controls in
+        // the place somebody reaches to mute themselves.
         Assert.Equal(
             [
                 CapabilityIds.MicSystemOn,

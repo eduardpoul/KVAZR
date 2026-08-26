@@ -29,6 +29,16 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
     /// What earns a control here, most wanted first. Ordered by how often somebody
     /// actually reaches for it rather than by domain: ChatMix moves during a game, an EQ
     /// preset moves weekly, a sidetone level almost never.
+    ///
+    /// The microphone's switch and level sit under the device's own microphone settings
+    /// and above the ones nobody touches. They are Windows' rather than the device's,
+    /// which is why they do not lead; they are the quickest way to mute yourself, which
+    /// is why they are not last. Their old place was last of all, offered only if a line
+    /// happened to be spare, and on a headset there never was one.
+    ///
+    /// The level follows the switch rather than sitting apart from it, because a switch
+    /// and the level it governs are one block; the page orders them the same way and for
+    /// the same reason.
     /// </summary>
     private static readonly string[] QuickOrder =
     [
@@ -36,6 +46,8 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
         CapabilityIds.AudioVolume,
         CapabilityIds.AudioEqPreset,
         CapabilityIds.MicNoiseReduction,
+        CapabilityIds.MicSystemOn,
+        CapabilityIds.MicSystemLevel,
         CapabilityIds.MicSidetone,
         CapabilityIds.PointerDpi,
         CapabilityIds.LightBrightness,
@@ -44,36 +56,37 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
     ];
 
     /// <summary>
-    /// What Windows gives any audio device, offered last of all — and only the half of it
-    /// worth a place here.
+    /// What Windows gives any audio device and the panel still will not offer: the system
+    /// playback volume.
     ///
-    /// The microphone, because muting yourself is the thing people reach for mid-sentence
-    /// and Windows buries it. Not the playback volume: that is the system's own slider,
-    /// the very one sitting two icons along in the same tray, and a copy of it here would
-    /// be a control that looks like the earphones' and is not. A volume row earns its
-    /// place when it moves something inside the device — which for these earphones is
-    /// nothing we can reach.
+    /// It is the system's own slider, the very one sitting two icons along in the same
+    /// tray, and a copy of it here would be a control that looks like the earphones' and
+    /// is not. A volume row earns its place when it moves something inside the device —
+    /// which for these earphones is nothing we can reach.
     ///
-    /// Last because these are the system's settings rather than the device's. But for a
-    /// device this application has no protocol for, they are the only settings there are,
-    /// and without them opening its row showed nothing but a way out of it.
+    /// The microphone's two rows are the other half of what Windows gives, and they are
+    /// different: they drive nothing else, they are the only settings a device we have no
+    /// protocol for has at all, and there is nowhere else to reach them quickly. They are
+    /// in the order above.
     /// </summary>
-    private static readonly string[] SystemLast =
-    [
-        CapabilityIds.MicSystemOn,
-        CapabilityIds.MicSystemLevel,
-    ];
-
     /// <summary>
     /// What an opened row may spend, in lines.
     ///
     /// Counting controls was the rule before, and it stopped at three because three
     /// sliders is what fits in a 360-pixel panel. But a slider is two lines — its caption
     /// and the track under it — while a dropdown or a segmented switch is one, and
-    /// refusing those on the same count left the panel with room it would not use. Six
-    /// lines is the same height, spent on whatever the device actually offers.
+    /// refusing those on the same count left the panel with room it would not use.
+    ///
+    /// Nine rather than six, and the three are the microphone's. A headset spent all six
+    /// on ChatMix, volume, preset and noise reduction — measured, on a Maxwell — so the
+    /// switch and level arrived to find nothing left, wherever they stood in the order.
+    /// The budget buys them room instead of taking it from something somebody uses.
+    ///
+    /// Not more than nine. The order above decides what a full panel drops, and it is
+    /// meant to: a sidetone is the tenth line on that same headset, and is exactly the
+    /// kind of thing that should fall off the end.
     /// </summary>
-    private const int QuickLines = 6;
+    private const int QuickLines = 9;
 
     /// <summary>Two lines for a control with a track under it, one for everything else.</summary>
     private static int LinesFor(CapabilityPrimitive primitive) =>
@@ -231,11 +244,11 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
     /// What this device would put in the panel, most wanted first, before the line budget
     /// has its say.
     ///
-    /// The shared order is the list below; what changes per device is what leads it. On a
+    /// The shared order is the list above; what changes per device is what leads it. On a
     /// microphone that is the capsule's own switch and level, because they are the whole
     /// reason its row would be opened — the same argument that puts the microphone section
-    /// first on its page. Everything else keeps the order it had, and picks up the switch
-    /// at the end where there is room for it: a headset's row is opened for ChatMix.
+    /// first on its page. On everything else the two keep their place in the shared order,
+    /// under the device's own microphone settings.
     /// </summary>
     private IEnumerable<string> Wanted(DeviceSnapshot device)
     {
@@ -273,17 +286,6 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
             yield return id;
         }
 
-        // And what the operating system offers, for whatever room is left.
-        //
-        // Not on a microphone. Its own switch and level already lead the row, and its
-        // headphone socket is asked for by name — a playback volume appearing under a
-        // capsule's controls is a second, unrelated slider in the place somebody reaches
-        // to mute themselves.
-        if (device.Info.Class == DeviceClass.Microphone) yield break;
-
-        foreach (string id in SystemLast) yield return id;
-
-        yield return CapabilityIds.MicSystemOn;
     }
 
     [RelayCommand]
