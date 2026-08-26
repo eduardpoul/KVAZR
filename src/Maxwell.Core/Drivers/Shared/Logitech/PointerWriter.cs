@@ -62,6 +62,64 @@ public static class PointerWriter
     }
 
     /// <summary>
+    /// Sets how often the mouse reports, in the profile, where it survives us.
+    ///
+    /// Asked for directly the mouse answers "invalid argument", and Solaar's own note on
+    /// this setting says it may need the onboard profiles turned off to take. Both are
+    /// true and both are beside the point: the rate is in the profile, and writing it
+    /// there moves the mouse at once.
+    ///
+    /// Which byte holds it is not decided here. A profile has two, one for each kind of
+    /// link a mouse can be on, and they read the same on a mouse whose two links are set
+    /// alike — so telling them apart by reading is impossible. Instead one is written and
+    /// the mouse is asked what it is doing: the byte that moves it is the byte, and the
+    /// other is put back untouched.
+    /// </summary>
+    public static bool SetReportRate(WindowsHidChannel channel, byte device, int hertz)
+    {
+        ArgumentNullException.ThrowIfNull(channel);
+
+        int index = Array.IndexOf(PointerReader.Rates, hertz);
+        if (index < 0) return false;
+
+        if (HidPlusPlusReader.FeatureIndex(channel, device, OnboardProfiles) is not { } feature) return false;
+        if (Enabled(channel, device, feature) is not { } sector) return false;
+        if (Read(channel, device, feature, sector) is not { Length: SectorSize } original) return false;
+
+        // The link in use first, because on the mouse this was measured on that is the
+        // second byte and trying it first costs one exchange instead of three.
+        foreach (int at in (int[])[1, 0])
+        {
+            byte[] changed = [.. original];
+            changed[at] = (byte)index;
+            Seal(changed);
+
+            if (!Write(channel, device, feature, sector, changed)) continue;
+
+            if (Live(channel, device) == index) return true;
+
+            // It was accepted and did nothing, which means that byte is the other link's.
+            // Put it back before trying the other, or a mouse would end up with both
+            // links changed to settle one.
+            Write(channel, device, feature, sector, original);
+        }
+
+        return false;
+    }
+
+    /// <summary>Which rate the mouse says it is using, as an index into the protocol's list.</summary>
+    private static int Live(WindowsHidChannel channel, byte device)
+    {
+        if (HidPlusPlusReader.FeatureIndex(channel, device, ExtendedRate) is not { } feature) return -1;
+
+        byte[]? reply = HidPlusPlusReader.Ask(channel, device, feature, 0x02, 0x00);
+
+        return reply is { Length: > 4 } && !HidPlusPlus.IsError(reply) ? reply[4] : -1;
+    }
+
+    private const ushort ExtendedRate = 0x8061;
+
+    /// <summary>
     /// Where in the sector the resolution in force is written.
     ///
     /// Five entries of five bytes from offset four: the resolution across, the resolution

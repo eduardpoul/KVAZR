@@ -101,7 +101,7 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
                 Primitive = CapabilityPrimitive.Choice,
                 Title = "Report rate",
                 Subtitle = "How often the mouse tells the computer where it is",
-                Access = CapabilityAccess.Read,
+                Access = CapabilityAccess.ReadWrite,
                 Choices = [.. facts.ReportRates.Select(hz => new CapabilityChoice(hz, $"{hz} Hz"))],
             });
         }
@@ -279,9 +279,8 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        if (capabilityId != CapabilityIds.PointerDpi) return false;
+        if (capabilityId is not (CapabilityIds.PointerDpi or CapabilityIds.PointerReportRate)) return false;
         if (value is not ChoiceValue wanted) return false;
-        if (_facts.Dpi is not { } current) return false;
 
         SemaphoreSlim gate = GateFor(_path);
         await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -289,6 +288,16 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
         try
         {
             using var channel = new WindowsHidChannel(_path, _input, _output);
+
+            if (capabilityId == CapabilityIds.PointerReportRate)
+            {
+                if (!PointerWriter.SetReportRate(channel, _slot, wanted.Index)) return false;
+
+                _facts = _facts with { ReportRate = wanted.Index };
+                return true;
+            }
+
+            if (_facts.Dpi is not { } current) return false;
 
             // A mouse asleep answers nothing, and the exchange that wakes it is the one
             // that goes unanswered. The read below is what wakes it here.

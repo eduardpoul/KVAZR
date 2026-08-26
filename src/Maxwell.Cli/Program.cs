@@ -118,6 +118,11 @@ if (args.Contains("--driverdpi"))
     return ProfileProbe.Driver(int.TryParse(ValueAfter(args, "--driverdpi"), out int want3) ? want3 : 1600);
 }
 
+if (args.Contains("--driverrate"))
+{
+    return ProfileProbe.DriverRate(int.TryParse(ValueAfter(args, "--driverrate"), out int hz) ? hz : 500);
+}
+
 if (args.Contains("--ratedirect"))
 {
     return ProfileProbe.RateDirect(int.TryParse(ValueAfter(args, "--ratedirect"), out int r2) ? r2 : 2);
@@ -125,7 +130,10 @@ if (args.Contains("--ratedirect"))
 
 if (args.Contains("--rate"))
 {
-    return ProfileProbe.Rate(int.TryParse(ValueAfter(args, "--rate"), out int idx) ? idx : 2);
+    int which = int.TryParse(ValueAfter(args, "--rate"), out int idx) ? idx : 2;
+    int where = int.TryParse(ValueAfter(args, "--byte"), out int off) ? off : 0;
+
+    return ProfileProbe.Rate(which, where);
 }
 
 if (args.Contains("--activedpi"))

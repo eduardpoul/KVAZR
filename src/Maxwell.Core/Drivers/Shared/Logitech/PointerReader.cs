@@ -263,7 +263,7 @@ public static class PointerReader
     /// dictionary, not a device's capabilities: which of these a given mouse offers comes
     /// out of the mask it answers with.
     /// </summary>
-    private static readonly int[] Rates = [125, 250, 500, 1000, 2000, 4000, 8000];
+    internal static readonly int[] Rates = [125, 250, 500, 1000, 2000, 4000, 8000];
 
     private const ushort ExtendedRate = 0x8061;
 

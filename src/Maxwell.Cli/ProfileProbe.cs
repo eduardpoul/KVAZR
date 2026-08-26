@@ -332,6 +332,42 @@ internal static class ProfileProbe
         return 1;
     }
 
+    /// <summary>The driver's own rate write, exercised end to end and put back.</summary>
+    public static int DriverRate(int hertz)
+    {
+        if (Open() is not { } open) return 1;
+
+        using WindowsHidChannel channel = open.Channel;
+
+        int before = LiveRate(channel, open.Device);
+        int[] rates = [125, 250, 500, 1000, 2000, 4000, 8000];
+
+        Console.WriteLine("[driver] the page's own rate write");
+        Console.WriteLine();
+        Console.WriteLine($"  before   {(before >= 0 && before < rates.Length ? rates[before] : -1)} Hz");
+
+        if (!PointerWriter.SetReportRate(channel, open.Device, hertz))
+        {
+            Console.WriteLine("  write    refused");
+            return 1;
+        }
+
+        int after = LiveRate(channel, open.Device);
+        Console.WriteLine($"  after    {(after >= 0 && after < rates.Length ? rates[after] : -1)} Hz");
+        Console.WriteLine();
+        Console.WriteLine(rates[after] == hertz ? "  It took." : "  It did not take.");
+        Console.WriteLine();
+
+        if (PointerWriter.SetReportRate(channel, open.Device, rates[before]) && LiveRate(channel, open.Device) == before)
+        {
+            Console.WriteLine($"  restored {rates[before]} Hz");
+            return 0;
+        }
+
+        Console.WriteLine($"  RESTORE FAILED — the rate is not back at {rates[before]} Hz.");
+        return 1;
+    }
+
     /// <summary>
     /// Whether the report rate can be changed the same way the resolution was.
     ///
@@ -339,7 +375,7 @@ internal static class ProfileProbe
     /// rate feature reports separately. Whether writing it moves the mouse is a different
     /// question from whether it decodes, and only the mouse can answer it.
     /// </summary>
-    public static int Rate(int index)
+    public static int Rate(int index, int at = 0)
     {
         if (Open() is not { } open) return 1;
 
@@ -356,10 +392,10 @@ internal static class ProfileProbe
 
         Console.WriteLine($"[rate] profile in sector {sector}");
         Console.WriteLine();
-        Console.WriteLine($"  before   byte 0 is {original[0]}, and the mouse reports rate index {before}");
+        Console.WriteLine($"  before   byte {at} is {original[at]}, and the mouse reports rate index {before}");
 
         byte[] changed = [.. original];
-        changed[0] = (byte)index;
+        changed[at] = (byte)index;
         Seal(changed);
 
         if (!Put(channel, open.Device, open.Feature, sector, changed))
@@ -368,9 +404,17 @@ internal static class ProfileProbe
             return 1;
         }
 
+        int straight = LiveRate(channel, open.Device);
+        Console.WriteLine($"  written  byte {at} is {index}, and the mouse still reports index {straight}");
+
+        // Made to read its profile again. A setting the mouse takes from a profile it has
+        // already loaded does not move because the sector changed — it moves when the
+        // profile is loaded, so the profile is loaded again.
+        Reload(channel, open.Device, open.Feature);
+
         int after = LiveRate(channel, open.Device);
 
-        Console.WriteLine($"  after    byte 0 is {index}, and the mouse reports rate index {after}");
+        Console.WriteLine($"  reloaded and the mouse reports index {after}");
         Console.WriteLine();
         Console.WriteLine(after != before
             ? "  The rate follows the profile."
@@ -449,6 +493,21 @@ internal static class ProfileProbe
         Console.WriteLine();
         Console.WriteLine("  Neither shape moved it.");
         return 1;
+    }
+
+    /// <summary>
+    /// Makes the mouse read its profile again, by telling it what it is already doing.
+    ///
+    /// Setting the onboard mode to the value it already holds is the least that could
+    /// cause a reload and the least that could go wrong: nothing about how the mouse
+    /// behaves is being changed, it is only being told again.
+    /// </summary>
+    private static void Reload(WindowsHidChannel channel, byte device, byte feature)
+    {
+        byte[]? mode = HidPlusPlusReader.Ask(channel, device, feature, 0x02);
+        byte held = mode is { Length: > 4 } && !HidPlusPlus.IsError(mode) ? mode[4] : (byte)0x01;
+
+        HidPlusPlusReader.Ask(channel, device, feature, 0x01, held);
     }
 
     /// <summary>The rate index the mouse reports, from its own feature.</summary>
