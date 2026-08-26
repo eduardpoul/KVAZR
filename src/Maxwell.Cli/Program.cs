@@ -199,6 +199,11 @@ if (args.Contains("--hidpp")) return HidPlusPlusProbe.Run();
 if (args.Contains("--xinput")) return XInputProbe.Run();
 if (args.Contains("--audio")) return AudioProbe.Run();
 if (args.Contains("--micmute")) return await MuteProbe.RunAsync(args.Contains("--leave")).ConfigureAwait(false);
+if (args.Contains("--micswitch"))
+{
+    int watched = int.TryParse(ValueAfter(args, "--micswitch"), out int held) ? held : 20;
+    return await MicSwitchProbe.RunAsync(watched).ConfigureAwait(false);
+}
 if (args.Contains("--meter"))
 {
     int seconds = int.TryParse(ValueAfter(args, "--meter"), out int held) ? held : 20;
