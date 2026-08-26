@@ -163,6 +163,32 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     public bool HasBatteryParts => BatteryParts.Count > 0;
 
     /// <summary>
+    /// The halves that are on the person, for the tray panel's one-line row.
+    ///
+    /// Without the case, and that is the whole point of the split: the row is one line
+    /// high and already carries a picture, a name and a status, and a third reading
+    /// squeezed the name down to a letter and an ellipsis. What is in your ears is what
+    /// you are asking about at a glance; the case is a thing you go and look at.
+    /// </summary>
+    public IReadOnlyList<BatteryPart> WornBatteryParts =>
+        [.. BatteryParts.Where(p => p.Id != CapabilityIds.PowerBatteryCase)];
+
+    public bool HasWornBatteryParts => WornBatteryParts.Count > 0;
+
+    /// <summary>The case, for the opened row, or null while its lid is shut.</summary>
+    public BatteryPart? CaseBattery =>
+        BatteryParts.FirstOrDefault(p => p.Id == CapabilityIds.PowerBatteryCase);
+
+    public bool HasCaseBattery => CaseBattery is not null;
+
+    /// <summary>
+    /// The one gauge and one number, where that is the whole story. A device with halves
+    /// draws those instead — both at once would be the same charge said twice, once
+    /// rounded down to its emptier side.
+    /// </summary>
+    public bool ShowsSingleBattery => ShowsBatteryPercent && !HasBatteryParts;
+
+    /// <summary>
     /// The name without the maker in front of it, for the navigation pane. The artboard
     /// lists "Maxwell" and "QuadCast S" there and spells them out in full only in the
     /// content: at 260 pixels the maker is the half of the name that gets trimmed away,
@@ -237,7 +263,12 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
         OnPropertyChanged(nameof(BatteryPercent));
         OnPropertyChanged(nameof(BatteryParts));
         OnPropertyChanged(nameof(HasBatteryParts));
+        OnPropertyChanged(nameof(WornBatteryParts));
+        OnPropertyChanged(nameof(HasWornBatteryParts));
+        OnPropertyChanged(nameof(CaseBattery));
+        OnPropertyChanged(nameof(HasCaseBattery));
         OnPropertyChanged(nameof(ShowsBatteryPercent));
+        OnPropertyChanged(nameof(ShowsSingleBattery));
         OnPropertyChanged(nameof(ShowsMains));
         OnPropertyChanged(nameof(ShowsNoReading));
         OnPropertyChanged(nameof(ShortName));

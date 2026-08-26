@@ -41,6 +41,12 @@ public sealed partial class FlyoutRowViewModel : ObservableObject, IDisposable
         CapabilityIds.LightBrightness,
         CapabilityIds.LightOn,
         CapabilityIds.LinkHosts,
+
+        // What Windows itself gives an audio device is deliberately absent. It arrives
+        // anyway, by the fill below, which is the right way round: a device with settings
+        // of its own leads with those, and one with none — a pair of AirPods — opens on
+        // the system's. Listed here instead, the playback volume climbed above a
+        // microphone's own switch and level, which two cases already guard against.
     ];
 
     /// <summary>

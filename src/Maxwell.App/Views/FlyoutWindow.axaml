@@ -364,7 +364,7 @@
                            cable says so without spending a word on it. -->
                       <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
                                   VerticalAlignment="Center"
-                                  IsVisible="{Binding Device.ShowsBatteryPercent}">
+                                  IsVisible="{Binding Device.ShowsSingleBattery}">
                         <controls:BatteryGauge Percent="{Binding Device.BatteryPercent}"
                                                Charging="{Binding Device.IsCharging}"
                                                VerticalAlignment="Center" />
@@ -372,6 +372,37 @@
                                    VerticalAlignment="Center"
                                    Text="{Binding Device.Battery}" />
                       </StackPanel>
+
+                      <!-- A device with more than one battery says all of them, along the
+                           row rather than down it: this row is one line high and already
+                           carries a picture, a name and a status. Hence one letter each —
+                           a pair of earphones needs no more to be told apart, and the case
+                           only appears at all while its lid is open. -->
+                      <ItemsControl Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    IsVisible="{Binding Device.HasWornBatteryParts}"
+                                    ItemsSource="{Binding Device.WornBatteryParts}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="10" />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="devices:BatteryPart">
+                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                              <TextBlock Classes="caption" VerticalAlignment="Center"
+                                         FontSize="{DynamicResource FlyoutSubSize}"
+                                         Text="{Binding Initial}" />
+                              <controls:BatteryGauge Percent="{Binding Percent}"
+                                                     Charging="{Binding Charging}"
+                                                     VerticalAlignment="Center" />
+                              <TextBlock FontSize="{DynamicResource FlyoutSubSize}" FontWeight="SemiBold"
+                                         VerticalAlignment="Center"
+                                         Text="{Binding Reading}" />
+                            </StackPanel>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
 
                       <TextBlock Grid.Column="2" FontSize="12"
                                  VerticalAlignment="Center"
@@ -407,6 +438,21 @@
                        they left the first name sitting against the device's own. Eight
                        gives it the same air the blocks below it have. -->
                   <StackPanel IsVisible="{Binding IsOpen}" Margin="54,8,12,14" Spacing="12">
+
+                    <!-- The case, which the row above has no room for and which is not
+                         what anybody glances at a tray panel to learn. Present only while
+                         its lid is open: shut, the earphones do not report it at all. -->
+                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                IsVisible="{Binding Device.HasCaseBattery}"
+                                DataContext="{Binding Device.CaseBattery}">
+                      <TextBlock Classes="caption" VerticalAlignment="Center"
+                                 Text="{Binding Label}" />
+                      <controls:BatteryGauge Percent="{Binding Percent}"
+                                             Charging="{Binding Charging}"
+                                             VerticalAlignment="Center" />
+                      <TextBlock FontWeight="SemiBold" VerticalAlignment="Center"
+                                 Text="{Binding Reading}" />
+                    </StackPanel>
 
                     <!--
                       The panel's own controls, not the device page's.

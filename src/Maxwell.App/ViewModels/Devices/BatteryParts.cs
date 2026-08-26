@@ -3,8 +3,22 @@ using Maxwell.Core.Devices;
 namespace Maxwell.App.ViewModels.Devices;
 
 /// <summary>One half of a device that has more than one battery.</summary>
+/// <param name="Id">The capability it came from, which is how the case is told from an earphone.</param>
 /// <param name="Label">"Left", "Right", "Case" — the device's own word, translated.</param>
-public sealed record BatteryPart(string Label, int Percent, bool Charging);
+public sealed record BatteryPart(string Id, string Label, int Percent, bool Charging)
+{
+    /// <summary>
+    /// The name cut to one letter, for the tray panel, whose row is one line high and
+    /// already carrying a name, a status and a picture.
+    ///
+    /// Taken from the label rather than kept as a second list, so it follows the language
+    /// the rest of the panel is in.
+    /// </summary>
+    public string Initial => Label.Length > 0 ? Label[..1] : string.Empty;
+
+    /// <summary>The number as it is drawn, which is the only place a percent sign belongs.</summary>
+    public string Reading => $"{Percent}%";
+}
 
 /// <summary>
 /// The halves of a device whose battery is not one battery.
@@ -44,6 +58,7 @@ internal static class BatteryParts
             if (state.Value is not NumberValue percent) continue;
 
             parts.Add(new BatteryPart(
+                level,
                 Maxwell.App.Localization.Localizer.Current.Say(state.Descriptor.Title),
                 percent.Value,
                 snapshot.Get(charging)?.Value.AsFlag() ?? false));
