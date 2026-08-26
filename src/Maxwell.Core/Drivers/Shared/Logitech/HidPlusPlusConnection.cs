@@ -87,10 +87,6 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
                 Primitive = CapabilityPrimitive.Choice,
                 Title = "Resolution",
 
-                // Which rung is in force is the mouse's own business and nothing found so
-                // far can set it, so the rung it is standing on is the one that carries
-                // the new value — and the rung that already held that value takes the old
-                // one back. All five survive, in a different order.
                 Subtitle = "The steps this mouse stores; its own button cycles them too",
                 Access = CapabilityAccess.ReadWrite,
 

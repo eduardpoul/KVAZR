@@ -30,21 +30,23 @@ public static class PointerWriter
     private const int SectorSize = 255;
 
     /// <summary>
-    /// Puts the mouse on a resolution, and says whether it took.
+    /// Puts the mouse on one of its stored resolutions.
     ///
-    /// The rung the mouse is standing on is the only one that changes what it is doing —
-    /// which rung that is cannot be set by anything found so far, so it is the one that
-    /// has to carry the new value.
+    /// By telling it which of the five to use, which is a thing it has a command for and
+    /// which I spent a day concluding it did not. The whole search went into the profile's
+    /// header bytes and into forcing a reload — because the sweep that mapped this feature
+    /// stopped at function eight, where the memory writes end, and never asked what came
+    /// after. Function 0x0B reads the index in force and 0x0C sets it. Numbers from
+    /// libratbag rather than from guessing.
     ///
-    /// Written naively that loses a resolution. Standing on 800 and asked for 1600, the
-    /// obvious write leaves the ladder 1600/1200/1600/2400/3200: two of one value, none
-    /// of the other, and a mouse whose own button now cycles through that. Measured on
-    /// hardware, and reported by the person it happened to.
+    /// It is the better answer in every way that matters: one exchange, nothing written to
+    /// the mouse's flash, and the five stay in the order the person put them in.
     ///
-    /// So the two rungs trade places instead. The mouse ends up on the asked-for value
-    /// and still stores all five it stored before — only their order changed, and their
-    /// order is the order its button walks them in. A value not on the ladder at all has
-    /// nowhere to trade with and is simply written.
+    /// The fall-back below is for a resolution the ladder does not hold, which has no index
+    /// to choose. Then the rung the mouse is standing on has to carry it — and the rung
+    /// that held the old value takes it back, so nothing is lost. That trade was the whole
+    /// mechanism until this function was found, and it is worth keeping for an older mouse
+    /// that refuses 0x0C.
     /// </summary>
     public static bool SetResolution(WindowsHidChannel channel, byte device, int current, int wanted)
     {
@@ -53,6 +55,9 @@ public static class PointerWriter
         if (current == wanted) return true;
 
         if (HidPlusPlusReader.FeatureIndex(channel, device, OnboardProfiles) is not { } feature) return false;
+
+        if (Rung(channel, device, wanted) is { } index && Choose(channel, device, feature, index)) return true;
+
         if (Enabled(channel, device, feature) is not { } sector) return false;
         if (Read(channel, device, feature, sector) is not { Length: SectorSize } profile) return false;
 
@@ -62,6 +67,44 @@ public static class PointerWriter
 
         return Write(channel, device, feature, sector, profile);
     }
+
+    /// <summary>Which of the five the device is to use now. Nothing is stored by this.</summary>
+    private static bool Choose(WindowsHidChannel channel, byte device, byte feature, int index)
+    {
+        byte[]? reply = HidPlusPlusReader.Ask(channel, device, feature, SetDpiIndex, (byte)index);
+
+        return reply is not null && !HidPlusPlus.IsError(reply);
+    }
+
+    /// <summary>
+    /// Where a resolution sits in the ladder, or null if the mouse does not store it.
+    ///
+    /// Asked of the device rather than taken from anything held here: one exchange, and
+    /// the alternative is trusting a copy of the ladder to still be true.
+    /// </summary>
+    private static int? Rung(WindowsHidChannel channel, byte device, int dpi)
+    {
+        if (HidPlusPlusReader.FeatureIndex(channel, device, ExtendedResolution) is not { } sensor) return null;
+
+        byte[]? reply = HidPlusPlusReader.Ask(channel, device, sensor, 0x03, 0x00, 0x00, 0x00);
+        if (reply is null || HidPlusPlus.IsError(reply)) return null;
+
+        // Two bytes of header — the sensor and the direction — then the steps, in the
+        // order the profile keeps them.
+        for (int i = 0, rung = 0; i + 7 < reply.Length; i += 2, rung++)
+        {
+            int step = (reply[i + 6] << 8) | reply[i + 7];
+            if (step == 0) break;
+
+            if (step == dpi) return rung;
+        }
+
+        return null;
+    }
+
+    private const byte SetDpiIndex = 0x0C;
+
+    private const ushort ExtendedResolution = 0x2202;
 
     /// <summary>
     /// The two rungs, traded, in a sector held in memory. Separate from the sending of it

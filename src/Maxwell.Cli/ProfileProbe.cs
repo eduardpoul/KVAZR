@@ -399,6 +399,80 @@ internal static class ProfileProbe
         return 1;
     }
 
+    /// <summary>
+    /// Which of the profile's five resolutions is in force, asked and then set.
+    ///
+    /// This is the thing I spent a day deciding could not be done. The whole search went
+    /// into the profile's header bytes and into forcing a reload, and none of it moved the
+    /// mouse — because the answer is not in memory at all. The onboard-profiles feature has
+    /// a function for it, and the sweep that mapped that feature stopped at function eight
+    /// where the memory writes end. Functions nine to twelve were never asked.
+    ///
+    /// Numbers from libratbag, not from guessing: 0x0B reads the index, 0x0C sets it, and
+    /// the value is a plain 0..4. Read first, and only then written.
+    /// </summary>
+    public static int Index(int wanted)
+    {
+        if (Open() is not { } open) return 1;
+
+        using WindowsHidChannel channel = open.Channel;
+
+        byte[]? read = HidPlusPlusReader.Ask(channel, open.Device, open.Feature, 0x0B);
+
+        Console.WriteLine("[dpi index] onboard profiles, functions past the memory writes");
+        Console.WriteLine();
+        Console.WriteLine($"  fn 0x0B   {Say(read)}");
+
+        int before = read is { Length: > 4 } && !HidPlusPlus.IsError(read) ? read[4] : -1;
+        int running = Live(channel, open.Device);
+
+        Console.WriteLine($"  the mouse says index {before}, and it is running {running} DPI");
+        Console.WriteLine($"  ladder    {Steps(channel, open)}");
+
+        if (wanted < 0)
+        {
+            Console.WriteLine();
+            Console.WriteLine("  Nothing was written.");
+            return 0;
+        }
+
+        if (before < 0)
+        {
+            Console.WriteLine();
+            Console.WriteLine("  It will not say which index it is on, so there is nothing to put back.");
+            return 1;
+        }
+
+        Console.WriteLine();
+
+        byte[]? set = HidPlusPlusReader.Ask(channel, open.Device, open.Feature, 0x0C, (byte)wanted);
+        int after = Live(channel, open.Device);
+
+        Console.WriteLine($"  fn 0x0C {wanted}  {Say(set)}");
+        Console.WriteLine($"  the mouse is now running {after} DPI");
+        Console.WriteLine($"  ladder    {Steps(channel, open)}   (unchanged is the point)");
+        Console.WriteLine();
+        Console.WriteLine(after != running
+            ? "  It switches. Nothing in memory was touched."
+            : "  Nothing moved.");
+
+        Console.WriteLine();
+
+        HidPlusPlusReader.Ask(channel, open.Device, open.Feature, 0x0C, (byte)before);
+        int back = Live(channel, open.Device);
+
+        Console.WriteLine(back == running
+            ? $"  restored index {before}, {back} DPI"
+            : $"  RESTORE FAILED — the mouse is at {back} DPI, not {running}.");
+
+        return back == running ? 0 : 1;
+    }
+
+    private static string Say(byte[]? reply) =>
+        reply is null ? "no answer"
+        : HidPlusPlus.IsError(reply) ? HidPlusPlus.Explain(reply)
+        : "answered " + Convert.ToHexString(reply.AsSpan(4, Math.Min(6, reply.Length - 4)));
+
     /// <summary>The driver's own rate write, exercised end to end and put back.</summary>
     public static int DriverRate(int hertz)
     {
