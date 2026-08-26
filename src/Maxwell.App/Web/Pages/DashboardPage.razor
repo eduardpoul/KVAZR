@@ -96,6 +96,13 @@
                 {
                   <span class="pending-dot" title="@T["dash.reading", "Reading…"]"></span>
                 }
+                else if (device.HasBatteryParts)
+                {
+                  @* A device with more than one battery says so here rather than being
+                     reduced to its emptiest half. Which earphone is about to run out is
+                     the question somebody scanning this list is asking. *@
+                  <BatteryParts Parts="device.BatteryParts" Compact="true" />
+                }
                 else if (device.BatteryPercent is not null)
                 {
                   <Battery Percent="device.BatteryPercent" Charging="device.IsCharging" />

@@ -250,6 +250,14 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
     /// <summary>Battery as text. A dash, never a zero, when nothing has been read.</summary>
     public string Battery => Snapshot.BatteryPercent is { } percent ? $"{percent}%" : "—";
 
+    /// <summary>
+    /// The halves, where the device has more than one battery. Empty otherwise, and the
+    /// hero then draws the single number it always drew.
+    /// </summary>
+    public IReadOnlyList<BatteryPart> BatteryParts => Devices.BatteryParts.Of(Snapshot);
+
+    public bool HasBatteryParts => BatteryParts.Count > 0;
+
     public bool IsCharging => Snapshot.IsCharging;
 
     /// <summary>The one-word class, for the grey type pill in the hero.</summary>

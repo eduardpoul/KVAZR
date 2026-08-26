@@ -30,6 +30,17 @@ public static class CapabilityIds
     public const string PowerBatteryRight = "power.battery.right";
 
     public const string PowerBatteryCase = "power.battery.case";
+
+    /// <summary>
+    /// Whether each half is charging, which is not the same question for each of them: a
+    /// case on a cable charges the earphones sitting in it while itself being charged, and
+    /// one earphone out of the case is not charging while the other is.
+    /// </summary>
+    public const string PowerChargingLeft = "power.charging.left";
+
+    public const string PowerChargingRight = "power.charging.right";
+
+    public const string PowerChargingCase = "power.charging.case";
     public const string PowerAutoOff = "power.auto_off";
     public const string DeviceFirmware = "device.firmware";
 

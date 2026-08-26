@@ -602,6 +602,34 @@ input[type="range"]::-webkit-slider-thumb {
 
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
 
+/* The halves of a device that has more than one battery: a row each, in three columns.
+   The grid is on the container rather than on each row — display:contents hands the three
+   spans of a part straight to it — which is what makes the names, the gauges and the
+   numbers line up down the page however long the words in them turn out to be. */
+.batt-parts {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  gap: 4px 7px;
+  justify-content: end;
+}
+
+.batt-part { display: contents; }
+
+/* The name quieter than the number, and pushed against its gauge: the number is what is
+   being read, and the name only says which of them it is. */
+.batt-part-name { font-size: 12px; color: var(--text-tertiary); text-align: right; }
+.batt-part-value { font-size: 13px; font-weight: 600; color: var(--text-primary); text-align: right; }
+
+.batt-parts.compact { gap: 3px 6px; }
+.batt-parts.compact .batt-part-name,
+.batt-parts.compact .batt-part-value { font-size: 12px; }
+
+/* The block a row keeps for its charge is sized for one gauge and one number. It grows
+   only for the device that needs more, so every other row's number stays in the column
+   they make down the page. */
+.batt-block:has(.batt-parts) { width: auto; flex: none; }
+
 /* A dropdown with a way into the list itself beside it. The button goes first and keeps
    its own width, so the dropdown stays in the column the other rows' dropdowns make
    rather than being pushed off it by a neighbour only this row has. */

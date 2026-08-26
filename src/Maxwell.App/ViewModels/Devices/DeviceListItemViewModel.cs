@@ -154,6 +154,15 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
     public int? BatteryPercent => Snapshot.BatteryPercent;
 
     /// <summary>
+    /// The halves, for a device whose battery is not one battery. The list draws these
+    /// instead of the single number where there are any — which one is about to run out is
+    /// the question somebody scanning a list of earphones is asking.
+    /// </summary>
+    public IReadOnlyList<BatteryPart> BatteryParts => Devices.BatteryParts.Of(Snapshot);
+
+    public bool HasBatteryParts => BatteryParts.Count > 0;
+
+    /// <summary>
     /// The name without the maker in front of it, for the navigation pane. The artboard
     /// lists "Maxwell" and "QuadCast S" there and spells them out in full only in the
     /// content: at 260 pixels the maker is the half of the name that gets trimmed away,
@@ -226,6 +235,8 @@ public sealed partial class DeviceListItemViewModel : ObservableObject
         OnPropertyChanged(nameof(Battery));
         OnPropertyChanged(nameof(HasBattery));
         OnPropertyChanged(nameof(BatteryPercent));
+        OnPropertyChanged(nameof(BatteryParts));
+        OnPropertyChanged(nameof(HasBatteryParts));
         OnPropertyChanged(nameof(ShowsBatteryPercent));
         OnPropertyChanged(nameof(ShowsMains));
         OnPropertyChanged(nameof(ShowsNoReading));

@@ -66,9 +66,14 @@ internal sealed class AppleProximityConnection : IDeviceConnection
             Domain = CapabilityDomain.Power,
             Primitive = CapabilityPrimitive.Readout,
             Title = "Left",
-            Subtitle = "In tens — the beacon carries no finer number",
             Access = CapabilityAccess.Read,
             Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
+
+            // Read, kept, and not drawn as a row of its own. The three halves belong on
+            // one line beside the device — "Left 100%  Right 100%  Case 10%" — which is
+            // how the thing is actually read, and three rows saying one thing each is
+            // three times the page for a third of the sense.
+            IsSupporting = true,
         },
         new()
         {
@@ -78,6 +83,7 @@ internal sealed class AppleProximityConnection : IDeviceConnection
             Title = "Right",
             Access = CapabilityAccess.Read,
             Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
+            IsSupporting = true,
         },
         new()
         {
@@ -85,9 +91,36 @@ internal sealed class AppleProximityConnection : IDeviceConnection
             Domain = CapabilityDomain.Power,
             Primitive = CapabilityPrimitive.Readout,
             Title = "Case",
-            Subtitle = "Only while its lid is open",
             Access = CapabilityAccess.Read,
             Range = new CapabilityRange { Min = 0, Max = 100, Unit = "%" },
+            IsSupporting = true,
+        },
+        new()
+        {
+            Id = CapabilityIds.PowerChargingLeft,
+            Domain = CapabilityDomain.Power,
+            Primitive = CapabilityPrimitive.Readout,
+            Title = "Left charging",
+            Access = CapabilityAccess.Read,
+            IsSupporting = true,
+        },
+        new()
+        {
+            Id = CapabilityIds.PowerChargingRight,
+            Domain = CapabilityDomain.Power,
+            Primitive = CapabilityPrimitive.Readout,
+            Title = "Right charging",
+            Access = CapabilityAccess.Read,
+            IsSupporting = true,
+        },
+        new()
+        {
+            Id = CapabilityIds.PowerChargingCase,
+            Domain = CapabilityDomain.Power,
+            Primitive = CapabilityPrimitive.Readout,
+            Title = "Case charging",
+            Access = CapabilityAccess.Read,
+            IsSupporting = true,
         },
     ];
 
@@ -109,6 +142,9 @@ internal sealed class AppleProximityConnection : IDeviceConnection
             CapabilityIds.PowerBatteryLeft => Percent(heard.Left),
             CapabilityIds.PowerBatteryRight => Percent(heard.Right),
             CapabilityIds.PowerBatteryCase => Percent(heard.Case),
+            CapabilityIds.PowerChargingLeft => CapabilityValue.Of(heard.LeftCharging),
+            CapabilityIds.PowerChargingRight => CapabilityValue.Of(heard.RightCharging),
+            CapabilityIds.PowerChargingCase => CapabilityValue.Of(heard.CaseCharging),
             _ => CapabilityValue.Absent,
         };
 

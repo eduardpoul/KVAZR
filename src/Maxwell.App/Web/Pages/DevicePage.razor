@@ -78,10 +78,19 @@
     @if (Vm.BatteryMode == BatteryDisplay.Charge)
     {
       <div class="hero-batt">
-        <div class="gauge-row">
-          <HeroBattery Fraction="Vm.BatteryFraction" Charging="Vm.IsCharging" />
-          <div class="hero-percent">@Vm.Battery</div>
-        </div>
+        @if (Vm.HasBatteryParts)
+        {
+          @* Three halves rather than one number. The single number is the emptiest of
+             them — true, and not what anybody holding a pair of earphones wants to know. *@
+          <BatteryParts Parts="Vm.BatteryParts" />
+        }
+        else
+        {
+          <div class="gauge-row">
+            <HeroBattery Fraction="Vm.BatteryFraction" Charging="Vm.IsCharging" />
+            <div class="hero-percent">@Vm.Battery</div>
+          </div>
+        }
         @if (!string.IsNullOrEmpty(Vm.Freshness))
         {
           <div class="caption">@Vm.Freshness</div>
