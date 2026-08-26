@@ -232,7 +232,7 @@ internal static class ProfileProbe
     /// resolution feature answers from the live setting rather than from the sector, so a
     /// byte that moves it is the byte. Then everything goes back.
     /// </summary>
-    public static int Active(int offset, int index)
+    public static int Active(int offset, int index, bool hard = false)
     {
         if (Open() is not { } open) return 1;
 
@@ -266,9 +266,19 @@ internal static class ProfileProbe
             return 1;
         }
 
+        int straight = Live(channel, open.Device);
+
+        // And again after making it read the profile. A setting the mouse takes when a
+        // profile is loaded does not move because the sector changed — this is what the
+        // report rate needed, and not doing it here is why this probe once reported that
+        // no byte chooses the step.
+        if (hard) Reboot(channel, open.Device, open.Feature);
+        else Reload(channel, open.Device, open.Feature);
+
         int after = Live(channel, open.Device);
 
-        Console.WriteLine($"  set byte {offset} to {index}, and the mouse is now at {after} DPI");
+        Console.WriteLine($"  set byte {offset} to {index}, straight away {straight} DPI");
+        Console.WriteLine($"  after a reload the mouse is at {after} DPI");
         Console.WriteLine();
         Console.WriteLine(after != before
             ? $"  That byte is the one: the mouse moved from {before} to {after}."
@@ -308,7 +318,7 @@ internal static class ProfileProbe
 
         Console.WriteLine($"[driver] the page's own write");
         Console.WriteLine();
-        Console.WriteLine($"  before   {before} DPI");
+        Console.WriteLine($"  before   {before} DPI      steps {Steps(channel, open)}");
 
         if (!PointerWriter.SetResolution(channel, open.Device, before, wanted))
         {
@@ -317,14 +327,14 @@ internal static class ProfileProbe
         }
 
         int after = Live(channel, open.Device);
-        Console.WriteLine($"  after    {after} DPI");
+        Console.WriteLine($"  after    {after} DPI      steps {Steps(channel, open)}");
         Console.WriteLine();
         Console.WriteLine(after == wanted ? "  It took." : "  It did not take.");
         Console.WriteLine();
 
         if (PointerWriter.SetResolution(channel, open.Device, after, before) && Live(channel, open.Device) == before)
         {
-            Console.WriteLine($"  restored {before} DPI");
+            Console.WriteLine($"  restored {before} DPI      steps {Steps(channel, open)}");
             return after == wanted ? 0 : 1;
         }
 
@@ -496,6 +506,23 @@ internal static class ProfileProbe
     }
 
     /// <summary>
+    /// Makes the mouse actually load its profile, by taking it out of onboard mode and
+    /// putting it back.
+    ///
+    /// Telling it the mode it already holds is not a load — which is the difference
+    /// between a setting the mouse follows from the sector and one it takes only when a
+    /// profile comes in. The report rate is the first kind; the step it starts on should
+    /// be the second, and nothing short of a real load would show it.
+    /// </summary>
+    private static void Reboot(WindowsHidChannel channel, byte device, byte feature)
+    {
+        HidPlusPlusReader.Ask(channel, device, feature, 0x01, 0x02);
+        Thread.Sleep(300);
+        HidPlusPlusReader.Ask(channel, device, feature, 0x01, 0x01);
+        Thread.Sleep(500);
+    }
+
+    /// <summary>
     /// Makes the mouse read its profile again, by telling it what it is already doing.
     ///
     /// Setting the onboard mode to the value it already holds is the least that could
@@ -508,6 +535,26 @@ internal static class ProfileProbe
         byte held = mode is { Length: > 4 } && !HidPlusPlus.IsError(mode) ? mode[4] : (byte)0x01;
 
         HidPlusPlusReader.Ask(channel, device, feature, 0x01, held);
+    }
+
+    /// <summary>
+    /// The five stored resolutions, as the mouse keeps them. What a write does to the
+    /// ladder is the question this answers: whether picking a value moves the mouse onto
+    /// an existing step or rewrites the step it was standing on.
+    /// </summary>
+    private static string Steps(WindowsHidChannel channel, (WindowsHidChannel Channel, byte Device, byte Feature) open)
+    {
+        if (Enabled(channel, open.Device, open.Feature) is not { } sector
+            || Sector(channel, open.Device, open.Feature, sector, 255) is not { Length: 255 } profile)
+        {
+            return "unread";
+        }
+
+        return string.Join("/", Enumerable.Range(0, 5).Select(n =>
+        {
+            int at = 4 + (n * 5);
+            return (profile[at] | (profile[at + 1] << 8)).ToString(CultureInfo.InvariantCulture);
+        }));
     }
 
     /// <summary>The rate index the mouse reports, from its own feature.</summary>

@@ -86,7 +86,14 @@ internal sealed class HidPlusPlusConnection : IDeviceConnection
                 Domain = CapabilityDomain.Pointing,
                 Primitive = CapabilityPrimitive.Choice,
                 Title = "Resolution",
-                Subtitle = "The steps this mouse stores; its own button cycles them too",
+
+                // Said plainly, because what this row does is not what its list suggests.
+                // The five values are the ladder the mouse cycles with its own button, and
+                // picking one does not step onto it — it writes that value over the rung
+                // the mouse is standing on. Measured: on 800, choosing 1600 leaves the
+                // ladder 1600/1200/1600/2400/3200. Which rung is in force is the mouse's
+                // own business and nothing found so far can set it.
+                Subtitle = "Rewrites the step the mouse is on now; the other four keep their values",
                 Access = CapabilityAccess.ReadWrite,
                 Choices = [.. steps.Order().Select(dpi => new CapabilityChoice(dpi, $"{dpi} DPI"))],
             });

@@ -228,9 +228,16 @@ public static class PointerReader
     /// offers is the device's answer, and it differs by link: the one measured here offers
     /// four on one and all seven on the other.
     ///
-    /// The link is not asked for, it is deduced. The device answers the same current rate
-    /// whichever link is named, so the offered list to believe is the one that contains
-    /// the rate the mouse is actually running at.
+    /// Which link is not something the device will say. It answers the same current rate
+    /// whichever one is named, and both its lists contain that rate whenever it is a
+    /// common one — so "the list containing what it is doing" picked the first list every
+    /// time, and this mouse was offered four rates on a link that offers seven. Measured:
+    /// writing 2000 into the profile moved it, and 2000 is only in the longer list.
+    ///
+    /// So the link comes from how the device is attached, which is known here for nothing:
+    /// one answering on its own index is on a cable, one answering through a receiver's
+    /// slot is on the air. The wireless half of that is what the 2000 above proved; the
+    /// wired half is by elimination, the device rejecting any link but those two.
     /// </summary>
     private static (int? Rate, IReadOnlyList<int> Rates) Rate(WindowsHidChannel channel, byte device)
     {
@@ -244,7 +251,12 @@ public static class PointerReader
 
         int rate = Rates[now[4]];
 
-        foreach (byte link in (byte[])[0x00, 0x01])
+        // The other one second, not never: if the device disagrees with the deduction —
+        // it is running at a rate the link it should be on does not offer — then the
+        // deduction is what was wrong, and its own answer wins.
+        byte[] links = device == HidPlusPlusReader.DirectDevice ? [0x00, 0x01] : [0x01, 0x00];
+
+        foreach (byte link in links)
         {
             byte[]? offered = HidPlusPlusReader.Ask(channel, device, index, 0x00, link);
             if (offered is null || offered.Length < 6) continue;
