@@ -88,6 +88,12 @@ public abstract class CompositeCapabilityViewModel : CapabilityViewModel
 
     protected override void OnStateApplied(CapabilityState state)
     {
+        // A reading that arrives while our own write is still travelling is older than
+        // the hand that made it — the same rule the switch and the slider follow, and it
+        // was missing from every composite. On the lighting it was visible: pick a
+        // colour, and the poll behind it painted the previous one back for a moment.
+        if (WriteInFlight) return;
+
         _readings = Split(state.Value, _readings.Length);
         PushReadings();
     }
@@ -1218,12 +1224,49 @@ public sealed partial class LightingZoneViewModel : ObservableObject
             TakeHsv(Packed);
         }
 
-        Selected = Palette.FirstOrDefault(s => s.Packed == packed);
+        // The nearest swatch, not the identical one.
+        //
+        // A device holds a colour on its own scale — this keyboard keeps hue and
+        // saturation as single bytes — so the colour that comes back is a step or two
+        // from the one that was sent, and an exact match found nothing. What the reader
+        // saw was a swatch that lit when pressed and went dark when the answer arrived.
+        //
+        // Near, and not merely nearest: the palette is eight colours far apart, so a
+        // handful of units is rounding and anything more is a colour nobody picked.
+        _pulling = true;
+
+        try
+        {
+            Selected = packed < 0 ? null : Nearest(packed);
+        }
+        finally
+        {
+            _pulling = false;
+        }
     }
 
+    /// <summary>How far a channel may drift and still be the same swatch.</summary>
+    private const int Rounding = 8;
+
+    private LightingSwatch? Nearest(int packed) =>
+        Palette.FirstOrDefault(s => s.Packed == packed)
+        ?? Palette.FirstOrDefault(s =>
+            Math.Abs(((s.Packed >> 16) & 0xFF) - ((packed >> 16) & 0xFF)) <= Rounding
+            && Math.Abs(((s.Packed >> 8) & 0xFF) - ((packed >> 8) & 0xFF)) <= Rounding
+            && Math.Abs((s.Packed & 0xFF) - (packed & 0xFF)) <= Rounding);
+
+    /// <summary>
+    /// A hand on a swatch writes; a reading landing on one does not.
+    ///
+    /// Without the guard a poll that set this property sent the value straight back to
+    /// the device — a read turning itself into a write, which is the shape of every
+    /// feedback loop this application has had.
+    /// </summary>
     partial void OnSelectedChanged(LightingSwatch? value)
     {
-        if (value is not null) _owner.Commit(Index, value.Packed);
+        if (_pulling || value is null) return;
+
+        _owner.Commit(Index, value.Packed);
     }
 }
 
