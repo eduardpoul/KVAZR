@@ -36,6 +36,9 @@ internal static class ViaProbe
     private const byte ValueLayoutOptions = 0x02;
     private const byte ValueFirmwareVersion = 0x04;
 
+    private const byte CustomGetValue = 0x08;
+    private const byte RgbMatrixChannel = 0x03;
+
     private const byte Unhandled = 0xFF;
 
     public static int Run()
@@ -76,6 +79,26 @@ internal static class ViaProbe
 
         byte[]? buffer = Ask(channel, via, MacroGetBufferSize);
         Console.WriteLine($"  буфер макросов, б    {Number(buffer, 2, 2)}");
+
+        // The lighting, through the custom-value channel. Reads only: the setter is
+        // 0x07 and the save is 0x09, and neither is in this file.
+        Console.WriteLine();
+        Console.WriteLine("  подсветка (канал RGB matrix):");
+
+        foreach ((byte id, string name) in new (byte, string)[]
+        {
+            (0x01, "яркость"),
+            (0x02, "эффект"),
+            (0x03, "скорость"),
+            (0x04, "цвет (тон, насыщенность)"),
+        })
+        {
+            byte[]? answer = Ask(channel, via, CustomGetValue, RgbMatrixChannel, id);
+
+            Console.WriteLine(answer is null ? $"    {name,-26} нет ответа"
+                : answer[1] == Unhandled ? $"    {name,-26} команда не поддержана"
+                : $"    {name,-26} {Convert.ToHexString(answer, 4, Math.Min(2, answer.Length - 4))}");
+        }
 
         Console.WriteLine();
 

@@ -52,6 +52,7 @@ internal static class PlatformServices
         // because it is WinRT and the core is platform-free; a host without it registers
         // no Apple contributor and those devices simply have no charge row.
         services.AddSingleton<IProximityListener, Maxwell.Race.Windows.WindowsProximityListener>();
+        services.AddSingleton<IHidReportPipeFactory, Maxwell.Race.Windows.WindowsHidReportPipeFactory>();
 
         // Core Audio: volume, mute and level for every audio device on the machine.
         // A platform service rather than something inside a driver, because three
