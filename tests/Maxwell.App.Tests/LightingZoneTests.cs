@@ -96,16 +96,43 @@ public sealed class LightingZoneTests
         Assert.Equal(Red, vm.Zones[0].Selected?.Packed);
     }
 
-    /// <summary>But a colour nobody picked lights nothing, which is the honest answer.</summary>
-    [Fact]
-    public void AColourFarFromEverySwatch_LightsNone()
+    /// <summary>
+    /// A colour nobody picked lights nothing, which is the honest answer.
+    ///
+    /// Grey is the case worth writing down. It has no hue to compare — every swatch is a
+    /// hue away from it, and the nearest would be whichever the arithmetic happened to
+    /// reach first — so it matches none rather than one at random.
+    ///
+    /// Note what is deliberately not here: a dark blue. 0x123456 is the palette's blue in
+    /// hue and saturation and only darker, and this row does not hold brightness, so
+    /// lighting the blue swatch for it is right. That case failed this test when the test
+    /// was written from RGB thinking, and the test was what was wrong.
+    /// </summary>
+    [Theory]
+    [InlineData(0x808080)]
+    [InlineData(0x1A1A1A)]
+    public void AColourWithNoHue_LightsNone(int packed)
     {
         Harness.Bind();
-        var vm = new LightingCapabilityViewModel(Colour(0x123456), new Recorder());
+        var vm = new LightingCapabilityViewModel(Colour(packed), new Recorder());
         Harness.Pump();
 
         Assert.Null(vm.Zones[0].Selected);
-        Assert.Equal(0x123456, vm.Zones[0].Packed);
+        Assert.Equal(packed, vm.Zones[0].Packed);
+    }
+
+    /// <summary>
+    /// And the same colour darker is the same choice. The keyboard keeps hue and
+    /// saturation and nothing else; brightness is the row above.
+    /// </summary>
+    [Fact]
+    public void TheSameHueDarker_IsTheSameSwatch()
+    {
+        Harness.Bind();
+        var vm = new LightingCapabilityViewModel(Colour(0x701E18), new Recorder());
+        Harness.Pump();
+
+        Assert.Equal(Red, vm.Zones[0].Selected?.Packed);
     }
 
     /// <summary>

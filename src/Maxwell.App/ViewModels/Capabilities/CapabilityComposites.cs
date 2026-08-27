@@ -1245,15 +1245,64 @@ public sealed partial class LightingZoneViewModel : ObservableObject
         }
     }
 
-    /// <summary>How far a channel may drift and still be the same swatch.</summary>
-    private const int Rounding = 8;
+    /// <summary>How far the two axes may drift and still be the same swatch.</summary>
+    private const double HueDrift = 12;
+    private const double SaturationDrift = 12;
 
-    private LightingSwatch? Nearest(int packed) =>
-        Palette.FirstOrDefault(s => s.Packed == packed)
-        ?? Palette.FirstOrDefault(s =>
-            Math.Abs(((s.Packed >> 16) & 0xFF) - ((packed >> 16) & 0xFF)) <= Rounding
-            && Math.Abs(((s.Packed >> 8) & 0xFF) - ((packed >> 8) & 0xFF)) <= Rounding
-            && Math.Abs((s.Packed & 0xFF) - (packed & 0xFF)) <= Rounding);
+    /// <summary>
+    /// The swatch this colour came from, matched on hue and saturation rather than on
+    /// the three channels.
+    ///
+    /// Matching on RGB never found anything, and the reason is the device rather than
+    /// the rounding: a keyboard keeps hue and saturation and holds brightness in a
+    /// setting of its own, so a colour read back always comes at full brightness. The
+    /// palette's red is 0xE0483C and what returns is 0xFF5244 — thirty-one apart on the
+    /// red channel and the same colour to a tenth of a degree, hue 4 and saturation 73
+    /// on both. Compared where the device actually lives, they are one choice.
+    /// </summary>
+    private LightingSwatch? Nearest(int packed)
+    {
+        if (Palette.FirstOrDefault(s => s.Packed == packed) is { } exact) return exact;
+
+        (double hue, double saturation) = Axes(packed);
+
+        // A grey has no hue worth comparing: every swatch is a hue away from it and the
+        // nearest one would be whichever the arithmetic happened to reach first.
+        if (saturation < 5) return null;
+
+        return Palette.FirstOrDefault(s =>
+        {
+            (double h, double sat) = Axes(s.Packed);
+
+            if (sat < 5) return false;
+
+            double apart = Math.Abs(h - hue);
+            if (apart > 180) apart = 360 - apart;
+
+            return apart <= HueDrift && Math.Abs(sat - saturation) <= SaturationDrift;
+        });
+    }
+
+    /// <summary>Hue in degrees and saturation in per cent, with brightness dropped.</summary>
+    private static (double Hue, double Saturation) Axes(int packed)
+    {
+        double r = ((packed >> 16) & 0xFF) / 255.0;
+        double g = ((packed >> 8) & 0xFF) / 255.0;
+        double b = (packed & 0xFF) / 255.0;
+
+        double max = Math.Max(r, Math.Max(g, b));
+        double min = Math.Min(r, Math.Min(g, b));
+        double span = max - min;
+
+        if (span <= 0 || max <= 0) return (0, 0);
+
+        double hue =
+            max == r ? ((g - b) / span) + (g < b ? 6 : 0)
+            : max == g ? 2 + ((b - r) / span)
+            : 4 + ((r - g) / span);
+
+        return (hue * 60, span / max * 100);
+    }
 
     /// <summary>
     /// A hand on a swatch writes; a reading landing on one does not.

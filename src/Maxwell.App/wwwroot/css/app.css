@@ -821,9 +821,28 @@ button.accent:disabled:hover { background: var(--track-empty); }
   box-shadow: inset 0 0 0 1px var(--stroke-subtle);
 }
 
+/* The track named explicitly, so the thumb below can be centred by arithmetic rather
+   than by whatever the browser does when it is left to guess. Once this exists the
+   thumb is positioned from the track's top edge, and the offset is the one number that
+   makes the two share a centre line. */
+.hsv .tinted::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 5px;
+  background: transparent;
+}
+
 .hsv .tinted::-webkit-slider-thumb {
   -webkit-appearance: none;
+
+  /* Border inside the box, so fourteen means fourteen. Without this the two-pixel ring
+     grows the circle to eighteen and the offset below would centre the wrong thing. */
+  box-sizing: border-box;
   width: 14px; height: 14px;
+
+  /* (10 - 14) / 2. Half the difference between the track and the circle, which is what
+     puts one centre on the other. */
+  margin-top: -2px;
+
   border-radius: 50%;
   background: #fff;
   border: 2px solid rgba(0, 0, 0, .45);
