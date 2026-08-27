@@ -41,13 +41,17 @@ internal static class HidBatteryProbe
         Console.WriteLine();
 
         var found = 0;
+        var unread = 0;
 
         foreach (HidInterface iface in all
             .OrderBy(i => i.VendorId)
             .ThenBy(i => i.ProductId)
             .ThenBy(i => i.UsagePage))
         {
-            List<ReportDeclaration> declared = HidDescriptor.Describe(iface.Path);
+            HidDescriptor.HidCollectionFacts facts = HidDescriptor.Inspect(iface.Path);
+            IReadOnlyList<ReportDeclaration> declared = facts.Declarations;
+
+            if (!facts.Read) unread++;
 
             List<ReportDeclaration> power =
             [
@@ -62,7 +66,10 @@ internal static class HidBatteryProbe
 
                 Console.WriteLine(
                     $"  {iface.VendorId:X4}:{iface.ProductId:X4}  page {iface.UsagePage:X4}:{iface.Usage:X2}"
-                    + $"  {iface.ProductName}  — объявлений {declared.Count}, заряда нет");
+                    + $"  {iface.ProductName}  — "
+                    + (facts.Read
+                        ? $"кнопок {facts.Buttons}, значений {facts.Values}, заряда нет"
+                        : "ДЕСКРИПТОР НЕ ПРОЧИТАН"));
 
                 continue;
             }
@@ -81,10 +88,20 @@ internal static class HidBatteryProbe
         }
 
         Console.WriteLine();
-        Console.WriteLine(found == 0
-            ? "Ни одно устройство не объявляет заряд штатно. Значит по донглу и кабелю\n"
-              + "заряд — вендорский разговор для каждой модели, а не общая работа."
-            : $"Объявляют штатный заряд: {found}. Их читает классовый драйвер без вендорского протокола.");
+        if (found > 0)
+        {
+            Console.WriteLine($"Объявляют штатный заряд: {found}. Их читает классовый драйвер без вендорского протокола.");
+        }
+        else if (unread > 0)
+        {
+            Console.WriteLine($"Заряда не объявил никто — но {unread} из {all.Count} коллекций не открылись.");
+            Console.WriteLine("Про них ответа нет, и вывод «ни у кого нет батареи» пока не заслужен.");
+        }
+        else
+        {
+            Console.WriteLine($"Все {all.Count} коллекций прочитаны, заряд не объявляет ни одна.");
+            Console.WriteLine("Значит по донглу и кабелю заряд — вендорский разговор для каждой модели.");
+        }
 
         return 0;
     }

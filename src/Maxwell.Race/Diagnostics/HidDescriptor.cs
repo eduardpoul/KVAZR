@@ -29,6 +29,57 @@ public static class HidDescriptor
     public static List<ReportDeclaration> Describe(MaxwellInterface iface) => Describe(iface.Path);
 
     /// <summary>
+    /// What a collection's descriptor holds, and whether it could be read at all.
+    ///
+    /// The distinction is the whole point. <see cref="Describe(string)"/> returns an empty
+    /// list both for a collection that declares no values — an ordinary keyboard declares
+    /// buttons and nothing else — and for one that would not open, and a survey built on
+    /// that cannot tell "this device has no battery" from "this device was not asked".
+    /// Half the collections on one desk came back empty, and only the counts below say
+    /// which half was which.
+    /// </summary>
+    public sealed record HidCollectionFacts(
+        bool Read, int Buttons, int Values, IReadOnlyList<ReportDeclaration> Declarations);
+
+    public static HidCollectionFacts Inspect(string path)
+    {
+        var declarations = new List<ReportDeclaration>();
+
+        IntPtr handle = HidNative.CreateFile(path, 0, HidNative.FileShareReadWrite,
+            IntPtr.Zero, HidNative.OpenExisting, 0, IntPtr.Zero);
+
+        if (handle == HidNative.InvalidHandle) return new HidCollectionFacts(false, 0, 0, declarations);
+
+        try
+        {
+            if (!HidNative.HidD_GetPreparsedData(handle, out IntPtr preparsed))
+            {
+                return new HidCollectionFacts(false, 0, 0, declarations);
+            }
+
+            try
+            {
+                var caps = new HidNative.HidpCaps();
+                if (HidNative.HidP_GetCaps(preparsed, ref caps) != HidNative.HidpStatusSuccess)
+                {
+                    return new HidCollectionFacts(false, 0, 0, declarations);
+                }
+
+                Collect(HidNative.HidpInput, caps.NumberInputValueCaps, preparsed, declarations);
+                Collect(HidNative.HidpOutput, caps.NumberOutputValueCaps, preparsed, declarations);
+                Collect(HidNative.HidpFeature, caps.NumberFeatureValueCaps, preparsed, declarations);
+
+                int buttons = caps.NumberInputButtonCaps + caps.NumberOutputButtonCaps + caps.NumberFeatureButtonCaps;
+                int values = caps.NumberInputValueCaps + caps.NumberOutputValueCaps + caps.NumberFeatureValueCaps;
+
+                return new HidCollectionFacts(true, buttons, values, declarations);
+            }
+            finally { HidNative.HidD_FreePreparsedData(preparsed); }
+        }
+        finally { HidNative.CloseHandle(handle); }
+    }
+
+    /// <summary>
     /// The same by path, for callers holding the other shape of interface. Every HID
     /// device on the machine has a path and only some of them are a Maxwell.
     /// </summary>
