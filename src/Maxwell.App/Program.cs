@@ -279,12 +279,16 @@ internal static class Program
             sp.GetRequiredService<ISettingsStore>()));
         builder.Services.AddSingleton<HotkeyCoordinator>();
 
-        // The stand-in mouse and keyboard are development scaffolding: ten of the
-        // design's artboards are about devices that are not on this desk, and without
-        // something to render the shell would be built headset-shaped.
-        // --mock-crowd fills the list out so the crowded cases can be looked at; the
-        // panel's height ceiling is specified at six devices and two will not reach it.
-        int mocks = Array.IndexOf(args, "--mock-crowd") >= 0 ? 5 : 2;
+        // The stand-in mouse and keyboard were scaffolding, and the scaffolding has
+        // served its purpose: those artboards were about devices that were not on this
+        // desk, and now a real mouse and a real keyboard are. A list where two of the
+        // rows are inventions is a list somebody has to remember to discount.
+        //
+        // Still one flag away, because the crowded cases are still worth looking at —
+        // the panel's height ceiling is specified at six devices and the real ones do
+        // not reach it. The design previews are unaffected either way: they build their
+        // own stand-ins rather than borrowing the running application's.
+        int mocks = Array.IndexOf(args, "--mock-crowd") >= 0 ? 5 : 0;
         // The device families this build understands, listed once. A new class protocol
         // or a new deep device is one more module here and its folder under Drivers — the
         // core and the other modules do not move. See docs/ARCHITECTURE.md.
@@ -304,7 +308,7 @@ internal static class Program
             new Maxwell.Core.Drivers.Keyboard.KeyboardModule(),
         ];
 
-        builder.Services.AddDeviceRegistry(includeMockDevices: true, mockDeviceCount: mocks, [.. modules]);
+        builder.Services.AddDeviceRegistry(includeMockDevices: mocks > 0, mockDeviceCount: mocks, [.. modules]);
 
         builder.Services.AddSingleton<IConfirmationPrompt>(sp =>
             new ModalConfirmation(sp.GetRequiredService<MainWindow>));
