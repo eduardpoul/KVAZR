@@ -225,6 +225,56 @@ public sealed class SystemDeviceDriverTests
         Assert.Equal(TransportKind.Dongle, leads[0].Kind);
     }
 
+    /// <summary>
+    /// A remembered charge is not a reading, and a lead that is down cannot take one.
+    ///
+    /// Windows keeps a Bluetooth device's last known charge and goes on answering it
+    /// after the device has gone. Measured on a keyboard moved from Bluetooth to its
+    /// dongle: the Bluetooth nodes still said forty-five per cent, every one of them
+    /// said not connected, and the property's own timestamp was a quarter of an hour
+    /// old — while the page showed the figure under the minute of the last sweep.
+    /// </summary>
+    [Fact]
+    public async Task ACharge_IsNotTakenFromALeadThatIsDown()
+    {
+        Guid container = Guid.NewGuid();
+
+        IReadOnlyList<DeviceInfo> devices = await Discover(
+            Node(container, Hid, name: "Board", root: true, link: SystemDeviceLink.Bluetooth,
+                cod: 0x2540, address: "d86607fa8b01", battery: 45, connected: false));
+
+        using IDeviceConnection connection = await new SystemDeviceDriver(
+            new FakeSystemEnumerator(
+            [
+                Node(container, Hid, name: "Board", root: true, link: SystemDeviceLink.Bluetooth,
+                    cod: 0x2540, address: "d86607fa8b01", battery: 45, connected: false),
+            ])).ConnectAsync(devices[0], TestContext.Current.CancellationToken);
+
+        Assert.DoesNotContain(connection.Capabilities, c => c.Id == CapabilityIds.PowerBattery);
+    }
+
+    /// <summary>And it is taken from one that is up.</summary>
+    [Fact]
+    public async Task ACharge_IsTakenFromALeadThatIsUp()
+    {
+        Guid container = Guid.NewGuid();
+
+        SystemDeviceNode[] nodes =
+        [
+            Node(container, Hid, name: "Board", root: true, link: SystemDeviceLink.Bluetooth,
+                cod: 0x2540, address: "d86607fa8b01", battery: 45, connected: true),
+        ];
+
+        IReadOnlyList<DeviceInfo> devices =
+            await new SystemDeviceDriver(new FakeSystemEnumerator(nodes))
+                .DiscoverAsync(TestContext.Current.CancellationToken);
+
+        using IDeviceConnection connection = await new SystemDeviceDriver(new FakeSystemEnumerator(nodes))
+            .ConnectAsync(devices[0], TestContext.Current.CancellationToken);
+
+        Assert.Contains(connection.Capabilities, c => c.Id == CapabilityIds.PowerBattery);
+    }
+
     [Fact]
     public async Task NodesOfOneDevice_BecomeOneDevice()
     {

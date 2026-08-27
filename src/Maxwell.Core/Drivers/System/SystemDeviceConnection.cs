@@ -70,14 +70,28 @@ internal sealed class SystemDeviceConnection : IDeviceConnection
     }
 
     /// <summary>
-    /// The battery from whichever node happens to carry it. On a Bluetooth headset that
-    /// is the Hands-Free node rather than the one named after the device, which is why
-    /// the whole container is searched instead of a remembered node: the node that had
-    /// it last time may not be present this time.
+    /// The charge, from whichever node carries it — and only while that node's lead is up.
+    ///
+    /// The whole container is searched rather than a remembered node, because on a
+    /// Bluetooth headset the charge sits on the Hands-Free node rather than the one named
+    /// after the device, and the node that had it last time may not be present this time.
+    ///
+    /// Windows remembers a Bluetooth device's last known charge and goes on answering it
+    /// after the device has gone — with a timestamp beside it, which is how the memory
+    /// can be told from a reading. Measured on a keyboard switched from Bluetooth to its
+    /// dongle: the Bluetooth nodes still said forty-five per cent, every one of them said
+    /// not connected, and the property's own stamp was a quarter of an hour old. The page
+    /// showed forty-five per cent under "updated" and the minute of the last sweep.
+    ///
+    /// One device can hold several leads and only one of them carries anything, so the
+    /// question is not whether the device has a charge but whether this lead can read it.
+    /// A node that says nothing about being connected — every USB one — is taken as it
+    /// always was: silence there is not a denial.
     /// </summary>
     private int? Battery() =>
         _enumerator.Enumerate()
             .Where(n => _device.HardwareIds.Contains($"container:{n.ContainerId:D}"))
+            .Where(n => n.IsConnected != false)
             .Select(n => n.BatteryPercent)
             .FirstOrDefault(b => b.HasValue);
 }
