@@ -1,3 +1,4 @@
+using Maxwell.Core.Catalogue;
 using Maxwell.Core.Devices;
 using Maxwell.Race.Abstractions;
 
@@ -21,6 +22,8 @@ public sealed class KeyboardModule : IDriverModule
         ArgumentNullException.ThrowIfNull(services);
 
         services.AddSingleton<ICapabilityContributor>(sp =>
-            new ViaContributor(sp.GetRequiredService<IHidReportPipeFactory>()));
+            new ViaContributor(
+                sp.GetRequiredService<IHidReportPipeFactory>(),
+                sp.GetService<IDeviceCatalogue>()));
     }
 }

@@ -1,5 +1,6 @@
 using System.Globalization;
 
+using Maxwell.Core.Catalogue;
 using Maxwell.Core.Devices;
 using Maxwell.Race.Abstractions;
 using Maxwell.Race.Protocol;
@@ -23,12 +24,21 @@ namespace Maxwell.Core.Drivers.Keyboard;
 public sealed class ViaContributor : ICapabilityContributor
 {
     private readonly IHidReportPipeFactory _pipes;
+    private readonly IDeviceCatalogue? _catalogue;
 
-    public ViaContributor(IHidReportPipeFactory pipes)
+    /// <param name="catalogue">
+    /// Where the per-model data lives, and the effect names are the only thing taken from
+    /// it. The wire carries an effect as an index and nothing else, and the same index
+    /// names a different effect on a board built with a different set of animations —
+    /// VIA's own client has the same problem and answers it the same way, with a
+    /// definition per model. Optional: without one the effect row is simply not offered.
+    /// </param>
+    public ViaContributor(IHidReportPipeFactory pipes, IDeviceCatalogue? catalogue = null)
     {
         ArgumentNullException.ThrowIfNull(pipes);
 
         _pipes = pipes;
+        _catalogue = catalogue;
     }
 
     public string ContributorId => "via";
@@ -56,7 +66,11 @@ public sealed class ViaContributor : ICapabilityContributor
                 continue;
             }
 
-            return Task.FromResult<IDeviceConnection?>(new ViaConnection(pipe, device.Transports));
+            IReadOnlyList<string> effects =
+                _catalogue?.Match(device.HardwareIds, device.Model)?.LightingEffects ?? [];
+
+            return Task.FromResult<IDeviceConnection?>(
+                new ViaConnection(pipe, device.Transports, effects));
         }
 
         return Task.FromResult<IDeviceConnection?>(null);

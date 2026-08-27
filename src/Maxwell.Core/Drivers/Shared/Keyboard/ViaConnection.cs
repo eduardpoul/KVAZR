@@ -26,7 +26,10 @@ internal sealed class ViaConnection : IDeviceConnection
     private readonly IHidReportPipe _pipe;
     private readonly int _reportLength;
 
-    public ViaConnection(IHidReportPipe pipe, IReadOnlyList<TransportInfo> transports)
+    public ViaConnection(
+        IHidReportPipe pipe,
+        IReadOnlyList<TransportInfo> transports,
+        IReadOnlyList<string>? effects = null)
     {
         ArgumentNullException.ThrowIfNull(pipe);
         ArgumentNullException.ThrowIfNull(transports);
@@ -34,9 +37,30 @@ internal sealed class ViaConnection : IDeviceConnection
         _pipe = pipe;
         _reportLength = pipe.ReportLength;
         Transports = transports;
+
+        // The effect row exists only where the names do. A dropdown of bare numbers is
+        // not a lesser version of this row — it is a control nobody can use, since the
+        // number means nothing without the list it indexes.
+        Capabilities = effects is { Count: > 0 }
+            ? [.. Rows, Effect(effects)]
+            : Rows;
     }
 
-    public IReadOnlyList<Capability> Capabilities { get; } =
+    private static Capability Effect(IReadOnlyList<string> effects) => new()
+    {
+        Id = CapabilityIds.LightEffect,
+        Domain = CapabilityDomain.Light,
+        Primitive = CapabilityPrimitive.Choice,
+        Title = "Effect",
+        Subtitle = "What the lights do — the list this firmware was built with",
+        Choices = [.. effects.Select((name, i) => new CapabilityChoice(i, name))],
+        DeclaredStatus = CapabilityStatus.Untested,
+        IsVolatile = true,
+    };
+
+    public IReadOnlyList<Capability> Capabilities { get; }
+
+    private static readonly IReadOnlyList<Capability> Rows =
     [
         new()
         {
@@ -137,6 +161,10 @@ internal sealed class ViaConnection : IDeviceConnection
                 ? CapabilityValue.Numbers(Via.Rgb((byte)(packed >> 8), (byte)packed))
                 : CapabilityValue.Absent,
 
+            CapabilityIds.LightEffect => Lighting(RgbMatrixEffect, 1) is { } effect
+                ? CapabilityValue.Choice((int)effect)
+                : CapabilityValue.Absent,
+
             _ => CapabilityValue.Absent,
         });
 
@@ -155,6 +183,9 @@ internal sealed class ViaConnection : IDeviceConnection
 
             (CapabilityIds.LightColor, VectorValue { Items: [NumberValue rgb, ..] }) =>
                 Colour(rgb.Value),
+
+            (CapabilityIds.LightEffect, ChoiceValue effect) =>
+                [RgbMatrixEffect, (byte)Math.Clamp(effect.Index, 0, 255)],
 
             _ => [],
         };
@@ -182,6 +213,7 @@ internal sealed class ViaConnection : IDeviceConnection
     private const byte CustomSave = 0x09;
     private const byte RgbMatrixChannel = 0x03;
     private const byte RgbMatrixBrightness = 0x01;
+    private const byte RgbMatrixEffect = 0x02;
     private const byte RgbMatrixSpeed = 0x03;
     private const byte RgbMatrixColour = 0x04;
 

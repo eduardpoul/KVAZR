@@ -72,7 +72,8 @@ internal static class DeviceInventory
             new AudioContributor(new WindowsAudioEndpoints(), new WindowsSystemDeviceEnumerator()),
             new Maxwell.Core.Drivers.HyperX.HyperXContributor(new WindowsHidListenerFactory()),
             new Maxwell.Core.Drivers.Apple.AppleProximityContributor(listening),
-            new Maxwell.Core.Drivers.Keyboard.ViaContributor(new Maxwell.Race.Windows.WindowsHidReportPipeFactory()),
+            new Maxwell.Core.Drivers.Keyboard.ViaContributor(
+                new Maxwell.Race.Windows.WindowsHidReportPipeFactory(), new DeviceCatalogue()),
         ];
 
         using var registry = new DeviceRegistry(

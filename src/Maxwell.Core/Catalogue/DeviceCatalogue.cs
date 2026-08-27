@@ -68,6 +68,21 @@ public sealed record CatalogueEntry
     /// for that: an untested capability carries an amber mark rather than a claim.
     /// </summary>
     public bool Unverified { get; init; }
+
+    /// <summary>
+    /// The lighting effects a keyboard's firmware compiled in, in the order it numbers
+    /// them.
+    ///
+    /// Data rather than protocol, and it has to be: the wire carries an index and
+    /// nothing else, and the same index names a different effect on a board built with a
+    /// different set of animations. VIA's own client has exactly this problem and solves
+    /// it exactly this way — a definition per model, with the names in order.
+    ///
+    /// Empty for everything else, and a driver with an empty list offers no effect row
+    /// rather than a dropdown of numbers.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonPropertyName("effects")]
+    public IReadOnlyList<string> LightingEffects { get; init; } = [];
 }
 
 /// <summary>What the catalogue can be asked.</summary>

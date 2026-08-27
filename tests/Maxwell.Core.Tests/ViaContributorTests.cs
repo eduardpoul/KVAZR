@@ -116,6 +116,45 @@ public sealed class ViaContributorTests
         Assert.True(pipe.Disposed);
     }
 
+    /// <summary>
+    /// The effect row exists only where the names do.
+    ///
+    /// The wire carries an index and nothing else, and the same index names a different
+    /// effect on a board built with a different set of animations — so a dropdown built
+    /// without the model's list is not a lesser version of this row, it is a control
+    /// nobody can use.
+    /// </summary>
+    [Fact]
+    public async Task WithNoEffectNames_ThereIsNoEffectRow()
+    {
+        IDeviceConnection? connection =
+            await new ViaContributor(new Factory(new Pipe(answers: true))).AttachAsync(Keyboard, Ct);
+
+        Assert.DoesNotContain(connection!.Capabilities, c => c.Id == CapabilityIds.LightEffect);
+
+        connection.Dispose();
+    }
+
+    [Fact]
+    public async Task WithTheModelsOwnList_TheEffectRowIsNamed()
+    {
+        var connection = new ViaConnection(
+            new Pipe(answers: true),
+            [],
+            ["All Off", "Solid Color", "Rainbow Moving Chevron"]);
+
+        Capability effect = connection.Capabilities.Single(c => c.Id == CapabilityIds.LightEffect);
+
+        Assert.Equal(CapabilityPrimitive.Choice, effect.Primitive);
+        Assert.Equal(["All Off", "Solid Color", "Rainbow Moving Chevron"], effect.Choices.Select(c => c.Label));
+
+        // And the index the wire carries is the index of the name.
+        Assert.Equal([0, 1, 2], effect.Choices.Select(c => c.Index));
+
+        connection.Dispose();
+        await Task.CompletedTask;
+    }
+
     [Fact]
     public async Task ADeviceWithNoViaCollection_IsNotOurs()
     {
