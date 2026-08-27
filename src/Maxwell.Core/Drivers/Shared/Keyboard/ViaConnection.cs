@@ -71,6 +71,39 @@ internal sealed class ViaConnection : IDeviceConnection
             // The lighting keys on the board move it without telling anybody.
             IsVolatile = true,
         },
+
+        new()
+        {
+            Id = CapabilityIds.LightSpeed,
+            Domain = CapabilityDomain.Light,
+            Primitive = CapabilityPrimitive.Range,
+            Title = "Speed",
+            Subtitle = "How fast the effect moves",
+            Range = new CapabilityRange { Min = 0, Max = 255 },
+            DeclaredStatus = CapabilityStatus.Untested,
+            IsVolatile = true,
+        },
+
+        new()
+        {
+            Id = CapabilityIds.LightColor,
+            Domain = CapabilityDomain.Light,
+            Primitive = CapabilityPrimitive.Lighting,
+            Title = "Colour",
+
+            // The keyboard keeps hue and saturation; brightness is the row above. Folding
+            // the two together would give the page two controls for one number and a
+            // swatch that goes black when the light is turned down.
+            Subtitle = "Hue and saturation, as the keyboard keeps them",
+            DeclaredStatus = CapabilityStatus.Untested,
+            IsVolatile = true,
+        },
+
+        // Not the effect. Its number is an index into whichever effects this firmware
+        // compiled in, in the order QMK's own list happens to declare them — so the same
+        // number names a different effect on the next keyboard, and a dropdown built
+        // from a guess would be confidently wrong. It needs the model's own list, which
+        // is the same missing piece the keymap needs.
     ];
 
     public IReadOnlyList<TransportInfo> Transports { get; }
@@ -82,8 +115,16 @@ internal sealed class ViaConnection : IDeviceConnection
                 ? CapabilityValue.Of(count)
                 : CapabilityValue.Absent,
 
-            CapabilityIds.LightBrightness => Lighting(RgbMatrixBrightness) is { } level
-                ? CapabilityValue.Of(level)
+            CapabilityIds.LightBrightness => Lighting(RgbMatrixBrightness, 1) is { } level
+                ? CapabilityValue.Of((int)level)
+                : CapabilityValue.Absent,
+
+            CapabilityIds.LightSpeed => Lighting(RgbMatrixSpeed, 1) is { } speed
+                ? CapabilityValue.Of((int)speed)
+                : CapabilityValue.Absent,
+
+            CapabilityIds.LightColor => Lighting(RgbMatrixColour, 2) is { } packed
+                ? CapabilityValue.Numbers(Via.Rgb((byte)(packed >> 8), (byte)packed))
                 : CapabilityValue.Absent,
 
             _ => CapabilityValue.Absent,
@@ -94,18 +135,28 @@ internal sealed class ViaConnection : IDeviceConnection
         CapabilityValue value,
         CancellationToken cancellationToken = default)
     {
-        if (capabilityId != CapabilityIds.LightBrightness || value is not NumberValue number)
+        byte[] payload = (capabilityId, value) switch
         {
-            return Task.FromResult(false);
-        }
+            (CapabilityIds.LightBrightness, NumberValue level) =>
+                [RgbMatrixBrightness, (byte)Math.Clamp(level.Value, 0, 255)],
 
-        byte level = (byte)Math.Clamp(number.Value, 0, 255);
+            (CapabilityIds.LightSpeed, NumberValue speed) =>
+                [RgbMatrixSpeed, (byte)Math.Clamp(speed.Value, 0, 255)],
+
+            (CapabilityIds.LightColor, VectorValue { Items: [NumberValue rgb, ..] }) =>
+                Colour(rgb.Value),
+
+            _ => [],
+        };
+
+        if (payload.Length == 0) return Task.FromResult(false);
 
         // Set, then save. Without the save the keyboard takes the value and forgets it at
         // the next power cycle, which would make a setting that survives closing the
         // application — the whole point of writing into the keyboard — quietly not.
-        byte[]? set = Send(Via.Request(_reportLength, CustomSetValue, RgbMatrixChannel, RgbMatrixBrightness, level),
-            reply => Via.Answers(reply, CustomSetValue, RgbMatrixChannel, RgbMatrixBrightness));
+        byte[]? set = Send(
+            Via.Request(_reportLength, CustomSetValue, [RgbMatrixChannel, .. payload]),
+            reply => Via.Answers(reply, CustomSetValue, RgbMatrixChannel, payload[0]));
 
         if (set is null || Via.Declined(set)) return Task.FromResult(false);
 
@@ -121,14 +172,24 @@ internal sealed class ViaConnection : IDeviceConnection
     private const byte CustomSave = 0x09;
     private const byte RgbMatrixChannel = 0x03;
     private const byte RgbMatrixBrightness = 0x01;
+    private const byte RgbMatrixSpeed = 0x03;
+    private const byte RgbMatrixColour = 0x04;
 
-    private int? Lighting(byte value)
+    /// <summary>Hue and saturation, packed the way the keyboard sends them.</summary>
+    private static byte[] Colour(int rgb)
+    {
+        (byte hue, byte saturation) = Via.Hsv(rgb);
+        return [RgbMatrixColour, hue, saturation];
+    }
+
+    /// <summary>One lighting value, as many bytes wide as it is declared to be.</summary>
+    private long? Lighting(byte value, int width)
     {
         byte[]? reply = Send(
             Via.Request(_reportLength, CustomGetValue, RgbMatrixChannel, value),
             r => Via.Answers(r, CustomGetValue, RgbMatrixChannel, value));
 
-        return (int?)Via.Number(reply, 4, 1);
+        return Via.Number(reply, 4, width);
     }
 
     private byte[]? Ask(byte command, params byte[] arguments) =>

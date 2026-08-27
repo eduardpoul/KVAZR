@@ -96,3 +96,79 @@ public sealed class ViaTests
         Assert.Null(Via.Keycode([0x00, Via.GetKeycode]));
     }
 }
+
+/// <summary>
+/// Colour, between the keyboard's hue-and-saturation and the picker's packed RGB.
+///
+/// QMK puts hue on 0..255 rather than the 0..360 everybody writes about, which is the
+/// mistake this file exists to prevent: a conversion written from the usual formula
+/// lands red where green belongs and is wrong by a third of the wheel.
+/// </summary>
+public sealed class ViaColourTests
+{
+    /// <summary>
+    /// Which channel wins, rather than an exact triple. QMK divides the wheel into six
+    /// regions of 43, which overshoots 255 slightly, so the thirds do not land on exact
+    /// primaries — and pinning them to exact values would be testing the arithmetic's
+    /// rounding rather than the thing that matters, which is that a third of the wheel
+    /// is a third of the wheel.
+    /// </summary>
+    [Theory]
+    [InlineData(0, 16, 8)]      // red:   red channel wins
+    [InlineData(85, 8, 0)]      // green
+    [InlineData(170, 0, 16)]    // blue
+    public void ThePrimaries_LandWhereTheyShould(byte hue, int winner, int loser)
+    {
+        int rgb = Via.Rgb(hue, 255);
+
+        int high = (rgb >> winner) & 0xFF;
+        int low = (rgb >> loser) & 0xFF;
+
+        Assert.True(high == 255, $"тон {hue} дал {high} вместо 255 в старшем канале");
+        Assert.True(low < 8, $"тон {hue} дал {low} в канале, который должен молчать");
+    }
+
+    [Fact]
+    public void FullRed_IsExactlyRed()
+    {
+        Assert.Equal(0xFF0000, Via.Rgb(0, 255));
+    }
+
+    /// <summary>
+    /// Unsaturated is white, not black — black would mean the swatch had swallowed the
+    /// brightness row.
+    ///
+    /// White here is 0xFFFEFE rather than 0xFFFFFF, and that is not a defect to correct:
+    /// 255 × 255 ÷ 256 is 254, and the keyboard's own lights run the same integer
+    /// arithmetic. Rounding it up here would make the swatch and the keys disagree by a
+    /// step, which is worse than a step of white nobody can see.
+    /// </summary>
+    [Fact]
+    public void NoSaturation_IsWhiteRatherThanBlack()
+    {
+        int white = Via.Rgb(0, 0);
+
+        Assert.True(((white >> 16) & 0xFF) >= 254, $"красный канал {(white >> 16) & 0xFF}");
+        Assert.True(((white >> 8) & 0xFF) >= 254, $"зелёный канал {(white >> 8) & 0xFF}");
+        Assert.True((white & 0xFF) >= 254, $"синий канал {white & 0xFF}");
+    }
+
+    [Theory]
+    [InlineData(0, 255)]
+    [InlineData(85, 255)]
+    [InlineData(170, 255)]
+    [InlineData(200, 128)]
+    public void AColourSurvivesTheRoundTrip(byte hue, byte saturation)
+    {
+        (byte back, byte sat) = Via.Hsv(Via.Rgb(hue, saturation));
+
+        Assert.True(Math.Abs(back - hue) <= 2, $"тон {hue} вернулся как {back}");
+        Assert.True(Math.Abs(sat - saturation) <= 2, $"насыщенность {saturation} вернулась как {sat}");
+    }
+
+    [Fact]
+    public void WhiteHasNoHueToSpeakOf()
+    {
+        Assert.Equal((0, 0), Via.Hsv(0xFFFFFF));
+    }
+}

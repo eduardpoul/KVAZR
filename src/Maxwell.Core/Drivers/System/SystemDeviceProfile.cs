@@ -242,7 +242,20 @@ internal static class SystemDeviceProfile
         bool plainUsb = usb.Any(n => UsbId(n) is not { } id
             || ((dongleUsb is null || !dongleUsb.Contains(id)) && (dockUsb is null || !dockUsb.Contains(id))));
 
-        if (viaDongle || (plainUsb && deviceClass == DeviceClass.Receiver))
+        // A dongle and a cable at once, when that is what is on the desk.
+        //
+        // These used to be an either-or, and the NuPhy showed what that costs: its
+        // receiver stays plugged in while the keyboard is put on a cable, and the page
+        // then said "USB dongle" over rows that had come down the cable. Both leads are
+        // really there and both belong on the page; which one carries what is a separate
+        // question and one the row above cannot answer by hiding the other.
+        //
+        // A receiver is still the exception. It is the dongle — there is no keyboard
+        // behind it to be on a cable — so a plain USB node on one is that same dongle
+        // counted twice.
+        bool receiverItself = plainUsb && deviceClass == DeviceClass.Receiver;
+
+        if (viaDongle || receiverItself)
         {
             transports.Add(new TransportInfo
             {
@@ -253,7 +266,8 @@ internal static class SystemDeviceProfile
                 CarriesAudio = audio,
             });
         }
-        else if (plainUsb)
+
+        if (plainUsb && !receiverItself)
         {
             transports.Add(new TransportInfo
             {

@@ -111,4 +111,67 @@ public static class Via
     /// The keycode from a keymap read, which sits after the three echoed arguments.
     /// </summary>
     public static int? Keycode(byte[]? reply) => (int?)Number(reply, 5, 2);
+
+    /// <summary>
+    /// A colour as QMK holds it — hue and saturation on 0..255, not on 0..360 — turned
+    /// into the packed RGB a colour picker speaks.
+    ///
+    /// Value is left at full. The keyboard keeps brightness in its own setting and shows
+    /// it on its own row, so folding it into the swatch here would give a page two
+    /// controls for one number and a colour that goes black when the light is turned
+    /// down.
+    /// </summary>
+    public static int Rgb(byte hue, byte saturation)
+    {
+        const int Full = 255;
+
+        int region = hue / 43;
+        int remainder = (hue - (region * 43)) * 6;
+
+        // The integer form QMK itself uses, outer shift included. Dropping that shift
+        // looks harmless and is not: it left red as 0xFF0100 rather than 0xFF0000.
+        int p = (Full * (255 - saturation)) >> 8;
+        int q = (Full * (255 - ((saturation * remainder) >> 8))) >> 8;
+        int t = (Full * (255 - ((saturation * (255 - remainder)) >> 8))) >> 8;
+
+        (int r, int g, int b) = region switch
+        {
+            0 => (Full, t, p),
+            1 => (q, Full, p),
+            2 => (p, Full, t),
+            3 => (p, q, Full),
+            4 => (t, p, Full),
+            _ => (Full, p, q),
+        };
+
+        return (r << 16) | (g << 8) | b;
+    }
+
+    /// <summary>
+    /// The way back, for a colour somebody picked. Brightness is discarded rather than
+    /// written: it belongs to the other row, and a picker that dimmed the light because
+    /// somebody chose a darker swatch would be answering a question nobody asked.
+    /// </summary>
+    public static (byte Hue, byte Saturation) Hsv(int rgb)
+    {
+        int r = (rgb >> 16) & 0xFF;
+        int g = (rgb >> 8) & 0xFF;
+        int b = rgb & 0xFF;
+
+        int max = Math.Max(r, Math.Max(g, b));
+        int min = Math.Min(r, Math.Min(g, b));
+        int span = max - min;
+
+        if (span == 0 || max == 0) return (0, 0);
+
+        double hue =
+            max == r ? (g - b) / (double)span
+            : max == g ? 2 + ((b - r) / (double)span)
+            : 4 + ((r - g) / (double)span);
+
+        hue *= 42.5;
+        if (hue < 0) hue += 255;
+
+        return ((byte)Math.Clamp(Math.Round(hue), 0, 255), (byte)(span * 255 / max));
+    }
 }

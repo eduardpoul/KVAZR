@@ -34,10 +34,14 @@ public sealed class SystemDeviceDriverTests
         uint? cod = null,
         string? address = null,
         bool root = false,
-        bool? connected = null) =>
+        bool? connected = null,
+        ushort? vendor = null,
+        ushort? product = null) =>
         new()
         {
             InstanceId = instanceId,
+            VendorId = vendor,
+            ProductId = product,
             ContainerId = container,
             IsConnected = connected,
             ClassGuid = deviceClass,
@@ -178,6 +182,47 @@ public sealed class SystemDeviceDriverTests
                 instanceId: @"BTHENUM\DEV_6093160A369F\A&1", cod: 0x240404, address: "6093160a369f"));
 
         Assert.True(devices[0].Transports.Single(t => t.Kind == TransportKind.Bluetooth).IsPresent);
+    }
+
+    /// <summary>
+    /// A dongle and a cable at once, when that is what is on the desk.
+    ///
+    /// These were an either-or, and the NuPhy showed what that costs: its receiver stays
+    /// plugged in while the keyboard is put on a cable, and the page then said "USB
+    /// dongle" over rows that had come down the cable. Both leads are really there.
+    /// </summary>
+    [Fact]
+    public void AKeyboardOnItsCableWithItsDongleStillIn_ShowsBothLeads()
+    {
+        Guid container = Guid.NewGuid();
+
+        IReadOnlyList<TransportInfo> leads = SystemDeviceProfile.Transports(
+            [
+                Node(container, Hid, vendor: 0x19F5, product: 0x3247),
+                Node(container, Hid, vendor: 0x19F5, product: 0x3265),
+            ],
+            DeviceClass.Keyboard,
+            dongleUsb: new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "19f5:3247" });
+
+        Assert.Contains(leads, t => t.Kind == TransportKind.Dongle);
+        Assert.Contains(leads, t => t.Kind == TransportKind.UsbCable);
+    }
+
+    /// <summary>
+    /// A receiver is still the exception: it is the dongle, so its own USB node is that
+    /// same dongle counted twice rather than a cable to something behind it.
+    /// </summary>
+    [Fact]
+    public void AReceiver_IsOneLeadAndNotTwo()
+    {
+        Guid container = Guid.NewGuid();
+
+        IReadOnlyList<TransportInfo> leads = SystemDeviceProfile.Transports(
+            [Node(container, Hid, vendor: 0x046D, product: 0xC54D)],
+            DeviceClass.Receiver);
+
+        Assert.Single(leads);
+        Assert.Equal(TransportKind.Dongle, leads[0].Kind);
     }
 
     [Fact]
