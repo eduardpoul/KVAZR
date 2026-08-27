@@ -110,6 +110,32 @@ internal static class ViaProbe
             ? "  клавиша: нет ответа"
             : $"  сырой ответ на чтение клавиши (0,0): {Convert.ToHexString(sample, 0, Math.Min(10, sample.Length))}");
 
+        // Where the link keys live, read out of the keyboard rather than out of a manual.
+        //
+        // Worth doing this way: the printed guides for this family mix the V1 and the V2,
+        // and one of them calls the same combination both "check the battery" and "switch
+        // to Bluetooth" — a difference that ends a measurement halfway through. The
+        // keyboard knows, so it is asked.
+        Console.WriteLine();
+        Console.WriteLine("  где лежат клавиши связи (0x7E01…0x7E05), по слоям:");
+
+        for (byte layer = 0; layer < 4; layer++)
+        {
+            for (byte row = 0; row < 6; row++)
+            {
+                for (byte column = 0; column < 21; column++)
+                {
+                    byte[]? key = Ask(channel, via, GetKeycode, layer, row, column);
+                    if (key is not { Length: > 6 }) continue;
+
+                    int code = (key[5] << 8) | key[6];
+                    if (code is < 0x7E01 or > 0x7E05) continue;
+
+                    Console.WriteLine($"    0x{code:X4}  слой {layer}  ряд {row}  колонка {column}");
+                }
+            }
+        }
+
         Console.WriteLine();
         Console.WriteLine("  первые клавиши слоя 0, как их держит клавиатура:");
 
