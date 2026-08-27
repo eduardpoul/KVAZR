@@ -265,6 +265,11 @@ if (args.Contains("--eqpush"))
 }
 
 if (args.Contains("--eq")) return await EqProbe.RunAsync().ConfigureAwait(false);
+if (args.Contains("--airwatch"))
+{
+    int span = int.TryParse(ValueAfter(args, "--airwatch"), out int held) ? held : 15;
+    return await AirWatchProbe.RunAsync(span, ValueAfter(args, "--name")).ConfigureAwait(false);
+}
 if (args.Contains("--btscan"))
 {
     return BluetoothScanProbe.Run(int.TryParse(ValueAfter(args, "--btscan"), out int look) ? look : 10);
