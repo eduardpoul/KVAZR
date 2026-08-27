@@ -187,7 +187,14 @@ internal static class DeviceInventory
     private static void Print(DeviceSnapshot device)
     {
         Console.WriteLine();
-        Console.WriteLine($"{device.Info.DisplayName}  [{device.Info.Class}]  {device.Availability}");
+        // Marked when the application would sweep it aside, because this harness prints
+        // the registry unfiltered and that is the point of it — but an entry the reader
+        // will never see on a page looks like a leak, and one was reported as such.
+        string swept = DeviceVisibility.IsSilent(device.Info) || device.Info.Auxiliary
+            ? "   (в приложении скрыто)"
+            : string.Empty;
+
+        Console.WriteLine($"{device.Info.DisplayName}  [{device.Info.Class}]  {device.Availability}{swept}");
         Console.WriteLine($"  key {device.Info.Key}  driver {device.Info.DriverId}");
 
         // The identities the device was recognised by. Worth printing because one of them
