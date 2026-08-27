@@ -41,8 +41,11 @@ internal sealed class ViaConnection : IDeviceConnection
         // The effect row exists only where the names do. A dropdown of bare numbers is
         // not a lesser version of this row — it is a control nobody can use, since the
         // number means nothing without the list it indexes.
+        // The effect leads the lighting rows: it is what the lights are doing, and the
+        // three below it are how. Last of all it was also the row at the bottom of the
+        // page, where its list of forty-one had nowhere to open.
         Capabilities = effects is { Count: > 0 }
-            ? [.. Rows, Effect(effects)]
+            ? [Rows[0], Effect(effects), .. Rows.Skip(1)]
             : Rows;
     }
 

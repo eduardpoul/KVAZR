@@ -1016,7 +1016,10 @@ button.gesture.recording { border-color: var(--accent-primary); outline: 1px sol
 
 /* ---- the dropdown ----------------------------------------------------------------- */
 
-.dd { position: relative; flex: none; }
+/* Each dropdown anchors its own popup. Scoped, or every popup on the page would bind
+   to whichever face the browser reached first. */
+.dd { position: relative; flex: none; anchor-scope: --dd-face; }
+.dd-face { anchor-name: --dd-face; }
 .dd.disabled { opacity: 0.5; }
 
 .dd-face {
@@ -1043,12 +1046,22 @@ button.gesture.recording { border-color: var(--accent-primary); outline: 1px sol
 
 .dd-backdrop { position: fixed; inset: 0; z-index: 40; }
 
+/* Below the face, and above it when below will not fit.
+   
+   A list of forty-one effects on the last row of a page opened downwards into nothing:
+   the reader saw four of them and the rest was off the window. The browser knows how
+   much room there is and this asks it — flip-block turns the popup to the other side of
+   its anchor when the first choice does not fit. The runtime this ships with is well
+   past the version that understands it; without it the popup would sit on the anchor,
+   which is why there is no half-measure fallback here to go stale. */
 .dd-popup {
   position: absolute;
   z-index: 41;
-  top: calc(100% + 4px);
-  right: 0;
-  min-width: 100%;
+  position-anchor: --dd-face;
+  position-area: block-end span-inline-start;
+  position-try-fallbacks: flip-block;
+  margin-block: 4px;
+  min-width: anchor-size(width);
   background: var(--layer-card);
   border: 1px solid var(--stroke-default);
   border-radius: 8px;
