@@ -26,11 +26,17 @@ public sealed record ReportDeclaration(int Direction, byte ReportId, ushort Usag
 [SupportedOSPlatform("windows")]
 public static class HidDescriptor
 {
-    public static List<ReportDeclaration> Describe(MaxwellInterface iface)
+    public static List<ReportDeclaration> Describe(MaxwellInterface iface) => Describe(iface.Path);
+
+    /// <summary>
+    /// The same by path, for callers holding the other shape of interface. Every HID
+    /// device on the machine has a path and only some of them are a Maxwell.
+    /// </summary>
+    public static List<ReportDeclaration> Describe(string path)
     {
         var declarations = new List<ReportDeclaration>();
 
-        IntPtr handle = HidNative.CreateFile(iface.Path, 0, HidNative.FileShareReadWrite,
+        IntPtr handle = HidNative.CreateFile(path, 0, HidNative.FileShareReadWrite,
             IntPtr.Zero, HidNative.OpenExisting, 0, IntPtr.Zero);
         if (handle == HidNative.InvalidHandle) return declarations;
 

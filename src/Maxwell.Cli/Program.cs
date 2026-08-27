@@ -199,6 +199,7 @@ if (args.Contains("--hidpp")) return HidPlusPlusProbe.Run();
 if (args.Contains("--xinput")) return XInputProbe.Run();
 if (args.Contains("--audio")) return AudioProbe.Run();
 if (args.Contains("--micmute")) return await MuteProbe.RunAsync(args.Contains("--leave")).ConfigureAwait(false);
+if (args.Contains("--hidbattery")) return HidBatteryProbe.Run(args.Contains("--all"));
 if (args.Contains("--btwatch"))
 {
     int watched = int.TryParse(ValueAfter(args, "--btwatch"), out int span) ? span : 60;
