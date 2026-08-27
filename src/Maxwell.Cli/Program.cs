@@ -199,6 +199,7 @@ if (args.Contains("--hidpp")) return HidPlusPlusProbe.Run();
 if (args.Contains("--xinput")) return XInputProbe.Run();
 if (args.Contains("--audio")) return AudioProbe.Run();
 if (args.Contains("--micmute")) return await MuteProbe.RunAsync(args.Contains("--leave")).ConfigureAwait(false);
+if (args.Contains("--collections")) return CollectionProbe.Run(ValueAfter(args, "--collections"));
 if (args.Contains("--hidbattery")) return HidBatteryProbe.Run(args.Contains("--all"));
 if (args.Contains("--btwatch"))
 {
