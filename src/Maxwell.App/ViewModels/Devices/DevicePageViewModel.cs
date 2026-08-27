@@ -610,6 +610,12 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         // page exists at once. The driver said which switch; this only finds it.
         foreach (CapabilityViewModel vm in byId.Values)
         {
+            if (vm.Descriptor.HiddenBy is { Length: > 0 } chooserId
+                && byId.GetValueOrDefault(chooserId) is ChoiceCapabilityViewModel chooser)
+            {
+                vm.HideWith(chooser);
+            }
+
             if (vm.Descriptor.EnabledBy is not { Length: > 0 } gate) continue;
             if (byId.GetValueOrDefault(gate) is not ToggleCapabilityViewModel toggle) continue;
 

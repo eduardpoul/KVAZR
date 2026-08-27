@@ -66,11 +66,14 @@ public sealed class ViaContributor : ICapabilityContributor
                 continue;
             }
 
-            IReadOnlyList<string> effects =
-                _catalogue?.Match(device.HardwareIds, device.Model)?.LightingEffects ?? [];
+            CatalogueEntry? entry = _catalogue?.Match(device.HardwareIds, device.Model);
 
             return Task.FromResult<IDeviceConnection?>(
-                new ViaConnection(pipe, device.Transports, effects));
+                new ViaConnection(
+                    pipe,
+                    device.Transports,
+                    entry?.LightingEffects ?? [],
+                    entry?.ColourlessEffects ?? []));
         }
 
         return Task.FromResult<IDeviceConnection?>(null);

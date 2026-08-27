@@ -11,6 +11,15 @@
    a command never confirmed on hardware and leaves for good after the first accepted
    write; the warning triangle appears only while a write is actually possible. *@
 
+@* Not drawn at all when it is beside the point, rather than drawn and greyed.
+   A greyed control says "this exists and is not available now"; a colour under an
+   effect that generates its own hue is not unavailable, it is not part of the picture,
+   and leaving it there dimmed only invites the reader to wonder what it would do.
+
+   Absent rather than hidden, because a hidden element still counts as a child of the
+   card and the hairline between rows would stay behind it. *@
+@if (Vm.IsShown)
+{
 <div class="cap-row @(Wide ? "wide" : "") @(Joined ? "joined" : "") @(Vm.IsGated ? "gated" : "")">
   <div class="cap-text">
     <div class="cap-title-row">
@@ -516,6 +525,7 @@
     }
   </div>
 </div>
+}
 
 @* The drawings a choice may ask for by name.
 

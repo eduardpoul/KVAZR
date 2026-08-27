@@ -159,6 +159,27 @@ public sealed record Capability
     public string? EnabledBy { get; init; }
 
     /// <summary>
+    /// A choice whose value can make this row meaningless, and the values that do.
+    ///
+    /// Different from <see cref="EnabledBy"/>, and the difference is what the reader
+    /// sees. A greyed control says "this exists and is not available now"; there are
+    /// settings that are simply not part of the picture, and leaving them on the page
+    /// greyed is an invitation to wonder what would happen if they were not.
+    ///
+    /// The case it was built for: a keyboard's colour under its lighting effect. Sixteen
+    /// of this board's forty-one effects generate their own hue and never read the one
+    /// that was picked — every Cycle, every Reactive, and the off state — so the colour
+    /// row is not disabled while one of them runs, it is beside the point.
+    ///
+    /// Which values those are is data about the model rather than about the protocol, so
+    /// a driver reads it from the catalogue and hands it over; the page only obeys.
+    /// </summary>
+    public string? HiddenBy { get; init; }
+
+    /// <summary>The choices of <see cref="HiddenBy"/> that make this row beside the point.</summary>
+    public IReadOnlySet<int> HiddenWhen { get; init; } = new HashSet<int>();
+
+    /// <summary>
     /// False when a write cannot be undone. Maxwell's gain mirror latches on the first
     /// write and only a factory reset puts it back, so the warning has to come before
     /// the write, not after it.

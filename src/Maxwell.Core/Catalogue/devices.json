@@ -56,6 +56,8 @@
       "names": ["Air96 V2", "Air96"],
 
       "$effects": "The lighting effects this firmware compiled in, in the order it numbers them. Read off the model's own VIA definition, which is where VIA's client gets them too — the number alone means nothing, since the same index names a different effect on a keyboard built with a different set.",
+      "$colourless": "Which of those generate their own hue and never read the one that was picked, so the colour control is beside the point while they run. Read off the animation sources rather than guessed from the names, and the names mislead: every Rainbow uses the picked hue as its starting point, while every Solid Reactive ignores it entirely.",
+      "colourless": [0, 11, 12, 13, 15, 16, 17, 18, 29, 30, 31, 32, 33, 34, 35, 36],
       "effects": ["All Off", "Solid Color", "Gradient Up/Down", "Gradient Left/Right", "Breathing", "Band Sat.", "Band Val.", "Pinwheel Sat.", "Pinwheel Val.", "Spiral Sat.", "Spiral Val.", "Cycle All", "Cycle Left/Right", "Cycle Up/Down", "Rainbow Moving Chevron", "Cycle Out/In", "Cycle Out/In Dual", "Cycle Pinwheel", "Cycle Spiral", "Dual Beacon", "Rainbow Beacon", "Rainbow Pinwheels", "Raindrops", "Jellybean Raindrops", "Hue Breathing", "Hue Pendulum", "Hue Wave", "Typing Heatmap", "Digital Rain", "Reactive Simple", "Reactive", "Reactive Wide", "Reactive Multiwide", "Reactive Cross", "Reactive Multicross", "Reactive Nexus", "Reactive MultiNexus", "Splash", "MultiSplash", "Solid Splash", "Solid MultiSplash"]
     },
 

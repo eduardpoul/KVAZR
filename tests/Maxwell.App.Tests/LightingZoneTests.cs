@@ -183,3 +183,99 @@ public sealed class LightingZoneTests
         Assert.Equal(Red, vm.Zones[0].Packed);
     }
 }
+
+/// <summary>
+/// A row that stops being part of the picture.
+///
+/// Sixteen of this keyboard's forty-one effects generate their own hue and never read
+/// the one that was picked. Under those the colour is not unavailable — it is beside
+/// the point, and a greyed control would only invite the reader to wonder what it would
+/// do if it were not.
+/// </summary>
+public sealed class HiddenRowTests
+{
+    private static CapabilityState Effect(int selected) => new()
+    {
+        Descriptor = new Capability
+        {
+            Id = CapabilityIds.LightEffect,
+            Domain = CapabilityDomain.Light,
+            Primitive = CapabilityPrimitive.Choice,
+            Access = CapabilityAccess.ReadWrite,
+            Title = "Effect",
+            Choices =
+            [
+                new CapabilityChoice(0, "All Off"),
+                new CapabilityChoice(1, "Solid Color"),
+                new CapabilityChoice(11, "Cycle All"),
+            ],
+        },
+        Value = CapabilityValue.Choice(selected),
+    };
+
+    private static CapabilityState Colour => new()
+    {
+        Descriptor = new Capability
+        {
+            Id = CapabilityIds.LightColor,
+            Domain = CapabilityDomain.Light,
+            Primitive = CapabilityPrimitive.Lighting,
+            Access = CapabilityAccess.ReadWrite,
+            Title = "Colour",
+            Members = [new CapabilityMember(0, "Whole board")],
+            HiddenBy = CapabilityIds.LightEffect,
+            HiddenWhen = new HashSet<int> { 0, 11 },
+        },
+        Value = CapabilityValue.Vector([CapabilityValue.Of(0xE0483C)]),
+    };
+
+    [Theory]
+    [InlineData(1, true)]    // Solid Color reads the picked hue
+    [InlineData(11, false)]  // Cycle All drives it from a timer
+    [InlineData(0, false)]   // and All Off lights nothing at all
+    public void TheColour_IsShownOnlyUnderAnEffectThatReadsIt(int effect, bool shown)
+    {
+        Harness.Bind();
+
+        var chooser = new ChoiceCapabilityViewModel(Effect(effect), null);
+        var colour = new LightingCapabilityViewModel(Colour, null);
+        colour.HideWith(chooser);
+        Harness.Pump();
+
+        Assert.Equal(shown, colour.IsShown);
+    }
+
+    /// <summary>And it follows the effect afterwards, not only when the page was built.</summary>
+    [Fact]
+    public void ChangingTheEffect_TakesTheColourAwayAndBringsItBack()
+    {
+        Harness.Bind();
+
+        var chooser = new ChoiceCapabilityViewModel(Effect(1), null);
+        var colour = new LightingCapabilityViewModel(Colour, null);
+        colour.HideWith(chooser);
+        Harness.Pump();
+
+        Assert.True(colour.IsShown);
+
+        chooser.Selected = chooser.Options.Single(o => o.Index == 11);
+        Assert.False(colour.IsShown);
+
+        chooser.Selected = chooser.Options.Single(o => o.Index == 1);
+        Assert.True(colour.IsShown);
+    }
+
+    /// <summary>A row that names no chooser is always part of the picture.</summary>
+    [Fact]
+    public void ARowWithNoChooser_IsAlwaysShown()
+    {
+        Harness.Bind();
+
+        CapabilityState plain = Colour with
+        {
+            Descriptor = Colour.Descriptor with { HiddenBy = null, HiddenWhen = new HashSet<int>() },
+        };
+
+        Assert.True(new LightingCapabilityViewModel(plain, null).IsShown);
+    }
+}

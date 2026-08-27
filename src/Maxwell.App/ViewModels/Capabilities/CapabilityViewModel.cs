@@ -274,6 +274,46 @@ public abstract partial class CapabilityViewModel : ObservableObject, IDisposabl
         Gate.PropertyChanged += OnGateChanged;
     }
 
+    /// <summary>
+    /// The choice that can make this row beside the point, joined the same way the gate
+    /// is: the driver said which, and this only finds it.
+    /// </summary>
+    internal void HideWith(ChoiceCapabilityViewModel chooser)
+    {
+        ArgumentNullException.ThrowIfNull(chooser);
+
+        if (ReferenceEquals(_hideBy, chooser)) return;
+
+        if (_hideBy is not null) _hideBy.PropertyChanged -= OnHideByChanged;
+
+        _hideBy = chooser;
+        _hideBy.PropertyChanged += OnHideByChanged;
+
+        OnPropertyChanged(nameof(IsShown));
+    }
+
+    private ChoiceCapabilityViewModel? _hideBy;
+
+    private void OnHideByChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is not (nameof(ChoiceCapabilityViewModel.Selected) or "")) return;
+
+        OnPropertyChanged(nameof(IsShown));
+    }
+
+    /// <summary>
+    /// Whether this row belongs on the page at all right now.
+    ///
+    /// Not the same question as whether it can be operated. A greyed control says "this
+    /// exists and is not available"; a row that is beside the point — a colour under an
+    /// effect that generates its own — is better absent than present and dimmed, which
+    /// only invites the reader to wonder what it would do.
+    /// </summary>
+    public bool IsShown =>
+        Descriptor.HiddenBy is not { Length: > 0 }
+        || _hideBy?.Selected is not { } chosen
+        || !Descriptor.HiddenWhen.Contains(chosen.Index);
+
     private void OnGateChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName is not (nameof(ToggleCapabilityViewModel.IsOn) or "")) return;

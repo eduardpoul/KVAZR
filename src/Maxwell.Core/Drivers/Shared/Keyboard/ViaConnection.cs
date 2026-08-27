@@ -29,7 +29,8 @@ internal sealed class ViaConnection : IDeviceConnection
     public ViaConnection(
         IHidReportPipe pipe,
         IReadOnlyList<TransportInfo> transports,
-        IReadOnlyList<string>? effects = null)
+        IReadOnlyList<string>? effects = null,
+        IReadOnlyList<int>? colourless = null)
     {
         ArgumentNullException.ThrowIfNull(pipe);
         ArgumentNullException.ThrowIfNull(transports);
@@ -45,9 +46,23 @@ internal sealed class ViaConnection : IDeviceConnection
         // three below it are how. Last of all it was also the row at the bottom of the
         // page, where its list of forty-one had nowhere to open.
         Capabilities = effects is { Count: > 0 }
-            ? [Rows[0], Effect(effects), .. Rows.Skip(1)]
+            ? [Rows[0], Effect(effects), .. Rows.Skip(1).Select(c => Under(c, colourless))]
             : Rows;
     }
+
+    /// <summary>
+    /// Ties the colour to the effect above it, where the model says which effects make
+    /// it beside the point. Everything else on the card is left alone: brightness and
+    /// speed mean something under every effect there is.
+    /// </summary>
+    private static Capability Under(Capability row, IReadOnlyList<int>? colourless) =>
+        row.Id == CapabilityIds.LightColor && colourless is { Count: > 0 }
+            ? row with
+            {
+                HiddenBy = CapabilityIds.LightEffect,
+                HiddenWhen = new HashSet<int>(colourless),
+            }
+            : row;
 
     private static Capability Effect(IReadOnlyList<string> effects) => new()
     {

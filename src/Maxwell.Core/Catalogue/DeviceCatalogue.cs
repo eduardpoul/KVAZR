@@ -83,6 +83,18 @@ public sealed record CatalogueEntry
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("effects")]
     public IReadOnlyList<string> LightingEffects { get; init; } = [];
+
+    /// <summary>
+    /// Which of those effects generate their own hue and never read the one that was
+    /// picked, by index.
+    ///
+    /// Read off the firmware's animation sources rather than guessed from the names,
+    /// because the names mislead in both directions: every Rainbow takes the picked hue
+    /// as its starting point and rotates from there, while every Solid Reactive — which
+    /// sounds like a fixed colour — drives the hue from a timer and ignores it.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonPropertyName("colourless")]
+    public IReadOnlyList<int> ColourlessEffects { get; init; } = [];
 }
 
 /// <summary>What the catalogue can be asked.</summary>
