@@ -37,6 +37,14 @@ internal static class BluetoothLinkProbe
 
         using var listening = new WindowsProximityListener();
 
+        // The operating system's own announcement, which is what the application listens
+        // to and what makes a sweep happen within a second instead of at the next timer.
+        // Counted rather than described: the point is when one arrives, not what it said.
+        int announcements = 0;
+        using var watcher = new WindowsDeviceChangeWatcher();
+        watcher.Changed += (_, _) => Interlocked.Increment(ref announcements);
+        watcher.Start();
+
         ICapabilityContributor[] contributors =
         [
             new AudioContributor(new WindowsAudioEndpoints(), new WindowsSystemDeviceEnumerator()),
@@ -51,8 +59,8 @@ internal static class BluetoothLinkProbe
 
         Console.WriteLine($"Слежу {seconds} с. Закрывайте и открывайте кейс — печатаю только изменения.");
         Console.WriteLine();
-        Console.WriteLine("   время    Windows      эндпоинты   наше состояние   заряд");
-        Console.WriteLine("   -------  -----------  ----------  ---------------  -----");
+        Console.WriteLine("   время    Windows      эндпоинты  событий  наше состояние   заряд");
+        Console.WriteLine("   -------  -----------  ---------  -------  ---------------  -----");
 
         string? was = null;
         var clock = Stopwatch.StartNew();
@@ -85,7 +93,8 @@ internal static class BluetoothLinkProbe
                 ? $"{n.Value}%"
                 : "—";
 
-            string now = $"{flag,-11}  {endpoints,-10}  {device?.Availability.ToString() ?? "нет в списке",-15}  {charge}";
+            string now = $"{flag,-11}  {endpoints,-9}  {Volatile.Read(ref announcements),-7}  "
+                + $"{device?.Availability.ToString() ?? "нет в списке",-15}  {charge}";
 
             if (now != was)
             {
@@ -98,7 +107,8 @@ internal static class BluetoothLinkProbe
 
         Console.WriteLine();
         Console.WriteLine("Столбцы слева направо — цепочка. Где задержка, там и виноватый:");
-        Console.WriteLine("  Windows поздно поменял флаг → ждём операционную систему, у нас всё быстро;");
+        Console.WriteLine("  щёлкнули, а «события» и флаг стоят → молчит Windows, у нас всё быстро;");
+        Console.WriteLine("  события пришли, а флаг стоит → Windows объявил, но мнения ещё не поменял;");
         Console.WriteLine("  флаг сменился, а состояние нет → опаздывает наш обход;");
         Console.WriteLine("  состояние сменилось, а заряд нет → опаздывает опрос или маячок.");
 
