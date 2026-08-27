@@ -94,7 +94,17 @@ internal sealed class ViaConnection : IDeviceConnection
             // The keyboard keeps hue and saturation; brightness is the row above. Folding
             // the two together would give the page two controls for one number and a
             // swatch that goes black when the light is turned down.
-            Subtitle = "Hue and saturation, as the keyboard keeps them",
+            Subtitle = "One colour for the whole board — VIA sets no key on its own",
+
+            // One zone, and the control is built out of these: with no members the row
+            // draws its header and nothing under it, which is what it did.
+            //
+            // One rather than many because that is what the protocol offers. VIA's RGB
+            // matrix channel carries a single hue and saturation for the board; per-key
+            // colour is a different mechanism and needs the model's own definition, the
+            // same missing piece the keymap and the effect list need.
+            Members = [new CapabilityMember(0, "Whole board")],
+
             DeclaredStatus = CapabilityStatus.Untested,
             IsVolatile = true,
         },
