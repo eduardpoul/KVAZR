@@ -74,6 +74,7 @@ internal static class DeviceInventory
             new Maxwell.Core.Drivers.Apple.AppleProximityContributor(listening),
             new Maxwell.Core.Drivers.Keyboard.ViaContributor(
                 new Maxwell.Race.Windows.WindowsHidReportPipeFactory(), new DeviceCatalogue()),
+            new Maxwell.Core.Drivers.Flydigi.FlydigiContributor(new WindowsHidEnumerator()),
         ];
 
         using var registry = new DeviceRegistry(
@@ -217,7 +218,7 @@ internal static class DeviceInventory
                 _ => "presence only",
             };
 
-            Console.WriteLine($"  transport  {transport.Label,-24} {carries}");
+            Console.WriteLine($"  transport  {transport.Label,-24} {carries}{(transport.IsPresent ? string.Empty : "   — не на связи")}");
         }
 
         foreach (CapabilityDomain domain in device.Domains())

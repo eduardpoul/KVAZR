@@ -65,7 +65,6 @@ public static class PointerReader
     private const ushort ExtendedResolution = 0x2202;
     private const ushort Resolution = 0x2201;
     private const ushort OnboardProfiles = 0x8100;
-    private const ushort DeviceInformation = 0x0003;
 
     /// <summary>A value at or above this in the range stream is a step, not a resolution.</summary>
     private const int StepMarker = 0xE000;
@@ -208,15 +207,8 @@ public static class PointerReader
         return reply is { Length: > 9 } ? (reply[9], reply[7]) : (null, null);
     }
 
-    private static string? Serial(WindowsHidChannel channel, byte device)
-    {
-        if (HidPlusPlusReader.FeatureIndex(channel, device, DeviceInformation) is not { } index) return null;
-
-        byte[]? reply = HidPlusPlusReader.Ask(channel, device, index, 0x00);
-
-        // The entity count, then four bytes of unit id.
-        return reply is { Length: > 8 } ? Convert.ToHexString(reply.AsSpan(5, 4)) : null;
-    }
+    /// <summary>The unit id, which is also what the device is known by across its routes.</summary>
+    private static string? Serial(WindowsHidChannel channel, byte device) => HidPlusPlusReader.UnitId(channel, device);
 
     /// <summary>
     /// How often the device reports, and which rates it offers on the link it is using.

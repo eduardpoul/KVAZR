@@ -46,6 +46,10 @@ internal static class BatteryParts
     {
         ArgumentNullException.ThrowIfNull(snapshot);
 
+        // Not connected, no halves — for the reason BatteryReadout gives for the single
+        // number: what was read last is not what is in the earphones now.
+        if (!snapshot.IsPresent) return [];
+
         var parts = new List<BatteryPart>();
 
         foreach ((string level, string charging) in Halves)

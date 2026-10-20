@@ -21,6 +21,14 @@ public enum BatteryDisplay
     /// invite the reader to go looking for a number that does not exist.
     /// </summary>
     Mains,
+
+    /// <summary>
+    /// Not connected, so nothing is drawn. The last charge read is not the device's charge
+    /// now, and a number beside a device that is not here reads as if it were — a pair of
+    /// AirPods under "not connected" with 100% and 90% beside them, and "updated 20:50"
+    /// under that, said two contradictory things at once.
+    /// </summary>
+    Offline,
 }
 
 /// <summary>
@@ -36,6 +44,8 @@ public static class BatteryReadout
     public static BatteryDisplay Mode(DeviceSnapshot snapshot)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
+
+        if (!snapshot.IsPresent) return BatteryDisplay.Offline;
 
         if (snapshot.BatteryPercent is not null) return BatteryDisplay.Charge;
 

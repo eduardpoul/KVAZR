@@ -657,6 +657,61 @@ public sealed class DeviceSessionTests
         Assert.True(session.Snapshot.IsPresent);
     }
 
+    /// <summary>
+    /// Seen means reachable. A device found with every lead down — a mouse its receiver
+    /// remembers, switched off — keeps the time it was last reachable, rather than taking
+    /// the time of whichever sweep happened to list it.
+    /// </summary>
+    [Fact]
+    public async Task ADeviceWithEveryLeadDown_KeepsTheTimeItWasLastReachable()
+    {
+        var fixture = new Fixture();
+        fixture.Connection.Transports = [];
+
+        DeviceSession session = fixture.CreateSession();
+
+        await session.MarkPresentAsync(
+            fixture.Info with
+            {
+                Transports = [new TransportInfo { Kind = TransportKind.Dongle, Label = "USB dongle", IsPresent = true }],
+            },
+            Ct);
+
+        DateTimeOffset? reachable = session.Snapshot.LastSeenAt;
+
+        await Task.Delay(20, Ct);
+
+        await session.MarkPresentAsync(
+            fixture.Info with
+            {
+                Transports = [new TransportInfo { Kind = TransportKind.Dongle, Label = "USB dongle", IsPresent = false }],
+            },
+            Ct);
+
+        Assert.NotNull(reachable);
+        Assert.Equal(DeviceAvailability.Offline, session.Snapshot.Availability);
+        Assert.Equal(reachable, session.Snapshot.LastSeenAt);
+    }
+
+    /// <summary>And one that has never been reachable has no time to show at all.</summary>
+    [Fact]
+    public async Task ADeviceNeverReachable_HasNoLastSeen()
+    {
+        var fixture = new Fixture();
+        fixture.Connection.Transports = [];
+
+        DeviceSession session = fixture.CreateSession();
+
+        await session.MarkPresentAsync(
+            fixture.Info with
+            {
+                Transports = [new TransportInfo { Kind = TransportKind.Dongle, Label = "USB dongle", IsPresent = false }],
+            },
+            Ct);
+
+        Assert.Null(session.Snapshot.LastSeenAt);
+    }
+
     private sealed class Fixture
     {
         public InMemoryCapabilityLedger Ledger { get; } = new();

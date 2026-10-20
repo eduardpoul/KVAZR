@@ -176,6 +176,75 @@ public sealed class DeviceCatalogueTests
         Assert.Contains(device.Transports, t => t.Label == "Dock");
     }
 
+    /// <summary>
+    /// A dock plugged in with the pad switched off is a pad that is not there: listed under
+    /// its own name, its dock folded under it, every lead down — which the session reads
+    /// as disconnected, the way a mouse charging on its cable leaves its receiver's lead
+    /// down. The dongle is what comes up when the pad wakes.
+    /// </summary>
+    [Fact]
+    public async Task ADockAlone_DoesNotMakeTheGamepadPresent()
+    {
+        var dock = Guid.NewGuid();
+        var dongle = Guid.NewGuid();
+
+        DeviceInfo padOff = Assert.Single(await Discover(
+            new DeviceCatalogue(),
+            Node(dock, "Flydigi CD2", 0x37D7, 0x6001)));
+
+        Assert.NotEmpty(padOff.Transports);
+        Assert.All(padOff.Transports, t => Assert.False(t.IsPresent));
+
+        DeviceInfo padOn = Assert.Single(await Discover(
+            new DeviceCatalogue(),
+            Node(dock, "Flydigi CD2", 0x37D7, 0x6001),
+            Node(dongle, "Flydigi APEX 5", 0x37D7, 0x2501)));
+
+        TransportInfo live = Assert.Single(padOn.Transports, t => t.IsPresent);
+        Assert.Equal(TransportKind.Dongle, live.Kind);
+    }
+
+    /// <summary>
+    /// The APEX 5 as it was on the desk: its dock alone while the pad was off, its dongle
+    /// joining when the pad was switched on — under a container id that sorts below the
+    /// dock's. Keyed by the lowest container, the gamepad changed key at that moment and
+    /// the dock-only row was left behind under DISCONNECTED as a second APEX 5.
+    /// </summary>
+    [Fact]
+    public async Task ADeviceKeepsItsKey_AsItsLeadsComeAndGo()
+    {
+        var dock = new Guid("92df9e0e-1d5b-5ba8-84ca-d9c3b5b59b2b");
+        var dongle = new Guid("6704c545-c3d4-11f1-ac84-5802055490cf");
+
+        DeviceInfo padOff = Assert.Single(await Discover(
+            new DeviceCatalogue(),
+            Node(dock, "Flydigi CD2", 0x37D7, 0x6001)));
+
+        DeviceInfo padOn = Assert.Single(await Discover(
+            new DeviceCatalogue(),
+            Node(dock, "Flydigi CD2", 0x37D7, 0x6001),
+            Node(dongle, "Flydigi APEX 5", 0x37D7, 0x2501)));
+
+        Assert.Equal(padOff.Key, padOn.Key);
+    }
+
+    /// <summary>
+    /// And a device made of one container keeps the container as its key: a slug lives
+    /// only as long as a match does, and a Bluetooth name the owner can rename is a match
+    /// that can stop.
+    /// </summary>
+    [Fact]
+    public async Task ADeviceOfOneContainer_IsKeyedByIt()
+    {
+        var container = Guid.NewGuid();
+
+        DeviceInfo device = Assert.Single(await Discover(
+            new DeviceCatalogue(),
+            Node(container, "", btName: "Edik’s AirPods Pro - Find My")));
+
+        Assert.Equal($"system:{container:D}", device.Key);
+    }
+
     [Fact]
     public async Task AReceiverStaysAReceiver()
     {

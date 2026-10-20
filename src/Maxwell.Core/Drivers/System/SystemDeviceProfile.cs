@@ -279,13 +279,20 @@ internal static class SystemDeviceProfile
             });
         }
 
+        // A dock charges the device; it does not reach it. Listed, so its container stays
+        // folded under the gamepad rather than standing in the list as a "Flydigi CD2" —
+        // and down, because a dock being plugged in says nothing about the pad. Counted as
+        // up, it kept the APEX 5 under CONNECTED with the pad switched off, the way a
+        // receiver used to keep a mouse there that was charging on its cable. Should the
+        // dock's own frames prove to carry the docked pad's charge, that is when it becomes
+        // a lead — while a pad is actually on it.
         if (viaDock)
         {
             transports.Add(new TransportInfo
             {
                 Kind = TransportKind.UsbCable,
                 Label = "Dock",
-                IsPresent = true,
+                IsPresent = false,
                 CarriesControl = false,
                 CarriesAudio = false,
             });

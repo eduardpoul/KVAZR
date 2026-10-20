@@ -391,6 +391,10 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
                 Maxwell.App.Localization.Localizer.Current.Say("The hardware gain is analogue: it works before the converter, and nothing on the machine can read it."),
             DeviceClass.Keyboard =>
                 Maxwell.App.Localization.Localizer.Current.Say("Over the dongle the keyboard gives neither charge nor VIA — layout, layers and lighting are edited over the cable."),
+            // With a charge on the page the XInput line reads as a contradiction of it, so
+            // the pad that answers on its own channel is told where the number came from.
+            DeviceClass.Gamepad when Snapshot.BatteryPercent is not null =>
+                Maxwell.App.Localization.Localizer.Current.Say("The charge comes from the pad's own channel, not XInput; button remapping and profiles are the vendor's own road."),
             DeviceClass.Gamepad =>
                 Maxwell.App.Localization.Localizer.Current.Say("Only genuine Xbox controllers report charge over XInput; button remapping and profiles are the vendor's own road."),
             DeviceClass.Speaker =>
@@ -421,8 +425,15 @@ public sealed partial class DevicePageViewModel : ObservableObject, IDisposable
         {
         DeviceAvailability.Unreachable =>
             Maxwell.App.Localization.Localizer.Current.Say("The headset is not answering. Switch it on or bring it closer — control works over the dongle and over the cable alike"),
+        // When it was last here, and nothing about its charge: that went with the battery
+        // block, which a device that is not connected no longer draws. It used to say the
+        // last known readings were shown, beside a charge that was not the charge now.
+        DeviceAvailability.Offline when Snapshot.LastSeenAt is { } seen =>
+            Maxwell.App.Localization.Localizer.Current.Say(
+                "The device is not connected. Last seen at {0}",
+                seen.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)),
         DeviceAvailability.Offline =>
-            Maxwell.App.Localization.Localizer.Current.Say("The device is not connected. The last known readings are shown"),
+            Maxwell.App.Localization.Localizer.Current.Say("The device is not connected"),
             _ => null,
         },
     };

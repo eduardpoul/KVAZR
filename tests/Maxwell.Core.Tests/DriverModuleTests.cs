@@ -38,4 +38,16 @@ public sealed class DriverModuleTests
         int expected = OperatingSystem.IsWindows() ? 1 : 0;
         Assert.Equal(expected, services.Count(d => d.ServiceType == typeof(IDeviceDriver)));
     }
+
+    [Fact]
+    public void TheFlydigiModule_AddsAContributor_AndNoDriver()
+    {
+        // It never owns the pad; the system tier does. It only says what nobody else can.
+        var services = new ServiceCollection();
+        new Maxwell.Core.Drivers.Flydigi.FlydigiModule().Register(services);
+
+        int expected = OperatingSystem.IsWindows() ? 1 : 0;
+        Assert.Equal(expected, services.Count(d => d.ServiceType == typeof(ICapabilityContributor)));
+        Assert.DoesNotContain(services, d => d.ServiceType == typeof(IDeviceDriver));
+    }
 }

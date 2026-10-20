@@ -39,18 +39,41 @@ public static class HidPlusPlusReader
     public sealed record Paired(byte Slot, string Name, Kind? Type, Charge? Battery);
 
     /// <summary>
+    /// A pairing as the receiver's own table records it, whether or not the device is on
+    /// the air. The serial is the device's unit id, the number it gives for itself over
+    /// its own cable too.
+    /// </summary>
+    public sealed record Remembered(byte Slot, string Serial, Kind? Type, string? Name);
+
+    /// <summary>
     /// The index a device answers on when it is plugged in directly rather than sitting
     /// behind a receiver: the wired mouse is its own only device.
     /// </summary>
     public const byte DirectDevice = 0xFF;
 
+    private const byte GetLongRegister = 0x83;
+    private const byte LegacyError = 0x8F;
+    private const byte ReceiverInfo = 0xB5;
+
+    // Sub-registers of 0xB5, one of each per slot, counted from slot one at zero.
+    private const byte PairingInfo = 0x20;
+    private const byte ExtendedPairingInfo = 0x30;
+    private const byte PairedName = 0x40;
+
+    /// <summary>One turn on each path while an answer may come on either.</summary>
+    private static readonly TimeSpan Turn = TimeSpan.FromMilliseconds(40);
+
     /// <summary>
-    /// How many devices the receiver says are connected right now, read off its short
-    /// channel — HID++ 1.0 register 0x02, which the receiver answers instantly and
-    /// unconditionally. This is what keeps discovery cheap: pinging an empty slot costs
-    /// two wake timeouts, and a receiver with nothing on it says so in one exchange.
+    /// How many devices are paired to the receiver, read off its short channel — HID++
+    /// 1.0 register 0x02, which the receiver answers instantly and unconditionally. This
+    /// is what keeps discovery cheap: pinging an empty slot costs two wake timeouts, and
+    /// a receiver with nothing paired says so in one exchange.
+    ///
+    /// Paired, not on the air. This was read as "connected right now" until a Lightspeed
+    /// receiver answered one with its only mouse charging on a cable and silent on the
+    /// radio.
     /// </summary>
-    public static int? ConnectedCount(WindowsHidChannel shortChannel)
+    public static int? PairedCount(WindowsHidChannel shortChannel)
     {
         ArgumentNullException.ThrowIfNull(shortChannel);
 
@@ -85,6 +108,148 @@ public static class HidPlusPlusReader
         if (name is null) return null;
 
         return new Paired(slot, name, Type(channel, slot), Battery(channel, slot));
+    }
+
+    /// <summary>
+    /// Who the receiver says is paired to it, from its own table: HID++ 1.0 register 0xB5,
+    /// three sub-registers per slot. Empty when the receiver keeps no such table, or keeps
+    /// it without serials — Bolt receivers file pairings elsewhere — and the caller falls
+    /// back to pinging slots.
+    ///
+    /// Asked of the receiver rather than of the devices, so it costs no wake-up and still
+    /// answers with the mouse switched off or charging on its cable. That is the point of
+    /// it. Measured on a Lightspeed receiver with the mouse on its cable and silent on the
+    /// radio: the table still named it, and named it by the very unit id the mouse gives
+    /// over the cable — which is what lets one mouse be one device by either route, and the
+    /// receiver be filed under it rather than shown on its own.
+    ///
+    /// Two paths, because on Windows the short and long reports are separate collections.
+    /// The register is long, so it is asked with a short report and answered with a long
+    /// one: the question goes out on the short path and the answer arrives on the long
+    /// one, while a refusal is short and comes back where the question went. The long
+    /// channel has to be open before the first question — a handle only hears what
+    /// arrives while it exists.
+    /// </summary>
+    public static IReadOnlyList<Remembered> Pairings(WindowsHidChannel shortChannel, WindowsHidChannel longChannel)
+    {
+        ArgumentNullException.ThrowIfNull(shortChannel);
+        ArgumentNullException.ThrowIfNull(longChannel);
+
+        var table = new List<Remembered>();
+
+        for (byte slot = 1; slot <= 6; slot++)
+        {
+            byte n = (byte)(slot - 1);
+
+            // Extended pairing: the serial at 5–8. Without one there is nothing to know the
+            // device by, so the slot is not worth the other two questions.
+            if (Register(shortChannel, longChannel, (byte)(ExtendedPairingInfo + n)) is not { } extended) continue;
+
+            string serial = Convert.ToHexString(extended, 5, 4);
+            if (serial is "00000000" or "FFFFFFFF") continue;
+
+            // Pairing: the device kind in the low nibble of 11. Name: its length at 5,
+            // the characters after it.
+            byte[]? pairing = Register(shortChannel, longChannel, (byte)(PairingInfo + n));
+            byte[]? named = Register(shortChannel, longChannel, (byte)(PairedName + n));
+
+            table.Add(new Remembered(
+                slot,
+                serial,
+                pairing is null ? null : RegisteredKind(pairing[11] & 0x0F),
+                named is null ? null : RegisteredName(named)));
+        }
+
+        return table;
+    }
+
+    /// <summary>
+    /// The device's unit id, from feature 0x0003: the same four bytes wherever it is
+    /// asked — over its own cable or through a receiver's slot — and the number the
+    /// receiver's pairing table files it under.
+    /// </summary>
+    public static string? UnitId(WindowsHidChannel channel, byte device)
+    {
+        ArgumentNullException.ThrowIfNull(channel);
+
+        if (Index(channel, device, HidPlusPlus.FeatureDeviceInformation) is not { } feature) return null;
+
+        byte[]? reply = Ask(channel, device, feature, 0x00);
+
+        // The entity count, then four bytes of unit id.
+        if (reply is not { Length: > 8 } || HidPlusPlus.IsError(reply)) return null;
+
+        string unit = Convert.ToHexString(reply, 5, 4);
+
+        return unit is "00000000" or "FFFFFFFF" ? null : unit;
+    }
+
+    /// <summary>One sub-register of 0xB5: the answer, or null for a refusal or silence.</summary>
+    private static byte[]? Register(WindowsHidChannel shortChannel, WindowsHidChannel longChannel, byte sub)
+    {
+        byte[] question = new byte[shortChannel.OutputLength];
+
+        question[0] = HidPlusPlus.ShortReport;
+        question[1] = HidPlusPlus.Receiver;
+        question[2] = GetLongRegister;
+        question[3] = ReceiverInfo;
+        question[4] = sub;
+
+        if (!shortChannel.Send(question)) return null;
+
+        DateTime deadline = DateTime.UtcNow + Wait;
+
+        while (DateTime.UtcNow < deadline)
+        {
+            if (longChannel.Listen(Turn) is { } heard
+                && heard.Length >= 17
+                && heard[0] == HidPlusPlus.LongReport
+                && heard[1] == HidPlusPlus.Receiver
+                && heard[2] == GetLongRegister
+                && heard[3] == ReceiverInfo
+                && heard[4] == sub)
+            {
+                return heard;
+            }
+
+            // A refusal does not repeat the sub-register, so it is taken as the answer to
+            // whatever was asked last. The receiver refuses at once, which is what keeps
+            // that from going stale.
+            if (shortChannel.Listen(Turn) is { } said
+                && said.Length >= 5
+                && said[1] == HidPlusPlus.Receiver
+                && said[2] == LegacyError
+                && said[3] == GetLongRegister
+                && said[4] == ReceiverInfo)
+            {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// The receiver's device kinds, which are numbered differently from feature 0x0005's.
+    /// Only the two that are certain: a mouse was read off a live table as 2, and a
+    /// keyboard is the 1 below it. Anything else is left for the device to say when it is
+    /// on the air.
+    /// </summary>
+    private static Kind? RegisteredKind(int kind) => kind switch
+    {
+        0x01 => Kind.Keyboard,
+        0x02 => Kind.Mouse,
+        _ => null,
+    };
+
+    private static string? RegisteredName(byte[] reply)
+    {
+        int length = Math.Min(reply[5], reply.Length - 6);
+        if (length < 3) return null;
+
+        string read = string.Concat(reply.Skip(6).Take(length).Select(b => (char)b));
+
+        return read.All(c => c is >= ' ' and <= '~') ? read : null;
     }
 
     public static Charge? Battery(WindowsHidChannel channel, byte device)

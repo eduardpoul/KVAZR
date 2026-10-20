@@ -102,11 +102,7 @@ public sealed class SystemDeviceDriver : IDeviceDriver
 
             devices.Add(new DeviceInfo
             {
-                // Still keyed on a container even when several were joined, because the
-                // key has to survive a restart and the slug only exists while an entry
-                // matches. Lowest container id, so the choice does not depend on the
-                // order Windows happened to enumerate in.
-                Key = $"system:{parts.Min(p => p.Container):D}",
+                Key = KeyOf(entry, parts),
                 DriverId = DriverId,
 
                 // Vendor from the catalogue, or from the vendor-id table, or nothing.
@@ -126,6 +122,29 @@ public sealed class SystemDeviceDriver : IDeviceDriver
 
         return devices;
     }
+
+    /// <summary>
+    /// The key, which has to survive a restart — and, the half that was missed, a lead
+    /// coming or going.
+    ///
+    /// A container is the right key for hardware that is one container, or several that
+    /// always arrive together: Windows gives it the same id every time it sees it, and a
+    /// slug only exists while an entry matches. When several were joined the lowest id
+    /// was taken, so the choice did not depend on enumeration order. That holds only while
+    /// the same containers are present, and a device whose entry names a dongle or a dock
+    /// is exactly one whose containers come and go on their own. The APEX 5 sat in the
+    /// list as its dock while the pad was off; switched on, its dongle arrived with a lower
+    /// container id, the key moved with it, and the gamepad became two — a live one at the
+    /// top and the dock-only one left under DISCONNECTED.
+    ///
+    /// So such a device is keyed by its entry. It was matched by usb id, which does not
+    /// drift the way a Bluetooth name can, and the entry is the one thing every one of its
+    /// leads agrees on.
+    /// </summary>
+    private static string KeyOf(CatalogueEntry? entry, List<Candidate> parts) =>
+        entry is { } routed && (routed.DongleUsb.Count > 0 || routed.DockUsb.Count > 0)
+            ? $"system:{routed.Slug}"
+            : $"system:{parts.Min(p => p.Container):D}";
 
     /// <summary>One container, and what the catalogue made of it.</summary>
     private sealed record Candidate(

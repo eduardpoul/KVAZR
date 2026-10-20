@@ -51,6 +51,7 @@ public static class HidPlusPlus
 
     // Features, by their published ids.
     public const ushort FeatureRoot = 0x0000;
+    public const ushort FeatureDeviceInformation = 0x0003;
     public const ushort FeatureDeviceName = 0x0005;
     public const ushort FeatureBatteryLevel = 0x1000;
     public const ushort FeatureUnifiedBattery = 0x1004;

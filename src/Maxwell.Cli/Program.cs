@@ -196,7 +196,12 @@ if (args.Contains("--tester"))
     return TesterProbe.Run(int.TryParse(ValueAfter(args, "--tester"), out int watching) ? watching : 20);
 }
 if (args.Contains("--hidpp")) return HidPlusPlusProbe.Run();
-if (args.Contains("--xinput")) return XInputProbe.Run();
+if (args.Contains("--receiver")) return ReceiverPairingProbe.Run();
+if (args.Contains("--flydigi")) return FlydigiProbe.Run();
+if (args.Contains("--gamepad") || args.Contains("--xinput"))
+{
+    return GamepadProbe.Run(int.TryParse(ValueAfter(args, "--watch"), out int held4) ? held4 : 0);
+}
 if (args.Contains("--audio")) return AudioProbe.Run();
 if (args.Contains("--micmute")) return await MuteProbe.RunAsync(args.Contains("--leave")).ConfigureAwait(false);
 if (args.Contains("--via")) return ViaProbe.Run();

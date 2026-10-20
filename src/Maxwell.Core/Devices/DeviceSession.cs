@@ -134,7 +134,11 @@ public sealed class DeviceSession : IDeviceSession, IDisposable
 
             _info = info;
             _present = true;
-            _lastSeenAt = DateTimeOffset.Now;
+
+            // Seen means reachable, not merely listed. A mouse its receiver remembers is
+            // found on every sweep with the mouse switched off, and stamping it then read
+            // "last seen — now" under DISCONNECTED, a time that moved on by itself.
+            if (!Unlinked()) _lastSeenAt = DateTimeOffset.Now;
 
             bool connected = false;
 

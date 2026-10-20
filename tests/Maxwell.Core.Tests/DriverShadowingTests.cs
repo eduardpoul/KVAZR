@@ -90,6 +90,36 @@ public sealed class DriverShadowingTests
         Assert.Equal(["audeze:maxwell", "system:mystery"], keys);
     }
 
+    /// <summary>
+    /// A receiver belongs to the device it is paired with even while that device is off
+    /// the air. Charging on its cable or switched off, the mouse is still the one the
+    /// receiver is for — and it was exactly then that a bare "USB Receiver" came back into
+    /// the list beside it.
+    /// </summary>
+    [Fact]
+    public async Task AReceiverStaysUnderItsMouse_WhileTheMouseIsOffTheAir()
+    {
+        DeviceInfo mouse = Device("hidpp:unit:2121B490", "logitech.hidpp", "usb:046d:c54d") with
+        {
+            Transports = [new TransportInfo { Kind = TransportKind.Dongle, Label = "USB dongle", IsPresent = false }],
+        };
+
+        using var registry = new DeviceRegistry(
+            [
+                new FakeDriver("logitech.hidpp", DriverTier.Class, mouse),
+                new FakeDriver("system", DriverTier.System,
+                    Device("system:receiver", "system", "usb:046d:c54d", "container:7")),
+            ],
+            new InMemoryCapabilityLedger(),
+            NullLoggerFactory.Instance);
+
+        await registry.DiscoverAsync(TestContext.Current.CancellationToken);
+
+        DeviceSnapshot only = Assert.Single(registry.Devices);
+        Assert.Equal("hidpp:unit:2121B490", only.Info.Key);
+        Assert.Equal(DeviceAvailability.Offline, only.Availability);
+    }
+
     private sealed class FakeDriver(string id, DriverTier tier, params DeviceInfo[] devices) : IDeviceDriver
     {
         public string DriverId => id;

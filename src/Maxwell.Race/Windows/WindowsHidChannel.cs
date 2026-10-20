@@ -114,6 +114,25 @@ public sealed class WindowsHidChannel : IDisposable
     }
 
     /// <summary>
+    /// Sends a report and returns at once, for a question whose answer arrives somewhere
+    /// else. A HID++ long register is asked with a short report and answered with a long
+    /// one, and on Windows those are two collections and two paths: waiting here would be
+    /// waiting on the path the answer never comes to.
+    /// </summary>
+    public bool Send(byte[] report)
+    {
+        ArgumentNullException.ThrowIfNull(report);
+
+        lock (_gate)
+        {
+            LastWriteFailed = !HidNative.WriteFile(_handle, report, report.Length, out _, IntPtr.Zero);
+            LastWriteError = LastWriteFailed ? Marshal.GetLastWin32Error() : 0;
+
+            return !LastWriteFailed;
+        }
+    }
+
+    /// <summary>
     /// Listens without writing anything first. For vendor-defined interfaces nothing is
     /// known about: some dongles broadcast status unprompted, and reading is the one
     /// operation guaranteed not to change a device you do not understand.

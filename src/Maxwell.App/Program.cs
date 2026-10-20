@@ -303,6 +303,7 @@ internal static class Program
             new Maxwell.Core.Drivers.Audeze.AudezeModule(),
             new Maxwell.Core.Drivers.HyperX.HyperXModule(),
             new Maxwell.Core.Drivers.Logitech.LogitechModule(),
+            new Maxwell.Core.Drivers.Flydigi.FlydigiModule(),
             new Maxwell.Core.Drivers.Audio.AudioModule(),
             new Maxwell.Core.Drivers.Apple.AppleModule(),
             new Maxwell.Core.Drivers.Keyboard.KeyboardModule(),
