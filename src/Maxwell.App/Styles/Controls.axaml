@@ -402,9 +402,13 @@
     <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}" />
   </Style>
 
+  <!-- Centred, because the height is fixed and the padding has no vertical part: the
+       template's default puts the text and the placeholder at the top of the box, above
+       the magnifier, which centres itself. -->
   <Style Selector="TextBox.search">
     <Setter Property="Height" Value="{DynamicResource RailSearchHeight}" />
     <Setter Property="Padding" Value="0,0,10,0" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="FontSize" Value="{DynamicResource RailSearchSize}" />
     <Setter Property="CornerRadius" Value="{DynamicResource RailRowRadiusCorner}" />
   </Style>

@@ -9,6 +9,10 @@ KVAZR began as a replacement for Audeze HQ for the Audeze Maxwell and grew from 
 It speaks each device's own protocol where that is worth the reverse engineering, and a
 shared class protocol where one protocol covers a whole family.
 
+![The dashboard: every device on the desk, its link and its charge](docs/images/dashboard.png)
+
+![A device page: the Audeze Maxwell's volume, balance, ChatMix and equaliser](docs/images/device-page.png)
+
 ## What it does
 
 - **Tray icon with the charge** of the device you care about, and low-battery notifications.
@@ -44,7 +48,7 @@ one are in [`docs/`](docs).
 ## Install
 
 Download `KVAZR.exe` from [Releases](../../releases) and run it. It is one self-contained
-file, needs no .NET install and writes only to `%APPDATA%\Kvazr.App\settings.json`.
+file, needs no .NET install and writes only to `%APPDATA%\KVAZR\settings.json`.
 
 For Linux, see [`packaging/README.md`](packaging/README.md).
 
