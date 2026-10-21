@@ -5,8 +5,8 @@
 командами, ничего не записано.
 
 ```
-dotnet run --project src/Maxwell.Cli -- --hidpp          # имя, заряд, таблица, разрешение
-dotnet run --project src/Maxwell.Cli -- --hidpp --deep   # плюс первый вопрос каждой возможности
+dotnet run --project src/Kvazr.Cli -- --hidpp          # имя, заряд, таблица, разрешение
+dotnet run --project src/Kvazr.Cli -- --hidpp --deep   # плюс первый вопрос каждой возможности
 ```
 
 ## Почему это не заточка под одну мышь

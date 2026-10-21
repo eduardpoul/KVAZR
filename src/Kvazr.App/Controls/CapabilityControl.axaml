@@ -1,0 +1,430 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:cap="using:Kvazr.App.ViewModels.Capabilities"
+             xmlns:controls="using:Kvazr.App.Controls"
+             xmlns:conv="using:Kvazr.App.Converters"
+             xmlns:devices="using:Kvazr.Core.Devices"
+             x:Class="Kvazr.App.Controls.CapabilityControl"
+             x:DataType="cap:CapabilityViewModel">
+
+  <!--
+    The control itself plus every one of the eight states: dimmed when a precondition
+    is unmet, an amber dot while untested, a red border when the device refused, a ring
+    when the value moved on the hardware, a triangle before an irreversible write.
+
+    They live on this frame rather than inside each control, because they are the same
+    eight everywhere and a per-control implementation is a per-control chance to get one
+    of them wrong.
+  -->
+
+  <UserControl.Resources>
+    <conv:HintToneBrushConverter x:Key="HintTone" />
+    <conv:PackedColorBrushConverter x:Key="PackedColour" />
+    <conv:PresenceOpacityConverter x:Key="ReadOpacity" />
+  </UserControl.Resources>
+
+  <!-- One template per primitive, holding nothing but the control itself. Everything
+       about state lives in the frame below, so these stay this short. -->
+  <UserControl.DataTemplates>
+
+    <DataTemplate DataType="cap:ReadoutCapabilityViewModel">
+      <TextBlock Classes="value" HorizontalAlignment="Right" Text="{Binding Display}" />
+    </DataTemplate>
+
+    <DataTemplate DataType="cap:ToggleCapabilityViewModel">
+      <ToggleSwitch IsChecked="{Binding IsOn}"
+                    IsEnabled="{Binding CanEdit}"
+                    OnContent="" OffContent=""
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center" />
+    </DataTemplate>
+
+    <DataTemplate DataType="cap:RangeCapabilityViewModel">
+      <StackPanel HorizontalAlignment="Stretch" Spacing="2">
+        <!-- Classed so a compact host can turn it off: the tray panel prints the reading
+             opposite the capability's name instead, and two copies of "1600 DPI" on one
+             360-pixel row is the sort of thing a page renders without anyone noticing. -->
+        <TextBlock Classes="caption reading"
+                   HorizontalAlignment="Right"
+                   IsVisible="{Binding $parent[controls:CapabilityControl].ShowReading}"
+                   Text="{Binding Display}" />
+        <!-- Bounds are declared before the value on purpose: a Slider clamps whatever
+             it is handed to the range it holds at that moment, and widening the range
+             afterwards does not give the value back. Tick snapping is deliberately off
+             — the write rounds to an integer anyway, and snapping adds a second
+             coercion that can move the value again behind the binding's back. -->
+        <!--
+          Hidden until there is a reading, and this matters more than it looks. A slider
+          has no way to show "no value": handed nothing it sits at its minimum, and a
+          volume slider at its minimum is the screen stating the volume is zero. The
+          headset asleep on its dongle is exactly when that happens, which is exactly
+          when somebody might believe it.
+        -->
+        <Slider Minimum="{Binding Minimum}"
+                Maximum="{Binding Maximum}"
+                IsEnabled="{Binding CanEdit}"
+                IsVisible="{Binding HasValue}"
+                Value="{Binding Value}" />
+
+        <Border Height="32" IsVisible="{Binding !HasValue}" />
+      </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate DataType="cap:ChoiceCapabilityViewModel">
+      <Panel>
+        <ListBox Classes="segmented"
+                 IsVisible="{Binding IsSegmented}"
+                 ItemsSource="{Binding Options}"
+                 SelectedItem="{Binding Selected}"
+                 IsEnabled="{Binding CanEdit}"
+                 VerticalAlignment="Center">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="devices:CapabilityChoice">
+              <TextBlock Text="{Binding Label}" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <ComboBox MinWidth="180"
+                  HorizontalAlignment="Right"
+                  IsVisible="{Binding !IsSegmented}"
+                  ItemsSource="{Binding Options}"
+                  SelectedItem="{Binding Selected}"
+                  IsEnabled="{Binding CanEdit}"
+                  VerticalAlignment="Center">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="devices:CapabilityChoice">
+              <TextBlock Text="{Binding Label}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+      </Panel>
+    </DataTemplate>
+
+    <DataTemplate DataType="cap:ActionCapabilityViewModel">
+      <Button Command="{Binding InvokeCommand}"
+              IsEnabled="{Binding CanEdit}"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <Path Width="12" Height="12"
+                Stretch="Uniform"
+                Stroke="{DynamicResource DangerBrush}"
+                StrokeThickness="1.5"
+                Data="M8 2.6 14.4 13.4H1.6L8 2.6Z"
+                VerticalAlignment="Center"
+                IsVisible="{Binding NeedsConfirmation}" />
+          <TextBlock Text="{Binding Label}" VerticalAlignment="Center" />
+        </StackPanel>
+      </Button>
+    </DataTemplate>
+
+    <!--
+      The composites. They are wider and taller than the scalar controls, and every one
+      of them is pinned to the same width so a page of mixed capabilities lines up and
+      the showcase's columns stay columns.
+    -->
+
+    <DataTemplate DataType="cap:RangeGroupCapabilityViewModel">
+      <ItemsControl HorizontalAlignment="Stretch" ItemsSource="{Binding Channels}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="cap:GroupedRangeViewModel">
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,1">
+              <TextBlock Grid.Column="0" Classes="caption"
+                         Text="{Binding Label}" VerticalAlignment="Center" />
+              <!-- Bounds before value, as everywhere: a Slider clamps to the range it
+                   holds at that instant and widening it later does not undo the clamp. -->
+              <!-- Same as the single range: no reading, no thumb. A slider parked at
+                   its minimum is a claim, and it is the wrong one. -->
+              <Slider Grid.Column="1"
+                      Minimum="{Binding Minimum}"
+                      Maximum="{Binding Maximum}"
+                      IsEnabled="{Binding CanEdit}"
+                      IsVisible="{Binding HasValue}"
+                      Value="{Binding Value}" />
+              <TextBlock Grid.Column="2" Classes="caption"
+                         TextAlignment="Right" TextWrapping="NoWrap"
+                         Text="{Binding Display}" VerticalAlignment="Center" />
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </DataTemplate>
+
+    <DataTemplate DataType="cap:CurveCapabilityViewModel">
+      <StackPanel HorizontalAlignment="Stretch" Spacing="3">
+        <TextBlock Classes="caption" HorizontalAlignment="Right"
+                   IsVisible="{Binding IsImplemented}"
+                   Text="{Binding Display}" />
+        <!--
+          Dimmed rather than blank when nothing has been read: the frame of an equaliser
+          still tells the reader what the control is, while a flat line drawn at full
+          strength would be a reading the device never gave.
+
+          Gone entirely when there is no way to reach the capability at all. Dimming is
+          for a control that would work if the device were awake; an empty sixty-pixel
+          frame under two lines of explanation is not a dimmed control, it looks like a
+          part of the page that failed to draw.
+        -->
+        <controls:CurvePlot Height="62"
+                            IsVisible="{Binding IsImplemented}"
+                            Opacity="{Binding HasCurve, Converter={StaticResource ReadOpacity}}"
+                            Points="{Binding Points}"
+                            IsEditable="{Binding CanEdit}"
+                            PointCommand="{Binding MovePointCommand}"
+                            LineBrush="{DynamicResource AccentPrimaryBrush}"
+                            AreaBrush="{DynamicResource AccentSubtleBrush}"
+                            GridBrush="{DynamicResource StrokeDefaultBrush}" />
+        <TextBlock Classes="caption" IsVisible="{Binding IsImplemented}" Text="{Binding Scale}" />
+      </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate DataType="cap:LightingCapabilityViewModel">
+      <ItemsControl HorizontalAlignment="Stretch" ItemsSource="{Binding Zones}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="cap:LightingZoneViewModel">
+            <StackPanel Spacing="3" Margin="0,2">
+              <TextBlock Classes="caption" Text="{Binding Label}" />
+              <ListBox Classes="swatches"
+                       ItemsSource="{Binding Palette}"
+                       SelectedItem="{Binding Selected}"
+                       IsEnabled="{Binding CanEdit}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="cap:LightingSwatch">
+                    <Border Width="18" Height="18"
+                            CornerRadius="{DynamicResource RadiusSmall}"
+                            Background="{Binding Packed, Converter={StaticResource PackedColour}}"
+                            ToolTip.Tip="{Binding Name}" />
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </DataTemplate>
+
+    <DataTemplate DataType="cap:ButtonMapCapabilityViewModel">
+      <ItemsControl HorizontalAlignment="Stretch" ItemsSource="{Binding Buttons}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="cap:ButtonAssignmentViewModel">
+            <Grid ColumnDefinitions="Auto,Auto,*" Margin="0,2">
+              <TextBlock Grid.Column="0" Classes="caption" MinWidth="120"
+                         VerticalAlignment="Center" Margin="0,0,10,0"
+                         Text="{Binding Label}" />
+
+              <!-- A button the device itself repurposes says so beside its name rather
+                   than under it: stacked in a narrow column the aside wrapped to three
+                   lines and pushed the row to twice its height. -->
+              <TextBlock Grid.Column="1" Classes="caption"
+                         VerticalAlignment="Center" Margin="0,0,10,0"
+                         Foreground="{DynamicResource AccentPrimaryBrush}"
+                         Text="{Binding Hint}"
+                         IsVisible="{Binding Hint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              <ComboBox Grid.Column="2"
+                        HorizontalAlignment="Stretch"
+                        ItemsSource="{Binding Actions}"
+                        SelectedItem="{Binding Selected}"
+                        IsEnabled="{Binding CanEdit}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="devices:CapabilityChoice">
+                    <TextBlock Text="{Binding Label}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </DataTemplate>
+
+    <DataTemplate DataType="cap:KeyMapCapabilityViewModel">
+      <StackPanel HorizontalAlignment="Stretch" Spacing="5">
+        <!-- Switching a layer is a read, not a write: which layer is on screen is not a
+             setting on the keyboard, so these tabs never carry the amber dot's promise. -->
+        <ListBox Classes="layers"
+                 ItemsSource="{Binding Layers}"
+                 SelectedItem="{Binding ActiveLayer}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="cap:KeyLayer">
+              <TextBlock Text="{Binding Label}" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <ItemsControl Width="{Binding GridWidth}"
+                      HorizontalAlignment="Left"
+                      ItemsSource="{Binding Keys}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="cap:KeyCapViewModel">
+              <Border Classes="keycap"
+                      Classes.selected="{Binding IsSelected}"
+                      Classes.unread="{Binding IsUnread}"
+                      ToolTip.Tip="{Binding Position}">
+                <TextBlock Text="{Binding Legend}" />
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <ComboBox HorizontalAlignment="Stretch"
+                  IsVisible="{Binding HasSelection}"
+                  ItemsSource="{Binding Keycodes}"
+                  SelectedItem="{Binding Assignment}"
+                  IsEnabled="{Binding CanEdit}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="devices:CapabilityChoice">
+              <TextBlock Text="{Binding Label}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+      </StackPanel>
+    </DataTemplate>
+
+    <!-- One template for both slot lists. Profiles and hosts differ in their verbs and
+         in nothing else, and the verbs come from the view model. -->
+    <DataTemplate DataType="cap:SlotListCapabilityViewModel">
+      <ItemsControl HorizontalAlignment="Stretch" ItemsSource="{Binding Slots}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="cap:CapabilitySlotViewModel">
+
+            <!-- A hairline above every row, the first one included: it separates the
+                 table from the name of the capability it belongs to, which is the job
+                 the card edge does for it in artboard 9b. -->
+            <Border BorderBrush="{DynamicResource StrokeSubtleBrush}" BorderThickness="0,1,0,0">
+              <Grid Classes="slot" Classes.empty="{Binding IsEmpty}"
+                    ColumnDefinitions="Auto,*,Auto"
+                    MinHeight="{DynamicResource SlotRowHeight}">
+
+                <!-- Which slot is live, said where the eye lands first. Colour alone:
+                     the name beside it already says the rest. -->
+                <Ellipse Grid.Column="0"
+                         Width="{DynamicResource SlotDotSize}"
+                         Height="{DynamicResource SlotDotSize}"
+                         Margin="{DynamicResource SlotRowGapRight}"
+                         VerticalAlignment="Center"
+                         Fill="{DynamicResource StrokeStrongBrush}"
+                         IsVisible="{Binding !IsActive}" />
+
+                <Ellipse Grid.Column="0"
+                         Width="{DynamicResource SlotDotSize}"
+                         Height="{DynamicResource SlotDotSize}"
+                         Margin="{DynamicResource SlotRowGapRight}"
+                         VerticalAlignment="Center"
+                         Fill="{DynamicResource SuccessBrush}"
+                         IsVisible="{Binding IsActive}" />
+
+                <StackPanel Grid.Column="1" Spacing="2"
+                            Margin="{DynamicResource SlotRowGapRight}"
+                            VerticalAlignment="Center">
+                  <TextBlock FontSize="{DynamicResource PageRowTitleSize}"
+                             Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Classes="caption" TextWrapping="Wrap"
+                             Text="{Binding Hint}"
+                             IsVisible="{Binding Hint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+
+                <!-- The live slot has nowhere to go, so it carries a badge instead of a
+                     button. A disabled "Apply" on the profile already applied is the
+                     kind of dead control the design system exists to prevent. -->
+                <Border Grid.Column="2" Classes="pill accent" VerticalAlignment="Center"
+                        IsVisible="{Binding IsActive}">
+                  <TextBlock Text="{Binding ActiveLabel}" />
+                </Border>
+
+                <Button Grid.Column="2" Classes="slot" VerticalAlignment="Center"
+                        IsVisible="{Binding ShowsButton}"
+                        IsEnabled="{Binding CanEdit}"
+                        Command="{Binding SelectCommand}"
+                        Content="{Binding Verb}" />
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </DataTemplate>
+
+  </UserControl.DataTemplates>
+
+  <StackPanel Spacing="3">
+
+    <!--
+      A grid rather than a horizontal stack. A stack cannot stretch its child, so the
+      control took its own idea of a width — which for a Slider is nothing at all, and
+      every range on the page collapsed to a dot the moment the hand-typed widths that
+      had been propping them up came off.
+    -->
+    <Grid ColumnDefinitions="*,Auto,Auto" VerticalAlignment="Center">
+
+      <!--
+        Out of reach: one quiet line in place of the control, which is how artboard 5b
+        writes it — "from the cable" where the slider would be. The row keeps its place so
+        the device does not look like it lacks the feature; what it does not keep is a
+        dead control with a dash, a dot and an explanation stacked on three lines.
+      -->
+      <TextBlock Grid.Column="0" Classes="caption"
+                 VerticalAlignment="Center" HorizontalAlignment="Right"
+                 TextWrapping="Wrap" MaxWidth="{DynamicResource PageControlWidth}"
+                 TextAlignment="Right"
+                 IsVisible="{Binding !IsAvailable}"
+                 Text="{Binding Unreachable}" />
+
+      <Border Grid.Column="0" Classes="capControl"
+              IsVisible="{Binding IsAvailable}"
+              Classes.error="{Binding HasError}"
+              Classes.external="{Binding ChangedExternally}"
+              Classes.pending="{Binding IsWriting}">
+        <ContentControl Content="{Binding}" />
+      </Border>
+
+      <!-- Warned before the write, never after. -->
+      <Path Grid.Column="2" Width="14" Height="14" Margin="8,0,0,0"
+            Stretch="Uniform"
+            Stroke="{DynamicResource StatusIrreversibleBrush}"
+            StrokeThickness="1.5"
+            Data="M8 2.6 14.4 13.4H1.6L8 2.6Z M8 6.4v3.2 M8 11.4h.01"
+            VerticalAlignment="Center"
+            IsVisible="{Binding IsIrreversible}"
+            ToolTip.Tip="This write cannot be undone" />
+    </Grid>
+
+    <!-- One line, and the most urgent thing wins. A stack of badges becomes wallpaper
+         the user stops reading. -->
+    <!--
+      Kept inside the control's own column. At 320 it was wider than the column, so the
+      stack measured wider than the control and the line spilled left across the row it
+      belongs to, landing on the divider under the title beside it.
+    -->
+    <TextBlock Classes="caption"
+               MaxWidth="{DynamicResource PageControlWidth}"
+               TextWrapping="Wrap" TextAlignment="Right"
+               HorizontalAlignment="Right"
+               Text="{Binding Hint}"
+               Foreground="{Binding HintTone, Converter={StaticResource HintTone}}">
+      <TextBlock.IsVisible>
+        <MultiBinding Converter="{x:Static BoolConverters.And}">
+          <Binding Path="Hint" Converter="{x:Static StringConverters.IsNotNullOrEmpty}" />
+          <Binding Path="!IsWide" />
+        </MultiBinding>
+      </TextBlock.IsVisible>
+    </TextBlock>
+
+    <TextBlock Classes="caption"
+               TextWrapping="Wrap" HorizontalAlignment="Left"
+               Text="{Binding Hint}"
+               Foreground="{Binding HintTone, Converter={StaticResource HintTone}}">
+      <TextBlock.IsVisible>
+        <MultiBinding Converter="{x:Static BoolConverters.And}">
+          <Binding Path="Hint" Converter="{x:Static StringConverters.IsNotNullOrEmpty}" />
+          <Binding Path="IsWide" />
+        </MultiBinding>
+      </TextBlock.IsVisible>
+    </TextBlock>
+  </StackPanel>
+
+</UserControl>

@@ -36,8 +36,8 @@ COLOUR_FILE = DESIGN / "Fluent Icons Color.dc.html"
 REAL_FILE = DESIGN / "Fluent Icons Real.dc.html"
 LEGACY_FILE = DESIGN / "Fluent Device Icons.dc.html"
 
-OUT = ROOT / "src" / "Maxwell.App" / "Web" / "Infrastructure" / "FluentIcons.g.cs"
-AXAML_OUT = ROOT / "src" / "Maxwell.App" / "Themes" / "FluentIcons.axaml"
+OUT = ROOT / "src" / "Kvazr.App" / "Web" / "Infrastructure" / "FluentIcons.g.cs"
+AXAML_OUT = ROOT / "src" / "Kvazr.App" / "Themes" / "FluentIcons.axaml"
 
 
 # =====================================================================================
@@ -327,7 +327,7 @@ lines = [
     "// </auto-generated>",
     "#nullable enable",
     "",
-    "namespace Maxwell.App.Web;",
+    "namespace Kvazr.App.Web;",
     "",
     "/// <summary>The Fluent icons, exactly as the design draws them.</summary>",
     "public static class FluentIcons",

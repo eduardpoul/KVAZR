@@ -8,7 +8,7 @@
 
 Протокол Flydigi V2 описан в SDL (`src/joystick/hidapi/SDL_hidapi_flydigi.c`,
 Apex 5 там поддержан, заряд — с февраля 2026). Проверено на этом паде
-пробой `maxwell --flydigi`:
+пробой `kvazr --flydigi`:
 
 - Вопрос в донгл (`37d7:2501`, page 0xFFA0, 32/32): `03 5A A5 01 02 00` (get-info).
   Ответ под report id 0x04: `5A A5 01 …`, считая от первого `5A`: [5] — устройство

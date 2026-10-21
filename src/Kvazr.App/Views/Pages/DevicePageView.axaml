@@ -1,0 +1,251 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctl="using:Kvazr.App.Controls"
+             xmlns:cap="using:Kvazr.App.ViewModels.Capabilities"
+             xmlns:controls="using:Kvazr.App.Controls"
+             xmlns:devices="using:Kvazr.App.ViewModels.Devices"
+             xmlns:vm="using:Kvazr.App.ViewModels"
+             xmlns:core="using:Kvazr.Core.Devices"
+             xmlns:conv="using:Kvazr.App.Converters"
+             x:Class="Kvazr.App.Views.Pages.DevicePageView"
+             x:DataType="devices:DevicePageViewModel">
+
+  <!--
+    Every device in the application, of every class and every vendor, is drawn by this
+    file. Sections are the capability domains in enum order and an empty one does not
+    appear, so a mouse and a headset lay out identically without either being authored.
+  -->
+
+  <UserControl.Styles>
+    <Style Selector="Border.chip">
+      <Setter Property="CornerRadius" Value="{DynamicResource DashPillRadiusCorner}" />
+      <Setter Property="Padding" Value="{DynamicResource DashPillPadding}" />
+      <Setter Property="Background" Value="{DynamicResource LayerAltBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.chip > TextBlock">
+      <Setter Property="FontSize" Value="{DynamicResource DashPillSize}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+    <Style Selector="Border.chip.transport">
+      <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Border.chip.transport > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource AccentPrimaryBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Border.sectionCard">
+      <Setter Property="Background" Value="{DynamicResource LayerCardBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource StrokeSubtleBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="{DynamicResource RadiusCard}" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+
+    <Style Selector="Border.sectionRow">
+      <Setter Property="BorderBrush" Value="{DynamicResource StrokeSubtleBrush}" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+    <Style Selector="Border.sectionRow:nth-last-child(1)">
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+
+    <!-- Upper case and small, as the artboard has it. A section label is a signpost
+         rather than a title: it should be findable while scanning and invisible while
+         reading. -->
+    <Style Selector="TextBlock.sectionHeading">
+      <Setter Property="FontSize" Value="{DynamicResource SectionHeadingSize}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+      <Setter Property="LetterSpacing" Value="0.24" />
+      <Setter Property="LineHeight" Value="{DynamicResource SectionHeadingLine}" />
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Spacing="{DynamicResource ContentGap}">
+
+    <!--
+      Artboard 5a. The hero identifies the device and nothing else: the picture, the name,
+      the channels it is actually on, its firmware, and the battery — which is the largest
+      thing on the page because it is what people come for most often.
+    -->
+    <Grid ColumnDefinitions="Auto,*,Auto">
+
+      <Border Grid.Column="0"
+              Width="{DynamicResource HeroThumbSize}"
+              Height="{DynamicResource HeroThumbSize}"
+              Background="{DynamicResource LayerAltBrush}"
+              CornerRadius="{DynamicResource HeroThumbRadiusCorner}"
+              ClipToBounds="True"
+              Margin="{DynamicResource HeroGapRight}"
+              VerticalAlignment="Center">
+        <ctl:DeviceThumb Photo="{Binding Photo}" IconKey="{Binding IconKey}" />
+      </Border>
+
+      <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
+        <!-- The device on the whole-device page, the section's name on a section, with
+             the device demoted to the line under it. Artboards 5a and 8a. -->
+        <TextBlock FontSize="{DynamicResource HeroNameSize}" FontWeight="SemiBold"
+                   LetterSpacing="-0.26"
+                   Text="{Binding Heading}" TextTrimming="CharacterEllipsis" />
+
+        <TextBlock Classes="caption"
+                   IsVisible="{Binding !IsWholeDevice}"
+                   Text="{Binding Subheading}" TextTrimming="CharacterEllipsis" />
+
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <ItemsControl ItemsSource="{Binding LiveTransports}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="10" /></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="core:TransportInfo">
+                <Border Classes="chip transport">
+                  <TextBlock Text="{Binding Label}" />
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Classes="caption" VerticalAlignment="Center"
+                     IsVisible="{Binding HasFirmware}"
+                     Text="{Binding Firmware}" />
+        </StackPanel>
+
+        <!-- What the current arrangement of channels means. Never red: a headset
+             reachable only over its dongle is being used exactly as intended. -->
+        <TextBlock Classes="caption" TextWrapping="Wrap"
+                   IsVisible="{Binding StateNotice, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   Text="{Binding StateNotice}" />
+      </StackPanel>
+
+      <StackPanel Grid.Column="2" Spacing="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+        <TextBlock FontSize="{DynamicResource HeroBatterySize}" FontWeight="SemiBold"
+                   LineHeight="{DynamicResource HeroBatterySize}" LetterSpacing="-0.88"
+                   HorizontalAlignment="Right"
+                   Text="{Binding Battery}" />
+        <TextBlock Classes="caption" HorizontalAlignment="Right" Text="{Binding Freshness}" />
+      </StackPanel>
+    </Grid>
+
+    <!--
+      Artboard 11c. A device connected at the Windows level that answers no known request
+      still gets a page, and the page says what little is known rather than being blank.
+      "Connected, and nothing here to configure" is something a person can act on; an
+      empty screen is something they file a bug about.
+    -->
+    <StackPanel Spacing="8" IsVisible="{Binding HasNothingToChange}">
+
+      <!-- Amber rather than red, and a statement rather than a warning: a device that
+           answers nothing is a fact about the device, not a mistake anybody made. -->
+      <Border Background="{DynamicResource NoticeFillBrush}"
+              BorderBrush="{DynamicResource NoticeStrokeBrush}"
+              BorderThickness="1"
+              CornerRadius="{DynamicResource NoticeRadiusCorner}"
+              Padding="{DynamicResource NoticePadding}">
+        <StackPanel Orientation="Horizontal" Spacing="{DynamicResource NoticeGap}">
+          <Ellipse Width="{DynamicResource NoticeDotSize}"
+                   Height="{DynamicResource NoticeDotSize}"
+                   VerticalAlignment="Top" Margin="0,6,0,0"
+                   Fill="{DynamicResource StatusUntestedBrush}" />
+          <TextBlock TextWrapping="Wrap" MaxWidth="620" LineHeight="19.5"
+                     FontSize="{DynamicResource NoticeTextSize}"
+                     Text="Windows sees the device, but it answers none of the requests we know. There is nothing to set — below is everything that could be read." />
+        </StackPanel>
+      </Border>
+
+      <TextBlock Classes="sectionHeading" Text="WHAT COULD BE READ" />
+      <Border Classes="sectionCard">
+        <ItemsControl ItemsSource="{Binding Facts}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="devices:DeviceFact">
+              <Border Classes="sectionRow">
+                <Grid ColumnDefinitions="*,Auto" Margin="{DynamicResource PageRowPadding}"
+                      MinHeight="44">
+                  <TextBlock Grid.Column="0" FontSize="{DynamicResource PageRowTitleSize}"
+                             VerticalAlignment="Center"
+                             Margin="{DynamicResource PageRowGapRight}"
+                             Text="{Binding Label}" />
+                  <TextBlock Grid.Column="1" Classes="value" VerticalAlignment="Center"
+                             TextAlignment="Right" Text="{Binding Value}" />
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
+
+      <!--
+        The only two things left to do with a device that answers nothing, and the
+        artboard puts them on the page rather than only in the row's menu — this is the
+        screen somebody reaches when they are trying to work out what the thing even is.
+        Only unpairing is offered: a disconnect that leaves the pairing in place is not
+        something this application can ask Windows for.
+      -->
+      <StackPanel Spacing="8"
+                  IsVisible="{Binding $parent[Window].((vm:ShellViewModel)DataContext).SelectedDevice.CanForget,
+                                      FallbackValue=False}">
+        <TextBlock Classes="sectionHeading" Text="ACTIONS" />
+        <Border Classes="sectionCard">
+          <Grid ColumnDefinitions="*,Auto" Margin="{DynamicResource PageRowPadding}"
+                MinHeight="{DynamicResource PageRowHeight}">
+            <StackPanel Grid.Column="0" VerticalAlignment="Center"
+                        Margin="{DynamicResource PageRowGapRight}">
+              <TextBlock FontSize="{DynamicResource PageRowTitleSize}" Text="Forget the device" />
+              <TextBlock Classes="caption" TextWrapping="Wrap"
+                         Text="Removes the pairing in the system. To use it again, pair it afresh" />
+            </StackPanel>
+
+            <Button Grid.Column="1" Classes="danger" VerticalAlignment="Center"
+                    Content="Forget"
+                    Command="{Binding $parent[Window].((vm:ShellViewModel)DataContext).ForgetDeviceCommand}"
+                    CommandParameter="{Binding $parent[Window].((vm:ShellViewModel)DataContext).SelectedDevice}" />
+          </Grid>
+        </Border>
+      </StackPanel>
+    </StackPanel>
+
+    <!-- Sections, generated. Heading and card are one group eight pixels apart, and the
+         groups stand sixteen from each other, which is the rhythm of every artboard that
+         has sections on it. A margin under each group made the two gaps the same and the
+         page stopped reading as headings-with-cards. -->
+    <ItemsControl ItemsSource="{Binding VisibleSections}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Spacing="{DynamicResource ContentGap}" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="devices:CapabilitySectionViewModel">
+          <StackPanel Spacing="8">
+            <TextBlock Classes="sectionHeading" Text="{Binding Heading}"
+                       IsVisible="{Binding $parent[ItemsControl].((devices:DevicePageViewModel)DataContext).IsWholeDevice}" />
+
+            <!--
+              Ordinary section. Rows sit inside one card with hairlines between them
+              rather than floating with margins, which is what the device list does and
+              what the artboard does here: the divider is what says these rows belong to
+              each other, and spacing alone never quite says it.
+            -->
+            <Border Classes="sectionCard">
+              <ItemsControl ItemsSource="{Binding Items}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="cap:CapabilityViewModel">
+                    <Border Classes="sectionRow">
+                      <controls:CapabilityRow Margin="{DynamicResource PageRowPadding}" />
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Border>
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+  </StackPanel>
+
+</UserControl>

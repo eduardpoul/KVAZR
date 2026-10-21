@@ -1,0 +1,208 @@
+@namespace Kvazr.App.Web
+@inherits ReactiveComponent
+
+@* Artboard 1a, and 6c when nothing is attached. One card per group, 84px rows with
+   hairlines, the battery column fixed so the percentages line up, and the row's menu
+   on right-click exactly as 13a draws it. *@
+
+<div class="content">
+
+  <div class="titlebar">
+    <div class="title">@T["rail.all_devices", "All devices"]</div>
+    @if (Shell.HasHeaderMeta)
+    {
+      <div class="meta">@Shell.HeaderMeta</div>
+    }
+  </div>
+
+  @if (Vm.Loading.ShowSkeleton)
+  {
+    <div class="group">
+      <div class="skeleton-line" style="width:150px"></div>
+      <div class="card">
+        @for (int i = 0; i < 3; i++)
+        {
+          <div class="dash-row">
+            <div class="skeleton-thumb"></div>
+            <div class="grow">
+              <div class="skeleton-line" style="width:220px"></div>
+              <div class="skeleton-line" style="width:120px;margin-top:8px"></div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+  else if (Vm.IsEmpty)
+  {
+    <div class="welcome">
+      <div class="welcome-title">@T["dash.welcome", "Plug a device in"]</div>
+      <div class="welcome-text">
+        @T["dash.blurb", "KVAZR shows the charge in the tray and sets up wireless peripherals from several makers — without a vendor suite each. Plug a headset in by cable or dongle, a mouse or a keyboard, and they turn up here by themselves."]
+      </div>
+      <div class="welcome-cards">
+        <div class="welcome-card">
+          <div class="welcome-icon">@((MarkupString)FluentIcons.Svg("headset"))</div>
+          <div class="welcome-card-title">@T["dash.headsets", "Headsets"]</div>
+          <div class="welcome-card-text">@T["dash.headsets.text", "Audeze Maxwell over USB-C and the dongle. Charge, sound, microphone, ChatMix"]</div>
+        </div>
+        <div class="welcome-card">
+          <div class="welcome-icon">@((MarkupString)FluentIcons.Svg("mouse-gaming"))</div>
+          <div class="welcome-card-title">@T["dash.mice", "Mice"]</div>
+          <div class="welcome-card-text">@T["dash.mice.text", "Logitech over the dongle and Bluetooth. DPI, report rate, buttons"]</div>
+        </div>
+        <div class="welcome-card">
+          <div class="welcome-icon">@((MarkupString)FluentIcons.Svg("keyboard-compact"))</div>
+          <div class="welcome-card-title">@T["dash.keyboards", "Keyboards"]</div>
+          <div class="welcome-card-text">@T["dash.keyboards.text", "NuPhy and anything VIA-compatible. Layers, macros, lighting"]</div>
+        </div>
+      </div>
+      <div class="welcome-actions">
+        <button class="accent" @onclick="() => OnUi(() => Shell.RediscoverCommand.Execute(null))">@T["dash.search", "Look for devices"]</button>
+        <span class="caption">@T["dash.watching", "The application keeps watching for connections in the background"]</span>
+      </div>
+    </div>
+  }
+  else
+  {
+    @if (Vm.HasConnected)
+    {
+      <div class="group">
+        <div class="group-heading">@Vm.ConnectedHeading</div>
+        <div class="card">
+          @foreach (DeviceListItemViewModel device in Vm.Connected)
+          {
+            <div class="dash-row clickable"
+                 @onclick="() => Open(device)"
+                 @oncontextmenu="e => Menu(e, device)"
+                 @oncontextmenu:preventDefault>
+              <Thumb Info="device.Snapshot.Info" />
+              <div class="grow">
+                <div class="row-name">@device.DisplayName</div>
+                <div class="row-sub">
+                  <span class="pill">@device.Kind</span>
+                  @foreach (TransportPill transport in device.Transports)
+                  {
+                    <span class="pill @(transport.IsLive ? "transport" : "")">@transport.Label</span>
+                  }
+                  @if (device.HasNote)
+                  {
+                    <span class="note">@device.Note</span>
+                  }
+                </div>
+              </div>
+              <div class="batt-block">
+                @if (device.IsBatteryPending)
+                {
+                  <span class="pending-dot" title="@T["dash.reading", "Reading…"]"></span>
+                }
+                else if (device.HasBatteryParts)
+                {
+                  @* A device with more than one battery says so here rather than being
+                     reduced to its emptiest half. Which earphone is about to run out is
+                     the question somebody scanning this list is asking. *@
+                  <BatteryParts Parts="device.BatteryParts" Compact="true" />
+                }
+                else if (device.BatteryPercent is not null)
+                {
+                  <Battery Percent="device.BatteryPercent" Charging="device.IsCharging" />
+                  <span class="batt-num">@device.Battery</span>
+                }
+              </div>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 16 16"><path d="M6 3.6 10.4 8 6 12.4" /></svg>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (Vm.HasDisconnected)
+    {
+      <div class="group">
+        <div class="group-heading">@Vm.DisconnectedHeading</div>
+        <div class="card dim">
+          @foreach (DeviceListItemViewModel device in Vm.Disconnected)
+          {
+            <div class="dash-row clickable"
+                 @onclick="() => Open(device)"
+                 @oncontextmenu="e => Menu(e, device)"
+                 @oncontextmenu:preventDefault>
+              <Thumb Info="device.Snapshot.Info" />
+              <div class="grow">
+                <div class="row-name">@device.DisplayName</div>
+                <div class="row-sub">
+                  <span class="pill">@device.Kind</span>
+                  <span class="note">@device.Note</span>
+                </div>
+              </div>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 16 16"><path d="M6 3.6 10.4 8 6 12.4" /></svg>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (Shell.HasHidden)
+    {
+      <div class="hidden-strip">
+        <span class="caption">@T["dash.hidden", "Hidden"]: @Shell.HiddenCount</span>
+        <button @onclick="() => OnUi(() => Shell.ShowHiddenCommand.Execute(null))">@T["settings.show_all", "Show all"]</button>
+      </div>
+    }
+  }
+
+  @* Artboard 13a: the row's own menu. Ours, not the browser's — the browser's offers
+     "Reload" to a person holding a mouse over their headset. *@
+  @if (_menuFor is { } target)
+  {
+    <div class="menu-backdrop" @onclick="CloseMenu" @oncontextmenu="CloseMenu" @oncontextmenu:preventDefault></div>
+    <div class="menu" style="left:@(_menuX)px;top:@(_menuY)px">
+      <button @onclick="() => { CloseMenu(); Open(target); }">@T["dash.open_device", "Open the page"]</button>
+      <button @onclick="() => Run(target, Shell.ShowInTrayCommand)">@T["dash.show_in_tray", "Show in the tray"]</button>
+      <button @onclick="() => Run(target, Shell.HideDeviceCommand)">@T["dash.hide_device", "Hide the device"]</button>
+      @if (target.CanForget)
+      {
+        <div class="menu-rule"></div>
+        <button class="danger" @onclick="() => Run(target, Shell.ForgetDeviceCommand)">@T["dash.forget", "Forget in the system"]</button>
+      }
+    </div>
+  }
+</div>
+
+@code {
+  [Parameter, EditorRequired] public ShellViewModel Shell { get; set; } = default!;
+
+  [Parameter, EditorRequired] public DashboardViewModel Vm { get; set; } = default!;
+
+  private DeviceListItemViewModel? _menuFor;
+  private double _menuX;
+  private double _menuY;
+
+  protected override void OnInitialized()
+  {
+    Follow(T);
+    Track(Vm);
+    Track(Vm.Loading);
+    Track(Vm.Connected);
+    Track(Vm.Disconnected);
+    Track(Shell);
+  }
+
+  private void Open(DeviceListItemViewModel device) =>
+      OnUi(() => Shell.OpenDeviceCommand.Execute(device));
+
+  private void Menu(MouseEventArgs e, DeviceListItemViewModel device)
+  {
+    _menuFor = device;
+    _menuX = e.ClientX;
+    _menuY = e.ClientY;
+  }
+
+  private void CloseMenu() => _menuFor = null;
+
+  private void Run(DeviceListItemViewModel device, System.Windows.Input.ICommand command)
+  {
+    CloseMenu();
+    OnUi(() => command.Execute(device));
+  }
+}

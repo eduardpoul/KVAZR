@@ -1,4 +1,4 @@
-# Maxwell.App — план работ
+# KVAZR — план работ
 
 Реализация десктопного приложения для наушников Audeze Maxwell на Avalonia.
 Дизайн: `Design/audeze-maxwell/project/Maxwell Hub.dc.html` (11 экранов, Turn 4).
@@ -10,7 +10,7 @@
 
 | Компонент | Версия | Обоснование |
 |---|---|---|
-| .NET | 10 | Уже стоит, `Maxwell.Race` на нём собран |
+| .NET | 10 | Уже стоит, `Kvazr.Race` на нём собран |
 | Avalonia | **12.1.1** | Текущая стабильная |
 | FluentAvaloniaUI | **3.0.2** | Требует Avalonia 12+, совпало идеально |
 | xUnit | последняя | Тесты на RACE-кодек |
@@ -24,31 +24,31 @@
 ## 2. Структура решения
 
 ```
-Maxwell.App.sln
+Kvazr.App.sln
 ├─ src/
-│  ├─ Maxwell.Race/            HID + RACE протокол           [есть, дорабатывается]
+│  ├─ Kvazr.Race/            HID + RACE протокол           [есть, дорабатывается]
 │  │   ├─ Abstractions/          IHidTransport, IHidDeviceWatcher
 │  │   ├─ Windows/               hid.dll + setupapi (готовый код)
 │  │   ├─ Linux/                 /dev/hidraw                 [фаза 6]
 │  │   └─ MacOS/                 IOKit HID Manager           [фаза 6]
 │  │
-│  ├─ Maxwell.Core/            домен и сервисы               [новый]
+│  ├─ Kvazr.Core/            домен и сервисы               [новый]
 │  │   ├─ Model/                 DeviceState, Feature, Profile
 │  │   ├─ Services/              IDeviceService, PollingService
 │  │   ├─ Notifications/         правила порогов заряда
 │  │   └─ Abstractions/          INotifier, IAutostart, IHotkeys, ISettingsStore
 │  │
-│  ├─ Maxwell.App/             Avalonia UI                   [новый]
+│  ├─ Kvazr.App/             Avalonia UI                   [новый]
 │  │   ├─ Themes/                токены дизайна, light/dark
 │  │   ├─ Views/                 11 экранов
 │  │   ├─ ViewModels/
 │  │   ├─ Controls/              BatteryRing, EqCurve, SegmentedControl
 │  │   └─ Platform/              Windows: тосты, автозапуск, хоткеи
 │  │
-│  └─ Maxwell.Cli/             диагностический харнесс       [есть, оставляем]
+│  └─ Kvazr.Cli/             диагностический харнесс       [есть, оставляем]
 │
 └─ tests/
-   └─ Maxwell.Race.Tests/      кодек, парсер пакетов, framing
+   └─ Kvazr.Race.Tests/      кодек, парсер пакетов, framing
 ```
 
 Правило зависимостей: `App → Core → Race`. Обратных ссылок нет. `Core` не знает ни про Avalonia, ни про Windows.

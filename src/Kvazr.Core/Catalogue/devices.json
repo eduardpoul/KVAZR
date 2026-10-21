@@ -1,0 +1,153 @@
+{
+  "$comment": [
+    "Models, and how to recognise them. Data, never code.",
+    "",
+    "Adding a device here must never mean adding a class, because the moment it does the",
+    "hundredth device costs what the first one did. Everything in this file is an",
+    "improvement on what the operating system already reported — a better name, a class it",
+    "could not work out, a picture — and never a precondition for the device appearing at",
+    "all. Delete this file and every device still shows up, just plainer.",
+    "",
+    "unverified: true means nobody here has held the device against the entry. The",
+    "interface already has a word for that and it is the amber mark, not silence.",
+    "",
+    "The vendor table below is small on purpose. DEVPKEY_Device_Manufacturer is the author",
+    "of the driver package rather than of the hardware — it says Microsoft for a Logitech",
+    "receiver — so the vendor id is the honest source, and only ids with a justification",
+    "are listed."
+  ],
+
+  "vendors": {
+    "046d": "Logitech",
+    "0951": "Kingston",
+    "3329": "Audeze",
+    "19f5": "NuPhy",
+    "37d7": "Flydigi",
+    "05ac": "Apple"
+  },
+
+  "devices": [
+    {
+      "slug": "audeze-maxwell",
+      "vendor": "Audeze",
+      "model": "Audeze Maxwell",
+      "class": "Headset",
+      "usb": ["3329:4b18", "3329:4b19", "3329:4b1a", "3329:4b1e"],
+      "names": ["Audeze Maxwell"]
+    },
+
+    {
+      "$note": "Two product ids, one microphone. The enumerator is right to list them separately — it has no way to know — and this is where they become one device.",
+      "slug": "hyperx-quadcast-s",
+      "vendor": "HyperX",
+      "model": "HyperX QuadCast S",
+      "class": "Microphone",
+      "usb": ["0951:171d", "0951:171f"]
+    },
+
+    {
+      "$note": "The 2.4G dongle is sold with exactly one board and named after it, which is what justifies showing the keyboard rather than the receiver. Battery and the VIA usage page are not exposed through it (checked on this desk: only keyboard/mouse/consumer collections plus a vendor-defined MI_02, where NuPhy's own protocol would be spoken); the honest battery paths are Bluetooth pairing or the cable.",
+      "slug": "nuphy-air96-v2",
+      "vendor": "NuPhy",
+      "model": "NuPhy Air96 V2",
+      "class": "Keyboard",
+      "usb": ["19f5:3247", "19f5:3265"],
+      "dongle": ["19f5:3247"],
+      "names": ["Air96 V2", "Air96"],
+
+      "$effects": "The lighting effects this firmware compiled in, in the order it numbers them. Read off the model's own VIA definition, which is where VIA's client gets them too — the number alone means nothing, since the same index names a different effect on a keyboard built with a different set.",
+      "$colourless": "Which of those generate their own hue and never read the one that was picked, so the colour control is beside the point while they run. Read off the animation sources rather than guessed from the names, and the names mislead: every Rainbow uses the picked hue as its starting point, while every Solid Reactive ignores it entirely.",
+      "colourless": [0, 11, 12, 13, 15, 16, 17, 18, 29, 30, 31, 32, 33, 34, 35, 36],
+      "effects": ["All Off", "Solid Color", "Gradient Up/Down", "Gradient Left/Right", "Breathing", "Band Sat.", "Band Val.", "Pinwheel Sat.", "Pinwheel Val.", "Spiral Sat.", "Spiral Val.", "Cycle All", "Cycle Left/Right", "Cycle Up/Down", "Rainbow Moving Chevron", "Cycle Out/In", "Cycle Out/In Dual", "Cycle Pinwheel", "Cycle Spiral", "Dual Beacon", "Rainbow Beacon", "Rainbow Pinwheels", "Raindrops", "Jellybean Raindrops", "Hue Breathing", "Hue Pendulum", "Hue Wave", "Typing Heatmap", "Digital Rain", "Reactive Simple", "Reactive", "Reactive Wide", "Reactive Multiwide", "Reactive Cross", "Reactive Multicross", "Reactive Nexus", "Reactive MultiNexus", "Splash", "MultiSplash", "Solid Splash", "Solid MultiSplash"]
+    },
+
+    {
+      "$note": "Same again for Logitech: one receiver serves whatever is paired to it, and HID++ is what will eventually say what that is.",
+      "slug": "logitech-lightspeed-receiver",
+      "vendor": "Logitech",
+      "model": "Logitech USB Receiver",
+      "class": "Receiver",
+      "usb": ["046d:c54d", "046d:c547", "046d:c52b"]
+    },
+
+    {
+      "$note": "In the design and not on this desk. Matched by Bluetooth name only, because Apple exposes no product id Windows can see.",
+      "slug": "apple-airpods-pro-2",
+      "vendor": "Apple",
+      "model": "Apple AirPods Pro 2",
+      "class": "Earbuds",
+      "names": ["AirPods Pro"],
+      "unverified": true
+    },
+
+    {
+      "slug": "jbl-flip-6",
+      "vendor": "JBL",
+      "model": "JBL Flip 6",
+      "class": "Speaker",
+      "names": ["JBL Flip 6"],
+      "unverified": true
+    },
+
+    {
+      "$note": "Prepared ahead of the hardware: the pad is on its way to this desk, the protocol is community-documented (Kvazr.Race SwitchPro + tests), and unverified comes off the day it answers. Over USB it needs the 0x80 handshake before it speaks; over Bluetooth it just talks.",
+      "slug": "nintendo-switch-pro",
+      "vendor": "Nintendo",
+      "model": "Switch Pro Controller",
+      "class": "Gamepad",
+      "usb": ["057e:2009"],
+      "names": ["Pro Controller"],
+      "unverified": true
+    },
+
+    {
+      "$note": "A software node G HUB installs to inject macro keystrokes. Honestly a keyboard as far as the bus is concerned, and still nothing anybody plugged in — hidden by default, reversibly, same switch as the silent devices.",
+      "slug": "logitech-ghub-virtual-keyboard",
+      "vendor": "Logitech",
+      "model": "Logitech G HUB (виртуальная клавиатура)",
+      "class": "Keyboard",
+      "usb": ["046d:c232"],
+      "hidden": true
+    },
+
+    {
+      "$note": "PRO X 2 is what the mouse calls itself over HID++ — read off the live device, which is what retired the unverified flag.",
+      "slug": "logitech-g-pro-x-superlight-2",
+      "vendor": "Logitech",
+      "model": "Logitech G Pro X Superlight 2",
+      "class": "Mouse",
+      "names": ["G Pro X Superlight 2", "PRO X Superlight 2", "PRO X 2"]
+    },
+
+    {
+      "slug": "nuphy-air75-v2",
+      "vendor": "NuPhy",
+      "model": "NuPhy Air75 V2",
+      "class": "Keyboard",
+      "names": ["Air75 V2"],
+      "unverified": true
+    },
+
+    {
+      "slug": "nuphy-halo75-v2",
+      "vendor": "NuPhy",
+      "model": "NuPhy Halo75 V2",
+      "class": "Keyboard",
+      "names": ["Halo75"],
+      "unverified": true
+    },
+
+    {
+      "$note": "The dongle presents XInput plus an emulated keyboard and mouse; the container is the gamepad reached through it, and 2501 being listed as the dongle is what puts the honest transport label on the row. Whether the pad itself is switched on is not visible at this tier — the vendor-defined HID collections are where a future driver would ask.",
+      "slug": "flydigi-apex-5",
+      "vendor": "Flydigi",
+      "model": "Flydigi APEX 5",
+      "class": "Gamepad",
+      "usb": ["37d7:2501", "37d7:6001"],
+      "dongle": ["37d7:2501"],
+      "dock": ["37d7:6001"],
+      "names": ["APEX 5", "Apex 5", "APEX5"],
+      "unverified": true
+    }
+  ]
+}

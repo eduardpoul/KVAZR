@@ -3,10 +3,10 @@
 ## Windows
 
 ```
-dotnet publish src/Maxwell.App -c Release -f net10.0-windows10.0.17763.0 -r win-x64 -p:PublishSingleFile=true -o Deploys
+dotnet publish src/Kvazr.App -c Release -f net10.0-windows10.0.17763.0 -r win-x64 -p:PublishSingleFile=true -o Deploys
 ```
 
-Produces `Deploys/Maxwell.exe` — one self-contained file, ~169 MB, that runs without a
+Produces `Deploys/KVAZR.exe` — one self-contained file, ~169 MB, that runs without a
 .NET install. The content pane's HTML, CSS and scripts are embedded in it too, so
 nothing else lands beside the exe. `PublishSingleFile` also switches on self-extraction of the native Skia
 and HarfBuzz libraries; without that they land beside the exe and the single file is
@@ -26,13 +26,13 @@ off in both: Avalonia resolves controls and styles through reflection, and a tri
 build fails at runtime rather than at publish time.
 
 Nothing else needs installing, and the app writes only to
-`%APPDATA%\Maxwell.App\settings.json`.
+`%APPDATA%\KVAZR\settings.json`.
 
 ## Linux
 
 ```
-dotnet publish src/Maxwell.App -c Release -f net10.0 -r linux-x64 --self-contained
-sudo cp packaging/linux/99-maxwell-app.rules /etc/udev/rules.d/
+dotnet publish src/Kvazr.App -c Release -f net10.0 -r linux-x64 --self-contained
+sudo cp packaging/linux/99-kvazr.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
 

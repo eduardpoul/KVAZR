@@ -26,7 +26,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DESIGN = ROOT / "Design" / "kvazr" / "Devices Hub.dc.html"
-OUT = ROOT / "src" / "Maxwell.App" / "Themes" / "Metrics.axaml"
+OUT = ROOT / "src" / "Kvazr.App" / "Themes" / "Metrics.axaml"
 
 
 def load() -> str:
@@ -364,8 +364,8 @@ def main() -> None:
         print(f"   {name:<24} {value}")
 
 
-CSS_OUT = ROOT / "src" / "Maxwell.App" / "wwwroot" / "css" / "tokens.css"
-TOKENS_AXAML = ROOT / "src" / "Maxwell.App" / "Themes" / "Tokens.axaml"
+CSS_OUT = ROOT / "src" / "Kvazr.App" / "wwwroot" / "css" / "tokens.css"
+TOKENS_AXAML = ROOT / "src" / "Kvazr.App" / "Themes" / "Tokens.axaml"
 
 
 def kebab(name: str) -> str:

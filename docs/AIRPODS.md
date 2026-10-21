@@ -205,9 +205,9 @@ Bluetooth; проба `--btreset` делает это сама и меряет �
 ## Команды
 
 ```
-dotnet run --project src/Maxwell.Cli -- --btreset 8        # перезапустить радио и померить до/после
-dotnet run --project src/Maxwell.Cli -- --airpods 8        # слушать рекламу, оба режима
-dotnet run --project src/Maxwell.Cli -- --btscan 10        # попросить Windows поискать вокруг
-dotnet run --project src/Maxwell.Cli -- --aapmatrix        # перебрать способы достучаться по RFCOMM
-dotnet run --project src/Maxwell.Cli -- --props 6093160A369F
+dotnet run --project src/Kvazr.Cli -- --btreset 8        # перезапустить радио и померить до/после
+dotnet run --project src/Kvazr.Cli -- --airpods 8        # слушать рекламу, оба режима
+dotnet run --project src/Kvazr.Cli -- --btscan 10        # попросить Windows поискать вокруг
+dotnet run --project src/Kvazr.Cli -- --aapmatrix        # перебрать способы достучаться по RFCOMM
+dotnet run --project src/Kvazr.Cli -- --props 6093160A369F
 ```

@@ -1,0 +1,334 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctl="using:Kvazr.App.Controls"
+             xmlns:controls="using:Kvazr.App.Controls"
+             xmlns:vm="using:Kvazr.App.ViewModels"
+             xmlns:devices="using:Kvazr.App.ViewModels.Devices"
+             xmlns:views="using:Kvazr.App.Views.Pages"
+             x:Class="Kvazr.App.Views.Pages.DashboardView"
+             x:DataType="vm:DashboardViewModel">
+
+  <!--
+    Artboard 1a. Every measurement here comes from Themes/Metrics.axaml, which is lifted
+    out of the design file by tools/design-tokens.py rather than typed in. Screens built
+    by reading numbers off the artboard and typing them came out wrong in a different
+    place each time, and it only showed once they were rendered and put side by side with
+    the design.
+
+    The list is one card with rows and dividers inside it, not a card per device. That is
+    what makes eight devices read as one list rather than as eight competing objects.
+  -->
+
+  <UserControl.Styles>
+    <Style Selector="Border.deviceList">
+      <Setter Property="Background" Value="{DynamicResource LayerCardBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource StrokeSubtleBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="{DynamicResource RadiusCard}" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+
+    <!-- A hairline between rows, and none under the last one: the card's own edge is
+         already there, and a divider on top of it reads as a doubled line. -->
+    <Style Selector="Border.deviceRow">
+      <Setter Property="BorderBrush" Value="{DynamicResource StrokeSubtleBrush}" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+    <Style Selector="Border.deviceRow:nth-last-child(1)">
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+
+    <Style Selector="Border.chip">
+      <Setter Property="CornerRadius" Value="{DynamicResource DashPillRadiusCorner}" />
+      <Setter Property="Padding" Value="{DynamicResource DashPillPadding}" />
+      <Setter Property="Background" Value="{DynamicResource LayerAltBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.chip > TextBlock">
+      <Setter Property="FontSize" Value="{DynamicResource DashPillSize}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+
+    <!-- The transport chip is the accented one, and a pixel tighter than the class chip
+         because it carries a border the other does not. -->
+    <Style Selector="Border.chip.transport">
+      <Setter Property="Padding" Value="{DynamicResource DashTransportPadding}" />
+      <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Border.chip.transport > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource AccentPrimaryBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+
+    <Style Selector="TextBlock.groupHeading">
+      <Setter Property="FontSize" Value="{DynamicResource DashGroupSize}" />
+      <Setter Property="LineHeight" Value="{DynamicResource SectionHeadingLine}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Spacing="14">
+
+    <!-- Still looking. Not the same thing as having looked and found none, which is why
+         the two get different screens rather than one shared empty card. -->
+    <StackPanel Spacing="10" IsVisible="{Binding Loading.ShowSkeleton}">
+      <controls:Skeleton Width="150" Height="11" HorizontalAlignment="Left" />
+      <Border Classes="deviceList">
+        <StackPanel>
+          <Grid ColumnDefinitions="Auto,*,Auto" Height="{DynamicResource DashRowHeight}"
+                Margin="{DynamicResource DashRowPadding}">
+            <controls:Skeleton Grid.Column="0"
+                               Width="{DynamicResource DashThumbSize}"
+                               Height="{DynamicResource DashThumbSize}"
+                               Radius="{DynamicResource DashThumbRadius}"
+                               Margin="0,0,16,0" VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
+              <controls:Skeleton Width="180" Height="11" Phase="1" HorizontalAlignment="Left" />
+              <controls:Skeleton Width="120" Height="8" Phase="2" HorizontalAlignment="Left" />
+            </StackPanel>
+            <controls:Skeleton Grid.Column="2" Width="44" Height="14" Phase="3" VerticalAlignment="Center" />
+          </Grid>
+
+          <Grid ColumnDefinitions="Auto,*,Auto" Height="{DynamicResource DashRowHeight}"
+                Margin="{DynamicResource DashRowPadding}">
+            <controls:Skeleton Grid.Column="0"
+                               Width="{DynamicResource DashThumbSize}"
+                               Height="{DynamicResource DashThumbSize}"
+                               Radius="{DynamicResource DashThumbRadius}" Phase="2"
+                               Margin="0,0,16,0" VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
+              <controls:Skeleton Width="146" Height="11" Phase="3" HorizontalAlignment="Left" />
+              <controls:Skeleton Width="98" Height="8" Phase="4" HorizontalAlignment="Left" />
+            </StackPanel>
+            <controls:Skeleton Grid.Column="2" Width="44" Height="14" Phase="5" VerticalAlignment="Center" />
+          </Grid>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+
+    <!--
+      The first-launch screen, artboard 6c. Its own control because it is a screen in its
+      own right rather than a state of this one — and because a screen that shows only
+      when nothing is attached is a screen nobody ever sees during development unless it
+      can be rendered on demand.
+    -->
+    <views:WelcomeView DataContext="{Binding Shell}" Margin="0,28,0,0">
+      <views:WelcomeView.IsVisible>
+        <MultiBinding Converter="{x:Static BoolConverters.And}">
+          <Binding Path="$parent[UserControl].((vm:DashboardViewModel)DataContext).IsEmpty" />
+          <Binding Path="$parent[UserControl].((vm:DashboardViewModel)DataContext).Loading.ShowContent" />
+        </MultiBinding>
+      </views:WelcomeView.IsVisible>
+    </views:WelcomeView>
+
+    <TextBlock Classes="secondary"
+               IsVisible="{Binding Loading.ShowError}"
+               Text="The poll is not answering. Check that the device is switched on." />
+
+    <StackPanel Spacing="8" IsVisible="{Binding HasConnected}">
+      <TextBlock Classes="groupHeading" Text="{Binding ConnectedHeading}" />
+      <Border Classes="deviceList">
+        <ItemsControl ItemsSource="{Binding Connected}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="devices:DeviceListItemViewModel">
+              <Border Classes="deviceRow">
+
+                <!--
+                  Artboard 13a. Putting a device away is a right-click rather than a
+                  control on the row: it happens once in the life of a device, and a
+                  permanent button would sit beside the battery of every device forever.
+                -->
+                <Border.ContextMenu>
+                  <ContextMenu>
+                    <MenuItem Header="Open the page"
+                              Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).Shell.OpenDeviceCommand}"
+                              CommandParameter="{Binding}" />
+                    <MenuItem Header="Show in the tray"
+                              Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).Shell.ShowInTrayCommand}"
+                              CommandParameter="{Binding}" />
+                    <Separator />
+                    <MenuItem Header="Hide the device"
+                              Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).Shell.HideDeviceCommand}"
+                              CommandParameter="{Binding}" />
+
+                    <!-- Red, last, and only where a pairing exists. It is the one item
+                         here that cannot be undone from this menu. -->
+                    <MenuItem Header="Forget in the system"
+                              Foreground="{DynamicResource DangerBrush}"
+                              IsVisible="{Binding CanForget}"
+                              Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).Shell.ForgetDeviceCommand}"
+                              CommandParameter="{Binding}" />
+                  </ContextMenu>
+                </Border.ContextMenu>
+
+                <Grid ColumnDefinitions="Auto,*,Auto"
+                      Height="{DynamicResource DashRowHeight}"
+                      Margin="{DynamicResource DashRowPadding}">
+
+                  <Border Grid.Column="0"
+                          Width="{DynamicResource DashThumbSize}"
+                          Height="{DynamicResource DashThumbSize}"
+                          Background="{DynamicResource LayerAltBrush}"
+                          CornerRadius="{DynamicResource DashThumbRadiusCorner}"
+                          ClipToBounds="True"
+                          Margin="0,0,16,0"
+                          VerticalAlignment="Center">
+                    <ctl:DeviceThumb Photo="{Binding Photo}" IconKey="{Binding IconKey}" />
+                  </Border>
+
+                  <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
+                    <TextBlock FontSize="{DynamicResource DashNameSize}" FontWeight="SemiBold"
+                               Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="{DynamicResource DashSubGap}">
+                      <Border Classes="chip">
+                        <TextBlock Text="{Binding Kind}" />
+                      </Border>
+
+                      <ItemsControl ItemsSource="{Binding Transports}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="{DynamicResource DashSubGap}" />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="devices:TransportPill">
+                            <Border Classes="chip" Classes.transport="{Binding IsLive}">
+                              <TextBlock Text="{Binding Label}" />
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+
+                      <TextBlock VerticalAlignment="Center"
+                                 FontSize="{DynamicResource DashNoteSize}"
+                                 Foreground="{DynamicResource TextSecondaryBrush}"
+                                 IsVisible="{Binding HasNote}"
+                                 Text="{Binding Note}" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </StackPanel>
+
+                  <StackPanel Grid.Column="2" Orientation="Horizontal"
+                              VerticalAlignment="Center" HorizontalAlignment="Right">
+
+                    <!-- A column of its own width, so the percentages line up down the
+                         list however wide the gauge beside each of them turns out. -->
+                    <Grid Width="{DynamicResource DashBatteryBlock}"
+                          Margin="{DynamicResource DashRowGapRight}">
+                      <StackPanel Orientation="Horizontal"
+                                  Spacing="{DynamicResource DashBatteryGap}"
+                                  VerticalAlignment="Center" HorizontalAlignment="Right">
+                        <controls:KvazrMarkControl Width="18" Height="18"
+                                                   Motion="Fast" OrbitShade="Resting"
+                                                   VerticalAlignment="Center"
+                                                   IsVisible="{Binding IsBatteryPending}" />
+
+                        <controls:BatteryGauge Percent="{Binding BatteryPercent}"
+                                               VerticalAlignment="Center" />
+
+                        <TextBlock FontSize="{DynamicResource DashPercentSize}"
+                                   FontWeight="SemiBold"
+                                   Width="{DynamicResource DashPercentWidth}"
+                                   TextAlignment="Right"
+                                   VerticalAlignment="Center"
+                                   IsVisible="{Binding !IsBatteryPending}"
+                                   Text="{Binding Battery}" />
+                      </StackPanel>
+                    </Grid>
+
+                    <!-- The chevron says the row opens. Without it a list of eight rows
+                         gives no sign that any of them leads anywhere. -->
+                    <Path Width="12" Height="12" VerticalAlignment="Center"
+                          Stroke="{DynamicResource TextTertiaryBrush}"
+                          StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round"
+                          Stretch="Uniform"
+                          Data="M6 3.6 10.4 8 6 12.4" />
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
+    </StackPanel>
+
+    <!-- Devices that are not here now: dimmed, under their own heading, and with the
+         time they were last seen instead of a battery. A percentage there would be a
+         claim about a device nobody has asked in hours. -->
+    <StackPanel Spacing="8" IsVisible="{Binding HasDisconnected}">
+      <TextBlock Classes="groupHeading" Text="{Binding DisconnectedHeading}" />
+      <Border Classes="deviceList" Opacity="0.55">
+        <ItemsControl ItemsSource="{Binding Disconnected}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="devices:DeviceListItemViewModel">
+              <Border Classes="deviceRow">
+                <Grid ColumnDefinitions="Auto,*,Auto"
+                      Height="{DynamicResource DashRowHeight}"
+                      Margin="{DynamicResource DashRowPadding}">
+
+                  <Border Grid.Column="0"
+                          Width="{DynamicResource DashThumbSize}"
+                          Height="{DynamicResource DashThumbSize}"
+                          Background="{DynamicResource LayerAltBrush}"
+                          CornerRadius="{DynamicResource DashThumbRadiusCorner}"
+                          ClipToBounds="True"
+                          Margin="0,0,16,0"
+                          VerticalAlignment="Center">
+                    <ctl:DeviceThumb Photo="{Binding Photo}" IconKey="{Binding IconKey}" />
+                  </Border>
+
+                  <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
+                    <TextBlock FontSize="{DynamicResource DashNameSize}" FontWeight="SemiBold"
+                               Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" />
+                    <StackPanel Orientation="Horizontal" Spacing="{DynamicResource DashSubGap}">
+                      <Border Classes="chip">
+                        <TextBlock Text="{Binding Kind}" />
+                      </Border>
+                      <TextBlock VerticalAlignment="Center"
+                                 FontSize="{DynamicResource DashNoteSize}"
+                                 Foreground="{DynamicResource TextSecondaryBrush}"
+                                 Text="{Binding Note}" />
+                    </StackPanel>
+                  </StackPanel>
+
+                  <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
+                              VerticalAlignment="Center" HorizontalAlignment="Right">
+                    <controls:BatteryGauge Percent="{Binding BatteryPercent}"
+                                           VerticalAlignment="Center" />
+                    <TextBlock FontSize="{DynamicResource DashNameSize}"
+                               FontWeight="SemiBold"
+                               MinWidth="38"
+                               TextAlignment="Right"
+                               VerticalAlignment="Center"
+                               Text="{Binding Battery}" />
+                    <Path Width="12" Height="12" VerticalAlignment="Center"
+                          Stroke="{DynamicResource TextTertiaryBrush}"
+                          StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round"
+                          Stretch="Uniform"
+                          Data="M6 3.6 10.4 8 6 12.4" />
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
+    </StackPanel>
+
+    <!--
+      Hiding without a visible way back is a trap rather than a feature, so the count and
+      the way back live on the dashboard until the settings screen carries them.
+    -->
+    <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding Shell.HasHidden}">
+      <TextBlock Classes="caption" VerticalAlignment="Center"
+                 Text="{Binding Shell.HiddenCount, StringFormat='Hidden: {0}'}" />
+      <Button Content="Show all" Command="{Binding Shell.ShowHiddenCommand}" />
+    </StackPanel>
+
+  </StackPanel>
+
+</UserControl>

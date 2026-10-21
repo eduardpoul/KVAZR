@@ -7,10 +7,10 @@
 Воспроизвести:
 
 ```
-dotnet run --project src/Maxwell.Cli -- --pointers     # дескриптор, кнопки, оси, запись
-dotnet run --project src/Maxwell.Cli -- --system       # что знает Windows сама
-dotnet run --project src/Maxwell.Cli -- --hidpp        # Logitech: имя, заряд, таблица возможностей
-dotnet run --project src/Maxwell.Cli -- --devices      # что из этого складывается в устройство
+dotnet run --project src/Kvazr.Cli -- --pointers     # дескриптор, кнопки, оси, запись
+dotnet run --project src/Kvazr.Cli -- --system       # что знает Windows сама
+dotnet run --project src/Kvazr.Cli -- --hidpp        # Logitech: имя, заряд, таблица возможностей
+dotnet run --project src/Kvazr.Cli -- --devices      # что из этого складывается в устройство
 ```
 
 ## Три линка — три разных ответа

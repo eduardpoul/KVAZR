@@ -1,0 +1,435 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Kvazr.App.ViewModels"
+        xmlns:pages="using:Kvazr.App.ViewModels.Pages"
+        xmlns:devices="using:Kvazr.App.ViewModels.Devices"
+        xmlns:views="using:Kvazr.App.Views.Pages"
+        xmlns:controls="using:Kvazr.App.Controls"
+        xmlns:ctl="using:Kvazr.App.Controls"
+        xmlns:conv="using:Kvazr.App.Converters"
+        x:Class="Kvazr.App.Views.MainWindow"
+        x:DataType="vm:ShellViewModel"
+        Title="KVAZR"
+        Icon="/Assets/kvazr.ico"
+        Width="1040" Height="720"
+        MinWidth="900" MinHeight="600"
+        MaxWidth="1400" MaxHeight="1000"
+        Background="{DynamicResource LayerBackgroundBrush}"
+        FontFamily="Segoe UI Variable Text, Segoe UI, sans-serif"
+        FontSize="{DynamicResource FontSizeBody}"
+        Foreground="{DynamicResource TextPrimaryBrush}"
+        WindowDecorations="BorderOnly">
+
+  <!--
+    The window is bounded at both ends, and both ends are arithmetic rather than taste.
+
+    The floor is what the widest row needs: 264 for the pane, 28 of pane padding on each
+    side, 16 of row padding on each side, the 260 control column, the 16 between it and
+    the label, and enough left for a title and its explanation to sit on two lines rather
+    than four. Below that the page stops being a list of settings and becomes a column of
+    wrapped fragments.
+
+    The ceiling is there because nothing on these screens grows to use the room. The rows
+    are a fixed height and the control column a fixed width, so a maximised window on a
+    wide monitor is the same page with a metre of empty card to the right of every
+    switch.
+  -->
+
+  <!-- Three templates for the whole application. There is no per-model page: a device
+       page is assembled from what the device declares, whatever vendor made it. -->
+  <Window.DataTemplates>
+    <DataTemplate DataType="vm:DashboardViewModel"><views:DashboardView /></DataTemplate>
+    <DataTemplate DataType="devices:DevicePageViewModel"><views:DevicePageView /></DataTemplate>
+    <DataTemplate DataType="pages:HotkeysViewModel"><views:HotkeysView /></DataTemplate>
+    <DataTemplate DataType="pages:SettingsViewModel"><views:SettingsView /></DataTemplate>
+    <DataTemplate DataType="pages:AboutViewModel"><views:AboutView /></DataTemplate>
+  </Window.DataTemplates>
+
+  <Window.Resources>
+    <conv:PresenceOpacityConverter x:Key="PresenceOpacity" />
+  </Window.Resources>
+
+  <Window.Styles>
+
+    <!-- Window chrome buttons: flat, 46px wide, close turns red like the mock-up. -->
+    <Style Selector="Button.chrome">
+      <Setter Property="Width" Value="46" />
+      <Setter Property="Height" Value="48" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.chrome:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}" />
+    </Style>
+    <Style Selector="Button.chrome.close:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+      <Setter Property="TextElement.Foreground" Value="White" />
+    </Style>
+
+    <Style Selector="TextBlock.groupHeader">
+      <Setter Property="FontSize" Value="{DynamicResource RailGroupSize}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}" />
+      <Setter Property="LetterSpacing" Value="0.56" />
+      <Setter Property="Margin" Value="{DynamicResource RailGroupPadding}" />
+    </Style>
+
+    <Style Selector="ListBox.nav">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem">
+      <!-- MinHeight, because the theme's own floor is taller than the artboard's row and
+           an explicit Height alone only shrank the highlight inside a box that stayed 40.
+           The margin is the pane's 2px gap, split across the boundary: a ListBox has no
+           spacing of its own and its rows would otherwise touch. -->
+      <Setter Property="Height" Value="{DynamicResource RailRowHeight}" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Margin" Value="0,1" />
+      <Setter Property="FontSize" Value="{DynamicResource RailRowSize}" />
+      <Setter Property="CornerRadius" Value="{DynamicResource RailRowRadiusCorner}" />
+    </Style>
+
+  </Window.Styles>
+
+  <Grid RowDefinitions="48,*">
+
+    <!-- Title bar -->
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto"
+          Background="Transparent"
+          PointerPressed="OnTitleBarPressed">
+
+      <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12"
+                  Margin="16,0,0,0" VerticalAlignment="Center">
+        <!-- The mark itself, not a letter in a box. It is 18 px here, above the
+             identity's 16-pixel floor, and it is the same drawing as the tray icon. -->
+        <controls:KvazrMarkControl x:Name="TitleMark" Width="18" Height="18"
+                                   State="AllConnected"
+                                   VerticalAlignment="Center" />
+        <TextBlock Text="KVAZR" FontSize="{DynamicResource FontSizeSmall}"
+                   LetterSpacing="1.3"
+                   VerticalAlignment="Center" />
+      </StackPanel>
+
+      <StackPanel Grid.Column="2" Orientation="Horizontal">
+        <Button Classes="chrome" Content="&#x2500;" Click="OnMinimise" />
+        <Button Classes="chrome" Content="&#x25A1;" Click="OnMaximise" />
+        <Button Classes="chrome close" Content="&#x2715;" Click="OnHide" />
+      </StackPanel>
+    </Grid>
+
+    <!-- Body -->
+    <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
+
+      <Grid Grid.Column="0" RowDefinitions="*,Auto"
+            Width="{DynamicResource RailWidth}">
+
+      <ScrollViewer Grid.Row="0" Padding="{DynamicResource RailPadding}">
+        <StackPanel Spacing="{DynamicResource RailGap}">
+
+          <!--
+            The search filters devices, so it belongs to the shape that lists them. On a
+            device page and on the application's own pages it would be a box that filters
+            something that is not on screen.
+          -->
+          <TextBox Classes="search" Watermark="{Binding SearchPlaceholder}"
+                   IsVisible="{Binding IsDashboard}"
+                   Text="{Binding SearchText}"
+                   Margin="{DynamicResource RailSearchMargin}">
+            <TextBox.InnerLeftContent>
+              <!-- The box padding applies to the text and not to this, so the offset
+                   from the edge is the icon's own: without it the magnifier sat on the
+                   border and the placeholder started twenty pixels further along. -->
+              <Path Width="14" Height="14" Margin="10,0,8,0" VerticalAlignment="Center"
+                    Stroke="{DynamicResource TextTertiaryBrush}"
+                    StrokeThickness="1.3" StrokeLineCap="Round"
+                    Stretch="Uniform"
+                    Data="M7 2.8a4.2 4.2 0 1 0 0 8.4 4.2 4.2 0 1 0 0-8.4 M10.2 10.2 13.5 13.5" />
+            </TextBox.InnerLeftContent>
+          </TextBox>
+
+          <!--
+            Three shapes, as the artboards have them: the devices (1a), one device's
+            sections (5a), the application's own pages (7a). Only one is ever on screen —
+            a rail carrying all three at once is a rail nobody can scan. The row above
+            them is the way back, and it is in all three.
+          -->
+          <Button Classes="navRoot" Command="{Binding ShowDashboardCommand}"
+                  Classes.current="{Binding IsDashboard}"
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+            <Grid>
+              <!-- The bar marks the section rather than the pointer, so it is pinned to
+                   the pane's own edge and not to the row's padding. -->
+              <Rectangle HorizontalAlignment="Left" VerticalAlignment="Center"
+                         IsVisible="{Binding IsDashboard}"
+                         Width="{DynamicResource RailMarkWidth}"
+                         Height="{DynamicResource RailMarkHeight}"
+                         RadiusX="{DynamicResource RailMarkRadius}"
+                         RadiusY="{DynamicResource RailMarkRadius}"
+                         Fill="{DynamicResource AccentPrimaryBrush}" />
+              <StackPanel Orientation="Horizontal" Spacing="{DynamicResource RailRootGap}"
+                          Margin="{DynamicResource RailRowPadding}">
+              <!-- A way back when there is somewhere to go back from, the group's own
+                   mark when there is not. The artboards swap these two, and the swap is
+                   what tells the shapes apart at a glance. -->
+                <Path Width="{DynamicResource RailIconSize}"
+                      Height="{DynamicResource RailIconSize}"
+                      VerticalAlignment="Center"
+                      IsVisible="{Binding HasSelectedDevice}"
+                      Stroke="{DynamicResource TextPrimaryBrush}"
+                      StrokeThickness="1.3" StrokeLineCap="Round" StrokeJoin="Round"
+                      Stretch="Uniform" Data="M10 3.5 5.5 8l4.5 4.5" />
+
+                <!-- Two stacked rows: the mark for the list itself, from artboard 1a. -->
+                <Path Width="{DynamicResource RailIconSize}"
+                      Height="{DynamicResource RailIconSize}"
+                      VerticalAlignment="Center"
+                      IsVisible="{Binding !HasSelectedDevice}"
+                      Stroke="{DynamicResource TextPrimaryBrush}"
+                      StrokeThickness="1.3" StrokeLineCap="Round" StrokeJoin="Round"
+                      Stretch="None"
+                      Data="M3.2 3h9.6a1.2 1.2 0 0 1 1.2 1.2v1.6a1.2 1.2 0 0 1-1.2 1.2H3.2a1.2 1.2 0 0 1-1.2-1.2V4.2A1.2 1.2 0 0 1 3.2 3z M3.2 9h9.6a1.2 1.2 0 0 1 1.2 1.2v1.6a1.2 1.2 0 0 1-1.2 1.2H3.2a1.2 1.2 0 0 1-1.2-1.2v-1.6A1.2 1.2 0 0 1 3.2 9z" />
+                <TextBlock Text="{Binding AllDevices}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Grid>
+          </Button>
+
+          <!-- ===== device chosen: its sections ===== -->
+
+          <TextBlock Classes="groupHeader"
+                     IsVisible="{Binding HasSelectedDevice}"
+                     Text="{Binding SelectedDeviceHeading}" />
+
+          <!-- All of them, above the one of them.
+               The sections are a ListBox and a ListBox holds on to the row it opened:
+               clicking it again does not let go, so once a section was picked the rest of
+               the page could only be got back to by leaving the device and coming in
+               again. This is the row that lets go. -->
+          <Button Classes="railRow"
+                  IsVisible="{Binding HasSelectedDevice}"
+                  Classes.current="{Binding IsWholeDevice}"
+                  Command="{Binding ShowWholeDeviceCommand}">
+            <Grid>
+              <!-- Pinned to the row's edge rather than to the text's inset, so it lines
+                   up with the mark the list draws on the section below it. -->
+              <Rectangle HorizontalAlignment="Left" VerticalAlignment="Center"
+                         IsVisible="{Binding IsWholeDevice}"
+                         Width="{DynamicResource RailMarkWidth}"
+                         Height="{DynamicResource RailMarkHeight}"
+                         RadiusX="{DynamicResource RailMarkRadius}"
+                         RadiusY="{DynamicResource RailMarkRadius}"
+                         Fill="{DynamicResource AccentPrimaryBrush}" />
+
+              <!-- The same twelve as the section rows, so the two read as one list. -->
+              <TextBlock Text="{Binding WholeDevice}" Margin="12,0"
+                         VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            </Grid>
+          </Button>
+
+          <ListBox Classes="nav"
+                   IsVisible="{Binding HasSelectedDevice}"
+                   ItemsSource="{Binding DeviceSections}"
+                   SelectedItem="{Binding SelectedSection}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="devices:CapabilitySectionViewModel">
+                <Grid ColumnDefinitions="*,Auto" Margin="12,0"
+                      ToolTip.Tip="{Binding Aside}"
+                      Opacity="{Binding IsReachable, Converter={StaticResource PresenceOpacity}}">
+                  <TextBlock Grid.Column="0" Text="{Binding Title}"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+
+                  <!-- A mark, not the sentence.
+                       Artboard 5b puts the reason here so nobody walks into a page of
+                       dead controls to find out, and the reason is a sentence: "the
+                       headset is not answering — switch it on". In an Auto column that
+                       sentence takes the whole row and trims the section's name to
+                       nothing, so the rail listed four reasons and no places to go. The
+                       name is what the rail is for. The reason is on every row of the
+                       page behind it, in the notice above them, and here on hover. -->
+                  <Path Grid.Column="1" Margin="8,0,0,0"
+                        Width="12" Height="12"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding !IsReachable}"
+                        Stroke="{DynamicResource TextSecondaryBrush}"
+                        StrokeThickness="1.3" StrokeLineCap="Round"
+                        Stretch="None"
+                        Data="M6 1.2A4.8 4.8 0 1 0 6 10.8 4.8 4.8 0 1 0 6 1.2z M2.6 2.6 9.4 9.4" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+          <!-- ===== nothing chosen: the devices ===== -->
+
+          <TextBlock Classes="groupHeader" Text="{Binding ConnectedHeader}"
+                     IsVisible="{Binding ShowsDeviceList}" />
+
+          <ItemsControl IsVisible="{Binding ShowsDeviceList}"
+                        ItemsSource="{Binding Dashboard.Connected}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Spacing="{DynamicResource RailGap}" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="devices:DeviceListItemViewModel">
+                <Button Classes="railRow"
+                        Command="{Binding $parent[Window].((vm:ShellViewModel)DataContext).SelectDeviceItemCommand}"
+                        CommandParameter="{Binding}">
+                  <Grid ColumnDefinitions="Auto,*,Auto"
+                        Margin="{DynamicResource RailRowPadding}">
+                    <!-- 24, not the outline set's 16: these are the coloured Fluent
+                         drawings, and at sixteen pixels their detail turns to noise. -->
+                    <ctl:DeviceThumb Grid.Column="0"
+                                     Width="24" Height="24"
+                                     Margin="{DynamicResource RailDeviceGapRight}"
+                                     VerticalAlignment="Center"
+                                     IconKey="{Binding IconKey}" />
+
+                    <TextBlock Grid.Column="1" Text="{Binding ShortName}"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+
+                    <!-- The reading, in the rail's quieter voice. The card beside it
+                         carries the gauge; two gauges for one device would only invite
+                         comparing them. -->
+                    <TextBlock Grid.Column="2" Margin="8,0,0,0"
+                               FontSize="{DynamicResource RailBatterySize}"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding HasBattery}"
+                               Text="{Binding Battery}" />
+                  </Grid>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Classes="groupHeader" Text="{Binding DisconnectedHeader}"
+                     IsVisible="{Binding ShowsDisconnected}" />
+
+          <ItemsControl IsVisible="{Binding ShowsDisconnected}"
+                        ItemsSource="{Binding Dashboard.Disconnected}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Spacing="{DynamicResource RailGap}" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="devices:DeviceListItemViewModel">
+                <Button Classes="railRow" Opacity="0.55"
+                        Command="{Binding $parent[Window].((vm:ShellViewModel)DataContext).SelectDeviceItemCommand}"
+                        CommandParameter="{Binding}">
+                  <Grid ColumnDefinitions="Auto,*"
+                        Margin="{DynamicResource RailRowPadding}">
+                    <!-- 24, not the outline set's 16: these are the coloured Fluent
+                         drawings, and at sixteen pixels their detail turns to noise. -->
+                    <ctl:DeviceThumb Grid.Column="0"
+                                     Width="24" Height="24"
+                                     Margin="{DynamicResource RailDeviceGapRight}"
+                                     VerticalAlignment="Center"
+                                     IconKey="{Binding IconKey}" />
+
+                    <!-- No percentage here, deliberately, and the artboard agrees: a
+                         number beside a device that is not connected is a number from
+                         some earlier time, and the rail has no room to say when. -->
+                    <TextBlock Grid.Column="1" Text="{Binding ShortName}"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Grid>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <!-- ===== an application page is open: its neighbours ===== -->
+
+          <TextBlock Classes="groupHeader" Text="{Binding AppSectionHeader}"
+                     IsVisible="{Binding ShowsAppSections}" />
+
+          <ListBox Classes="nav"
+                   IsVisible="{Binding ShowsAppSections}"
+                   ItemsSource="{Binding AppSections}"
+                   SelectedItem="{Binding SelectedAppSection}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:AppSection">
+                <TextBlock Text="{Binding Title}" Margin="12,0" VerticalAlignment="Center" />
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+        </StackPanel>
+      </ScrollViewer>
+
+      <!--
+        Pinned, because it is the only way into the application's own pages from the two
+        shapes that do not list them. It disappears on those pages rather than sitting
+        under a list that already contains it.
+      -->
+      <Button Grid.Row="1" Classes="navRoot" Command="{Binding ShowSettingsCommand}"
+              IsVisible="{Binding ShowsSettingsShortcut}"
+              FontWeight="Normal"
+              Margin="{DynamicResource RailPadding}"
+              HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+        <StackPanel Orientation="Horizontal" Spacing="{DynamicResource RailRootGap}"
+                    Margin="{DynamicResource RailRowPadding}">
+          <Path Width="{DynamicResource RailIconSize}"
+                Height="{DynamicResource RailIconSize}"
+                VerticalAlignment="Center"
+                Stroke="{DynamicResource TextPrimaryBrush}"
+                StrokeThickness="1.3" StrokeLineCap="Round"
+                Stretch="None"
+                Data="M5.6 8a2.4 2.4 0 1 0 4.8 0 2.4 2.4 0 1 0-4.8 0 M8 1.6v1.8 M8 12.6v1.8 M1.6 8h1.8 M12.6 8h1.8 M3.5 3.5l1.3 1.3 M11.2 11.2l1.3 1.3 M12.5 3.5l-1.3 1.3 M4.8 11.2l-1.3 1.3" />
+          <TextBlock Text="{Binding SettingsLabel}" VerticalAlignment="Center" />
+        </StackPanel>
+      </Button>
+
+      </Grid>
+
+      <!--
+        Content. A surface of its own rather than more window background: the artboards
+        join it to the pane along one rounded corner and one hairline, and without that
+        the two halves of the window read as a single flat field with a list floating in
+        it. The other three corners are square because they meet the frame.
+      -->
+      <Border Grid.Column="1"
+              Background="{DynamicResource LayerSubtleBrush}"
+              BorderBrush="{DynamicResource StrokeSubtleBrush}"
+              BorderThickness="1,1,0,0"
+              CornerRadius="{DynamicResource ContentTopLeftCorner}">
+        <Panel>
+
+        <!-- The web content pane: one WebView for the window's lifetime, created by the
+             code-behind on Windows. The native scroller below stays for the internal
+             pages and as the whole story where no WebView host exists. -->
+        <ContentControl x:Name="WebPane" IsVisible="False" />
+
+        <ScrollViewer x:Name="ContentPane" Padding="{DynamicResource ContentPadding}">
+          <StackPanel Spacing="{DynamicResource ContentGap}">
+            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding HasHeaderTitle}">
+              <TextBlock Grid.Column="0" Classes="sectionTitle" Text="{Binding HeaderTitle}" />
+
+              <!-- On the title's baseline rather than under it: it is an aside about the
+                   page, and a line of its own would read as the page's first statement. -->
+              <TextBlock Grid.Column="1" VerticalAlignment="Bottom" Margin="16,0,0,4"
+                         FontSize="{DynamicResource RailBatterySize}"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
+                         IsVisible="{Binding HasHeaderMeta}"
+                         Text="{Binding HeaderMeta}" />
+            </Grid>
+            <ContentControl Content="{Binding CurrentPage}" />
+          </StackPanel>
+        </ScrollViewer>
+
+        </Panel>
+      </Border>
+
+    </Grid>
+  </Grid>
+
+</Window>

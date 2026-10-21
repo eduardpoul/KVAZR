@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Two, and the second one exists for one class. Listening to Bluetooth
+         advertisements is WinRT and has no Win32 equivalent — the rest of this project is
+         raw P/Invoke and builds anywhere. The plain framework stays first so the core,
+         which is platform-free, keeps referencing a platform-free assembly. -->
+    <TargetFrameworks>net10.0;net10.0-windows10.0.17763.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <!-- LibraryImport generates pointer-based marshalling, which needs this. The
+         project is raw P/Invoke throughout, so it is consistent rather than a
+         concession. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>Kvazr.Race</RootNamespace>
+  </PropertyGroup>
+
+</Project>

@@ -7,7 +7,7 @@
 ## Два вида драйверов, две папки
 
 ```
-src/Maxwell.Core/Drivers/
+src/Kvazr.Core/Drivers/
   Shared/          ← общие: один протокол на целый класс/семейство
     Logitech/        HID++ — все мыши/клавы/трекболы Logitech
     (Gamepad/)       XInput + падовые протоколы  — план
@@ -25,7 +25,7 @@ src/Maxwell.Core/Drivers/
 разных даже вендоров (класс-протокол). **Device** — если это реверс одного
 вендора ради глубины, окупающийся только для его линейки.
 
-Namespace плоский (`Maxwell.Core.Drivers.Logitech`, `.Audeze`) — папки для
+Namespace плоский (`Kvazr.Core.Drivers.Logitech`, `.Audeze`) — папки для
 глаз, namespace для смысла; уровень `Shared/Device` в имя типов не тащим
 (и `Class`/`Shared` вообще зарезервированные слова в .NET-языках).
 
@@ -92,14 +92,14 @@ builder.Services.AddDeviceRegistry(
 ## То же для UI: Web-компоненты по ролям
 
 ```
-src/Maxwell.App/Web/
+src/Kvazr.App/Web/
   Pages/            страницы: Dashboard, Device, Settings, Hotkeys, About
   Controls/         переиспользуемое: CapRow, Thumb, Battery, Dropdown, ReactiveComponent
   Infrastructure/   хост и клей: PaneHost, PaneRoot, WebUi, WebAssets, DeviceIcon, FluentIcons.g
   _Imports.razor
 ```
 
-Namespace всех Blazor-компонентов плоский (`@namespace Maxwell.App.Web`) —
+Namespace всех Blazor-компонентов плоский (`@namespace Kvazr.App.Web`) —
 папки не ломают межкомпонентные ссылки. Новый контрол → в `Controls/`, новая
 страница → в `Pages/`.
 
@@ -119,7 +119,7 @@ Namespace всех Blazor-компонентов плоский (`@namespace Max
 Замер (private working set — та цифра, что показывает диспетчер; Debug-сборка,
 окно открыто):
 
-- **Maxwell.exe: ~79 МБ** — Avalonia + Skia + модели устройств.
+- **KVAZR.exe: ~79 МБ** — Avalonia + Skia + модели устройств.
 - **6 × msedgewebview2: ~93 МБ суммарно** (каждый ~15 МБ отдельной строкой в
   диспетчере — легко не сложить).
 - **Итого ~172 МБ.** Release будет меньше.
@@ -170,7 +170,7 @@ working set — то, что реально стоит нам — её нет.)
 модуль `IDriverModule` рядом, строка в композиции; capabilities мапятся из
 самоописания протокола (как HID++ читает FeatureSet). Ноль данных на модель.
 
-**Глубокое устройство** (Device, «как одизи»): протокол в `Maxwell.Race/
+**Глубокое устройство** (Device, «как одизи»): протокол в `Kvazr.Race/
 <Vendor>/` + тесты на документированных байтах (образец — `SwitchPro.cs`),
 драйвер+соединение в `Drivers/Device/<Vendor>/`, модуль, строка в композиции,
 запись в каталог (имя/фото/иконка), флаг `unverified` до живого подтверждения.

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- Versioned, for the WinRT projection: the AirPods battery lives in BLE
+         advertisements, and Windows.Devices.Bluetooth is how a probe listens to them. -->
+    <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Kvazr.Cli</RootNamespace>
+    <AssemblyName>kvazr</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kvazr.Core\Kvazr.Core.csproj" />
+    <ProjectReference Include="..\Kvazr.Race\Kvazr.Race.csproj" />
+  </ItemGroup>
+
+</Project>

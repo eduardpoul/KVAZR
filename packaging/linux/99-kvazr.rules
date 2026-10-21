@@ -1,0 +1,18 @@
+# Audeze Maxwell — user access to the hidraw node.
+#
+# Without this the /dev/hidraw* node is root-only and the application simply reports
+# "device not found", which looks like a bug rather than a permissions problem.
+#
+# Install:
+#   sudo cp 99-kvazr.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload-rules && sudo udevadm trigger
+# then reconnect the headset.
+
+# Xbox dongle
+KERNEL=="hidraw*", ATTRS{idVendor}=="3329", ATTRS{idProduct}=="4b18", MODE="0660", TAG+="uaccess"
+# PlayStation dongle
+KERNEL=="hidraw*", ATTRS{idVendor}=="3329", ATTRS{idProduct}=="4b19", MODE="0660", TAG+="uaccess"
+# PlayStation headset over USB-C
+KERNEL=="hidraw*", ATTRS{idVendor}=="3329", ATTRS{idProduct}=="4b1a", MODE="0660", TAG+="uaccess"
+# Xbox headset over USB-C
+KERNEL=="hidraw*", ATTRS{idVendor}=="3329", ATTRS{idProduct}=="4b1e", MODE="0660", TAG+="uaccess"

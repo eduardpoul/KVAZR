@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Kvazr.App/Kvazr.App.csproj" />
+    <Project Path="src/Kvazr.Cli/Kvazr.Cli.csproj" />
+    <Project Path="src/Kvazr.Core/Kvazr.Core.csproj" />
+    <Project Path="src/Kvazr.Race/Kvazr.Race.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Kvazr.App.Tests/Kvazr.App.Tests.csproj" />
+    <Project Path="tests/Kvazr.Core.Tests/Kvazr.Core.Tests.csproj" />
+    <Project Path="tests/Kvazr.Race.Tests/Kvazr.Race.Tests.csproj" />
+  </Folder>
+</Solution>

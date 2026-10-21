@@ -1,0 +1,293 @@
+@namespace Kvazr.App.Web
+@inherits ReactiveComponent
+
+@* A device, assembled from what it declares — Turn 14 (the class page, one section per
+   protocol) and Turn 15 (the extended page, vendor rows on top). There is no per-model
+   page: a headset, a mouse and a keyboard all lay out through the same hero, sections and
+   rows, which is what keeps them looking like one program. What differs between a basic
+   and an extended device is not the template but the metadata — the hero pill, the
+   per-section protocol pill, the honest-limits line — all read off the same view model. *@
+
+<div class="content">
+
+  <div class="hero">
+    <Thumb Info="Vm.Snapshot.Info" />
+    <div class="hero-text">
+      <div class="hero-titles">
+        <div class="hero-name">@Vm.Heading</div>
+        @if (Vm.Extended is { } ext)
+        {
+          <span class="hero-pill @HeroPillClass(ext.Kind)">@ext.Text</span>
+        }
+      </div>
+      @if (!Vm.IsWholeDevice)
+      {
+        <div class="caption">@Vm.Subheading</div>
+      }
+      <div class="hero-chips">
+        <span class="type-pill">@Vm.TypeLabel</span>
+        @* Present is not the same as working. A Maxwell paired over Bluetooth while its
+           dongle is in shows both, and painting both accent claims both are carrying the
+           device — the rule for which one actually is lives in TransportActivity. *@
+        @* Transport names are the drivers' own words. The common ones translate by
+           label; anything a driver invents shows as written, which is the same rule the
+           rest of the catalogue follows. *@
+        @foreach (TransportInfo transport in Vm.LiveTransports)
+        {
+          <span class="xport-pill @(TransportActivity.IsLive(Vm.Snapshot.Info, transport) ? "" : "idle")">
+            @switch (transport.Kind)
+            {
+              case TransportKind.Bluetooth:
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 1.8v12.4" /><path d="M8 1.8l4 3.2-8 6" /><path d="M8 14.2l4-3.2-8-6" /></svg>
+                break;
+              case TransportKind.UsbCable:
+              case TransportKind.Dongle:
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4.6" y="1.8" width="6.8" height="5" rx="1.2" /><path d="M8 6.8v6" /><circle cx="8" cy="13.6" r="1.3" /></svg>
+                break;
+            }
+            <span>@Kvazr.App.Localization.TransportNames.Of(transport)</span>
+          </span>
+        }
+        @* Where this page's settings come from, after the chips that say what the device
+           is and how it is attached — the same kind of fact, and the identity ones come
+           first. It was a pill above every section until a two-section page said it
+           twice. *@
+        @if (Vm.IsWholeDevice && Vm.PageProtocol is { } source)
+        {
+          <span class="proto-pill @ProtoClass(source.Kind)">@source.Text</span>
+
+          @* Kept beside the pill rather than dropped, on the same footing as the firmware
+             version next to it: an aside about the chip before it, in the row where this
+             page keeps its asides. *@
+          @if (Vm.PageNote is { } howItApplies)
+          {
+            <span class="caption">@howItApplies</span>
+          }
+        }
+        @if (Vm.HasFirmware)
+        {
+          <span class="caption">@Vm.Firmware</span>
+        }
+      </div>
+      @if (!string.IsNullOrEmpty(Vm.StateNotice))
+      {
+        <div class="caption wrap">@Vm.StateNotice</div>
+      }
+    </div>
+
+    @if (Vm.BatteryMode == BatteryDisplay.Charge)
+    {
+      <div class="hero-batt">
+        @if (Vm.HasBatteryParts)
+        {
+          @* Three halves rather than one number. The single number is the emptiest of
+             them — true, and not what anybody holding a pair of earphones wants to know. *@
+          <BatteryParts Parts="Vm.BatteryParts" />
+        }
+        else
+        {
+          <div class="gauge-row">
+            <HeroBattery Fraction="Vm.BatteryFraction" Charging="Vm.IsCharging" />
+            <div class="hero-percent">@Vm.Battery</div>
+          </div>
+        }
+        @if (!string.IsNullOrEmpty(Vm.Freshness))
+        {
+          <div class="caption">@Vm.Freshness</div>
+        }
+      </div>
+    }
+    else if (Vm.BatteryMode == BatteryDisplay.Absent)
+    {
+      <div class="hero-batt absent">
+        <div class="gauge-row">
+          <HeroBattery Absent="true" />
+          <div class="hero-absent">@T["device.no_battery", "No charge reading"]</div>
+        </div>
+        <div class="caption wrap">@Vm.NoBatteryReason</div>
+      </div>
+    }
+  </div>
+
+
+  @if (Vm.HasNothingToChange)
+  {
+    @* No notice above this any more.
+
+       It said that Windows could see the device, that it answered nothing we know how
+       to ask, and that there was therefore nothing to set. Every clause was about this
+       application rather than about the device, and the heading under it already says
+       what the page holds. A paragraph explaining why a page is short is longer than
+       the page. *@
+
+    <div class="group">
+      <div class="group-head"><span class="group-heading">@T["device.what_was_read", "WHAT COULD BE READ"]</span></div>
+      <div class="card">
+        @foreach (DeviceFact fact in Vm.Facts)
+        {
+          <div class="fact-row">
+            <span>@fact.Label</span>
+            <span class="value">@fact.Value</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    @if (CanForget || CanRemove)
+    {
+      <div class="group">
+        <div class="group-head"><span class="group-heading">@T["device.actions", "ACTIONS"]</span></div>
+        <div class="card">
+          @if (CanForget)
+          {
+            <div class="cap-row">
+              <div class="cap-text">
+                <div class="cap-title">@T["device.forget", "Forget the device"]</div>
+                <div class="caption">@T["device.forget.caption", "Removes the pairing in the system. To use it again, pair it afresh"]</div>
+              </div>
+              <button class="danger-outline" @onclick="Forget">@T["device.forget.button", "Forget"]</button>
+            </div>
+          }
+
+          @* Last on the page, and only while the device is away. The two read as one
+             pair and are not: the one above changes the system, this one only changes
+             what this application keeps. *@
+          @if (CanRemove)
+          {
+            <div class="cap-row">
+              <div class="cap-text">
+                <div class="cap-title">@T["device.remove", "Remove from the list"]</div>
+                <div class="caption">@T["device.remove.caption", "The device is not connected. Its settings here are dropped; the pairing in the system is left alone"]</div>
+              </div>
+              <button class="danger-outline" @onclick="Remove">@T["device.remove.button", "Remove"]</button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+
+  @* Every section the same shape, including the one holding the factory reset.
+     That one used to be an expander with nothing but its own name on it — a titled box
+     the reader had to open to find out it held the auto-off timer and the firmware
+     version, neither of which is dangerous, and the artboard does not draw it that way
+     either. What is dangerous is one row, and that row carries its own warning and its
+     own confirmation; hiding the timer behind it protected nothing and cost the section
+     its heading. *@
+  @foreach (CapabilitySectionViewModel section in Vm.VisibleSections)
+  {
+    <div class="group">
+      @if (Vm.IsWholeDevice)
+      {
+        <div class="group-head">
+          <span class="group-heading">@section.Heading</span>
+          @if (Vm.PageProtocol is null && Vm.ProtocolFor(section.Domain) is { } proto)
+          {
+            <span class="proto-pill @ProtoClass(proto.Kind)">@proto.Text</span>
+
+            @if (Vm.SectionNote(section.Domain) is { } note)
+            {
+              <span class="section-note">@note</span>
+            }
+          }
+        </div>
+      }
+      @* The curve gets a card to itself, as the artboard has it: a plot the width of the
+         page does not belong in a stack of one-line rows, and the slot picker and the
+         save button in its header have nowhere to sit inside one. *@
+      @if (section.Items.Any(c => c is not CurveCapabilityViewModel))
+      {
+        <div class="card">
+          @{ string? previous = null; }
+          @foreach (CapabilityViewModel cap in section.Items.Where(c => c is not CurveCapabilityViewModel))
+          {
+            <CapRow Vm="cap" Joined="@(cap.State.Id == CapabilityIds.AudioGainRight && previous == CapabilityIds.AudioGainLeft)" />
+            previous = cap.State.Id;
+          }
+          @* Last, and inside the card: it is a switch about these rows, so it belongs
+             under them rather than three screens away in the settings. Not a capability
+             — the device knows nothing about our tray — which is why it draws itself
+             rather than going through CapRow. *@
+          @if (section.Tray is { } tray)
+          {
+            <div class="cap-row">
+              <div class="cap-text">
+                <div class="cap-title-row"><span class="cap-title">@tray.Title</span></div>
+                <div class="caption wrap">@tray.Subtitle</div>
+              </div>
+              <div class="cap-control">
+                <div class="cap-line">
+                  <button class="switch @(tray.IsOn ? "on" : "")"
+                          @onclick="() => { var t = tray; OnUi(() => t.IsOn = !t.IsOn); }">
+                    <span class="knob"></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+      @foreach (CapabilityViewModel cap in section.Items.OfType<CurveCapabilityViewModel>())
+      {
+        <div class="card curve-card">
+          <CapRow Vm="cap" />
+        </div>
+      }
+    </div>
+  }
+
+  @if (!string.IsNullOrEmpty(Vm.LimitsNote))
+  {
+    <div class="limits">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6.2" /><path d="M8 7.2v4M8 4.9v.1" /></svg>
+      <span>@Vm.LimitsNote</span>
+    </div>
+  }
+</div>
+
+@code {
+  /// <summary>Redraw when the language changes.</summary>
+  protected override void OnInitialized() => Follow(T);
+
+  [Parameter, EditorRequired] public ShellViewModel Shell { get; set; } = default!;
+
+  [Parameter, EditorRequired] public DevicePageViewModel Vm { get; set; } = default!;
+
+  private DevicePageViewModel? _tracked;
+
+  protected override void OnParametersSet()
+  {
+    if (ReferenceEquals(_tracked, Vm)) return;
+
+    _tracked = Vm;
+    Track(Vm);
+    Track(Vm.Sections);
+  }
+
+  private bool CanForget =>
+      Vm.Snapshot.Info.Transports.Any(t => t.Kind is TransportKind.Bluetooth or TransportKind.Dongle);
+
+  private void Forget() => OnUi(() =>
+  {
+    if (Shell.SelectedDevice is { } device) Shell.ForgetDeviceCommand.Execute(device);
+  });
+
+  private bool CanRemove => !Vm.Snapshot.IsPresent;
+
+  private void Remove() => OnUi(() =>
+  {
+    if (Shell.SelectedDevice is { } device) Shell.RemoveDeviceCommand.Execute(device);
+  });
+
+  private static string HeroPillClass(HeroPillKind kind) =>
+      kind == HeroPillKind.Vendor ? "vendor" : "hidpp";
+
+  private static string ProtoClass(ProtocolPillKind kind) => kind switch
+  {
+    ProtocolPillKind.CoreAudio => "audio",
+    ProtocolPillKind.Hidpp => "hidpp",
+    ProtocolPillKind.Via => "via",
+    ProtocolPillKind.XInput => "xinput",
+    _ => "system",
+  };
+}

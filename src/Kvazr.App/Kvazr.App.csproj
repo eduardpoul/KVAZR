@@ -1,0 +1,194 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <!--
+    The Razor SDK, because the UI is HTML now: the content pane is Razor components in
+    a WebView2, bound straight to the same view models the Avalonia views used. The SDK
+    change is what lets the components live in this project and bind directly — the
+    experiment phase proved the approach through an adapter layer, and the adapter was
+    the first thing to die on the way to production.
+
+    Avalonia remains the shell: the window, the tray, the flyout, the global hotkeys,
+    the toasts. None of that wants to be a web page, and all of it already works.
+  -->
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+
+    <!--
+      Two targets. The Windows one is pinned to windows10.0.17763 because that is the
+      floor of the toast implementation; the plain net10.0 one is what Linux and macOS
+      build against. Keeping both compiling on every build is the point — it is what
+      stops the Windows path quietly growing dependencies the others cannot satisfy.
+    -->
+    <TargetFrameworks>net10.0;net10.0-windows10.0.17763.0</TargetFrameworks>
+
+    <RootNamespace>Kvazr.App</RootNamespace>
+    <AssemblyName>KVAZR</AssemblyName>
+
+    <!--
+      The name the user sees. The assembly carries it too, so the process, the settings
+      folder (%APPDATA%\KVAZR) and the autostart value (KVAZR) all changed with the rename
+      from Maxwell.App. Nothing is carried over from the old names: an install from
+      before the rename keeps its old autostart entry until it is removed by hand.
+    -->
+    <AssemblyTitle>KVAZR</AssemblyTitle>
+    <ApplicationIcon>Assets\kvazr.ico</ApplicationIcon>
+
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+
+    <!-- CA1822 wants constant view-model properties made static, but XAML bindings
+         only resolve instance members, so following it would break the binding. -->
+    <NoWarn>$(NoWarn);CA1822</NoWarn>
+
+    <!-- The WinForms analyzer wants DPI configured its way; Avalonia owns DPI in this
+         process and WinForms is a guest inside one HWND. -->
+    <NoWarn Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">$(NoWarn);WFO0003</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <!--
+    Single-file publish. Conditioned on PublishSingleFile so an ordinary build stays
+    RID-agnostic and both target frameworks keep compiling; these only apply when the
+    publish command asks for one file.
+  -->
+  <PropertyGroup Condition="'$(PublishSingleFile)' == 'true'">
+    <SelfContained>true</SelfContained>
+
+    <!-- Skia and HarfBuzz are native libraries. Without self-extract they are written
+         beside the exe and the "single file" is three dozen of them. -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+
+    <!--
+      Compression is deliberately OFF. It cuts the file from 134 MB to 55 MB, but a
+      compressed assembly cannot be mapped from the bundle, so the runtime decompresses
+      it into private memory instead: measured idle in the tray, 86 MB private working
+      set with compression against 47 MB without, and double the startup CPU. Memory
+      and CPU are the budget that matters here; disk is not.
+    -->
+    <EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
+
+    <DebugType>none</DebugType>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+
+    <!-- The WebView2 package ships its API docs as .xml beside its dlls, and the bundle
+         leaves them out, so they would be the only files sitting next to the exe. -->
+    <PublishReferencesDocumentationFiles>false</PublishReferencesDocumentationFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="FluentAvaloniaUI" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+
+    <!-- Both targets compile the Razor components — that is what keeps the plain
+         net10.0 build honest about them — but only Windows carries the WebView host. -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
+  </ItemGroup>
+
+  <!--
+    The web content pane is Windows-only for now: its host is the WinForms
+    BlazorWebView. The plain net10.0 build keeps compiling with the native views, which
+    is the cross-platform fallback until a WebKit host exists for it.
+  -->
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
+    <PackageReference Include="DesktopNotifications" />
+    <PackageReference Include="DesktopNotifications.Windows" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.WindowsForms" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" />
+
+    <!-- The WinForms SDK injects its namespaces as global usings, and both collide
+         with Avalonia's (Application, Color, Point) across the whole project. The one
+         file that talks to WinForms names its types explicitly instead. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <!--
+    The pane's files are embedded in the assembly and PaneHost serves them from there,
+    not from a wwwroot folder beside the executable. A single-file publish has nowhere to
+    put that folder, and without it the pane comes up blank. The generated manifest keeps
+    the paths exactly as written, which the plain embedded provider does not: it mangles
+    folder names into resource names.
+
+    The framework script ships as a static web asset and resolves through a manifest at
+    runtime; with the Razor SDK on this project the manifest exists, but the layout is
+    simpler to reason about with the script as one more embedded file. Carried explicitly.
+  -->
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
+    <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
+    <EmbeddedResource Include="wwwroot/**" />
+    <!-- Backslashes on purpose: the manifest splits a link into folders only on the
+         Windows separator, and with "/" the file lands at the root named "wwwroot/…". -->
+    <EmbeddedResource Include="$(PkgMicrosoft_AspNetCore_Components_WebView)/staticwebassets/blazor.webview.js"
+                      Link="wwwroot\_framework\blazor.webview.js" />
+    <EmbeddedResource Include="$(PkgMicrosoft_AspNetCore_Components_WebView)/staticwebassets/blazor.modules.json"
+                      Link="wwwroot\_framework\blazor.modules.json" />
+  </ItemGroup>
+
+  <!-- The Razor SDK adds wwwroot and every .json in the project as content to copy beside
+       the executable, and its static web assets pipeline publishes the packages' scripts
+       into a wwwroot of its own. All of it is embedded instead, so none of it is copied. -->
+  <PropertyGroup>
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot/**;**/*.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+
+    <!-- The translation catalogues. Embedded rather than copied beside the executable:
+         a file that can go missing from a published folder eventually does, and the
+         failure would be an English interface silently reverting to Russian.
+
+         WithCulture="false" is load-bearing. MSBuild reads "Strings.en.json" as a
+         culture-tagged resource, the way it reads "Form1.en.resx", and routes it into a
+         satellite assembly — so the file was built, shipped into an en\ folder beside the
+         executable, and could not be found in the assembly at all. These are one
+         dictionary per language rather than .NET resources, and the language is chosen by
+         a setting rather than by the thread's culture. -->
+    <EmbeddedResource Include="Localization\Strings.*.json" WithCulture="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kvazr.Core\Kvazr.Core.csproj" />
+  </ItemGroup>
+
+  <!-- The identity's colour table, the tray's state reduction and the skeleton timing
+       rules are all internal, and all worth testing. Widening them to public so a test
+       can reach them would put three implementation details on the assembly's surface. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Kvazr.App.Tests" />
+  </ItemGroup>
+
+  <!--
+    SkiaSharp and HarfBuzz ship native debug symbols: 105 MB of .pdb that a release
+    build has no use for, and nearly half the published size. Trimming is deliberately
+    NOT used instead — Avalonia resolves controls and styles reflectively, so a trimmed
+    build fails at runtime rather than at publish time.
+  -->
+  <Target Name="DropSymbolsFromRelease"
+          AfterTargets="ComputeResolvedFilesToPublishList"
+          Condition="'$(Configuration)' == 'Release'">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.pdb'" />
+    </ItemGroup>
+  </Target>
+
+</Project>

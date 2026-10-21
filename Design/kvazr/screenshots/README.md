@@ -7,7 +7,7 @@
 Экран не считается готовым, пока он не отрисован офлайн (`--dump-pages`,
 `--dump-thumbs`, `--dump-icons`) и не положен рядом со своим файлом отсюда.
 Размеры при этом не переписываются глазами — их снимает `tools/design-tokens.py`
-и кладёт в `src/Maxwell.App/Themes/Metrics.axaml`.
+и кладёт в `src/Kvazr.App/Themes/Metrics.axaml`.
 
 | Файл | Что на нём |
 |---|---|

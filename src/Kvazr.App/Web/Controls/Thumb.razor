@@ -1,0 +1,21 @@
+@namespace Kvazr.App.Web
+@* The tile that stands for a device: its photograph when one is curated, the coloured
+   Fluent icon for its class otherwise. Photographs sit on a light plate in both themes
+   — product shots are lit for white — while icons sit on the theme's own surface. *@
+
+@if (_photo is not null)
+{
+  <div class="thumb photo"><img src="@_photo" alt="" /></div>
+}
+else
+{
+  <div class="thumb icon">@((MarkupString)FluentIcons.Svg(DeviceIcon.KeyFor(Info)))</div>
+}
+
+@code {
+  [Parameter, EditorRequired] public DeviceInfo Info { get; set; } = default!;
+
+  private string? _photo;
+
+  protected override void OnParametersSet() => _photo = WebAssets.PhotoDataUri(Info.ImageKey);
+}

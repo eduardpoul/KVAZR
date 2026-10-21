@@ -4,9 +4,9 @@
 dekuNukem/Nintendo_Switch_Reverse_Engineering; с ним согласны Linux
 hid-nintendo, joycond, BetterJoy), поэтому весь фундамент собран заранее:
 
-- **`Maxwell.Race/Protocol/SwitchPro.cs`** — чистые сборка/разбор кадров:
+- **`Kvazr.Race/Protocol/SwitchPro.cs`** — чистые сборка/разбор кадров:
   сабкоманды, USB-handshake, батарея, стики, SPI-чтения, цвета.
-- **`tests/Maxwell.Race.Tests/SwitchProTests.cs`** — байты закреплены тестами
+- **`tests/Kvazr.Race.Tests/SwitchProTests.cs`** — байты закреплены тестами
   ДО железа. Провал теста при живом паде = пад расходится с документацией,
   а не «опечатались в тот день».
 - **Каталог**: `057e:2009`, class Gamepad, unverified до первого ответа.
