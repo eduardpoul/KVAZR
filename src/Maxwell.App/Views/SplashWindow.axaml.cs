@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Reflection;
 using Avalonia;
 using Avalonia.Animation;
@@ -165,10 +164,8 @@ internal sealed partial class SplashWindow : Window
             return plus < 0 ? informational : informational[..plus];
         }
 
-        string? file = assembly.Location is { Length: > 0 } path
-            ? FileVersionInfo.GetVersionInfo(path).ProductVersion
-            : null;
-
-        return file ?? string.Empty;
+        // Read from the attribute, not from the file on disk: a single-file bundle has
+        // no file behind the assembly, and Assembly.Location is empty there.
+        return assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version ?? string.Empty;
     }
 }

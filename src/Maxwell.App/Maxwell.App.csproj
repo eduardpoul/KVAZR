@@ -73,6 +73,10 @@
 
     <DebugType>none</DebugType>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+
+    <!-- The WebView2 package ships its API docs as .xml beside its dlls, and the bundle
+         leaves them out, so they would be the only files sitting next to the exe. -->
+    <PublishReferencesDocumentationFiles>false</PublishReferencesDocumentationFiles>
   </PropertyGroup>
 
   <ItemGroup>
@@ -101,6 +105,7 @@
     <PackageReference Include="DesktopNotifications.Windows" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebView.WindowsForms" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebView" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" />
 
     <!-- The WinForms SDK injects its namespaces as global usings, and both collide
          with Avalonia's (Application, Color, Point) across the whole project. The one
@@ -110,22 +115,39 @@
   </ItemGroup>
 
   <!--
+    The pane's files are embedded in the assembly and PaneHost serves them from there,
+    not from a wwwroot folder beside the executable. A single-file publish has nowhere to
+    put that folder, and without it the pane comes up blank. The generated manifest keeps
+    the paths exactly as written, which the plain embedded provider does not: it mangles
+    folder names into resource names.
+
     The framework script ships as a static web asset and resolves through a manifest at
-    runtime; with the Razor SDK on this project the manifest exists, but the published
-    layout is simpler to reason about with the script as a plain file — and the plain
-    file is what the experiment proved works. Carried explicitly.
+    runtime; with the Razor SDK on this project the manifest exists, but the layout is
+    simpler to reason about with the script as one more embedded file. Carried explicitly.
   -->
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
+    <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
+  </PropertyGroup>
+
   <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
-    <None Include="$(PkgMicrosoft_AspNetCore_Components_WebView)/staticwebassets/blazor.webview.js"
-          Link="wwwroot/_framework/blazor.webview.js"
-          CopyToOutputDirectory="PreserveNewest" />
-    <None Include="$(PkgMicrosoft_AspNetCore_Components_WebView)/staticwebassets/blazor.modules.json"
-          Link="wwwroot/_framework/blazor.modules.json"
-          CopyToOutputDirectory="PreserveNewest" />
+    <EmbeddedResource Include="wwwroot/**" />
+    <!-- Backslashes on purpose: the manifest splits a link into folders only on the
+         Windows separator, and with "/" the file lands at the root named "wwwroot/…". -->
+    <EmbeddedResource Include="$(PkgMicrosoft_AspNetCore_Components_WebView)/staticwebassets/blazor.webview.js"
+                      Link="wwwroot\_framework\blazor.webview.js" />
+    <EmbeddedResource Include="$(PkgMicrosoft_AspNetCore_Components_WebView)/staticwebassets/blazor.modules.json"
+                      Link="wwwroot\_framework\blazor.modules.json" />
   </ItemGroup>
 
+  <!-- The Razor SDK adds wwwroot and every .json in the project as content to copy beside
+       the executable, and its static web assets pipeline publishes the packages' scripts
+       into a wwwroot of its own. All of it is embedded instead, so none of it is copied. -->
+  <PropertyGroup>
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+  </PropertyGroup>
+
   <ItemGroup>
-    <Content Update="wwwroot/**" CopyToOutputDirectory="PreserveNewest" />
+    <Content Update="wwwroot/**;**/*.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
   <ItemGroup>

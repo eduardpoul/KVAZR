@@ -8,6 +8,7 @@ using Maxwell.App.ViewModels;
 
 using Microsoft.AspNetCore.Components.WebView.WindowsForms;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 
 using WinFormsControl = System.Windows.Forms.Control;
 
@@ -42,8 +43,9 @@ public sealed class PaneHost : NativeControlHost, IDisposable
         var services = new ServiceCollection();
         services.AddWindowsFormsBlazorWebView();
 
-        _view = new BlazorWebView
+        _view = new EmbeddedBlazorWebView
         {
+            // Only names the root page; the files themselves come from the assembly.
             // Absolute, because the WinForms host resolves a relative page against the
             // process working directory, and the app is started from wherever.
             HostPage = Path.Combine(AppContext.BaseDirectory, "wwwroot", "index.html"),
@@ -67,6 +69,16 @@ public sealed class PaneHost : NativeControlHost, IDisposable
     {
         _view?.Dispose();
         _view = null;
+    }
+
+    /// <summary>
+    /// Serves the pane from the files embedded in the assembly rather than from a wwwroot
+    /// folder beside the executable, which a single-file publish does not have.
+    /// </summary>
+    private sealed class EmbeddedBlazorWebView : BlazorWebView
+    {
+        public override IFileProvider CreateFileProvider(string contentRootDir) =>
+            new ManifestEmbeddedFileProvider(typeof(PaneHost).Assembly, "wwwroot");
     }
 }
 #endif

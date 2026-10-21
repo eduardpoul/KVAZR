@@ -6,13 +6,15 @@
 dotnet publish src/Maxwell.App -c Release -f net10.0-windows10.0.17763.0 -r win-x64 -p:PublishSingleFile=true -o Deploys
 ```
 
-Produces `Deploys/Maxwell.exe` — one self-contained file, ~134 MB, that runs without a
-.NET install. `PublishSingleFile` also switches on self-extraction of the native Skia
+Produces `Deploys/Maxwell.exe` — one self-contained file, ~169 MB, that runs without a
+.NET install. The content pane's HTML, CSS and scripts are embedded in it too, so
+nothing else lands beside the exe. `PublishSingleFile` also switches on self-extraction of the native Skia
 and HarfBuzz libraries; without that they land beside the exe and the single file is
 not single. The natives unpack once per version into `%TEMP%\.net`, so first start is
 slower than later ones.
 
-Bundle compression would cut that to ~55 MB and is deliberately not used. A compressed
+Bundle compression is deliberately not used; it cut the file from 134 MB to ~55 MB when
+it was last measured. A compressed
 assembly cannot be mapped from the bundle, so the runtime decompresses it into private
 memory: measured idle in the tray, 86 MB private working set compressed against 47 MB
 uncompressed, and twice the startup CPU. Add
