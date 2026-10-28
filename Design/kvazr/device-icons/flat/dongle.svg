@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <path d="M9.5 2.5h5a1 1 0 0 1 1 1v5a1 1 0 0 1 -1 1h-5a1 1 0 0 1 -1 -1v-5a1 1 0 0 1 1 -1z" fill="url(#metal0)"/>
+  <path d="M10.3 4.5h0.9a0.3 0.3 0 0 1 0.3 0.3v0.9a0.3 0.3 0 0 1 -0.3 0.3h-0.9a0.3 0.3 0 0 1 -0.3 -0.3v-0.9a0.3 0.3 0 0 1 0.3 -0.3zM12.8 4.5h0.9a0.3 0.3 0 0 1 0.3 0.3v0.9a0.3 0.3 0 0 1 -0.3 0.3h-0.9a0.3 0.3 0 0 1 -0.3 -0.3v-0.9a0.3 0.3 0 0 1 0.3 -0.3z" fill="url(#deep1)"/>
+  <path d="M9.5 8.5h5a2.5 2.5 0 0 1 2.5 2.5v8a2.5 2.5 0 0 1 -2.5 2.5h-5a2.5 2.5 0 0 1 -2.5 -2.5v-8a2.5 2.5 0 0 1 2.5 -2.5z" fill="url(#blue2)"/>
+  <path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0z" fill="#ffffff"/>
+  <defs>
+    <linearGradient id="metal0" x1="12" y1="2.5" x2="12" y2="9.5" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#c3cad1"/>
+      <stop offset="1" stop-color="#9aa3ac"/>
+    </linearGradient>
+    <linearGradient id="deep1" x1="12" y1="4.5" x2="12" y2="6" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#646e78"/>
+      <stop offset="1" stop-color="#4a545d"/>
+    </linearGradient>
+    <linearGradient id="blue2" x1="12" y1="8.5" x2="12" y2="21.5" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2a95ec"/>
+      <stop offset="1" stop-color="#0a6bc6"/>
+    </linearGradient>
+  </defs>
+</svg>

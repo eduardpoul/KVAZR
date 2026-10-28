@@ -12,6 +12,10 @@ Console.OutputEncoding = Encoding.UTF8;
 
 bool verbose = args.Contains("--verbose") || args.Contains("-v");
 
+// A build step rather than a probe: the device icons out of Design/kvazr/device-icons
+// into the app's generated sources. No hardware involved, so it goes before the harness.
+if (args.Contains("--fluent-icons")) return FluentIconsBuild.Run();
+
 Console.WriteLine("KVAZR RACE harness");
 Console.WriteLine("==================");
 Console.WriteLine();

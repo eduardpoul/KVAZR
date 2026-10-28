@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <path d="M7.75 2.5h8.5a2.25 2.25 0 0 1 2.25 2.25v14.5a2.25 2.25 0 0 1 -2.25 2.25h-8.5a2.25 2.25 0 0 1 -2.25 -2.25v-14.5a2.25 2.25 0 0 1 2.25 -2.25zM7.75 4h8.5a0.75 0.75 0 0 1 0.75 0.75v14.5a0.75 0.75 0 0 1 -0.75 0.75h-8.5a0.75 0.75 0 0 1 -0.75 -0.75v-14.5a0.75 0.75 0 0 1 0.75 -0.75z" fill="currentColor" fill-rule="evenodd"/>
+  <path d="M8 6a1 1 0 1 0 2 0a1 1 0 1 0 -2 0z" fill="currentColor"/>
+  <path d="M11 6a1 1 0 1 0 2 0a1 1 0 1 0 -2 0z" fill="currentColor"/>
+  <path d="M14 6a1 1 0 1 0 2 0a1 1 0 1 0 -2 0z" fill="currentColor"/>
+  <path d="M8 9a1 1 0 1 0 2 0a1 1 0 1 0 -2 0z" fill="currentColor"/>
+  <path d="M11 9a1 1 0 1 0 2 0a1 1 0 1 0 -2 0z" fill="currentColor"/>
+  <path d="M14 9a1 1 0 1 0 2 0a1 1 0 1 0 -2 0z" fill="currentColor"/>
+  <path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0z" fill="currentColor"/>
+  <path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0z" fill="currentColor"/>
+  <path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0z" fill="currentColor"/>
+  <path d="M8 15a1 1 0 1 0 2 0a1 1 0 1 0 -2 0z" fill="currentColor"/>
+  <path d="M11 15a1 1 0 1 0 2 0a1 1 0 1 0 -2 0z" fill="currentColor"/>
+  <path d="M14 15a1 1 0 1 0 2 0a1 1 0 1 0 -2 0z" fill="currentColor"/>
+  <path d="M9 17h6a0.75 0.75 0 0 1 0.75 0.75v0a0.75 0.75 0 0 1 -0.75 0.75h-6a0.75 0.75 0 0 1 -0.75 -0.75v0a0.75 0.75 0 0 1 0.75 -0.75z" fill="currentColor"/>
+</svg>

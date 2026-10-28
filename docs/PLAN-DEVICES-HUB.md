@@ -828,8 +828,9 @@ HTML за пятнадцать минут, совпала с макетом то
   те же подтверждения.
 - **Токены — один источник**: `tools/design-tokens.py` теперь пишет и
   `wwwroot/css/tokens.css` (размеры из макета + палитра из `Themes/Tokens.axaml`).
-- **Иконки устройств** — цветной Fluent-набор из `Fluent Device Icons.dc.html`
-  (46 штук), сгенерирован `tools/fluent-icons.py` в `Web/FluentIcons.g.cs`. Выбор
+- **Иконки устройств** — цветной Fluent 2 набор из `Design/kvazr/device-icons`
+  (рисунки Microsoft, где они есть, остальные по тем же правилам), собирается
+  `kvazr --fluent-icons` в `Web/FluentIcons.g.cs` и `Themes/FluentIcons.axaml`. Выбор
   ключа — `Web/DeviceIcon.cs`: класс устройства + подсказки из имени.
 - **Фолбэки**: `--native` возвращает Avalonia-вьюхи целиком; на не-Windows они же —
   вся история, пока нет WebKit-хоста. Внутренние страницы (идентика, матрица

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <rect x="1.5" y="9" width="21" height="7" rx="2.5" fill="url(#a)"/>
+  <rect x="3.25" y="10.75" width="17.5" height="3.5" rx="1.75" fill="url(#b)"/>
+  <circle cx="6.5" cy="12.5" r="1.1" fill="url(#c)"/>
+  <circle cx="12" cy="12.5" r="1.1" fill="url(#c)"/>
+  <circle cx="17.5" cy="12.5" r="1.1" fill="url(#c)"/>
+  <defs>
+    <linearGradient id="a" x1="1.5" y1="9" x2="4" y2="19" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#d1d8de"/>
+      <stop offset="1" stop-color="#959ea7"/>
+    </linearGradient>
+    <linearGradient id="b" x1="12" y1="10.75" x2="12" y2="14.25" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#63686e"/>
+      <stop offset="1" stop-color="#383b3d"/>
+    </linearGradient>
+    <linearGradient id="c" x1="12" y1="11.4" x2="12" y2="13.6" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0fafff"/>
+      <stop offset="1" stop-color="#0067bf"/>
+    </linearGradient>
+  </defs>
+</svg>

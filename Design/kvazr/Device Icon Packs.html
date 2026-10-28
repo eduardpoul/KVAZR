@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Device Icon Packs</title>
+<!--
+  Три пака иконок устройств на одном листе: device-icons (цветной, сейчас в приложении),
+  device-icons/flat (плоский, как в Параметрах Windows), device-icons/mono (монохромный,
+  как значки в трее). Картинки берутся прямо из папок — лист открывается файлом и всегда
+  показывает то, что там лежит.
+-->
+<style>
+  :root {
+    --page: #f3f3f3; --ink: #1b1b1b; --muted: #5f5f5f; --line: #e0e0e0;
+    --dark: #2b2b2b; --dark-ink: #ffffff; --light: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink);
+         font: 14px/1.45 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 48px; }
+  h1 { font: 600 28px/1.2 "Segoe UI Variable Display", "Segoe UI", sans-serif; margin: 0 0 6px; }
+  .lead { color: var(--muted); margin: 0 0 24px; max-width: 760px; }
+  h2 { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 28px 0 10px; }
+
+  table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  th { font-weight: 600; text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); background: #fafafa; }
+  th small { display: block; font-weight: 400; color: var(--muted); }
+  td { padding: 0; border-bottom: 1px solid var(--line); }
+  tr:last-child td { border-bottom: 0; }
+  td.name { padding: 0 12px; width: 190px; }
+  td.name code { display: block; color: var(--muted); font-size: 12px; }
+  .cell { display: flex; align-items: center; gap: 14px; height: 66px; padding: 0 14px; }
+  .cell.dark { background: var(--dark); }
+  .cell.light { background: var(--light); }
+  .cell img { display: block; }
+  .i48 { width: 44px; height: 44px; }
+  .i20 { width: 20px; height: 20px; }
+  .i16 { width: 16px; height: 16px; }
+  .pack { display: grid; grid-template-columns: 1fr 1fr; }
+  .dark img.mono { filter: invert(1); }
+
+  .strips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .strip { border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
+  .strip .bar { display: flex; flex-direction: column; gap: 2px; padding: 8px; }
+  .strip.dark .bar { background: #202020; color: #fff; }
+  .strip.light .bar { background: #f3f3f3; color: #1b1b1b; }
+  .nav { display: flex; align-items: center; gap: 12px; padding: 7px 10px; border-radius: 4px; font-size: 13px; }
+  .nav.on { background: rgba(255,255,255,.06); }
+  .strip.light .nav.on { background: rgba(0,0,0,.05); }
+  .caption { font-size: 12px; color: var(--muted); padding: 6px 2px 0; }
+
+  .tray { display: flex; align-items: center; gap: 14px; height: 48px; padding: 0 16px; border-radius: 10px; }
+  .tray.dark { background: #1c1c1c; }
+  .tray.light { background: #eeeeee; border: 1px solid var(--line); }
+  .tray .time { margin-left: auto; font-size: 12px; text-align: right; line-height: 1.3; }
+  .tray.dark .time { color: #fff; }
+  .tray.dark img { filter: invert(1); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Иконки устройств — три пака</h1>
+  <p class="lead">Те же семнадцать устройств в трёх стилях. Цветной — то, что сейчас в приложении. Плоский — один цвет на
+  устройство и белые детали, как в навигации Параметров Windows. Монохромный — контур в цвет текста, как значки в трее.
+  Каждая иконка в двух размерах: плитка (44) и рельса или трей (20, 16).</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Устройство</th>
+        <th>Цветной<small>device-icons</small></th>
+        <th>Плоский<small>device-icons/flat</small></th>
+        <th>Монохромный<small>device-icons/mono</small></th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <h2>В контексте</h2>
+  <div class="strips" id="strips"></div>
+
+  <h2>Трей</h2>
+  <div style="display: grid; gap: 10px;" id="trays"></div>
+</main>
+
+<script>
+  const DEVICES = [
+    ["headset", "Гарнитура"], ["mic", "Микрофон"], ["mic-studio", "Студийный микрофон"],
+    ["earbuds", "Вкладыши"], ["earbuds-case", "Кейс вкладышей"], ["speaker", "Колонка"],
+    ["soundbar", "Саундбар"], ["keyboard", "Клавиатура"], ["keyboard-compact", "Компактная клавиатура"],
+    ["numpad", "Цифровой блок"], ["mouse", "Мышь"], ["gamepad", "Геймпад"],
+    ["dongle", "Донгл, ресивер"], ["dock", "Док, зарядка"], ["webcam", "Веб-камера"],
+    ["watch", "Часы"], ["unknown", "Неизвестное устройство"],
+  ];
+  const PACKS = [["colour", "device-icons/"], ["flat", "device-icons/flat/"], ["mono", "device-icons/mono/"]];
+  const src = (pack, key) => PACKS.find(p => p[0] === pack)[1] + key + ".svg";
+  const img = (pack, key, size) => `<img class="i${size} ${pack}" src="${src(pack, key)}" alt="">`;
+
+  document.getElementById("rows").innerHTML = DEVICES.map(([key, name]) => `
+    <tr>
+      <td class="name">${name}<code>${key}</code></td>
+      ${PACKS.map(([pack]) => {
+        const small = pack === "mono" ? 16 : 20;
+        return `<td><div class="pack">
+          <div class="cell dark">${img(pack, key, 48)}${img(pack, key, small)}</div>
+          <div class="cell light">${img(pack, key, 48)}${img(pack, key, small)}</div>
+        </div></td>`;
+      }).join("")}
+    </tr>`).join("");
+
+  // The way each pack would actually be met: the colour one in KVAZR's own rail, the flat
+  // one in a Settings-like navigation list, the mono one where Windows puts tray glyphs.
+  const NAV = ["headset", "earbuds", "keyboard", "mouse", "gamepad", "webcam"];
+  const strip = (pack, theme, title) => `
+    <div>
+      <div class="strip ${theme}"><div class="bar">
+        ${NAV.map((key, i) => `<div class="nav${i === 0 ? " on" : ""}">${img(pack, key, 20)}${DEVICES.find(d => d[0] === key)[1]}</div>`).join("")}
+      </div></div>
+      <div class="caption">${title}</div>
+    </div>`;
+  document.getElementById("strips").innerHTML =
+    strip("colour", "dark", "Цветной — рельса KVAZR, тёмная тема") +
+    strip("flat", "dark", "Плоский — как навигация Параметров, тёмная тема") +
+    strip("flat", "light", "Плоский — светлая тема");
+
+  const TRAY = ["headset", "mouse", "keyboard", "earbuds", "gamepad", "dongle"];
+  const tray = (theme) => `
+    <div class="tray ${theme}">
+      ${TRAY.map(key => img("mono", key, 16)).join("")}
+      <div class="time">18:49<br>26.10.2026</div>
+    </div>`;
+  document.getElementById("trays").innerHTML = tray("dark") + tray("light");
+</script>
+</body>
+</html>
